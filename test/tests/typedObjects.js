@@ -134,34 +134,169 @@
 
   test("Object references", function()
   {
-    let {ObjectType, uint8} = require("typedObjects");
+    let {ObjectType, ObjectBase, uint8} = require("typedObjects");
     let type1 = new ObjectType({
       foo: uint8
     });
     let type2 = new ObjectType({
       bar: type1
     });
-    ok(type1 && type2, "Types created");
 
     let obj1 = type1();
     let obj2 = type2();
-    ok(obj1 && obj2, "Objects created");
 
     obj2.bar = obj1;
-    ok(obj2.bar, "Object reference set");
-    equal(obj2.bar.typeId, obj1.typeId);
-    equal(obj2.bar.bufferIndex, obj1.bufferIndex);
-    equal(obj2.bar.byteOffset, obj1.byteOffset);
+    ok(obj1.equals(obj2.bar), "Object reference set");
+
+    let type3 = type1.extend({
+      anyref: ObjectBase
+    });
+    let obj3 = type3();
+    obj2.bar = obj3;
+    ok(obj3.equals(obj2.bar), "Object reference set to a subclass");
+
+    throws(function()
+    {
+      obj2.bar = obj2;
+    }, "Object reference cannot be set to an unrelated class");
+    ok(obj3.equals(obj2.bar), "Object reference keeps value after unsuccessful assignment");
+
+    obj3.anyref = obj3;
+    ok(obj3.anyref.equals(obj3), "Assigned object itself to ObjectBase-typed reference");
+
+    obj3.anyref = obj2;
+    ok(obj3.anyref.equals(obj2), "Assigned object of unrelated type to ObjectBase-typed reference");
 
     obj2.bar = null;
     ok(!obj2.bar, "Object reference unset");
 
-    let obj3 = type2();
-    obj3.bar = obj1;
-    ok(obj3.bar, "Object reference set on new object");
-    equal(obj3.bar.typeId, obj1.typeId);
-    equal(obj3.bar.bufferIndex, obj1.bufferIndex);
-    equal(obj3.bar.byteOffset, obj1.byteOffset);
-    ok(!obj2.bar);
+    let obj4 = type2();
+    obj4.bar = obj1;
+    ok(obj1.equals(obj4.bar), "Object reference set on new object");
+    ok(!obj2.bar, "Reference on original object still unset");
+  });
+
+  test("Object equality", function()
+  {
+    let {ObjectType, uint8, float32} = require("typedObjects");
+
+    let type1 = new ObjectType({
+      foo: uint8
+    }, {bufferSize: 2});
+    let type2 = new ObjectType({
+      bar: type1
+    });
+
+    let obj1 = type1();
+    let obj2 = type2();
+    ok(obj1.equals(obj1), "Object equal to itself");
+    ok(obj2.equals(obj2), "Object equal to itself");
+    ok(!obj1.equals(obj2), "Object not equal to object of another type");
+    ok(!obj2.equals(obj1), "Object not equal to object of another type");
+
+    let obj3 = type1();
+    ok(!obj1.equals(obj3), "Object not equal to another object of same type in same buffer");
+    ok(!obj3.equals(obj1), "Object not equal to another object of same type in same buffer");
+
+    let obj4 = type1();
+    ok(!obj1.equals(obj4), "Object not equal to another object of same type at same offset");
+    ok(!obj4.equals(obj1), "Object not equal to another object of same type at same offset");
+
+    obj2.bar = obj1;
+    ok(obj1.equals(obj2.bar), "Object equal to reference to itself");
+    ok(obj2.bar.equals(obj1), "Object equal to reference to itself");
+    ok(obj2.bar.equals(obj2.bar), "Object reference equals to itself");
+
+    let obj5 = type2();
+    obj5.bar = null;
+    ok(!obj2.bar.equals(obj5.bar), "Object reference not equal to null reference");
+
+    obj5.bar = obj3;
+    ok(!obj2.bar.equals(obj5.bar), "Object reference not equal to reference to another object")
+    ok(!obj5.bar.equals(obj2.bar), "Object reference not equal to reference to another object")
+  });
+
+  test("Object inheritance", function()
+  {
+    let {ObjectType, uint8, float32} = require("typedObjects");
+
+    // Property inheritance
+    let type1 = new ObjectType({
+      foo: uint8
+    });
+    let type2 = type1.extend({
+      bar: float32
+    });
+
+    let obj1 = type1();
+    let obj2 = type2();
+    ok("foo" in obj1, "Superclass property exists in superclass");
+    ok(!("bar" in obj1), "Subclass property doesn't exist in superclass");
+    ok("foo" in obj2, "Superclass property exists in subclass");
+    ok("bar" in obj2, "Subclass property exists in subclass");
+
+    ok(type1.isInstance(obj1), "Object is recognized as instance of its class");
+    ok(type1.isInstance(obj2), "Object is recognized as instance of its superclass");
+    ok(!type2.isInstance(obj1), "Object isn't an instance of its subclass");
+    ok(type2.isInstance(obj2), "Object is recognized as instance of its class");
+
+    // Method and constructor inheritance
+    let type3 = new ObjectType({
+      x: uint8,
+      foo: function(n) {return this.x * n;}
+    }, {
+      constructor: function(x)
+      {
+        this.x = x;
+      }
+    });
+    let type4 = type3.extend({
+      foo: function(super_, n) {return super_(n + 1);},
+      bar: function() {return 4;}
+    }, {
+      constructor: function(super_, x)
+      {
+        super_(x);
+        this.x *= 3;
+      }
+    });
+
+    let obj3 = type3(2);
+    let obj4 = type4(2);
+    equal(obj3.x, 2, "Superclass constructor executed correctly");
+    equal(obj4.x, 6, "Subclass constructor executed correctly");
+
+    equal(typeof obj3.foo, "function", "Superclass method exists in superclass");
+    equal(typeof obj3.bar, "undefined", "Subclass method doesn't exist in superclass");
+    equal(typeof obj4.foo, "function", "Superclass method exists in subclass");
+    equal(typeof obj4.bar, "function", "Subclass method exists in subclass");
+
+    equal(obj3.foo(4), 8, "Superclass method executed correctly");
+    equal(obj4.foo(4), 30, "Overridden superclass method executed correctly")
+
+    let type5 = type3.extend({
+      y: uint8
+    });
+    let obj5 = type5(4);
+    equal(obj5.x, 4, "Superclass constructor is called even if subclass has no constructor");
+
+    // Untypical overrides
+    type3.extend({x: uint8});
+    ok(true, "Overriding property without changing type");
+
+    throws(function()
+    {
+      type3.extend({x: float32});
+    }, "Override changes property type");
+
+    throws(function()
+    {
+      type3.extend({foo: uint8});
+    }, "Property masks method");
+
+    throws(function()
+    {
+      type3.extend({x: function() {}});
+    }, "Method masks property");
   });
 })();
