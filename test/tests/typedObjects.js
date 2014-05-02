@@ -63,7 +63,6 @@
 
     equal(typeof type.typeId, "number");
     equal(typeof type.byteLength, "number");
-    equal(type.byteLength, 8);
 
     // Create an object and check default properties
     let objects = [];
@@ -84,7 +83,7 @@
     {
       objects.push(type());
       equal(objects[i].bufferIndex, 0);
-      equal(objects[i].byteOffset, 8 * i);
+      equal(objects[i].byteOffset, type.byteLength * i);
     }
 
     // Properties should persist and methods should be able to access them
@@ -109,7 +108,7 @@
 
     obj = type();
     equal(obj.bufferIndex, 1);
-    equal(obj.byteOffset, 8);
+    equal(obj.byteOffset, type.byteLength);
   });
 
   test("Object constructors", function()
@@ -298,5 +297,104 @@
     {
       type3.extend({x: function() {}});
     }, "Method masks property");
+  });
+
+  test("Garbage collection", function()
+  {
+    let {ObjectType, uint8, float32} = require("typedObjects");
+
+    let destroyed;
+
+    let type1 = new ObjectType({
+      foo: uint8
+    }, {
+      constructor: function(foo)
+      {
+        this.foo = foo;
+      },
+      destructor: function()
+      {
+        destroyed.push(["type1", this.foo]);
+      }
+    });
+
+    // Single release() call
+    destroyed = [];
+    type1(1).release();
+    deepEqual(destroyed, [["type1", 1]], "Destructor called after release()");
+
+    // retain() and multiple release() calls
+    destroyed = [];
+    let obj2 = type1(2);
+    equal(obj2.bufferIndex, 0, "New object replaces the destroyed one");
+    equal(obj2.byteOffset, 0, "New object replaces the destroyed one");
+
+    obj2.retain();
+    obj2.release();
+    deepEqual(destroyed, [], "Destructor not called after release() if retain() was called");
+    obj2.release();
+    deepEqual(destroyed, [["type1", 2]], "Destructor called after second release()");
+
+    // References holding object
+    let type2 = type1.extend({
+      bar: type1
+    }, {
+      destructor: function(super_)
+      {
+        super_();
+        destroyed.push(["type2", this.foo]);
+      }
+    });
+
+    destroyed = [];
+    let obj3 = type1(3);
+    let obj4 = type2(4);
+    obj4.bar = obj3;
+    obj3.release();
+    deepEqual(destroyed, [], "Destructor not called if references to object exist");
+    obj4.bar = null;
+    deepEqual(destroyed, [["type1", 3]], "Destructor called after reference is cleared");
+
+    // Recursive destruction
+    destroyed = [];
+    let obj5 = type1(5);
+    obj4.bar = obj5;
+    obj5.release();
+    deepEqual(destroyed, [], "Destructor not called if references to object exist");
+    obj4.release();
+    deepEqual(destroyed, [["type1", 4], ["type2", 4], ["type1", 5]], "Destroying an object released its references");
+
+    // Misbehaving destructors
+    let type3 = type1.extend({}, {
+      destructor: function(super_)
+      {
+        this.retain();
+      }
+    });
+    throws(function()
+    {
+      type3(0).release();
+    }, "Retaining reference in destructor is prohibited");
+
+    let type4 = type1.extend({}, {
+      destructor: function(super_)
+      {
+        this.release();
+      }
+    });
+    throws(function()
+    {
+      type4(0).release();
+    }, "Releasing reference in destructor is prohibited");
+
+    let type5 = type1.extend({}, {
+      destructor: function(super_)
+      {
+        this.retain();
+        this.release();
+      }
+    });
+    type5(0).release();
+    ok(true, "Temporarily retaining reference in destructor is allowed");
   });
 })();
