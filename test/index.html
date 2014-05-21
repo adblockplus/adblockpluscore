@@ -2,17 +2,37 @@
 <html>
   <head>
     <link rel="stylesheet" href="qunit.css"/>
+
+    <script>
+      var js17supported = false;
+    </script>
+    <script type="text/javascript;version=1.7">
+      js17supported = true;
+    </script>
+
     <script src="jquery-1.7.1.min.js"></script>
     <script src="qunit.js"></script>
     <script src="common.js"></script>
-    <script src="lib/typedObjects/utils.js" type="text/javascript;version=1.7"></script>
-    <script src="lib/typedObjects/arrayTypes.js" type="text/javascript;version=1.7"></script>
-    <script src="lib/typedObjects/primitiveTypes.js" type="text/javascript;version=1.7"></script>
-    <script src="lib/typedObjects/references.js" type="text/javascript;version=1.7"></script>
-    <script src="lib/typedObjects/objectTypes.js" type="text/javascript;version=1.7"></script>
-    <script src="lib/typedObjects/stringType.js" type="text/javascript;version=1.7"></script>
-    <script src="lib/typedObjects.js" type="text/javascript;version=1.7"></script>
-    <script src="tests/typedObjects.js" type="text/javascript;version=1.7"></script>
+
+    <script>
+      var libs = [
+        "typedObjects/utils.js",
+        "typedObjects/arrayTypes.js",
+        "typedObjects/primitiveTypes.js",
+        "typedObjects/references.js",
+        "typedObjects/objectTypes.js",
+        "typedObjects/stringType.js",
+        "typedObjects.js"
+      ];
+      for (var i = 0; i < libs.length; i++)
+        addScript("/lib/" + libs[i]);
+
+      var tests = [
+        "typedObjects.js"
+      ];
+      for (var i = 0; i < tests.length; i++)
+        addScript("/tests/" + tests[i]);
+    </script>
   </head>
   <body>
     <h1 id="qunit-header">Adblock Plus unit tests</h1>

@@ -15,6 +15,19 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+function addScript(url)
+{
+  var script = document.createElement("script");
+  script.src = url;
+  if (js17supported)
+    script.type = "text/javascript;version=1.7";
+  else
+    script.src += "?backcompat";
+  script.async = false;
+  document.head.appendChild(script);
+  return script;
+}
+
 function require(module)
 {
   return require.scopes[module];

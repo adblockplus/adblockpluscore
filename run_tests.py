@@ -31,19 +31,31 @@ def js_encode(str):
 def multiplex(path=""):
   request_url = urlparse(flask.request.url)
   request_path = request_url.path
-  if request_path.startswith("/lib/"):
-    path = flask.safe_join(os.path.dirname(__file__), request_path.lstrip("/"))
+  islib = request_path.startswith("/lib/")
+  backcompat = request_url.query == "backcompat"
+
+  rootdir = os.path.dirname(__file__)
+  if not islib:
+    rootdir = os.path.join("test")
+
+  if islib or backcompat:
+    path = flask.safe_join(rootdir, request_path.lstrip("/"))
     if not os.path.isfile(path):
       return flask.abort(404)
 
-    with open(path, "rb") as file:
-      module = os.path.splitext(request_path[len("/lib/"):])[0]
-      data = "require.scopes['%s'] = function(){exports={};%s\nreturn exports;}();" % (module, file.read())
-      return (data, 200, {"Content-Type": "application/javascript; charset=utf-8"})
+    module = os.path.splitext(request_path[len("/lib/"):])[0]
+    if backcompat:
+      from jshydra.abp_rewrite import doRewrite
+      data = doRewrite([os.path.abspath(path)], ["module=true"] if islib else [])
+      data = re.sub(r"require\.scopes\[.*?\]", "require.scopes['%s']" % module, data)
+    else:
+      with open(path, "rb") as file:
+        data = "require.scopes['%s'] = function(){var exports={};%s\nreturn exports;}();" % (module, file.read())
+    return (data, 200, {"Content-Type": "application/javascript; charset=utf-8"})
   else:
     if request_path.endswith("/"):
       request_path += "index.html"
-    return flask.send_from_directory(os.path.join(os.path.dirname(__file__), "test"), request_path.lstrip("/"))
+    return flask.send_from_directory(rootdir, request_path.lstrip("/"))
 
 if __name__ == "__main__":
   app.run(debug=True)
