@@ -680,6 +680,59 @@
       array.release();
   });
 
+  test("Array methods", function()
+  {
+    let {uint32} = require("typedObjects");
+    let uint32Array = uint32.Array({
+      toJS: function()
+      {
+        let result = [];
+        for (let i = 0; i < this.length; i++)
+          result.push(this.get(i));
+        return result;
+      }
+    });
+
+    let array = uint32Array();
+    deepEqual(array.toJS(), [], "Array is initially empty");
+
+    throws(() => array.pop(), "Popping from an empty array throws");
+    throws(() => array.shift(), "Shifting an empty array throws");
+
+    equal(array.push(5), 1, "Pushing returns new length");
+    equal(array.push(2, 8), 3, "Pushing returns new length");
+    deepEqual(array.toJS(), [5, 2, 8], "Pushing three elements succeeded");
+
+    equal(array.pop(), 8, "Popping returns element");
+    equal(array.pop(), 2, "Popping returns element");
+    deepEqual(array.toJS(), [5], "Popping two elements succeeded");
+
+    equal(array.unshift(4), 2, "Unshifting returns new length");
+    equal(array.unshift(0, 9), 4, "Unshifting returns new length");
+    deepEqual(array.toJS(), [0, 9, 4, 5], "Unshifting two elements succeeded");
+
+    equal(array.shift(), 0, "Shifting returns element");
+    equal(array.shift(), 9, "Shifting returns element");
+    deepEqual(array.toJS(), [4, 5], "Shifting by two elements succeeded");
+
+    array.splice(1, 0, 1, 7);
+    deepEqual(array.toJS(), [4, 1, 7, 5], "Using splice to insert elements succeeded");
+    array.splice(2, 1);
+    deepEqual(array.toJS(), [4, 1, 5], "Using splice to remove an element succeeded");
+    array.splice(0, 2, 9);
+    deepEqual(array.toJS(), [9, 5], "Using splice to remove two elements and insert one succeeded");
+    array.splice(1, 1, 4, 2, 7);
+    deepEqual(array.toJS(), [9, 4, 2, 7], "Using splice to remove one element and insert two succeeded");
+    array.splice(3, 8);
+    deepEqual(array.toJS(), [9, 4, 2], "Using splice with excessive count parameter succeeded");
+    array.splice(9, 1, 3);
+    deepEqual(array.toJS(), [9, 4, 2, 3], "Using splice with excessive index parameter succeeded");
+    array.splice(-2, 1, 7);
+    deepEqual(array.toJS(), [9, 4, 7, 3], "Using splice with negative index parameter succeeded");
+    array.splice(-20, 2, 10);
+    deepEqual(array.toJS(), [10, 7, 3], "Using splice with excessive negative index parameter succeeded");
+  });
+
   test("String type", function()
   {
     let {string} = require("typedObjects");
