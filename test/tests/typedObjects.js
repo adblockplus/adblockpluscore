@@ -679,4 +679,80 @@
     for (let array of [array1, array2, array3, array4, array5])
       array.release();
   });
+
+  test("String type", function()
+  {
+    let {string} = require("typedObjects");
+
+    let s1 = string();
+    ok(s1, "String created without parameters");
+    equal(s1.length, 0, "String length is zero");
+    equal(s1.toString(), "", "JavaScript representation is empty string");
+    s1.release();
+
+    let s2 = string(4);
+    ok(s2, "String with particular length created");
+    equal(s2.length, 4, "String length set correctly");
+    for (let i = 0; i < s2.length; i++)
+      s2.set(i, i + 0xF000);
+    equal(s2.toString(), "\uF000\uF001\uF002\uF003", "JavaScript representation is correct");
+    s2.release();
+
+    let s3 = string("test");
+    ok(s3, "String created from JS string");
+    equal(s3.length, 4, "String length set correctly");
+    equal(s3.get(2), "s".charCodeAt(0), "Array items represent string letters");
+    equal(s3.toString(), "test", "JavaScript representation is correct");
+    s3.release();
+
+    let s4 = string("somelongstring", 2, 6);
+    ok(s4, "String created as JS substring");
+    equal(s4.length, 6, "String length set correctly");
+    equal(s4.toString(), "melong", "JavaScript representation is correct");
+    s4.release();
+
+    let s5 = string("abc", 2, 6);
+    ok(s5, "String created as JS substring with excessive length parameter");
+    equal(s5.length, 1, "String length set correctly");
+    equal(s5.toString(), "c", "JavaScript representation is correct");
+    s5.release();
+
+    let s6 = string("abc", 8, 1);
+    ok(s6, "String created as JS substring with too large offset parameter");
+    equal(s6.length, 0, "String length set correctly");
+    equal(s6.toString(), "", "JavaScript representation is correct");
+    s6.release();
+
+    let s7 = string("abc", 1);
+    ok(s7, "String created as JS substring without length parameter");
+    equal(s7.length, 2, "String length set correctly");
+    equal(s7.toString(), "bc", "JavaScript representation is correct");
+    s7.release();
+
+    let s8 = string("somelongstring");
+    let s9 = string(s8, 2, 6);
+    ok(s9, "String created as typed substring");
+    equal(s9.length, 6, "String length set correctly");
+    equal(s9.toString(), "melong", "JavaScript representation is correct");
+    s9.release();
+
+    let s10 = string(s8, 4, 20);
+    ok(s10, "String created as typed substring with excessive length parameter");
+    equal(s10.length, 10, "String length set correctly");
+    equal(s10.toString(), "longstring", "JavaScript representation is correct");
+    s10.release();
+
+    let s11 = string(s8, 20, 1);
+    ok(s11, "String created as typed substring with too large offset parameter");
+    equal(s11.length, 0, "String length set correctly");
+    equal(s11.toString(), "", "JavaScript representation is correct");
+    s11.release();
+
+    let s12 = string(s8, 4);
+    ok(s12, "String created as typed substring without length parameter");
+    equal(s12.length, 10, "String length set correctly");
+    equal(s12.toString(), "longstring", "JavaScript representation is correct");
+    s12.release();
+    s8.release();
+  });
 })();
