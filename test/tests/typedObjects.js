@@ -397,4 +397,286 @@
     type5(0).release();
     ok(true, "Temporarily retaining reference in destructor is allowed");
   });
+
+  test("Property watchers", function()
+  {
+    let {ObjectType, uint8, int32} = require("typedObjects");
+
+    let watched  = null;
+    let type1 = new ObjectType({
+      foo: uint8,
+      bar: int32
+    }, {
+      constructor: function(foo, bar)
+      {
+        this.foo = foo;
+        this.bar = bar;
+      },
+
+      watch: {
+        foo: function(value)
+        {
+          watched = [this, "foo", this.foo, value];
+          return value + 1;
+        },
+        bar: function(value)
+        {
+          watched = [this, "bar", this.bar, value];
+          return value + 2;
+        }
+      }
+    });
+
+    let obj1 = type1(1, 2);
+
+    obj1.foo = 5;
+    deepEqual(watched, [obj1, "foo", 2, 5], "Watcher called for first property");
+    equal(obj1.foo, 6, "Value returned by the watcher applied");
+
+    obj1.bar += 4;
+    deepEqual(watched, [obj1, "bar", 4, 8], "Watcher called for second property");
+    equal(obj1.bar, 10, "Value returned by the watcher applied");
+
+    let type2 = type1.extend({}, {
+      watch: {
+        bar: function(value)
+        {
+          watched = [this, "barOverridden", this.bar, value];
+          return value;
+        }
+      }
+    });
+
+    let obj2 = type2(3, 4);
+
+    obj2.foo = 8;
+    deepEqual(watched, [obj2, "foo", 4, 8], "Watchers are inherited");
+    equal(obj2.foo, 9, "Value returned by the watcher applied");
+
+    obj2.bar = 10;
+    deepEqual(watched, [obj2, "barOverridden", 4, 10], "Watchers can be overridden");
+    equal(obj2.bar, 10, "Value returned by the watcher applied");
+  });
+
+  test("Arrays of primitive types", function()
+  {
+    let {ObjectType, uint32} = require("typedObjects");
+
+    let arrayDestroyed = false;
+    let uint32Array = uint32.Array({
+      customProp: uint32,
+      setCustomProp: function(customProp)
+      {
+        this.customProp = customProp;
+      }
+    }, {
+      constructor: function(length)
+      {
+        this.length = length;
+      },
+      destructor: function()
+      {
+        arrayDestroyed = true;
+      }
+    });
+    ok(uint32Array, "Array type created");
+
+    let array1 = uint32Array(3);
+    ok(array1, "Array created");
+    equal(array1.length, 3, "Constructor set length to 3");
+    equal(array1.size, 4, "Array size was set accordingly");
+
+    // Custom properties/methods
+    equal(typeof array1.customProp, "number", "Custom array property created");
+    equal(typeof array1.setCustomProp, "function", "Custom array method created");
+
+    array1.setCustomProp(12);
+    equal(array1.customProp, 12, "Method could set custom property");
+
+    // Setting/reading array elements
+    for (var i = 0; i < 3; i++)
+      array1.set(i, i * 2);
+    for (var i = 0; i < 3; i++)
+      equal(array1.get(i), i * 2, "Array element value persisted");
+
+    // Array length changes
+    array1.length = 5;
+    equal(array1.length, 5, "Length increased to 5");
+    equal(array1.size, 8, "Array size adjusted accordingly");
+    for (var i = 0; i < 3; i++)
+      equal(array1.get(i), i * 2, "Array element value survived length increase");
+
+    array1.length = 2;
+    equal(array1.length, 2, "Length reduced to 2");
+    equal(array1.size, 8, "Array size unchanged after length reduction");
+    for (var i = 0; i < 2; i++)
+      equal(array1.get(i), i * 2, "Value of remaining elements survived length decrease");
+
+    // Out of bounds read/writes
+    throws(() => array1.get(-1), "Getting with negative element index throws");
+    throws(() => array1.get(2), "Getting with too large element index throws");
+    throws(() => array1.set(-1, 12), "Setting with negative element index throws");
+    throws(() => array1.set(2, 12), "Setting with too large element index throws");
+
+    // Using array as a property type
+    let type1 = ObjectType({
+      foo: uint32Array
+    });
+    let obj1 = type1();
+    obj1.foo = array1;
+    ok(array1.equals(obj1.foo), "Array assigned to object property correctly");
+
+    ok(!arrayDestroyed, "Array not destroyed at this point");
+    array1.release();
+    ok(!arrayDestroyed, "Array not destroyed after releasing if referenced in an object");
+
+    obj1.release();
+    ok(arrayDestroyed, "Array destroyed after releasing object holding a reference to it");
+  });
+
+  test("Arrays of objects", function()
+  {
+    let {ObjectType, uint8} = require("typedObjects");
+
+    let destroyed = [];
+    let arrayDestroyed = false;
+    let type1 = ObjectType({
+      foo: uint8
+    }, {
+      constructor: function(foo)
+      {
+        this.foo = foo;
+      },
+      destructor: function()
+      {
+        destroyed.push(this.foo);
+      }
+    });
+
+    let type1Array = type1.Array(null, {
+      destructor: function()
+      {
+        arrayDestroyed = true;
+      }
+    });
+    ok(type1Array, "Array type created");
+
+    let array1 = type1Array();
+    ok(array1, "Array created");
+
+    equal(array1.length, 0, "Default array length");
+    equal(array1.size, 0, "Default array size");
+
+    throws(() => array1.get(0), "Getting element of empty array throws");
+    throws(() => array1.set(0, null), "Setting element of empty array throws");
+
+    array1.length = 1;
+    equal(array1.length, 1, "Array length set to 1");
+    equal(array1.size, 1, "Array size adjusted accordingly");
+
+    let obj1 = type1(1);
+    array1.set(0, obj1);
+    obj1.release();
+
+    ok(obj1.equals(array1.get(0)), "Array element persisted");
+    throws(() => array1.get(-1), "Getting with negative element index throws");
+    throws(() => array1.get(1), "Getting with too large element index throws");
+    throws(() => array1.set(-1, null), "Setting with negative element index throws");
+    throws(() => array1.set(1, null), "Setting with too large element index throws");
+
+    array1.length = 3;
+    equal(array1.length, 3, "Array length set to 3");
+    equal(array1.size, 4, "Array size adjusted accordingly");
+
+    ok(obj1.equals(array1.get(0)), "Array element survived resizing");
+    equal(array1.get(1), null, "Uninitialized array element is null");
+    equal(array1.get(2), null, "Uninitialized array element is null");
+
+    let obj2 = type1(2);
+    array1.set(2, obj2);
+    obj2.release();
+
+    ok(obj1.equals(array1.get(0)), "Array element unchanged after setting another element");
+    equal(array1.get(1), null, "Uninitialized array element is null");
+    ok(obj2.equals(array1.get(2)), "Array element persisted");
+
+    deepEqual(destroyed, [], "No objects destroyed at this point");
+
+    array1.set(0, null);
+    deepEqual(destroyed, [1], "Object destroyed after being unset in array");
+
+    array1.set(1, array1.get(2));
+    array1.set(2, null);
+    deepEqual(destroyed, [1], "Object not destroyed after being unset in array if still set on another element");
+
+    array1.length = 1;
+    equal(array1.length, 1, "Array length reduced");
+    equal(array1.size, 4, "Array size unchanged after length reduction");
+    deepEqual(destroyed, [1, 2], "Object destroyed after removed implicitly by reducing length");
+
+    ok(!arrayDestroyed, "Array not destroyed at this point");
+    array1.release();
+    ok(arrayDestroyed, "Array destroyed after releasing");
+  });
+
+  test("Array memory allocation", function()
+  {
+    let {uint32} = require("typedObjects");
+
+    let uint32Array = uint32.Array(null, {
+      arrayBufferSize: 8,
+      constructor: function(length)
+      {
+        this.length = length;
+      }
+    });
+
+    let array1 = uint32Array(0);
+    equal(array1.arrayBufferIndex, -1, "No buffer allocated for zero-size arrays");
+
+    array1.length = 3;
+    equal(array1.arrayBufferIndex, 0, "First array allocated in first buffer");
+    equal(array1.arrayByteOffset, 0, "First array allocated at zero byte offset");
+
+    let array2 = uint32Array(4);
+    equal(array2.arrayBufferIndex, 0, "Second array allocated in first buffer");
+    equal(array2.arrayByteOffset, 16, "Second array allocated at next available byte offset");
+
+    let array3 = uint32Array(4);
+    equal(array3.arrayBufferIndex, 1, "Third array allocated in new buffer");
+    equal(array3.arrayByteOffset, 0, "Third array allocated at zero byte offset");
+
+    let array4 = uint32Array(2);
+    equal(array4.arrayBufferIndex, 2, "Array with different size allocated in new buffer");
+    equal(array4.arrayByteOffset, 0, "Array with different size allocated at zero offset");
+
+    array2.release();
+    array2 = uint32Array(3);
+    equal(array2.arrayBufferIndex, 0, "After releasing an array new array is allocated in same buffer");
+    equal(array2.arrayByteOffset, 16, "After releasing an array new array is allocated at same byte offset");
+
+    array1.length = 0;
+    array1.size = 0;
+    equal(array1.arrayBufferIndex, -1, "Setting array size to zero releases its buffer");
+
+    array4.length = 4;
+    equal(array4.arrayBufferIndex, 0, "Increasing array size moves it to a different buffer");
+    equal(array4.arrayByteOffset, 0, "Increasing array size moves makes it reuse the spot from a released array buffer");
+
+    let array5 = uint32Array(9);
+    equal(array5.arrayBufferIndex, 3, "Large array gets its own buffer");
+    equal(array5.arrayByteOffset, 0, "Large array is allocated at zero offset");
+
+    let array6 = uint32Array(9);
+    equal(array6.arrayBufferIndex, 4, "Second large array gets its own buffer");
+    equal(array6.arrayByteOffset, 0, "Second large array is allocated at zero offset");
+
+    array5.release();
+    array5 = uint32Array(9);
+    equal(array5.arrayBufferIndex, 5, "Buffer indexes for large arrays aren't reused");
+    equal(array5.arrayByteOffset, 0, "Large array is allocated at zero offset");
+
+    for (let array of [array1, array2, array3, array4, array5])
+      array.release();
+  });
 })();
