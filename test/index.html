@@ -3,35 +3,47 @@
   <head>
     <link rel="stylesheet" href="qunit.css"/>
 
-    <script>
-      var js17supported = false;
-    </script>
-    <script type="text/javascript;version=1.7">
-      js17supported = true;
-    </script>
-
     <script src="jquery-1.7.1.min.js"></script>
     <script src="qunit.js"></script>
     <script src="common.js"></script>
 
     <script>
-      var libs = [
-        "typedObjects/utils.js",
-        "typedObjects/arrayTypes.js",
-        "typedObjects/primitiveTypes.js",
-        "typedObjects/references.js",
-        "typedObjects/objectTypes.js",
-        "typedObjects/stringType.js",
-        "typedObjects.js"
-      ];
-      for (var i = 0; i < libs.length; i++)
-        addScript("/lib/" + libs[i]);
+      var evalScript = function(source)
+      {
+        return eval(source);
+      };
+      var evalModule = function(source)
+      {
+        var result = {};
+        new Function("exports", source)(result);
+        return result;
+      };
+      var js17supported = false;
+    </script>
 
-      var tests = [
-        "typedObjects.js"
-      ];
-      for (var i = 0; i < tests.length; i++)
-        addScript("/tests/" + tests[i]);
+    <script type="text/javascript;version=1.7">
+      evalScript = function(source)
+      {
+        return eval(source);
+      };
+      evalModule = function(source)
+      {
+        var result = {};
+        new Function("exports", source)(result);
+        return result;
+      };
+      js17supported = true;
+    </script>
+
+    <script>
+      addScript("/lib.js");
+      addScript("/tests.js");
+
+      window.addEventListener("load", function()
+      {
+        for (var i = 0; i < tests.length; i++)
+          evalScript(tests[i]);
+      }, false);
     </script>
   </head>
   <body>

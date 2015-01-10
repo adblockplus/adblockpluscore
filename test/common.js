@@ -19,9 +19,7 @@ function addScript(url)
 {
   var script = document.createElement("script");
   script.src = url;
-  if (js17supported)
-    script.type = "text/javascript;version=1.7";
-  else
+  if (!js17supported)
     script.src += "?backcompat";
   script.async = false;
   document.head.appendChild(script);
@@ -30,6 +28,12 @@ function addScript(url)
 
 function require(module)
 {
+  if (require.sources.hasOwnProperty(module))
+  {
+    require.scopes[module] = evalModule(require.sources[module]);
+    delete require.sources[module];
+  }
   return require.scopes[module];
 }
 require.scopes = {};
+require.sources = {};
