@@ -21,6 +21,8 @@ import json
 import os
 import posixpath
 import re
+import subprocess
+import sys
 import urlparse
 
 import flask
@@ -89,4 +91,12 @@ def multiplex(path=""):
     return flask.send_from_directory(rootdir, request_path.lstrip("/"))
 
 if __name__ == "__main__":
+  DEPENDENCY_SCRIPT = os.path.join(os.path.dirname(__file__), "ensure_dependencies.py")
+
+  try:
+    subprocess.check_call([sys.executable, DEPENDENCY_SCRIPT])
+  except subprocess.CalledProcessError as e:
+    print >>sys.stderr, e
+    print >>sys.stderr, "Failed to ensure dependencies being up-to-date!"
+
   app.run(debug=True)
