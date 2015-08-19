@@ -211,8 +211,8 @@
     ok(!obj2.bar.equals(obj5.bar), "Object reference not equal to null reference");
 
     obj5.bar = obj3;
-    ok(!obj2.bar.equals(obj5.bar), "Object reference not equal to reference to another object")
-    ok(!obj5.bar.equals(obj2.bar), "Object reference not equal to reference to another object")
+    ok(!obj2.bar.equals(obj5.bar), "Object reference not equal to reference to another object");
+    ok(!obj5.bar.equals(obj2.bar), "Object reference not equal to reference to another object");
   });
 
   test("Object inheritance", function()
@@ -271,7 +271,7 @@
     equal(typeof obj4.bar, "function", "Subclass method exists in subclass");
 
     equal(obj3.foo(4), 8, "Superclass method executed correctly");
-    equal(obj4.foo(4), 30, "Overridden superclass method executed correctly")
+    equal(obj4.foo(4), 30, "Overridden superclass method executed correctly");
 
     let type5 = type3.extend({
       y: uint8
