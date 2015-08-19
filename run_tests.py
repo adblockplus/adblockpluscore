@@ -20,7 +20,6 @@ import io
 import json
 import os
 import posixpath
-import re
 import subprocess
 import sys
 import urlparse
