@@ -98,4 +98,8 @@ if __name__ == "__main__":
     print >>sys.stderr, e
     print >>sys.stderr, "Failed to ensure dependencies being up-to-date!"
 
-  app.run(debug=True)
+  # FIXME - See https://github.com/mitsuhiko/werkzeug/pull/770
+  from werkzeug.serving import ThreadedWSGIServer
+  ThreadedWSGIServer.daemon_threads = True
+
+  app.run(debug=True, threaded=True)
