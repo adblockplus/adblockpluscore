@@ -1,3 +1,41 @@
+function splitSelector(selector)
+{
+  if (selector.indexOf(",") == -1)
+    return [selector];
+
+  var selectors = [];
+  var start = 0;
+  var level = 0;
+  var sep = "";
+
+  for (var i = 0; i < selector.length; i++)
+  {
+    var chr = selector[i];
+
+    if (chr == "\\")        // ignore escaped characters
+      i++;
+    else if (chr == sep)    // don't split within quoted text
+      sep = "";             // e.g. [attr=","]
+    else if (sep == "")
+    {
+      if (chr == '"' || chr == "'")
+        sep = chr;
+      else if (chr == "(")  // don't split between parentheses
+        level++;            // e.g. :matches(div,span)
+      else if (chr == ")")
+        level = Math.max(0, level - 1);
+      else if (chr == "," && level == 0)
+      {
+        selectors.push(selector.substring(start, i));
+        start = i + 1;
+      }
+    }
+  }
+
+  selectors.push(selector.substring(start));
+  return selectors;
+}
+
 function CSSPropertyFilters(window, addSelectorsFunc) {
   this.window = window;
   this.addSelectorsFunc = addSelectorsFunc;
@@ -40,7 +78,11 @@ CSSPropertyFilters.prototype = {
           regexp = pattern.regexp = new RegExp(regexp);
 
         if (regexp.test(style))
-          selectors.push(pattern.prefix + rule.selectorText + pattern.suffix);
+        {
+          var subSelectors = splitSelector(rule.selectorText);
+          for (var k = 0; k < subSelectors.length; k++)
+            selectors.push(pattern.prefix + subSelectors[k] + pattern.suffix);
+        }
       }
     }
   },
