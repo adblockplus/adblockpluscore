@@ -65,7 +65,7 @@ CSSPropertyFilters.prototype = {
     for (var i = 0; i < rules.length; i++)
     {
       var rule = rules[i];
-      if (rule.type != this.window.CSSRule.STYLE_RULE)
+      if (rule.type != rule.STYLE_RULE)
         continue;
 
       var style = this.stringifyStyle(rule.style);
