@@ -162,7 +162,7 @@ function compareFilter(test, text, expected, postInit)
   filter.serialize(buffer);
   if (buffer.length)
   {
-    let map = {__proto__: null};
+    let map = Object.create(null);
     for (let line of buffer.slice(1))
     {
       if (/(.*?)=(.*)/.test(line))
