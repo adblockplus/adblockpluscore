@@ -56,8 +56,26 @@ CSSPropertyFilters.prototype = {
     return styles.join(" ");
   },
 
+  isSameOrigin: function(stylesheet)
+  {
+    try
+    {
+      return new URL(stylesheet.href).origin == this.window.location.origin;
+    }
+    catch (e)
+    {
+      // Invalid URL, assume that it is first-party.
+      return true;
+    }
+  },
+
   findSelectors: function(stylesheet, selectors)
   {
+    // Explicitly ignore third-party stylesheets to ensure consistent behavior
+    // between Firefox and Chrome.
+    if (!this.isSameOrigin(stylesheet))
+      return;
+
     var rules = stylesheet.cssRules;
     if (!rules)
       return;
