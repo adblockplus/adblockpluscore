@@ -36,8 +36,10 @@ function splitSelector(selector)
   return selectors;
 }
 
-function CSSPropertyFilters(window, addSelectorsFunc) {
+function CSSPropertyFilters(window, getFiltersFunc, addSelectorsFunc)
+{
   this.window = window;
+  this.getFiltersFunc = getFiltersFunc;
   this.addSelectorsFunc = addSelectorsFunc;
 }
 
@@ -122,17 +124,11 @@ CSSPropertyFilters.prototype = {
 
   load: function(callback)
   {
-    ext.backgroundPage.sendMessage(
-      {
-        type: "filters.get",
-        what: "cssproperties"
-      },
-      function(patterns)
-      {
-        this.patterns = patterns;
-        callback();
-      }.bind(this)
-    );
+    this.getFiltersFunc(function(patterns)
+    {
+      this.patterns = patterns;
+      callback();
+    }.bind(this));
   },
 
   apply: function()
