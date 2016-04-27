@@ -71,7 +71,7 @@ CSSPropertyFilters.prototype = {
     }
   },
 
-  findSelectors: function(stylesheet, selectors)
+  findSelectors: function(stylesheet, selectors, filters)
   {
     // Explicitly ignore third-party stylesheets to ensure consistent behavior
     // between Firefox and Chrome.
@@ -102,6 +102,7 @@ CSSPropertyFilters.prototype = {
           var subSelectors = splitSelector(rule.selectorText);
           for (var k = 0; k < subSelectors.length; k++)
             selectors.push(pattern.prefix + subSelectors[k] + pattern.suffix);
+          filters[pattern.text] = true;
         }
       }
     }
@@ -110,9 +111,10 @@ CSSPropertyFilters.prototype = {
   addSelectors: function(stylesheets)
   {
     var selectors = [];
+    var filters = {};
     for (var i = 0; i < stylesheets.length; i++)
-      this.findSelectors(stylesheets[i], selectors);
-    this.addSelectorsFunc(selectors);
+      this.findSelectors(stylesheets[i], selectors, filters);
+    this.addSelectorsFunc(selectors, Object.keys(filters));
   },
 
   onLoad: function(event)
