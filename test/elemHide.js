@@ -29,12 +29,8 @@ let {Filter} = require("filterClasses");
 
 exports.testGetSelectorsForDomain = function(test)
 {
-  function fromText(f)
-  {
-    return (filterText) => f(Filter.fromText(filterText));
-  }
-  let addFilter = fromText(ElemHide.add);
-  let removeFilter = fromText(ElemHide.remove);
+  let addFilter = filterText => ElemHide.add(Filter.fromText(filterText));
+  let removeFilter = filterText => ElemHide.remove(Filter.fromText(filterText));
 
   function normalizeSelectors(selectors)
   {
