@@ -17,17 +17,32 @@
 
 "use strict";
 
-let {
-  Subscription, SpecialSubscription, DownloadableSubscription,
-  RegularSubscription, ExternalSubscription
-} = require("../lib/subscriptionClasses");
+let {createSandbox} = require("./_common");
+
+let Subscription = null;
+let SpecialSubscription = null;
+let DownloadableSubscription = null;
+let RegularSubscription = null;
+let ExternalSubscription = null;
+
+exports.setUp = function(callback)
+{
+  let sandboxedRequire = createSandbox();
+  (
+    {Subscription, SpecialSubscription,
+     DownloadableSubscription, RegularSubscription,
+     ExternalSubscription} = sandboxedRequire("../lib/subscriptionClasses")
+  );
+
+  callback();
+};
 
 function compareSubscription(test, url, expected, postInit)
 {
-  expected.push("[Subscription]")
+  expected.push("[Subscription]");
   let subscription = Subscription.fromURL(url);
   if (postInit)
-    postInit(subscription)
+    postInit(subscription);
   let result = [];
   subscription.serialize(result);
   test.equal(result.sort().join("\n"), expected.sort().join("\n"), url);
@@ -74,7 +89,7 @@ exports.testSubscriptionsWithState = function(test)
     subscription.expires = 20;
     subscription.downloadStatus = "foo";
     subscription.errors = 3;
-    subscription.version = 24
+    subscription.version = 24;
     subscription.requiredVersion = "0.6";
   });
   compareSubscription(test, "~wl~", ["url=~wl~", "disabled=true", "title=Test group"], function(subscription)

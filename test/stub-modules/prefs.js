@@ -1,1 +1,3 @@
-exports.Prefs = {};
+exports.Prefs = {
+  savestats: true
+};

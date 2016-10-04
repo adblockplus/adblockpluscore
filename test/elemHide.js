@@ -17,15 +17,21 @@
 
 "use strict";
 
-GLOBAL.Ci = {};
-GLOBAL.Cu = {
-  import: function()
-  {
-  }
-};
+let {createSandbox} = require("./_common");
 
-let {ElemHide} = require("elemHide");
-let {Filter} = require("filterClasses");
+let ElemHide = null;
+let Filter = null;
+
+exports.setUp = function(callback)
+{
+  let sandboxedRequire = createSandbox();
+  (
+    {ElemHide} = sandboxedRequire("../lib/elemHide"),
+    {Filter} = sandboxedRequire("../lib/filterClasses")
+  );
+
+  callback();
+};
 
 exports.testGetSelectorsForDomain = function(test)
 {

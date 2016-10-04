@@ -17,7 +17,19 @@
 
 "use strict";
 
-let {verifySignature} = require("rsa");
+let {createSandbox} = require("./_common");
+
+let verifySignature = null;
+
+exports.setUp = function(callback)
+{
+  let sandboxedRequire = createSandbox();
+  (
+    {verifySignature} = sandboxedRequire("../lib/rsa")
+  );
+
+  callback();
+};
 
 exports.test512bitSigningKey = function(test)
 {

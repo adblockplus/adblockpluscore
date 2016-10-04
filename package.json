@@ -4,10 +4,10 @@
   "license": "GPL-3.0",
   "dependencies": {},
   "devDependencies": {
-    "node-babel": "0.1.2",
+    "sandboxed-module": "2.0.3",
     "nodeunit": "0.9.1"
   },
   "scripts": {
-    "test": "NODE_PATH=lib:test/stub-modules node --harmony test_wrapper.js"
+    "test": "nodejs test_runner.js"
   }
 }

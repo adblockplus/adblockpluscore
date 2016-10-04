@@ -17,11 +17,37 @@
 
 "use strict";
 
-let {
-  Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
-  BlockingFilter, WhitelistFilter, ElemHideBase, ElemHideFilter,
-  ElemHideException, CSSPropertyFilter
-} = require("../lib/filterClasses");
+let {createSandbox} = require("./_common");
+
+let Filter = null;
+let InvalidFilter = null;
+let CommentFilter = null;
+let ActiveFilter = null;
+let RegExpFilter = null;
+let BlockingFilter = null;
+let WhitelistFilter = null;
+let ElemHideBase = null;
+let ElemHideFilter = null;
+let ElemHideException = null;
+let CSSPropertyFilter = null;
+
+let t = null;
+let defaultTypes = null;
+
+exports.setUp = function(callback)
+{
+  let sandboxedRequire = createSandbox();
+  (
+    {Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
+     BlockingFilter, WhitelistFilter, ElemHideBase, ElemHideFilter,
+     ElemHideException, CSSPropertyFilter} = sandboxedRequire("../lib/filterClasses")
+  );
+  t = RegExpFilter.typeMap;
+  defaultTypes = 0x7FFFFFFF & ~(t.ELEMHIDE | t.DOCUMENT | t.POPUP |
+                                t.GENERICHIDE | t.GENERICBLOCK);
+
+  callback();
+};
 
 function serializeFilter(filter)
 {
@@ -243,9 +269,6 @@ exports.testFiltersWithState  = function(test)
 
   test.done();
 };
-
-let t = RegExpFilter.typeMap;
-let defaultTypes = 0x7FFFFFFF & ~(t.ELEMHIDE | t.DOCUMENT | t.POPUP | t.GENERICHIDE | t.GENERICBLOCK);
 
 exports.testSpecialCharacters = function(test)
 {
