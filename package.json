@@ -8,6 +8,6 @@
     "nodeunit": "0.9.1"
   },
   "scripts": {
-    "test": "nodejs test_runner.js"
+    "test": "node test_runner.js"
   }
 }
