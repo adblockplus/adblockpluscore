@@ -7,5 +7,6 @@ exports.Utils = {
     let hash = crypto.createHash("md5");
     hash.update(buffer);
     return hash.digest("base64").replace(/=+$/, "");
-  }
+  },
+  yield: () => undefined
 };
