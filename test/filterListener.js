@@ -29,8 +29,10 @@ let SpecialSubscription = null;
 exports.setUp = function(callback)
 {
   sandboxedRequire = createSandbox({
-    elemHide: ["filterByKey", "exceptions"],
-    cssRules: ["filters"]
+    extraExports: {
+      elemHide: ["filterByKey", "exceptions"],
+      cssRules: ["filters"]
+    }
   });
 
   // We need to require the filterListener module so that filter changes will be

@@ -1,3 +1,6 @@
 exports.Prefs = {
-  savestats: true
+  savestats: true,
+  subscriptions_autoupdate: true,
+  subscriptions_fallbackerrors: 5,
+  subscriptions_fallbackurl: ""
 };

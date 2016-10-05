@@ -27,9 +27,12 @@ let globals = {
   Ci: {
   },
   Cu: {
-    import: () =>
-    {
-    }
+    import: () => {},
+    reportError: e => undefined
+  },
+  console: {
+    log: () => undefined,
+    error: () => undefined,
   },
   navigator: {
   },
@@ -87,16 +90,19 @@ function rewriteRequires(source)
   });
 }
 
-exports.createSandbox = function(extraExports)
+exports.createSandbox = function(options)
 {
+  if (!options)
+    options = {};
+
   let sourceTransformers = [rewriteRequires];
-  if (extraExports)
-    sourceTransformers.push(addExports(extraExports));
+  if (options.extraExports)
+    sourceTransformers.push(addExports(options.extraExports));
 
   // This module loads itself into a sandbox, keeping track of the require
   // function which can be used to load further modules into the sandbox.
   return SandboxedModule.require("./_common", {
-    globals: globals,
+    globals: Object.assign({}, globals, options.globals),
     sourceTransformers: sourceTransformers
   }).require;
 };
