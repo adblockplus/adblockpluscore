@@ -366,3 +366,21 @@ exports.testCSSPropertyFilters = function(test)
 
   test.done();
 };
+
+exports.testEmptyElemHideDomains = function(test)
+{
+  let emptyDomainFilters = [
+    ",##selector", ",,,##selector", "~,foo.com##selector", "foo.com,##selector",
+    ",foo.com##selector", "foo.com,~##selector",
+    "foo.com,,bar.com##selector", "foo.com,~,bar.com##selector"
+  ];
+
+  for (let filterText of emptyDomainFilters)
+  {
+    let filter = Filter.fromText(filterText);
+    test.ok(filter instanceof InvalidFilter);
+    test.equal(filter.reason, "filter_invalid_domain");
+  }
+
+  test.done();
+};

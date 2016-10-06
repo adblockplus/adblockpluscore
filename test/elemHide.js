@@ -241,21 +241,5 @@ exports.testGetSelectorsForDomain = function(test)
   removeFilter("foo.com##hello");
   testResult("foo.com", []);
 
-  // Advanced filter keys test
-  testResult("", []);
-  addFilter("##dupe");
-  addFilter(",,##dupe");
-  addFilter(",,,##dupe");
-  addFilter("foo.com##dupe");
-  testResult("", ["dupe"]);
-  removeFilter(",,,##dupe");
-  testResult("", ["dupe"]);
-  removeFilter("foo.com##dupe");
-  testResult("", ["dupe"]);
-  removeFilter(",,##dupe");
-  testResult("", ["dupe"]);
-  removeFilter("##dupe");
-  testResult("", []);
-
   test.done();
 };
