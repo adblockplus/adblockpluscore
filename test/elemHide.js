@@ -33,148 +33,149 @@ exports.setUp = function(callback)
   callback();
 };
 
+function normalizeSelectors(selectors)
+{
+  // getSelectorsForDomain is currently allowed to return duplicate selectors
+  // for performance reasons, so we need to remove duplicates here.
+  return selectors.sort().filter((selector, index, selectors) =>
+  {
+    return index == 0 || selector != selectors[index -  1];
+  });
+}
+
+function testResult(test, domain, expectedSelectors, criteria)
+{
+  let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
+
+  // Test without filter keys
+  test.deepEqual(
+    normalizeSelectors(ElemHide.getSelectorsForDomain(domain, criteria)),
+    normalizedExpectedSelectors
+  );
+
+  // With filter keys
+  let [selectors, filterKeys] = ElemHide.getSelectorsForDomain(domain, criteria,
+                                                               true);
+  test.deepEqual(filterKeys.map(k => ElemHide.getFilterByKey(k).selector),
+                 selectors);
+  test.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
+}
+
 exports.testGetSelectorsForDomain = function(test)
 {
   let addFilter = filterText => ElemHide.add(Filter.fromText(filterText));
   let removeFilter = filterText => ElemHide.remove(Filter.fromText(filterText));
 
-  function normalizeSelectors(selectors)
-  {
-    // getSelectorsForDomain is currently allowed to return duplicate selectors
-    // for performance reasons, so we need to remove duplicates here.
-    return selectors.sort().filter((selector, index, selectors) =>
-    {
-      return index == 0 || selector != selectors[index -  1];
-    });
-  }
-  function testResult(domain, expectedSelectors, criteria)
-  {
-    let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
-
-    // Test without filter keys
-    test.deepEqual(
-      normalizeSelectors(ElemHide.getSelectorsForDomain(domain, criteria)),
-      normalizedExpectedSelectors
-    );
-
-    // With filter keys
-    let [selectors, filterKeys] = ElemHide.getSelectorsForDomain(domain, criteria,
-                                                                 true);
-    test.deepEqual(filterKeys.map(k => ElemHide.getFilterByKey(k).selector),
-                   selectors);
-    test.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
-  }
-
-  testResult("", []);
+  testResult(test, "", []);
 
   addFilter("~foo.example.com,example.com##foo");
-  testResult("barfoo.example.com", ["foo"]);
-  testResult("bar.foo.example.com", []);
-  testResult("foo.example.com", []);
-  testResult("example.com", ["foo"]);
-  testResult("com", []);
-  testResult("", []);
+  testResult(test, "barfoo.example.com", ["foo"]);
+  testResult(test, "bar.foo.example.com", []);
+  testResult(test, "foo.example.com", []);
+  testResult(test, "example.com", ["foo"]);
+  testResult(test, "com", []);
+  testResult(test, "", []);
 
   addFilter("foo.example.com##turnip");
-  testResult("foo.example.com", ["turnip"]);
-  testResult("example.com", ["foo"]);
-  testResult("com", []);
-  testResult("", []);
+  testResult(test, "foo.example.com", ["turnip"]);
+  testResult(test, "example.com", ["foo"]);
+  testResult(test, "com", []);
+  testResult(test, "", []);
 
   addFilter("example.com#@#foo");
-  testResult("foo.example.com", ["turnip"]);
-  testResult("example.com", []);
-  testResult("com", []);
-  testResult("", []);
+  testResult(test, "foo.example.com", ["turnip"]);
+  testResult(test, "example.com", []);
+  testResult(test, "com", []);
+  testResult(test, "", []);
 
   addFilter("com##bar");
-  testResult("foo.example.com", ["turnip", "bar"]);
-  testResult("example.com", ["bar"]);
-  testResult("com", ["bar"]);
-  testResult("", []);
+  testResult(test, "foo.example.com", ["turnip", "bar"]);
+  testResult(test, "example.com", ["bar"]);
+  testResult(test, "com", ["bar"]);
+  testResult(test, "", []);
 
   addFilter("example.com#@#bar");
-  testResult("foo.example.com", ["turnip"]);
-  testResult("example.com", []);
-  testResult("com", ["bar"]);
-  testResult("", []);
+  testResult(test, "foo.example.com", ["turnip"]);
+  testResult(test, "example.com", []);
+  testResult(test, "com", ["bar"]);
+  testResult(test, "", []);
 
   removeFilter("example.com#@#foo");
-  testResult("foo.example.com", ["turnip"]);
-  testResult("example.com", ["foo"]);
-  testResult("com", ["bar"]);
-  testResult("", []);
+  testResult(test, "foo.example.com", ["turnip"]);
+  testResult(test, "example.com", ["foo"]);
+  testResult(test, "com", ["bar"]);
+  testResult(test, "", []);
 
   removeFilter("example.com#@#bar");
-  testResult("foo.example.com", ["turnip", "bar"]);
-  testResult("example.com", ["foo", "bar"]);
-  testResult("com", ["bar"]);
-  testResult("", []);
+  testResult(test, "foo.example.com", ["turnip", "bar"]);
+  testResult(test, "example.com", ["foo", "bar"]);
+  testResult(test, "com", ["bar"]);
+  testResult(test, "", []);
 
   addFilter("##generic");
-  testResult("foo.example.com", ["turnip", "bar", "generic"]);
-  testResult("example.com", ["foo", "bar", "generic"]);
-  testResult("com", ["bar", "generic"]);
-  testResult("", ["generic"]);
-  testResult("foo.example.com", ["turnip", "bar"], ElemHide.SPECIFIC_ONLY);
-  testResult("example.com", ["foo", "bar"], ElemHide.SPECIFIC_ONLY);
-  testResult("com", ["bar"], ElemHide.SPECIFIC_ONLY);
-  testResult("", [], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "foo.example.com", ["turnip", "bar", "generic"]);
+  testResult(test, "example.com", ["foo", "bar", "generic"]);
+  testResult(test, "com", ["bar", "generic"]);
+  testResult(test, "", ["generic"]);
+  testResult(test, "foo.example.com", ["turnip", "bar"], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "example.com", ["foo", "bar"], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "com", ["bar"], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "", [], ElemHide.SPECIFIC_ONLY);
   removeFilter("##generic");
 
   addFilter("~adblockplus.org##example");
-  testResult("adblockplus.org", []);
-  testResult("", ["example"]);
-  testResult("foo.example.com", ["turnip", "bar", "example"]);
-  testResult("foo.example.com", ["turnip", "bar"], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "adblockplus.org", []);
+  testResult(test, "", ["example"]);
+  testResult(test, "foo.example.com", ["turnip", "bar", "example"]);
+  testResult(test, "foo.example.com", ["turnip", "bar"], ElemHide.SPECIFIC_ONLY);
   removeFilter("~adblockplus.org##example");
 
   removeFilter("~foo.example.com,example.com##foo");
-  testResult("foo.example.com", ["turnip", "bar"]);
-  testResult("example.com", ["bar"]);
-  testResult("com", ["bar"]);
-  testResult("", []);
+  testResult(test, "foo.example.com", ["turnip", "bar"]);
+  testResult(test, "example.com", ["bar"]);
+  testResult(test, "com", ["bar"]);
+  testResult(test, "", []);
 
   removeFilter("com##bar");
-  testResult("foo.example.com", ["turnip"]);
-  testResult("example.com", []);
-  testResult("com", []);
-  testResult("", []);
+  testResult(test, "foo.example.com", ["turnip"]);
+  testResult(test, "example.com", []);
+  testResult(test, "com", []);
+  testResult(test, "", []);
 
   removeFilter("foo.example.com##turnip");
-  testResult("foo.example.com", []);
-  testResult("example.com", []);
-  testResult("com", []);
-  testResult("", []);
+  testResult(test, "foo.example.com", []);
+  testResult(test, "example.com", []);
+  testResult(test, "com", []);
+  testResult(test, "", []);
 
   addFilter("example.com##dupe");
   addFilter("example.com##dupe");
-  testResult("example.com", ["dupe"]);
+  testResult(test, "example.com", ["dupe"]);
   removeFilter("example.com##dupe");
-  testResult("example.com", []);
+  testResult(test, "example.com", []);
   removeFilter("example.com##dupe");
 
   addFilter("~foo.example.com,example.com##foo");
 
   addFilter("##foo");
-  testResult("foo.example.com", ["foo"]);
-  testResult("example.com", ["foo"]);
-  testResult("com", ["foo"]);
-  testResult("", ["foo"]);
+  testResult(test, "foo.example.com", ["foo"]);
+  testResult(test, "example.com", ["foo"]);
+  testResult(test, "com", ["foo"]);
+  testResult(test, "", ["foo"]);
   removeFilter("##foo");
 
   addFilter("example.org##foo");
-  testResult("foo.example.com", []);
-  testResult("example.com", ["foo"]);
-  testResult("com", []);
-  testResult("", []);
+  testResult(test, "foo.example.com", []);
+  testResult(test, "example.com", ["foo"]);
+  testResult(test, "com", []);
+  testResult(test, "", []);
   removeFilter("example.org##foo");
 
   addFilter("~example.com##foo");
-  testResult("foo.example.com", []);
-  testResult("example.com", ["foo"]);
-  testResult("com", ["foo"]);
-  testResult("", ["foo"]);
+  testResult(test, "foo.example.com", []);
+  testResult(test, "example.com", ["foo"]);
+  testResult(test, "com", ["foo"]);
+  testResult(test, "", ["foo"]);
   removeFilter("~example.com##foo");
 
   removeFilter("~foo.example.com,example.com##foo");
@@ -183,63 +184,72 @@ exports.testGetSelectorsForDomain = function(test)
   addFilter("##hello");
   addFilter("~example.com##world");
   addFilter("foo.com##specific");
-  testResult("foo.com", ["specific"], ElemHide.SPECIFIC_ONLY);
-  testResult("foo.com", ["specific", "world"], ElemHide.NO_UNCONDITIONAL);
-  testResult("foo.com", ["hello", "specific", "world"], ElemHide.ALL_MATCHING);
-  testResult("foo.com", ["hello", "specific", "world"]);
+  testResult(test, "foo.com", ["specific"], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "foo.com", ["specific", "world"], ElemHide.NO_UNCONDITIONAL);
+  testResult(test, "foo.com", ["hello", "specific", "world"], ElemHide.ALL_MATCHING);
+  testResult(test, "foo.com", ["hello", "specific", "world"]);
   removeFilter("foo.com##specific");
   removeFilter("~example.com##world");
   removeFilter("##hello");
-  testResult("foo.com", []);
+  testResult(test, "foo.com", []);
 
   addFilter("##hello");
-  testResult("foo.com", [], ElemHide.SPECIFIC_ONLY);
-  testResult("foo.com", [], ElemHide.NO_UNCONDITIONAL);
-  testResult("foo.com", ["hello"], ElemHide.ALL_MATCHING);
-  testResult("foo.com", ["hello"]);
-  testResult("bar.com", [], ElemHide.SPECIFIC_ONLY);
-  testResult("bar.com", [], ElemHide.NO_UNCONDITIONAL);
-  testResult("bar.com", ["hello"], ElemHide.ALL_MATCHING);
-  testResult("bar.com", ["hello"]);
+  testResult(test, "foo.com", [], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "foo.com", [], ElemHide.NO_UNCONDITIONAL);
+  testResult(test, "foo.com", ["hello"], ElemHide.ALL_MATCHING);
+  testResult(test, "foo.com", ["hello"]);
+  testResult(test, "bar.com", [], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "bar.com", [], ElemHide.NO_UNCONDITIONAL);
+  testResult(test, "bar.com", ["hello"], ElemHide.ALL_MATCHING);
+  testResult(test, "bar.com", ["hello"]);
   addFilter("foo.com#@#hello");
-  testResult("foo.com", [], ElemHide.SPECIFIC_ONLY);
-  testResult("foo.com", [], ElemHide.NO_UNCONDITIONAL);
-  testResult("foo.com", [], ElemHide.ALL_MATCHING);
-  testResult("foo.com", []);
-  testResult("bar.com", [], ElemHide.SPECIFIC_ONLY);
-  testResult("bar.com", ["hello"], ElemHide.NO_UNCONDITIONAL);
-  testResult("bar.com", ["hello"], ElemHide.ALL_MATCHING);
-  testResult("bar.com", ["hello"]);
+  testResult(test, "foo.com", [], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "foo.com", [], ElemHide.NO_UNCONDITIONAL);
+  testResult(test, "foo.com", [], ElemHide.ALL_MATCHING);
+  testResult(test, "foo.com", []);
+  testResult(test, "bar.com", [], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "bar.com", ["hello"], ElemHide.NO_UNCONDITIONAL);
+  testResult(test, "bar.com", ["hello"], ElemHide.ALL_MATCHING);
+  testResult(test, "bar.com", ["hello"]);
   removeFilter("foo.com#@#hello");
-  testResult("foo.com", [], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "foo.com", [], ElemHide.SPECIFIC_ONLY);
   // Note: We don't take care to track conditional selectors which became
   //       unconditional when a filter was removed. This was too expensive.
-  //testResult("foo.com", [], ElemHide.NO_UNCONDITIONAL);
-  testResult("foo.com", ["hello"], ElemHide.ALL_MATCHING);
-  testResult("foo.com", ["hello"]);
-  testResult("bar.com", [], ElemHide.SPECIFIC_ONLY);
-  testResult("bar.com", ["hello"], ElemHide.NO_UNCONDITIONAL);
-  testResult("bar.com", ["hello"], ElemHide.ALL_MATCHING);
-  testResult("bar.com", ["hello"]);
+  //testResult(test, "foo.com", [], ElemHide.NO_UNCONDITIONAL);
+  testResult(test, "foo.com", ["hello"], ElemHide.ALL_MATCHING);
+  testResult(test, "foo.com", ["hello"]);
+  testResult(test, "bar.com", [], ElemHide.SPECIFIC_ONLY);
+  testResult(test, "bar.com", ["hello"], ElemHide.NO_UNCONDITIONAL);
+  testResult(test, "bar.com", ["hello"], ElemHide.ALL_MATCHING);
+  testResult(test, "bar.com", ["hello"]);
   removeFilter("##hello");
-  testResult("foo.com", []);
-  testResult("bar.com", []);
+  testResult(test, "foo.com", []);
+  testResult(test, "bar.com", []);
 
   addFilter("##hello");
   addFilter("foo.com##hello");
-  testResult("foo.com", ["hello"]);
+  testResult(test, "foo.com", ["hello"]);
   removeFilter("foo.com##hello");
-  testResult("foo.com", ["hello"]);
+  testResult(test, "foo.com", ["hello"]);
   removeFilter("##hello");
-  testResult("foo.com", []);
+  testResult(test, "foo.com", []);
 
   addFilter("##hello");
   addFilter("foo.com##hello");
-  testResult("foo.com", ["hello"]);
+  testResult(test, "foo.com", ["hello"]);
   removeFilter("##hello");
-  testResult("foo.com", ["hello"]);
+  testResult(test, "foo.com", ["hello"]);
   removeFilter("foo.com##hello");
-  testResult("foo.com", []);
+  testResult(test, "foo.com", []);
 
+  test.done();
+};
+
+exports.testZeroFilterKey = function(test)
+{
+  ElemHide.add(Filter.fromText("##test"));
+  ElemHide.add(Filter.fromText("foo.com#@#test"));
+  testResult(test, "foo.com", []);
+  testResult(test, "bar.com", ["test"]);
   test.done();
 };
