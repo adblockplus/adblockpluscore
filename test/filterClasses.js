@@ -364,6 +364,11 @@ exports.testCSSPropertyFilters = function(test)
   compareFilter(test, "foo.com##aaa [-abp-properties='abc'] bbb", ["type=cssrule", "text=foo.com##aaa [-abp-properties='abc'] bbb", "selectorDomain=foo.com", "selector=aaa [-abp-properties='abc'] bbb", "domains=FOO.COM", "prefix=aaa ", "regexp=abc", "suffix= bbb"]);
   compareFilter(test, "foo.com##[-abp-properties='|background-image: url(data:*)']", ["type=cssrule", "text=foo.com##[-abp-properties='|background-image: url(data:*)']", "selectorDomain=foo.com", "selector=[-abp-properties='|background-image: url(data:*)']", "domains=FOO.COM", "regexp=^background\\-image\\:\\ url\\(data\\:.*\\)"]);
 
+  // Test regexp property matching
+  compareFilter(test, "foo.com##[-abp-properties='/abc']", ["type=cssrule", "text=foo.com##[-abp-properties='/abc']", "selectorDomain=foo.com", "selector=[-abp-properties='/abc']", "domains=FOO.COM", "regexp=\\/abc"]);
+  compareFilter(test, "foo.com##[-abp-properties='abc/']", ["type=cssrule", "text=foo.com##[-abp-properties='abc/']", "selectorDomain=foo.com", "selector=[-abp-properties='abc/']", "domains=FOO.COM", "regexp=abc\\/"]);
+  compareFilter(test, "foo.com##[-abp-properties='/abc/']", ["type=cssrule", "text=foo.com##[-abp-properties='/abc/']", "selectorDomain=foo.com", "selector=[-abp-properties='/abc/']", "domains=FOO.COM", "regexp=abc"]);
+
   test.done();
 };
 
