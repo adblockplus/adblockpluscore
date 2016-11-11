@@ -95,7 +95,7 @@ CSSPropertyFilters.prototype = {
         var regexp = pattern.regexp;
 
         if (typeof regexp == "string")
-          regexp = pattern.regexp = new RegExp(regexp);
+          regexp = pattern.regexp = new RegExp(regexp, "i");
 
         if (regexp.test(style))
         {
