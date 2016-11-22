@@ -1,3 +1,5 @@
+var propertySelectorRegExp = /\[\-abp\-properties=(["'])([^"']+)\1\]/;
+
 function splitSelector(selector)
 {
   if (selector.indexOf(",") == -1)
@@ -36,14 +38,14 @@ function splitSelector(selector)
   return selectors;
 }
 
-function CSSPropertyFilters(window, getFiltersFunc, addSelectorsFunc)
+function ElemHideEmulation(window, getFiltersFunc, addSelectorsFunc)
 {
   this.window = window;
   this.getFiltersFunc = getFiltersFunc;
   this.addSelectorsFunc = addSelectorsFunc;
 }
 
-CSSPropertyFilters.prototype = {
+ElemHideEmulation.prototype = {
   stringifyStyle: function(style)
   {
     var styles = [];
@@ -92,12 +94,7 @@ CSSPropertyFilters.prototype = {
       for (var j = 0; j < this.patterns.length; j++)
       {
         var pattern = this.patterns[j];
-        var regexp = pattern.regexp;
-
-        if (typeof regexp == "string")
-          regexp = pattern.regexp = new RegExp(regexp, "i");
-
-        if (regexp.test(style))
+        if (pattern.regexp.test(style))
         {
           var subSelectors = splitSelector(rule.selectorText);
           for (var k = 0; k < subSelectors.length; k++)
@@ -128,7 +125,30 @@ CSSPropertyFilters.prototype = {
   {
     this.getFiltersFunc(function(patterns)
     {
-      this.patterns = patterns;
+      this.patterns = [];
+      for (var i = 0; i < patterns.length; i++)
+      {
+        var pattern = patterns[i];
+        var match = propertySelectorRegExp.exec(pattern.selector);
+        if (!match)
+          continue;
+
+        var propertyExpression = match[2];
+        var regexpString;
+        if (propertyExpression.length >= 2 && propertyExpression[0] == "/" &&
+            propertyExpression[propertyExpression.length - 1] == "/")
+          regexpString = propertyExpression.slice(1, -1);
+        else
+          regexpString = filterToRegExp(propertyExpression);
+
+        this.patterns.push({
+          text: pattern.text,
+          regexp: new RegExp(regexpString, "i"),
+          prefix: pattern.selector.substr(0, match.index),
+          suffix: pattern.selector.substr(match.index + match[0].length)
+        });
+      }
+
       callback();
     }.bind(this));
   },

@@ -19,8 +19,8 @@
 
 let {createSandbox} = require("./_common");
 
-let CSSPropertyFilter = null;
-let CSSRules = null;
+let ElemHideEmulationFilter = null;
+let ElemHideEmulation = null;
 let ElemHide = null;
 let Filter = null;
 
@@ -28,8 +28,9 @@ exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox();
   (
-    {Filter, CSSPropertyFilter} = sandboxedRequire("../lib/filterClasses"),
-    {CSSRules} = sandboxedRequire("../lib/cssRules"),
+    {Filter,
+     ElemHideEmulationFilter} = sandboxedRequire("../lib/filterClasses"),
+    {ElemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation"),
     {ElemHide} = sandboxedRequire("../lib/elemHide")
   );
 
@@ -43,16 +44,17 @@ exports.testDomainRestrictions = function(test)
     for (let filter of filters)
     {
       filter = Filter.fromText(filter);
-      if (filter instanceof CSSPropertyFilter)
-        CSSRules.add(filter);
+      if (filter instanceof ElemHideEmulationFilter)
+        ElemHideEmulation.add(filter);
       else
         ElemHide.add(filter);
     }
 
-    let matches = CSSRules.getRulesForDomain(domain).map(filter => filter.text);
+    let matches = ElemHideEmulation.getRulesForDomain(domain)
+        .map(filter => filter.text);
     test.deepEqual(matches.sort(), expectedMatches.sort(), description);
 
-    CSSRules.clear();
+    ElemHideEmulation.clear();
     ElemHide.clear();
   }
 
@@ -95,11 +97,11 @@ exports.testDomainRestrictions = function(test)
   test.done();
 };
 
-exports.testCSSPropertyFiltersContainer = function(test)
+exports.testElemHideEmulationFiltersContainer = function(test)
 {
   function compareRules(description, domain, expectedMatches)
   {
-    let result = CSSRules.getRulesForDomain(domain)
+    let result = ElemHideEmulation.getRulesForDomain(domain)
         .map((filter) => filter.text);
     expectedMatches = expectedMatches.map(filter => filter.text);
     test.deepEqual(result.sort(), expectedMatches.sort(), description);
@@ -109,23 +111,23 @@ exports.testCSSPropertyFiltersContainer = function(test)
   let subdomainFilter = Filter.fromText("www.example.com##filter2");
   let otherDomainFilter = Filter.fromText("other.example.com##filter3");
 
-  CSSRules.add(domainFilter);
-  CSSRules.add(subdomainFilter);
-  CSSRules.add(otherDomainFilter);
+  ElemHideEmulation.add(domainFilter);
+  ElemHideEmulation.add(subdomainFilter);
+  ElemHideEmulation.add(otherDomainFilter);
   compareRules(
     "Return all matching filters",
     "www.example.com",
     [domainFilter, subdomainFilter]
   );
 
-  CSSRules.remove(domainFilter);
+  ElemHideEmulation.remove(domainFilter);
   compareRules(
     "Return all matching filters after removing one",
     "www.example.com",
     [subdomainFilter]
   );
 
-  CSSRules.clear();
+  ElemHideEmulation.clear();
   compareRules(
     "Return no filters after clearing",
     "www.example.com",

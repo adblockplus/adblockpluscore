@@ -31,7 +31,7 @@ exports.setUp = function(callback)
   sandboxedRequire = createSandbox({
     extraExports: {
       elemHide: ["filterByKey", "exceptions"],
-      cssRules: ["filters"]
+      elemHideEmulation: ["filters"]
     }
   });
 
@@ -91,13 +91,13 @@ function checkKnownFilters(test, text, expected)
       result.elemhideexception.push(exception.text);
   }
 
-  let cssRules = sandboxedRequire("../lib/cssRules");
-  result.cssrule = [];
-  for (let filterText in cssRules.filters)
-    result.cssrule.push(filterText);
+  let elemHideEmulation = sandboxedRequire("../lib/elemHideEmulation");
+  result.elemhideemulation = [];
+  for (let filterText in elemHideEmulation.filters)
+    result.elemhideemulation.push(filterText);
 
   let types = ["blacklist", "whitelist", "elemhide", "elemhideexception",
-               "cssrule"];
+               "elemhideemulation"];
   for (let type of types)
   {
     if (!(type in expected))
@@ -131,18 +131,18 @@ exports.testAddingAndRemovingFilters = function(test)
   FilterStorage.addFilter(filter5);
   checkKnownFilters(test, "add #@#filter5", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text]});
   FilterStorage.addFilter(filter6);
-  checkKnownFilters(test, "add example.com##[-abp-properties='filter6']", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], cssrule: [filter6.text]});
+  checkKnownFilters(test, "add example.com##[-abp-properties='filter6']", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], elemhideemulation: [filter6.text]});
   FilterStorage.addFilter(filter7);
-  checkKnownFilters(test, "add example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], cssrule: [filter6.text]});
+  checkKnownFilters(test, "add example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   FilterStorage.removeFilter(filter1);
-  checkKnownFilters(test, "remove filter1", {whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], cssrule: [filter6.text]});
+  checkKnownFilters(test, "remove filter1", {whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
   filter2.disabled = true;
-  checkKnownFilters(test, "disable filter2", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], cssrule: [filter6.text]});
+  checkKnownFilters(test, "disable filter2", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
   FilterStorage.removeFilter(filter2);
-  checkKnownFilters(test, "remove filter2", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], cssrule: [filter6.text]});
+  checkKnownFilters(test, "remove filter2", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
   FilterStorage.removeFilter(filter4);
-  checkKnownFilters(test, "remove filter4", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], cssrule: [filter6.text]});
+  checkKnownFilters(test, "remove filter4", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   test.done();
 };
@@ -204,13 +204,13 @@ exports.testFilterSubscriptionOperations = function(test)
   subscription.filters = [filter1, filter2, filter3, filter4, filter5, filter6, filter7];
 
   FilterStorage.addSubscription(subscription);
-  checkKnownFilters(test, "add subscription with filter1, @@filter2, #filter3, !filter4, #@#filter5, example.com##[-abp-properties='filter6'], example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], cssrule: [filter6.text]});
+  checkKnownFilters(test, "add subscription with filter1, @@filter2, #filter3, !filter4, #@#filter5, example.com##[-abp-properties='filter6'], example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   filter2.disabled = false;
-  checkKnownFilters(test, "enable @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], cssrule: [filter6.text]});
+  checkKnownFilters(test, "enable @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   FilterStorage.addFilter(filter1);
-  checkKnownFilters(test, "add filter1", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], cssrule: [filter6.text]});
+  checkKnownFilters(test, "add filter1", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   FilterStorage.updateSubscriptionFilters(subscription, [filter4]);
   checkKnownFilters(test, "change subscription filters to filter4", {blacklist: [filter1.text]});
