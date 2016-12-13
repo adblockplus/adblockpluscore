@@ -379,3 +379,20 @@ exports.testEmptyElemHideDomains = function(test)
 
   test.done();
 };
+
+exports.testElemHideRulesWithBraces = function(test)
+{
+  compareFilter(test, "###foo{color: red}",
+                ["type=elemhide",
+                 "text=###foo{color: red}",
+                 "selectorDomain=",
+                 "selector=#foo\\x7B color: red\\x7D ",
+                 "domains="]);
+  compareFilter(test, "foo.com##[-abp-properties='/margin: [3-4]{2}/']",
+                ["type=elemhideemulation",
+                 "text=foo.com##[-abp-properties='/margin: [3-4]{2}/']",
+                 "selectorDomain=foo.com",
+                 "selector=[-abp-properties='/margin: [3-4]\\x7B 2\\x7D /']",
+                 "domains=FOO.COM"]);
+  test.done();
+};

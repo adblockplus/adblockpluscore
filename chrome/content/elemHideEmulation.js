@@ -137,7 +137,8 @@ ElemHideEmulation.prototype = {
         var regexpString;
         if (propertyExpression.length >= 2 && propertyExpression[0] == "/" &&
             propertyExpression[propertyExpression.length - 1] == "/")
-          regexpString = propertyExpression.slice(1, -1);
+          regexpString = propertyExpression.slice(1, -1)
+              .replace("\\x7B ", "{").replace("\\x7D ", "}");
         else
           regexpString = filterToRegExp(propertyExpression);
 
