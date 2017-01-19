@@ -1,3 +1,6 @@
+// We are currently limited to ECMAScript 5 in this file, because it is being
+// used in the browser tests. See https://issues.adblockplus.org/ticket/4796
+
 var propertySelectorRegExp = /\[\-abp\-properties=(["'])([^"']+)\1\]/;
 
 function splitSelector(selector)

@@ -4,8 +4,10 @@
   "license": "GPL-3.0",
   "dependencies": {},
   "devDependencies": {
-    "sandboxed-module": "2.0.3",
-    "nodeunit": "0.9.1"
+    "node-qunit-phantomjs": "^1.5.0",
+    "nodeunit": "0.9.1",
+    "qunitjs": "^2.1.0",
+    "sandboxed-module": "2.0.3"
   },
   "scripts": {
     "test": "node test_runner.js"

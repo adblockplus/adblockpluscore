@@ -21,8 +21,10 @@ let fs = require("fs");
 let path = require("path");
 let process = require("process");
 let nodeunit = require("nodeunit");
+let qunit = require("node-qunit-phantomjs");
 
-let files = [];
+let nodeunitFiles = [];
+let qunitFiles = [];
 function addTestPaths(testPaths, recurse)
 {
   for (let testPath of testPaths)
@@ -35,17 +37,32 @@ function addTestPaths(testPaths, recurse)
         addTestPaths(fs.readdirSync(testPath).map(
           file => path.join(testPath, file)));
       }
+      continue;
     }
-    else if (path.extname(testPath) == ".js" &&
-             !path.basename(testPath).startsWith("_"))
+    if (path.basename(testPath).startsWith("_"))
+      continue;
+    if (testPath.split(path.sep).includes("browser"))
     {
-      files.push(testPath);
+      if (path.extname(testPath) == ".html")
+        qunitFiles.push(testPath);
     }
+    else if (path.extname(testPath) == ".js")
+      nodeunitFiles.push(testPath);
   }
 }
 if (process.argv.length > 2)
+{
   addTestPaths(process.argv.slice(2), true);
+}
 else
-  addTestPaths([path.join(__dirname, "test")], true);
+{
+  addTestPaths(
+    [path.join(__dirname, "test"), path.join(__dirname, "test", "browser")],
+    true
+  );
+}
 
-nodeunit.reporters.default.run(files);
+if (nodeunitFiles.length)
+  nodeunit.reporters.default.run(nodeunitFiles);
+for (let file of qunitFiles)
+  qunit(file);

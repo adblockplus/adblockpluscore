@@ -9,9 +9,25 @@ serve as a dependency for `adblockplus`, `adblockpluschrome` and
 Running the unit tests
 ----------------------
 
+### Requirements
+
 In order to run the unit test suite you need
 [Node.js 6 or higher](https://nodejs.org/). Once Node.js is installed please run
 `npm install` in the repository directory in order to install the required
-dependencies. After that you can run `npm test` which will execute all tests
-in the `test` directory of the repository. You can also specify specific test
-files on the command line, e.g. `npm test test/synchronizer.js`.
+dependencies.
+
+### Running all tests
+
+`npm test` will run all tests in the `test` directory of the repository.
+
+### Running specific tests
+
+You can specify specific test files or directories on the command line, e.g.:
+`npm test test/synchronizer.js test/browser/elemHideEmulation.html`.
+
+### Running the browser tests in a real browser
+
+The tests under `test/browser` require a browser environment. `npm test` will
+run these in a headless browser, but you can also run them in a real one by
+opening
+[test/browser/elemHideEmulation.html](test/browser/elemHideEmulation.html).
