@@ -371,6 +371,59 @@ exports.testURLSpecificNotification = function(test)
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
+exports.testInterval = function(test)
+{
+  let relentless = {
+    id: 3,
+    type: "relentless",
+    interval: 100
+  };
+
+  registerHandler.call(this, [relentless]);
+  this.runScheduledTasks(1).then(() =>
+  {
+    test.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown initially");
+  }).then(() =>
+  {
+    test.deepEqual(showNotifications(), [], "Relentless notifications are not shown before the interval");
+  }).then(() =>
+  {
+    // Date always returns a fixed time (see setupTimerAndXMLHttp) so we
+    // manipulate the shown data manually.
+    Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
+    test.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown after the interval");
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testRelentlessNotification = function(test)
+{
+  let relentless = {
+    id: 3,
+    type: "relentless",
+    interval: 100,
+    urlFilters: ["foo.com$document", "bar.foo$document"]
+  };
+
+  registerHandler.call(this, [relentless]);
+  this.runScheduledTasks(1).then(() =>
+  {
+    test.deepEqual(showNotifications(), [], "Relentless notification is not shown without URL");
+    test.deepEqual(showNotifications("http://bar.com"), [], "Relentless notification is not shown for a non-matching URL");
+    test.deepEqual(showNotifications("http://foo.com"), [relentless], "Relentless notification is shown for a matching URL");
+  }).then(() =>
+  {
+    test.deepEqual(showNotifications("http://foo.com"), [], "Relentless notifications are not shown before the interval");
+  }).then(() =>
+  {
+    // Date always returns a fixed time (see setupTimerAndXMLHttp) so we
+    // manipulate the shown data manually.
+    Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
+    test.deepEqual(showNotifications(), [], "Relentless notifications are not shown after the interval without URL");
+    test.deepEqual(showNotifications("http://bar.com"), [], "Relentless notifications are not shown after the interval for a non-matching URL");
+    test.deepEqual(showNotifications("http://bar.foo.com"), [relentless], "Relentless notifications are shown after the interval for a matching URL");
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
 exports.testGlobalOptOut = function(test)
 {
   Notification.toggleIgnoreCategory("*", true);
@@ -402,6 +455,10 @@ exports.testGlobalOptOut = function(test)
     id: 2,
     type: "critical"
   };
+  let relentless = {
+    id: 3,
+    type: "relentless"
+  };
 
   Notification.toggleIgnoreCategory("*", true);
   registerHandler.call(this, [information]);
@@ -418,6 +475,13 @@ exports.testGlobalOptOut = function(test)
   }).then(() =>
   {
     test.deepEqual(showNotifications(), [critical], "Critical notifications are not ignored");
+
+    Prefs.notificationdata = {};
+    registerHandler.call(this, [relentless]);
+    return this.runScheduledTasks(1);
+  }).then(() =>
+  {
+    test.deepEqual(showNotifications(), [relentless], "Relentless notifications are not ignored");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
