@@ -4,9 +4,8 @@
   "license": "GPL-3.0",
   "dependencies": {},
   "devDependencies": {
-    "node-qunit-phantomjs": "^1.5.0",
     "nodeunit": "0.9.1",
-    "qunitjs": "^2.1.0",
+    "phantomjs2": "^2.2.0",
     "sandboxed-module": "2.0.3"
   },
   "scripts": {

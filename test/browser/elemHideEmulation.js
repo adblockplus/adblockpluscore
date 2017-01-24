@@ -18,45 +18,50 @@
 // We are currently limited to ECMAScript 5 in this file, because it is being
 // used in the browser tests. See https://issues.adblockplus.org/ticket/4796
 
-QUnit.module("Element hiding emulation",
+// TODO: This should be using document.currentScript once supported by
+// PhantomJS.
+var myUrl = document.head.lastChild.src;
+
+exports.setUp = function(callback)
 {
-  before: function()
+  // The URL object in PhantomJS 2.1.7 does not implement any properties, so
+  // we need a polyfill.
+  if (!URL || !("origin" in URL))
   {
-    // The URL object in PhantomJS 2.1.7 does not implement any properties, so
-    // we need a polyfill.
-    if (!URL || !("origin" in URL))
+    var doc = document.implementation.createHTMLDocument();
+    var anchor = doc.createElement("a");
+    doc.body.appendChild(anchor);
+    URL = function(url)
     {
-      var doc = document.implementation.createHTMLDocument();
-      var anchor = doc.createElement("a");
-      doc.body.appendChild(anchor);
-      URL = function(url)
-      {
-        if (!url)
-          throw "Invalid URL";
-        anchor.href = url;
-        this.origin = anchor.origin;
-      };
-    }
-  },
-  afterEach: function()
-  {
-    var styleElements = document.head.getElementsByTagName("style");
-    for (var i = 0; i < styleElements.length; i++)
-      document.head.removeChild(styleElements[0]);
+      if (!url)
+        throw "Invalid URL";
+      anchor.href = url;
+      this.origin = anchor.origin;
+    };
   }
-});
 
-QUnit.assert.hidden = function(element)
+  callback();
+};
+
+exports.tearDown = function(callback)
 {
-  this.equal(getComputedStyle(element).display, "none",
+  var styleElements = document.head.getElementsByTagName("style");
+  while (styleElements.length)
+    styleElements[0].parentNode.removeChild(styleElements[0]);
+  callback();
+};
+
+function expectHidden(test, element)
+{
+  test.equal(window.getComputedStyle(element).display, "none",
              "The element's display property should be set to 'none'");
-};
+}
 
-QUnit.assert.visible = function(element)
+function expectVisible(test, element)
 {
-  this.notEqual(getComputedStyle(element).display, "none",
+  test.notEqual(window.getComputedStyle(element).display, "none",
                 "The element's display property should not be set to 'none'");
-};
+}
 
 function findUniqueId()
 {
@@ -71,9 +76,7 @@ function insertStyleRule(rule)
   var styleElement;
   var styleElements = document.head.getElementsByTagName("style");
   if (styleElements.length)
-  {
     styleElement = styleElements[0];
-  }
   else
   {
     styleElement = document.createElement("style");
@@ -93,6 +96,19 @@ function createElementWithStyle(styleBlock)
 
 function applyElemHideEmulation(selectors, callback)
 {
+  if (typeof ElemHideEmulation == "undefined")
+  {
+    loadScript(myUrl + "/../../../lib/common.js", function()
+    {
+      loadScript(myUrl + "/../../../chrome/content/elemHideEmulation.js",
+          function()
+          {
+            applyElemHideEmulation(selectors, callback);
+          });
+    });
+    return;
+  }
+
   var elemHideEmulation = new ElemHideEmulation(
     window,
     function(callback)
@@ -120,110 +136,85 @@ function applyElemHideEmulation(selectors, callback)
   });
 }
 
-QUnit.test(
-  "Verbatim property selector",
-  function(assert)
-  {
-    var done = assert.async();
-    var toHide = createElementWithStyle("{background-color: #000}");
-    applyElemHideEmulation(
-      ["[-abp-properties='background-color: rgb(0, 0, 0)']"],
-      function()
-      {
-        assert.hidden(toHide);
-        done();
-      }
-    );
-  }
-);
+exports.testVerbatimPropertySelector = function(test)
+{
+  var toHide = createElementWithStyle("{background-color: #000}");
+  applyElemHideEmulation(
+    ["[-abp-properties='background-color: rgb(0, 0, 0)']"],
+    function()
+    {
+      expectHidden(test, toHide);
+      test.done();
+    }
+  );
+};
 
-QUnit.test(
-  "Property selector with wildcard",
-  function(assert)
-  {
-    var done = assert.async();
-    var toHide = createElementWithStyle("{background-color: #000}");
-    applyElemHideEmulation(
-      ["[-abp-properties='*color: rgb(0, 0, 0)']"],
-      function()
-      {
-        assert.hidden(toHide);
-        done();
-      }
-    );
-  }
-);
+exports.testPropertySelectorWithWildcard = function(test)
+{
+  var toHide = createElementWithStyle("{background-color: #000}");
+  applyElemHideEmulation(
+    ["[-abp-properties='*color: rgb(0, 0, 0)']"],
+    function()
+    {
+      expectHidden(test, toHide);
+      test.done();
+    }
+  );
+};
 
-QUnit.test(
-  "Property selector with regular expression",
-  function(assert)
-  {
-    var done = assert.async();
-    var toHide = createElementWithStyle("{background-color: #000}");
-    applyElemHideEmulation(
-      ["[-abp-properties='/.*color: rgb\\(0, 0, 0\\)/']"],
-      function()
-      {
-        assert.hidden(toHide);
-        done();
-      }
-    );
-  }
-);
+exports.testPropertySelectorWithRegularExpression = function(test)
+{
+  var toHide = createElementWithStyle("{background-color: #000}");
+  applyElemHideEmulation(
+    ["[-abp-properties='/.*color: rgb\\(0, 0, 0\\)/']"],
+    function()
+    {
+      expectHidden(test, toHide);
+      test.done();
+    }
+  );
+};
 
-QUnit.test(
-  "Property selector with regular expression containing escaped brace",
-  function(assert)
-  {
-    var done = assert.async();
-    var toHide = createElementWithStyle("{background-color: #000}");
-    applyElemHideEmulation(
-      ["[-abp-properties='/background.\\x7B 0,6\\x7D : rgb\\(0, 0, 0\\)/']"],
-      function()
-      {
-        assert.hidden(toHide);
-        done();
-      }
-    );
-  }
-);
+exports.testPropertySelectorWithEscapedBrace = function(test)
+{
+  var toHide = createElementWithStyle("{background-color: #000}");
+  applyElemHideEmulation(
+    ["[-abp-properties='/background.\\x7B 0,6\\x7D : rgb\\(0, 0, 0\\)/']"],
+    function()
+    {
+      expectHidden(test, toHide);
+      test.done();
+    }
+  );
+};
 
-QUnit.test(
-  "Property selector with regular expression containing improperly escaped \
-brace",
-  function(assert)
-  {
-    var done = assert.async();
-    var toHide = createElementWithStyle("{background-color: #000}");
-    applyElemHideEmulation(
-      ["[-abp-properties='/background.\\x7B0,6\\x7D: rgb\\(0, 0, 0\\)/']"],
-      function()
-      {
-        assert.visible(toHide);
-        done();
-      }
-    );
-  }
-);
+exports.testPropertySelectorWithImproperlyEscapedBrace = function(test)
+{
+  var toHide = createElementWithStyle("{background-color: #000}");
+  applyElemHideEmulation(
+    ["[-abp-properties='/background.\\x7B0,6\\x7D: rgb\\(0, 0, 0\\)/']"],
+    function()
+    {
+      expectVisible(test, toHide);
+      test.done();
+    }
+  );
+};
 
-QUnit.test(
-  "Property selector works for dynamically changed property",
-  function(assert)
-  {
-    var done = assert.async();
-    var toHide = createElementWithStyle("{}");
-    applyElemHideEmulation(
-      ["[-abp-properties='background-color: rgb(0, 0, 0)']"],
-      function()
+exports.testDynamicallyChangedProperty = function(test)
+{
+  var toHide = createElementWithStyle("{}");
+  applyElemHideEmulation(
+    ["[-abp-properties='background-color: rgb(0, 0, 0)']"],
+    function()
+    {
+      expectVisible(test, toHide);
+      insertStyleRule("#" + toHide.id + " {background-color: #000}");
+      window.setTimeout(function()
       {
-        assert.visible(toHide);
-        insertStyleRule("#" + toHide.id + " {background-color: #000}");
-        setTimeout(function()
-        {
-          assert.hidden(toHide);
-          done();
-        });
-      }
-    );
-  }
-);
+        expectHidden(test, toHide);
+        test.done();
+      }, 0);
+    }
+  );
+};

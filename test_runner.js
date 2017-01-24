@@ -17,14 +17,16 @@
 
 "use strict";
 
+let childProcess = require("child_process");
 let fs = require("fs");
-let path = require("path");
-let process = require("process");
 let nodeunit = require("nodeunit");
-let qunit = require("node-qunit-phantomjs");
+let path = require("path");
+let phantomjs = require("phantomjs2");
+let process = require("process");
+let url = require("url");
 
-let nodeunitFiles = [];
-let qunitFiles = [];
+let unitFiles = [];
+let browserFiles = [];
 function addTestPaths(testPaths, recurse)
 {
   for (let testPath of testPaths)
@@ -41,19 +43,17 @@ function addTestPaths(testPaths, recurse)
     }
     if (path.basename(testPath).startsWith("_"))
       continue;
-    if (testPath.split(path.sep).includes("browser"))
+    if (path.extname(testPath) == ".js")
     {
-      if (path.extname(testPath) == ".html")
-        qunitFiles.push(testPath);
+      if (testPath.split(path.sep).includes("browser"))
+        browserFiles.push(testPath);
+      else
+        unitFiles.push(testPath);
     }
-    else if (path.extname(testPath) == ".js")
-      nodeunitFiles.push(testPath);
   }
 }
 if (process.argv.length > 2)
-{
   addTestPaths(process.argv.slice(2), true);
-}
 else
 {
   addTestPaths(
@@ -62,7 +62,24 @@ else
   );
 }
 
-if (nodeunitFiles.length)
-  nodeunit.reporters.default.run(nodeunitFiles);
-for (let file of qunitFiles)
-  qunit(file);
+if (browserFiles.length)
+{
+  let nodeunitPath = path.join(
+    path.dirname(require.resolve("nodeunit")),
+    "examples", "browser", "nodeunit.js"
+  );
+  browserFiles.unshift(nodeunitPath);
+
+  let urls = browserFiles.map(file =>
+  {
+    return url.format({
+      protocol: "file",
+      slashes: "true",
+      pathname: path.resolve(process.cwd, file).split(path.sep).join("/")
+    });
+  });
+  let args = [path.join(__dirname, "browsertests.js")].concat(urls);
+  childProcess.execFileSync(phantomjs.path, args, {stdio: "inherit"});
+}
+if (unitFiles.length)
+  nodeunit.reporters.default.run(unitFiles);

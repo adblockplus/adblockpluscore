@@ -28,6 +28,6 @@ You can specify specific test files or directories on the command line, e.g.:
 ### Running the browser tests in a real browser
 
 The tests under `test/browser` require a browser environment. `npm test` will
-run these in a headless browser, but you can also run them in a real one by
-opening
-[test/browser/elemHideEmulation.html](test/browser/elemHideEmulation.html).
+run these in a headless browser, with each module being loaded in a new frame.
+*Note*: Currently this environment is limited to ECMAScript 5, this limitation
+should hopefully be resolved soon.
