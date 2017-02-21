@@ -124,7 +124,7 @@ ElemHideEmulation.prototype = {
       this.addSelectors([stylesheet]);
   },
 
-  load: function(callback)
+  apply: function()
   {
     this.getFiltersFunc(function(patterns)
     {
@@ -153,17 +153,12 @@ ElemHideEmulation.prototype = {
         });
       }
 
-      callback();
+      if (this.patterns.length > 0)
+      {
+        var document = this.window.document;
+        this.addSelectors(document.styleSheets);
+        document.addEventListener("load", this.onLoad.bind(this), true);
+      }
     }.bind(this));
-  },
-
-  apply: function()
-  {
-    if (this.patterns.length > 0)
-    {
-      var document = this.window.document;
-      this.addSelectors(document.styleSheets);
-      document.addEventListener("load", this.onLoad.bind(this), true);
-    }
   }
 };
