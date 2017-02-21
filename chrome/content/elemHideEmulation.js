@@ -83,26 +83,26 @@ ElemHideEmulation.prototype = {
     if (!this.isSameOrigin(stylesheet))
       return;
 
-    var rules = stylesheet.cssRules;
+    let rules = stylesheet.cssRules;
     if (!rules)
       return;
 
-    for (var i = 0; i < rules.length; i++)
+    for (let rule of rules)
     {
-      var rule = rules[i];
       if (rule.type != rule.STYLE_RULE)
         continue;
 
-      var style = this.stringifyStyle(rule.style);
-      for (var j = 0; j < this.patterns.length; j++)
+      let style = this.stringifyStyle(rule.style);
+      for (let pattern of this.patterns)
       {
-        var pattern = this.patterns[j];
         if (pattern.regexp.test(style))
         {
-          var subSelectors = splitSelector(rule.selectorText);
-          for (var k = 0; k < subSelectors.length; k++)
-            selectors.push(pattern.prefix + subSelectors[k] + pattern.suffix);
-          filters[pattern.text] = true;
+          let subSelectors = splitSelector(rule.selectorText);
+          for (let subSelector of subSelectors)
+          {
+            selectors.push(pattern.prefix + subSelector + pattern.suffix);
+            filters.push(pattern.text);
+          }
         }
       }
     }
@@ -111,10 +111,10 @@ ElemHideEmulation.prototype = {
   addSelectors: function(stylesheets)
   {
     var selectors = [];
-    var filters = {};
+    var filters = [];
     for (var i = 0; i < stylesheets.length; i++)
       this.findSelectors(stylesheets[i], selectors, filters);
-    this.addSelectorsFunc(selectors, Object.keys(filters));
+    this.addSelectorsFunc(selectors, filters);
   },
 
   onLoad: function(event)
