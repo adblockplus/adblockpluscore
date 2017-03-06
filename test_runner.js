@@ -75,7 +75,7 @@ if (browserFiles.length)
     return url.format({
       protocol: "file",
       slashes: "true",
-      pathname: path.resolve(process.cwd, file).split(path.sep).join("/")
+      pathname: path.resolve(process.cwd(), file).split(path.sep).join("/")
     });
   });
   let args = [path.join(__dirname, "browsertests.js")].concat(urls);
