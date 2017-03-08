@@ -129,11 +129,8 @@ function applyElemHideEmulation(selectors, callback)
     }
   );
 
-  elemHideEmulation.load(function()
-  {
-    elemHideEmulation.apply();
-    callback();
-  });
+  elemHideEmulation.apply();
+  callback();
 }
 
 exports.testVerbatimPropertySelector = function(test)

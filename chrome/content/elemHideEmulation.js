@@ -83,23 +83,26 @@ ElemHideEmulation.prototype = {
     if (!this.isSameOrigin(stylesheet))
       return;
 
-    let rules = stylesheet.cssRules;
+    var rules = stylesheet.cssRules;
     if (!rules)
       return;
 
-    for (let rule of rules)
+    for (var i = 0; i < rules.length; i++)
     {
+      var rule = rules[i];
       if (rule.type != rule.STYLE_RULE)
         continue;
 
-      let style = this.stringifyStyle(rule.style);
-      for (let pattern of this.patterns)
+      var style = this.stringifyStyle(rule.style);
+      for (var j = 0; j < this.patterns.length; j++)
       {
+        var pattern = this.patterns[j];
         if (pattern.regexp.test(style))
         {
-          let subSelectors = splitSelector(rule.selectorText);
-          for (let subSelector of subSelectors)
+          var subSelectors = splitSelector(rule.selectorText);
+          for (var k = 0; k < subSelectors.length; k++)
           {
+            var subSelector = subSelectors[k];
             selectors.push(pattern.prefix + subSelector + pattern.suffix);
             filters.push(pattern.text);
           }
