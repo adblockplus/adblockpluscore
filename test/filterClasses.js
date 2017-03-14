@@ -29,7 +29,7 @@ let WhitelistFilter = null;
 let ElemHideBase = null;
 let ElemHideFilter = null;
 let ElemHideException = null;
-let CSSPropertyFilter = null;
+let ElemHideEmulationFilter = null;
 
 exports.setUp = function(callback)
 {
@@ -38,7 +38,7 @@ exports.setUp = function(callback)
     {
       Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
       BlockingFilter, WhitelistFilter, ElemHideBase, ElemHideFilter,
-      ElemHideException, CSSPropertyFilter
+      ElemHideException, ElemHideEmulationFilter
     } = sandboxedRequire("../lib/filterClassesNew")
   );
   callback();
@@ -75,21 +75,21 @@ exports.testFromText = function(test)
 
     ["##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
     ["#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["example.com##foo[-abp-properties='something']bar", CSSPropertyFilter, "cssproperty"],
+    ["example.com##foo[-abp-properties='something']bar", ElemHideEmulationFilter, "elemhideemulation"],
     ["example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
     ["~example.com##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
     ["~example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
     ["~example.com,~example.info##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
     ["~example.com,~example.info#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["~sub.example.com,example.com##foo[-abp-properties='something']bar", CSSPropertyFilter, "cssproperty"],
+    ["~sub.example.com,example.com##foo[-abp-properties='something']bar", ElemHideEmulationFilter, "elemhideemulation"],
     ["~sub.example.com,example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["example.com,~sub.example.com##foo[-abp-properties='something']bar", CSSPropertyFilter, "cssproperty"],
+    ["example.com,~sub.example.com##foo[-abp-properties='something']bar", ElemHideEmulationFilter, "elemhideemulation"],
     ["example.com,~sub.example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["example.com##[-abp-properties='something']", CSSPropertyFilter, "cssproperty"],
+    ["example.com##[-abp-properties='something']", ElemHideEmulationFilter, "elemhideemulation"],
     ["example.com#@#[-abp-properties='something']", ElemHideException, "elemhideexception"],
-    ["example.com##[-abp-properties=\"something\"]", CSSPropertyFilter, "cssproperty"],
+    ["example.com##[-abp-properties=\"something\"]", ElemHideEmulationFilter, "elemhideemulation"],
     ["example.com#@#[-abp-properties=\"something\"]", ElemHideException, "elemhideexception"],
-    ["example.com##[-abp-properties=(something)]", ElemHideFilter, "elemhide"],
+    ["example.com##[-abp-properties=(something)]", ElemHideEmulationFilter, "elemhideemulation"],
     ["example.com#@#[-abp-properties=(something)]", ElemHideException, "elemhideexception"],
   ];
   for (let [text, type, typeName, location] of tests)
@@ -110,7 +110,7 @@ exports.testClassHierarchy = function(test)
 {
   let allClasses = ["Filter", "InvalidFilter", "CommentFilter", "ActiveFilter",
     "RegExpFilter", "BlockingFilter", "WhitelistFilter", "ElemHideBase",
-    "ElemHideFilter", "ElemHideException", "CSSPropertyFilter"];
+    "ElemHideFilter", "ElemHideException", "ElemHideEmulationFilter"];
   let tests = [
     ["/asdf??+/", "Filter", "InvalidFilter"],
     ["!asdf", "Filter", "CommentFilter"],
@@ -118,7 +118,7 @@ exports.testClassHierarchy = function(test)
     ["@@asdf", "Filter", "ActiveFilter", "RegExpFilter", "WhitelistFilter"],
     ["##asdf", "Filter", "ActiveFilter", "ElemHideBase", "ElemHideFilter"],
     ["#@#asdf", "Filter", "ActiveFilter", "ElemHideBase", "ElemHideException"],
-    ["example.com##[-abp-properties='something']", "Filter", "ActiveFilter", "ElemHideBase", "CSSPropertyFilter"],
+    ["example.com##[-abp-properties='something']", "Filter", "ActiveFilter", "ElemHideBase", "ElemHideEmulationFilter"],
   ];
 
   for (let list of tests)
@@ -260,7 +260,7 @@ exports.testInvalidReasons = function(test)
   let tests = [
     ["/??/", "filter_invalid_regexp"],
     ["asd$foobar", "filter_unknown_option"],
-    ["~foo.com##[-abp-properties='abc']", "filter_cssproperty_nodomain"],
+    ["~foo.com##[-abp-properties='abc']", "filter_elemhideemulation_nodomain"],
   ];
 
   for (let [text, reason] of tests)
@@ -355,6 +355,7 @@ exports.testElemHideSelector = function(test)
     ["xYz,~example.com##foobar:not(whatever)", "foobar:not(whatever)","xyz"],
     ["~xyz,com,~abc.com,example.info##foobar", "foobar", "com,example.info"],
     ["foo,bar,bas,bam##foobar", "foobar", "foo,bar,bas,bam"],
+    ["foo.com##x[-abp-properties='abc']y", "x[-abp-properties='abc']y", "foo.com"],
 
     // Good idea to test this? Maybe consider behavior undefined in this case.
     ["foo,bar,bas,~bar##foobar", "foobar", "foo,bas"],
@@ -364,29 +365,6 @@ exports.testElemHideSelector = function(test)
   {
     doTest(text, selector, selectorDomain);
     doTest(text.replace("##", "#@#"), selector, selectorDomain);
-  }
-
-  test.done();
-};
-
-exports.testCSSRules = function(test)
-{
-  let tests = [
-    ["foo.com##[-abp-properties='abc']", "abc", "", ""],
-    ["foo.com##[-abp-properties='a\"bc']", "a\\\"bc", "", ""],
-    ["foo.com##[-abp-properties=\"abc\"]", "abc", "", ""],
-    ["foo.com##[-abp-properties=\"a'bc\"]", "a\\'bc", "", ""],
-    ["foo.com##aaa [-abp-properties='abc'] bbb", "abc", "aaa ", " bbb"],
-    ["foo.com##[-abp-properties='|background-image: url(data:*)']", "^background\\-image\\:\\ url\\(data\\:.*\\)", "", ""],
-  ];
-
-  for (let [text, regexp, prefix, suffix] of tests)
-  {
-    let filter = Filter.fromText(text);
-    test.equal(filter.regexpString, regexp, "Regular expression of " + text);
-    test.equal(filter.selectorPrefix, prefix, "Selector prefix of " + text);
-    test.equal(filter.selectorSuffix, suffix, "Selector suffix of " + text);
-    filter.delete();
   }
 
   test.done();

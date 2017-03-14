@@ -4,7 +4,7 @@
 
 #include "ActiveFilter.h"
 
-struct ElemHideBaseData
+struct ElemHideData
 {
   String::size_type mDomainsEnd;
   String::size_type mSelectorStart;
@@ -35,14 +35,12 @@ struct ElemHideBaseData
   }
 };
 
-struct ElemHideData;
-
 class ElemHideBase : public ActiveFilter
 {
 protected:
-  ElemHideBaseData mData;
+  ElemHideData mData;
 public:
-  explicit ElemHideBase(Type type, const String& text, const ElemHideBaseData& data);
+  explicit ElemHideBase(Type type, const String& text, const ElemHideData& data);
   static Type Parse(DependentString& text, ElemHideData& data);
 
   EMSCRIPTEN_KEEPALIVE const DependentString GetSelector() const

@@ -90,7 +90,6 @@ public:
   static Type Parse(DependentString& text, DependentString& error,
       RegExpFilterData& data);
   EMSCRIPTEN_KEEPALIVE static void InitJSTypes();
-  static OwnedString RegExpFromSource(const String& source);
   EMSCRIPTEN_KEEPALIVE bool Matches(const String& location, int typeMask,
       DependentString& docDomain, bool thirdParty, const String& sitekey) const;
 };

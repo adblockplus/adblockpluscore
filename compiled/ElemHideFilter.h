@@ -8,5 +8,5 @@
 class ElemHideFilter: public ElemHideBase
 {
 public:
-  explicit ElemHideFilter(const String& text, const ElemHideBaseData& data);
+  explicit ElemHideFilter(const String& text, const ElemHideData& data);
 };

@@ -9,7 +9,7 @@
 #include "ElemHideBase.h"
 #include "ElemHideFilter.h"
 #include "ElemHideException.h"
-#include "CSSPropertyFilter.h"
+#include "ElemHideEmulationFilter.h"
 
 EMSCRIPTEN_BINDINGS
 {
@@ -24,7 +24,7 @@ EMSCRIPTEN_BINDINGS
         {Filter::Type::WHITELIST, "WhitelistFilter"},
         {Filter::Type::ELEMHIDE, "ElemHideFilter"},
         {Filter::Type::ELEMHIDEEXCEPTION, "ElemHideException"},
-        {Filter::Type::CSSPROPERTY, "CSSPropertyFilter"},
+        {Filter::Type::ELEMHIDEEMULATION, "ElemHideEmulationFilter"},
       });
 
   class_<InvalidFilter,Filter>("InvalidFilter")
@@ -63,9 +63,6 @@ EMSCRIPTEN_BINDINGS
   class_<ElemHideException,ElemHideBase>("ElemHideException")
       .class_property("type", "'elemhideexception'");
 
-  class_<CSSPropertyFilter,ElemHideBase>("CSSPropertyFilter")
-      .class_property("type", "'cssproperty'")
-      .property("regexpString", &CSSPropertyFilter::GetRegExpString)
-      .property("selectorPrefix", &CSSPropertyFilter::GetSelectorPrefix)
-      .property("selectorSuffix", &CSSPropertyFilter::GetSelectorSuffix);
+  class_<ElemHideEmulationFilter,ElemHideBase>("ElemHideEmulationFilter")
+      .class_property("type", "'elemhideemulation'");
 }

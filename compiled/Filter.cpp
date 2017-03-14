@@ -7,7 +7,7 @@
 #include "ElemHideBase.h"
 #include "ElemHideFilter.h"
 #include "ElemHideException.h"
-#include "CSSPropertyFilter.h"
+#include "ElemHideEmulationFilter.h"
 #include "StringMap.h"
 
 namespace
@@ -123,10 +123,10 @@ Filter* Filter::FromText(DependentString& text)
     case Filter::Type::ELEMHIDEEXCEPTION:
       filter = new ElemHideException(text, data.elemhide);
       break;
-    case Filter::Type::CSSPROPERTY:
-      filter = new CSSPropertyFilter(text, data.elemhide);
-      if (static_cast<CSSPropertyFilter*>(filter.get())->IsGeneric())
-        filter = new InvalidFilter(text, u"filter_cssproperty_nodomain"_str);
+    case Filter::Type::ELEMHIDEEMULATION:
+      filter = new ElemHideEmulationFilter(text, data.elemhide);
+      if (static_cast<ElemHideEmulationFilter*>(filter.get())->IsGeneric())
+        filter = new InvalidFilter(text, u"filter_elemhideemulation_nodomain"_str);
       break;
     default:
       // This should never happen but just in case

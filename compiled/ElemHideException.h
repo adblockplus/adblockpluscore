@@ -8,5 +8,5 @@
 class ElemHideException: public ElemHideBase
 {
 public:
-  explicit ElemHideException(const String& text, const ElemHideBaseData& data);
+  explicit ElemHideException(const String& text, const ElemHideData& data);
 };

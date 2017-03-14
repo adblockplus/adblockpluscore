@@ -1,5 +1,4 @@
 #include "ElemHideBase.h"
-#include "CSSPropertyFilter.h"
 #include "StringScanner.h"
 
 namespace
@@ -33,7 +32,7 @@ namespace
   }
 }
 
-ElemHideBase::ElemHideBase(Type type, const String& text, const ElemHideBaseData& data)
+ElemHideBase::ElemHideBase(Type type, const String& text, const ElemHideData& data)
     : ActiveFilter(type, text, false), mData(data)
 {
   if (mData.HasDomains())
@@ -105,32 +104,8 @@ Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data)
   if (exception)
     return Type::ELEMHIDEEXCEPTION;
 
-  do
-  {
-    // Is this a CSS property rule maybe?
-    DependentString searchString(u"[-abp-properties="_str);
-    data.mPrefixEnd = text.find(searchString, data.mSelectorStart);
-    if (data.mPrefixEnd == text.npos ||
-        data.mPrefixEnd + searchString.length() + 1 >= text.length())
-    {
-      break;
-    }
-
-    data.mRegexpStart = data.mPrefixEnd + searchString.length() + 1;
-    char16_t quotation = text[data.mRegexpStart - 1];
-    if (quotation != u'\'' && quotation != u'"')
-      break;
-
-    data.mRegexpEnd = text.find(quotation, data.mRegexpStart);
-    if (data.mRegexpEnd == text.npos || data.mRegexpEnd + 1 >= text.length() ||
-      text[data.mRegexpEnd + 1] != u']')
-    {
-      break;
-    }
-
-    data.mSuffixStart = data.mRegexpEnd + 2;
-    return Type::CSSPROPERTY;
-  } while (false);
+  if (text.find(u"[-abp-properties="_str, data.mSelectorStart) != text.npos)
+    return Type::ELEMHIDEEMULATION;
 
   return Type::ELEMHIDE;
 }

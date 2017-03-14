@@ -21,7 +21,7 @@ public:
     WHITELIST = 4,
     ELEMHIDE = 5,
     ELEMHIDEEXCEPTION = 6,
-    CSSPROPERTY = 7,
+    ELEMHIDEEMULATION = 7,
   };
 
   explicit Filter(Type type, const String& text);

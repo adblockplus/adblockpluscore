@@ -1,7 +1,7 @@
 #include "ElemHideException.h"
 
 ElemHideException::ElemHideException(const String& text,
-    const ElemHideBaseData& data)
+    const ElemHideData& data)
     : ElemHideBase(Type::ELEMHIDEEXCEPTION, text, data)
 {
 }

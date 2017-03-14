@@ -54,6 +54,65 @@ namespace
   const int defaultTypeMask = INT_MAX & ~(TYPE_DOCUMENT | TYPE_ELEMHIDE |
       TYPE_POPUP | TYPE_GENERICBLOCK | TYPE_GENERICHIDE);
 
+  OwnedString RegExpFromSource(const String& source)
+  {
+    /* TODO: this is very inefficient */
+
+    // Note: This doesn't remove trailing wildcards, otherwise the result should
+    // be identical to Filter.toRegExp().
+    OwnedString result;
+    String::value_type prevChar = u'*';
+    for (String::size_type i = 0; i < source.length(); ++i)
+    {
+      String::value_type currChar = source[i];
+      switch (currChar)
+      {
+        case u'*':
+          if (prevChar != u'*')
+            result.append(u".*"_str);
+          break;
+        case u'^':
+          result.append(u"(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)"_str);
+          break;
+        case u'|':
+          if (i == 0)
+          {
+            // Anchor at expression start, maybe extended anchor?
+            if (i + 1 < source.length() && source[i + 1] == u'|')
+            {
+              result.append(u"^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"_str);
+              ++i;
+            }
+            else
+              result.append(u'^');
+          }
+          else if (i == source.length() - 1)
+          {
+            // Anchor at expression end, ignore if following separator placeholder
+            if (prevChar != u'^')
+              result.append(u'$');
+          }
+          else
+          {
+            // Not actually an anchor, escape it
+            result.append(u"\\|"_str);
+          }
+          break;
+        default:
+          if (!(currChar >= u'a' && currChar <= u'z') &&
+              !(currChar >= u'A' && currChar <= u'Z') &&
+              !(currChar >= u'0' && currChar <= u'9') &&
+              currChar < 128)
+          {
+            result.append(u'\\');
+          }
+          result.append(currChar);
+      }
+      prevChar = currChar;
+    }
+    return result;
+  }
+
   int GenerateRegExp(const String& regexp, bool matchCase)
   {
     return EM_ASM_INT(return regexps.create($0, $1), &regexp, matchCase);
@@ -271,65 +330,6 @@ void RegExpFilter::InitJSTypes()
   EM_ASM(exports.RegExpFilter.typeMap = {};);
   for (auto it = typeMap.begin(); it != typeMap.end(); ++it)
     EM_ASM_ARGS(exports.RegExpFilter.typeMap[readString($0).replace("-", "_").toUpperCase()] = $1, &(it->first), it->second);
-}
-
-OwnedString RegExpFilter::RegExpFromSource(const String& source)
-{
-  /* TODO: this is very inefficient */
-
-  // Note: This doesn't remove trailing wildcards, otherwise the result should
-  // be identical to Filter.toRegExp().
-  OwnedString result;
-  String::value_type prevChar = u'*';
-  for (String::size_type i = 0; i < source.length(); ++i)
-  {
-    String::value_type currChar = source[i];
-    switch (currChar)
-    {
-      case u'*':
-        if (prevChar != u'*')
-          result.append(u".*"_str);
-        break;
-      case u'^':
-        result.append(u"(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)"_str);
-        break;
-      case u'|':
-        if (i == 0)
-        {
-          // Anchor at expression start, maybe extended anchor?
-          if (i + 1 < source.length() && source[i + 1] == u'|')
-          {
-            result.append(u"^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"_str);
-            ++i;
-          }
-          else
-            result.append(u'^');
-        }
-        else if (i == source.length() - 1)
-        {
-          // Anchor at expression end, ignore if following separator placeholder
-          if (prevChar != u'^')
-            result.append(u'$');
-        }
-        else
-        {
-          // Not actually an anchor, escape it
-          result.append(u"\\|"_str);
-        }
-        break;
-      default:
-        if (!(currChar >= u'a' && currChar <= u'z') &&
-            !(currChar >= u'A' && currChar <= u'Z') &&
-            !(currChar >= u'0' && currChar <= u'9') &&
-            currChar < 128)
-        {
-          result.append(u'\\');
-        }
-        result.append(currChar);
-    }
-    prevChar = currChar;
-  }
-  return result;
 }
 
 RegExpFilter::DomainMap* RegExpFilter::GetDomains() const
