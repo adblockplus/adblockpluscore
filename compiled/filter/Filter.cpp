@@ -8,7 +8,7 @@
 #include "ElemHideFilter.h"
 #include "ElemHideException.h"
 #include "ElemHideEmulationFilter.h"
-#include "StringMap.h"
+#include "../StringMap.h"
 
 namespace
 {

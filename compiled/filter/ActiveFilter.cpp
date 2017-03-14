@@ -1,7 +1,7 @@
 #include <cstdio>
 
 #include "ActiveFilter.h"
-#include "StringScanner.h"
+#include "../StringScanner.h"
 
 namespace
 {

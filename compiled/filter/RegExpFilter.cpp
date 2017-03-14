@@ -3,8 +3,8 @@
 #include <emscripten.h>
 
 #include "RegExpFilter.h"
-#include "StringScanner.h"
-#include "StringMap.h"
+#include "../StringScanner.h"
+#include "../StringMap.h"
 
 namespace
 {

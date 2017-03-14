@@ -3,7 +3,7 @@
 #include <emscripten.h>
 
 #include "Filter.h"
-#include "StringMap.h"
+#include "../StringMap.h"
 
 #define FILTER_PROPERTY(type, name, getter, setter) \
     private:\

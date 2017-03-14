@@ -2,9 +2,9 @@
 
 #include <vector>
 
-#include "String.h"
-#include "intrusive_ptr.h"
-#include "debug.h"
+#include "../String.h"
+#include "../intrusive_ptr.h"
+#include "../debug.h"
 
 class Filter : public ref_counted
 {

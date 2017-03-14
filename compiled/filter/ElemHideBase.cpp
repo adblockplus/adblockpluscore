@@ -1,5 +1,5 @@
 #include "ElemHideBase.h"
-#include "StringScanner.h"
+#include "../StringScanner.h"
 
 namespace
 {

@@ -9,8 +9,9 @@ import warnings
 EMSCRIPTEN_PATH = '../emscripten'
 SOURCE_DIR = './compiled'
 SOURCE_FILES = [
-  os.path.join(SOURCE_DIR, f)
-  for f in os.listdir(SOURCE_DIR)
+  os.path.join(path, f)
+  for (path, dirs, files) in os.walk(SOURCE_DIR)
+  for f in files
   if f.endswith('.cpp')
 ]
 BINDINGS_FILE = os.path.join(SOURCE_DIR, 'bindings.cpp')
