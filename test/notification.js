@@ -21,7 +21,6 @@ let {
   createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError, Cr
 } = require("./_common");
 
-let info = null;
 let Prefs = null;
 let Notification = null;
 
@@ -34,7 +33,6 @@ exports.setUp = function(callback)
 
   let sandboxedRequire = createSandbox({globals});
   (
-    info = sandboxedRequire("./stub-modules/info"),
     {Prefs} = sandboxedRequire("./stub-modules/prefs"),
     {Notification} = sandboxedRequire("../lib/notification")
   );
@@ -59,9 +57,13 @@ function showNotifications(url)
 function* pairs(array)
 {
   for (let element1 of array)
+  {
     for (let element2 of array)
+    {
       if (element1 != element2)
         yield [element1, element2];
+    }
+  }
 }
 
 function registerHandler(notifications, checkCallback)
@@ -172,7 +174,7 @@ for (let [propName, value, result] of [
   ["platformMaxVersion", "12.0", true],
   ["platformMaxVersion", "12", true],
   ["platformMaxVersion", "13", true],
-  ["platformMaxVersion", "11", false],
+  ["platformMaxVersion", "11", false]
 ])
 {
   exports.testTargetSelection[`${propName}=${value}`] = function(test)
@@ -211,7 +213,7 @@ for (let [[propName1, value1, result1], [propName2, value2, result2]] of pairs([
   ["platform", "chromium", true],
   ["platform", "gecko", false],
   ["platformMinVersion", "12", true],
-  ["platformMinVersion", "13", false],
+  ["platformMinVersion", "13", false]
 ]))
 {
   exports.testMultipleTargets[`${propName1}=${value1},${propName2}=${value2}`] = function(test)
@@ -231,10 +233,10 @@ for (let [[propName1, value1, result1], [propName2, value2, result2]] of pairs([
     registerHandler.call(this, [information]);
     this.runScheduledTasks(1).then(() =>
     {
-      let expected = (result1 || result2 ? [information] : [])
+      let expected = (result1 || result2 ? [information] : []);
       test.deepEqual(showNotifications(), expected, "Selected notification for " + JSON.stringify(information.targets));
     }).catch(unexpectedError.bind(test)).then(() => test.done());
-  }
+  };
 }
 
 exports.testParametersSent = function(test)
@@ -242,11 +244,11 @@ exports.testParametersSent = function(test)
   Prefs.notificationdata = {
     data: {
       version: "3"
-    },
+    }
   };
 
   let parameters = null;
-  registerHandler.call(this, [], function(metadata)
+  registerHandler.call(this, [], metadata =>
   {
     parameters = decodeURI(metadata.queryString);
   });
@@ -335,7 +337,7 @@ exports.testUsingSeverityInsteadOfType = function(test)
   let responseText = JSON.stringify({
     notifications: [severityNotification]
   });
-  Notification._onDownloadSuccess({}, responseText, function() {}, function() {});
+  Notification._onDownloadSuccess({}, responseText, () => {}, () => {});
 };
 
 exports.testURLSpecificNotification = function(test)
@@ -505,7 +507,7 @@ exports.testLanguageOnly = function(test)
 
 exports.testLanguageAndCountry = function(test)
 {
-  let notification = {message: {fr: "fr", "fr-CA": "fr-CA"}};
+  let notification = {message: {"fr": "fr", "fr-CA": "fr-CA"}};
   let texts = Notification.getLocalizedTexts(notification, "fr-CA");
   test.equal(texts.message, "fr-CA");
   texts = Notification.getLocalizedTexts(notification, "fr");

@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let Filter = null;
 let FilterNotifier = null;
@@ -57,7 +57,7 @@ function compareFiltersList(test, testMessage, list)
 function compareFilterSubscriptions(test, testMessage, filter, list)
 {
   let result = filter.subscriptions.map(subscription => subscription.url);
-  let expected = list.map(subscription =>  subscription.url);
+  let expected = list.map(subscription => subscription.url);
   test.deepEqual(result, expected, testMessage);
 }
 

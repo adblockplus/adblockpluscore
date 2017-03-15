@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let ElemHideEmulationFilter = null;
 let ElemHideEmulation = null;
@@ -60,36 +60,46 @@ exports.testDomainRestrictions = function(test)
 
   testSelectorMatches(
     "Ignore generic filters",
-    ["##[-abp-properties='foo']", "example.com##[-abp-properties='foo']",
-     "~example.com##[-abp-properties='foo']"],
+    [
+      "##[-abp-properties='foo']", "example.com##[-abp-properties='foo']",
+      "~example.com##[-abp-properties='foo']"
+    ],
     "example.com",
     ["example.com##[-abp-properties='foo']"]
   );
   testSelectorMatches(
     "Ignore selectors with exceptions",
-    ["example.com##[-abp-properties='foo']",
-    "example.com##[-abp-properties='bar']",
-    "example.com#@#[-abp-properties='foo']"],
+    [
+      "example.com##[-abp-properties='foo']",
+      "example.com##[-abp-properties='bar']",
+      "example.com#@#[-abp-properties='foo']"
+    ],
     "example.com",
     ["example.com##[-abp-properties='bar']"]
   );
   testSelectorMatches(
     "Ignore filters that include parent domain but exclude subdomain",
-    ["~www.example.com,example.com##[-abp-properties='foo']"],
+    [
+      "~www.example.com,example.com##[-abp-properties='foo']"
+    ],
     "www.example.com",
     []
   );
   testSelectorMatches(
     "Ignore filters with parent domain if exception matches subdomain",
-    ["www.example.com#@#[-abp-properties='foo']",
-     "example.com##[-abp-properties='foo']"],
+    [
+      "www.example.com#@#[-abp-properties='foo']",
+      "example.com##[-abp-properties='foo']"
+    ],
     "www.example.com",
     []
   );
   testSelectorMatches(
     "Ignore filters for other subdomain",
-    ["www.example.com##[-abp-properties='foo']",
-    "other.example.com##[-abp-properties='foo']"],
+    [
+      "www.example.com##[-abp-properties='foo']",
+      "other.example.com##[-abp-properties='foo']"
+    ],
     "other.example.com",
     ["other.example.com##[-abp-properties='foo']"]
   );
@@ -102,7 +112,7 @@ exports.testElemHideEmulationFiltersContainer = function(test)
   function compareRules(description, domain, expectedMatches)
   {
     let result = ElemHideEmulation.getRulesForDomain(domain)
-        .map((filter) => filter.text);
+        .map(filter => filter.text);
     expectedMatches = expectedMatches.map(filter => filter.text);
     test.deepEqual(result.sort(), expectedMatches.sort(), description);
   }

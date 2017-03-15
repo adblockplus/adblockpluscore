@@ -1,3 +1,5 @@
+"use strict";
+
 let listeners = [];
 
 let Prefs = exports.Prefs = {
@@ -15,8 +17,11 @@ for (let key of Object.keys(Prefs))
 {
   let value = Prefs[key];
   Object.defineProperty(Prefs, key, {
-    get: () => value,
-    set: newValue =>
+    get()
+    {
+      return value;
+    },
+    set(newValue)
     {
       if (newValue == value)
         return;

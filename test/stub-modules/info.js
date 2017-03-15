@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports = {
   addonName: "adblockpluschrome",
   addonVersion: "1.4.1",

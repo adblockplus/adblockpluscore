@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let Filter = null;
 let InvalidFilter = null;
@@ -61,9 +61,7 @@ function serializeFilter(filter)
     result.push("reason=" + filter.reason);
   }
   else if (filter instanceof CommentFilter)
-  {
     result.push("type=comment");
-  }
   else if (filter instanceof ActiveFilter)
   {
     result.push("disabled=" + filter.disabled);
@@ -74,8 +72,10 @@ function serializeFilter(filter)
     if (filter.domains)
     {
       for (let domain in filter.domains)
+      {
         if (domain != "")
           domains.push(filter.domains[domain] ? domain : "~" + domain);
+      }
     }
     result.push("domains=" + domains.sort().join("|"));
 
@@ -95,9 +95,7 @@ function serializeFilter(filter)
         result.push("collapse=" + filter.collapse);
       }
       else if (filter instanceof WhitelistFilter)
-      {
         result.push("type=whitelist");
-      }
     }
     else if (filter instanceof ElemHideBase)
     {
@@ -153,9 +151,7 @@ function addDefaults(expected)
     addProperty("sitekeys", "");
   }
   if (type == "filterlist")
-  {
     addProperty("collapse", "null");
-  }
   if (type == "elemhide" || type == "elemhideexception" ||
       type == "elemhideemulation")
   {
@@ -170,7 +166,7 @@ function compareFilter(test, text, expected, postInit)
 
   let filter = Filter.fromText(text);
   if (postInit)
-    postInit(filter)
+    postInit(filter);
   let result = serializeFilter(filter);
   test.equal(result.sort().join("\n"), expected.sort().join("\n"), text);
 
@@ -189,9 +185,7 @@ function compareFilter(test, text, expected, postInit)
     filter2 = Filter.fromObject(map);
   }
   else
-  {
     filter2 = Filter.fromText(filter.text);
-  }
 
   test.equal(serializeFilter(filter).join("\n"), serializeFilter(filter2).join("\n"), text + " deserialization");
 }
@@ -233,9 +227,12 @@ exports.testInvalidFilters = function(test)
   function checkElemHideEmulationFilterInvalid(domains)
   {
     let filterText = domains + "##[-abp-properties='abc']";
-    compareFilter(test, filterText,
-                  ["type=invalid", "text=" + filterText,
-                   "reason=filter_elemhideemulation_nodomain"]);
+    compareFilter(
+      test, filterText, [
+        "type=invalid", "text=" + filterText,
+        "reason=filter_elemhideemulation_nodomain"
+      ]
+    );
   }
   checkElemHideEmulationFilterInvalid("");
   checkElemHideEmulationFilterInvalid("~foo.com");
@@ -246,21 +243,28 @@ exports.testInvalidFilters = function(test)
   test.done();
 };
 
-exports.testFiltersWithState  = function(test)
+exports.testFiltersWithState = function(test)
 {
   compareFilter(test, "blabla", ["type=filterlist", "text=blabla", "regexp=blabla"]);
-  compareFilter(test, "blabla_default", ["type=filterlist", "text=blabla_default", "regexp=blabla_default"], function(filter)
-  {
-    filter.disabled = false;
-    filter.hitCount = 0;
-    filter.lastHit = 0;
-  });
-  compareFilter(test, "blabla_non_default", ["type=filterlist", "text=blabla_non_default", "regexp=blabla_non_default", "disabled=true", "hitCount=12", "lastHit=20"], function(filter)
-  {
-    filter.disabled = true;
-    filter.hitCount = 12;
-    filter.lastHit = 20;
-  });
+  compareFilter(
+    test, "blabla_default", ["type=filterlist", "text=blabla_default", "regexp=blabla_default"],
+    filter =>
+    {
+      filter.disabled = false;
+      filter.hitCount = 0;
+      filter.lastHit = 0;
+    }
+  );
+  compareFilter(
+    test, "blabla_non_default",
+    ["type=filterlist", "text=blabla_non_default", "regexp=blabla_non_default", "disabled=true", "hitCount=12", "lastHit=20"],
+    filter =>
+    {
+      filter.disabled = true;
+      filter.hitCount = 12;
+      filter.lastHit = 20;
+    }
+  );
 
   test.done();
 };
@@ -295,10 +299,10 @@ exports.testFilterOptions = function(test)
   compareFilter(test, "@@bla$~script,~other", ["type=whitelist", "text=@@bla$~script,~other", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
   compareFilter(test, "@@http://bla$~script,~other", ["type=whitelist", "text=@@http://bla$~script,~other", "regexp=http\\:\\/\\/bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
   compareFilter(test, "@@|ftp://bla$~script,~other", ["type=whitelist", "text=@@|ftp://bla$~script,~other", "regexp=^ftp\\:\\/\\/bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "regexp=bla", "contentType=" +  (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.DOCUMENT)]);
+  compareFilter(test, "@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.DOCUMENT)]);
   compareFilter(test, "@@bla$~script,~other,~document", ["type=whitelist", "text=@@bla$~script,~other,~document", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
   compareFilter(test, "@@bla$document", ["type=whitelist", "text=@@bla$document", "regexp=bla", "contentType=" + t.DOCUMENT]);
-  compareFilter(test, "@@bla$~script,~other,elemhide", ["type=whitelist", "text=@@bla$~script,~other,elemhide", "regexp=bla", "contentType=" +  (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.ELEMHIDE)]);
+  compareFilter(test, "@@bla$~script,~other,elemhide", ["type=whitelist", "text=@@bla$~script,~other,elemhide", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.ELEMHIDE)]);
   compareFilter(test, "@@bla$~script,~other,~elemhide", ["type=whitelist", "text=@@bla$~script,~other,~elemhide", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
   compareFilter(test, "@@bla$elemhide", ["type=whitelist", "text=@@bla$elemhide", "regexp=bla", "contentType=" + t.ELEMHIDE]);
 
@@ -382,17 +386,23 @@ exports.testEmptyElemHideDomains = function(test)
 
 exports.testElemHideRulesWithBraces = function(test)
 {
-  compareFilter(test, "###foo{color: red}",
-                ["type=elemhide",
-                 "text=###foo{color: red}",
-                 "selectorDomain=",
-                 "selector=#foo\\x7B color: red\\x7D ",
-                 "domains="]);
-  compareFilter(test, "foo.com##[-abp-properties='/margin: [3-4]{2}/']",
-                ["type=elemhideemulation",
-                 "text=foo.com##[-abp-properties='/margin: [3-4]{2}/']",
-                 "selectorDomain=foo.com",
-                 "selector=[-abp-properties='/margin: [3-4]\\x7B 2\\x7D /']",
-                 "domains=FOO.COM"]);
+  compareFilter(
+    test, "###foo{color: red}", [
+      "type=elemhide",
+      "text=###foo{color: red}",
+      "selectorDomain=",
+      "selector=#foo\\x7B color: red\\x7D ",
+      "domains="
+    ]
+  );
+  compareFilter(
+    test, "foo.com##[-abp-properties='/margin: [3-4]{2}/']", [
+      "type=elemhideemulation",
+      "text=foo.com##[-abp-properties='/margin: [3-4]{2}/']",
+      "selectorDomain=foo.com",
+      "selector=[-abp-properties='/margin: [3-4]\\x7B 2\\x7D /']",
+      "domains=FOO.COM"
+    ]
+  );
   test.done();
 };

@@ -31,3 +31,14 @@ The tests under `test/browser` require a browser environment. `npm test` will
 run these in a headless browser, with each module being loaded in a new frame.
 *Note*: Currently this environment is limited to ECMAScript 5, this limitation
 should hopefully be resolved soon.
+
+Linting
+-------
+
+You can lint the code using [ESLint](http://eslint.org).
+
+    eslint *.js chrome lib test
+
+You will need to set up ESLint and our configuration first, see
+[eslint-config-eyeo](https://hg.adblockplus.org/codingtools/file/tip/eslint-config-eyeo)
+for more information.

@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox, unexpectedError} = require("./_common");
+const {createSandbox, unexpectedError} = require("./_common");
 
 let Filter = null;
 let FilterNotifier = null;
@@ -41,12 +41,12 @@ exports.setUp = function(callback)
 
   FilterStorage.addSubscription(Subscription.fromURL("~fl~"));
   callback();
-}
+};
 
 let testData = new Promise((resolve, reject) =>
 {
-  let fs = require("fs");
-  let path = require("path");
+  const fs = require("fs");
+  const path = require("path");
   let datapath = path.resolve(__dirname, "data", "patterns.ini");
 
   fs.readFile(datapath, "utf-8", (error, data) =>
@@ -96,18 +96,17 @@ function testReadWrite(test, withExternal)
       section.key = section.header + " " + section.data[0];
       section.data.sort();
     }
-    sections.sort(function(a, b)
+    sections.sort((a, b) =>
     {
       if (a.key < b.key)
         return -1;
       else if (a.key > b.key)
         return 1;
-      else
-        return 0;
+      return 0;
     });
-    return sections.map(function(section) {
-      return [section.header].concat(section.data).join("\n");
-    }).join("\n");
+    return sections.map(
+      section => [section.header].concat(section.data).join("\n")
+    ).join("\n");
   }
 
   return testData.then(data =>
@@ -120,9 +119,11 @@ function testReadWrite(test, withExternal)
 
     if (withExternal)
     {
-      let subscription = new ExternalSubscription("~external~external subscription ID", "External subscription");
-      subscription.filters = [Filter.fromText("foo"), Filter.fromText("bar")];
-      FilterStorage.addSubscription(subscription);
+      {
+        let subscription = new ExternalSubscription("~external~external subscription ID", "External subscription");
+        subscription.filters = [Filter.fromText("foo"), Filter.fromText("bar")];
+        FilterStorage.addSubscription(subscription);
+      }
 
       let externalSubscriptions = FilterStorage.subscriptions.filter(subscription => subscription instanceof ExternalSubscription);
       test.equal(externalSubscriptions.length, 1, "Number of external subscriptions after updateExternalSubscription");
@@ -158,7 +159,7 @@ for (let url of ["~wl~", "~fl~", "~eh~"])
     let tempFile = IO.resolveFilePath("temp_patterns1.ini");
     tempFile.contents = data;
 
-    loadFilters(tempFile, function()
+    loadFilters(tempFile, () =>
     {
       test.equal(FilterStorage.subscriptions.length, 0, "Number of filter subscriptions");
     }).catch(unexpectedError.bind(test)).then(() => test.done());
@@ -263,7 +264,7 @@ exports.testSavingWithBackups = function(test)
   {
     test.equal(backupFile.lastModifiedTime, oldModifiedTime, "Backup not overwritten if it is only 10 seconds old");
 
-    backupFile.lastModifiedTime -= 40*60*60*1000;
+    backupFile.lastModifiedTime -= 40 * 60 * 60 * 1000;
     oldModifiedTime = backupFile.lastModifiedTime;
     return saveFilters(null);
   }).then(() =>
@@ -279,7 +280,7 @@ exports.testSavingWithBackups = function(test)
   {
     test.equal(backupFile2.lastModifiedTime, oldModifiedTime, "Second backup not overwritten if first one is only 20 seconds old");
 
-    backupFile.lastModifiedTime -= 25*60*60*1000;
+    backupFile.lastModifiedTime -= 25 * 60 * 60 * 1000;
     oldModifiedTime = backupFile2.lastModifiedTime;
     return saveFilters(null);
   }).then(() =>

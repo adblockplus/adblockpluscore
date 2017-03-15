@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let FilterNotifier = null;
 
@@ -91,9 +91,9 @@ exports.testAddingRemovingListeners = function(test)
 
 exports.testRemovingListenersWhileBeingCalled = function(test)
 {
-  let listener1 = function()
+  let listener1 = function(...args)
   {
-    listeners[0].apply(this, arguments);
+    listeners[0](...args);
     FilterNotifier.removeListener(listener1);
   };
   let listener2 = listeners[1];

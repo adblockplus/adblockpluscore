@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let Subscription = null;
 let SpecialSubscription = null;
@@ -72,31 +72,44 @@ exports.testSubscriptionsWithState = function(test)
 {
   compareSubscription(test, "~fl~", ["url=~fl~"]);
   compareSubscription(test, "http://test/default", ["url=http://test/default", "title=http://test/default"]);
-  compareSubscription(test, "http://test/default_titled", ["url=http://test/default_titled", "title=test"], function(subscription)
-  {
-    subscription.title = "test";
-  });
-  compareSubscription(test, "http://test/non_default", ["url=http://test/non_default", "title=test",
-                                                  "disabled=true", "lastSuccess=8", "lastDownload=12", "lastCheck=16", "softExpiration=18", "expires=20", "downloadStatus=foo",
-                                                  "errors=3", "version=24", "requiredVersion=0.6"], function(subscription)
-  {
-    subscription.title = "test";
-    subscription.disabled = true;
-    subscription.lastSuccess = 8;
-    subscription.lastDownload = 12;
-    subscription.lastCheck = 16;
-    subscription.softExpiration = 18;
-    subscription.expires = 20;
-    subscription.downloadStatus = "foo";
-    subscription.errors = 3;
-    subscription.version = 24;
-    subscription.requiredVersion = "0.6";
-  });
-  compareSubscription(test, "~wl~", ["url=~wl~", "disabled=true", "title=Test group"], function(subscription)
-  {
-    subscription.title = "Test group";
-    subscription.disabled = true;
-  });
+  compareSubscription(
+    test, "http://test/default_titled", ["url=http://test/default_titled", "title=test"],
+    subscription =>
+    {
+      subscription.title = "test";
+    }
+  );
+  compareSubscription(
+    test, "http://test/non_default",
+    [
+      "url=http://test/non_default", "title=test", "disabled=true",
+      "lastSuccess=8", "lastDownload=12", "lastCheck=16", "softExpiration=18",
+      "expires=20", "downloadStatus=foo", "errors=3", "version=24",
+      "requiredVersion=0.6"
+    ],
+    subscription =>
+    {
+      subscription.title = "test";
+      subscription.disabled = true;
+      subscription.lastSuccess = 8;
+      subscription.lastDownload = 12;
+      subscription.lastCheck = 16;
+      subscription.softExpiration = 18;
+      subscription.expires = 20;
+      subscription.downloadStatus = "foo";
+      subscription.errors = 3;
+      subscription.version = 24;
+      subscription.requiredVersion = "0.6";
+    }
+  );
+  compareSubscription(
+    test, "~wl~", ["url=~wl~", "disabled=true", "title=Test group"],
+    subscription =>
+    {
+      subscription.title = "Test group";
+      subscription.disabled = true;
+    }
+  );
 
   test.done();
 };

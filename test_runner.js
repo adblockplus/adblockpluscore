@@ -15,15 +15,17 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* eslint-env node */
+
 "use strict";
 
-let childProcess = require("child_process");
-let fs = require("fs");
-let nodeunit = require("nodeunit");
-let path = require("path");
-let phantomjs = require("phantomjs2");
-let process = require("process");
-let url = require("url");
+const childProcess = require("child_process");
+const fs = require("fs");
+const nodeunit = require("nodeunit");
+const path = require("path");
+const phantomjs = require("phantomjs2");
+const process = require("process");
+const url = require("url");
 
 let unitFiles = [];
 let browserFiles = [];

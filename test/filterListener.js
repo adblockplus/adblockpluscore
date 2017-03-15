@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 let sandboxedRequire = null;
 
 let FilterStorage = null;
@@ -325,5 +325,5 @@ exports.testFilterGroupOperations = function(test)
   subscription3.disabled = false;
   checkKnownFilters(test, "enable exception rules", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
- test.done();
+  test.done();
 };

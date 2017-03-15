@@ -26,7 +26,6 @@ let Filter = null;
 let FilterStorage = null;
 let Prefs = null;
 let Subscription = null;
-let Synchronizer = null;
 
 exports.setUp = function(callback)
 {
@@ -39,7 +38,7 @@ exports.setUp = function(callback)
     {FilterStorage} = sandboxedRequire("../lib/filterStorage"),
     {Prefs} = sandboxedRequire("./stub-modules/prefs"),
     {Subscription} = sandboxedRequire("../lib/subscriptionClasses"),
-    {Synchronizer} = sandboxedRequire("../lib/synchronizer")
+    sandboxedRequire("../lib/synchronizer")
   );
 
   callback();
@@ -48,7 +47,7 @@ exports.setUp = function(callback)
 function resetSubscription(subscription)
 {
   FilterStorage.updateSubscriptionFilters(subscription, []);
-  subscription.lastCheck =  subscription.lastDownload =
+  subscription.lastCheck = subscription.lastDownload =
     subscription.version = subscription.lastSuccess =
     subscription.expires = subscription.softExpiration = 0;
   subscription.title = "";
@@ -77,7 +76,7 @@ exports.testOneSubscriptionDownloads = function(test)
     test.deepEqual(requests, [
       [0 + initialDelay, "GET", "/subscription"],
       [24 + initialDelay, "GET", "/subscription"],
-      [48 + initialDelay, "GET", "/subscription"],
+      [48 + initialDelay, "GET", "/subscription"]
     ], "Requests after 50 hours");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
@@ -111,7 +110,7 @@ exports.testTwoSubscriptionsDownloads = function(test)
       [24 + initialDelay, "GET", "/subscription1"],
       [26 + initialDelay, "GET", "/subscription2"],
       [48 + initialDelay, "GET", "/subscription1"],
-      [50 + initialDelay, "GET", "/subscription2"],
+      [50 + initialDelay, "GET", "/subscription2"]
     ], "Requests after 55 hours");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
@@ -148,7 +147,7 @@ for (let currentTest of [
           Filter.fromText("foo"),
           Filter.fromText("!bar"),
           Filter.fromText("@@bas"),
-          Filter.fromText("#bam"),
+          Filter.fromText("#bam")
         ], "Resulting subscription filters");
       }
       else
@@ -160,7 +159,7 @@ for (let currentTest of [
   };
 }
 
-exports.testsDisabledUpdates  = function(test)
+exports.testsDisabledUpdates = function(test)
 {
   Prefs.subscriptions_autoupdate = false;
 
@@ -186,7 +185,7 @@ for (let currentTest of [
   {
     expiration: "default",
     randomResult: 0.5,
-    requests: [0 + initialDelay, 5 * 24 +  initialDelay]
+    requests: [0 + initialDelay, 5 * 24 + initialDelay]
   },
   {
     expiration: "1 hours",  // Minimal expiration interval
@@ -287,7 +286,7 @@ for (let [testName, subscriptionBody, expectedResult] of [
   ["Extra content in checksum line is part of the checksum", "[Adblock]\n! Checksum: e/JCmqXny6Fn24b7JHsq/A foobar\nfoo\nbar\n", false],
   ["= symbols after checksum are ignored", "[Adblock]\n! Checksum: e/JCmqXny6Fn24b7JHsq/A===\nfoo\nbar\n", true],
   ["Header line is part of the checksum", "[Adblock Plus]\n! Checksum: e/JCmqXny6Fn24b7JHsq/A\nfoo\nbar\n", false],
-  ["Special comments are part of the checksum", "[Adblock]\n! Checksum: e/JCmqXny6Fn24b7JHsq/A\n! Expires: 1\nfoo\nbar\n", false],
+  ["Special comments are part of the checksum", "[Adblock]\n! Checksum: e/JCmqXny6Fn24b7JHsq/A\n! Expires: 1\nfoo\nbar\n", false]
 ])
 {
   exports.testChecksumVerification[testName] = function(test)
@@ -319,10 +318,10 @@ for (let [comment, check] of [
     test.equal(subscription.homepage, null, "Invalid homepage comment");
   }],
   ["! Title: foo", (test, subscription) =>
-    {
-      test.equal(subscription.title, "foo", "Title comment");
-      test.equal(subscription.fixedTitle, true, "Fixed title");
-    }],
+  {
+    test.equal(subscription.title, "foo", "Title comment");
+    test.equal(subscription.fixedTitle, true, "Fixed title");
+  }],
   ["! Version: 1234", (test, subscription) =>
   {
     test.equal(subscription.version, 1234, "Version comment");
@@ -383,7 +382,7 @@ exports.testRedirects = function(test)
     this.registerHandler("/redirected", metadata =>
     {
       return [Cr.NS_OK, 200, "[Adblock]\nfoo\n!Redirect: http://example.com/subscription\nbar"];
-    })
+    });
 
     subscription = Subscription.fromURL("http://example.com/subscription");
     resetSubscription(subscription);
@@ -528,9 +527,9 @@ exports.testStateFields = function(test)
   this.runScheduledTasks(2).then(() =>
   {
     test.equal(subscription.downloadStatus, "synchronize_ok", "downloadStatus after successful download");
-    test.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime +  initialDelay * MILLIS_IN_HOUR, "lastDownload after successful download");
-    test.equal(subscription.lastSuccess * MILLIS_IN_SECOND, startTime +  initialDelay * MILLIS_IN_HOUR, "lastSuccess after successful download");
-    test.equal(subscription.lastCheck * MILLIS_IN_SECOND, startTime + (1 +  initialDelay) * MILLIS_IN_HOUR, "lastCheck after successful download");
+    test.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastDownload after successful download");
+    test.equal(subscription.lastSuccess * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastSuccess after successful download");
+    test.equal(subscription.lastCheck * MILLIS_IN_SECOND, startTime + (1 + initialDelay) * MILLIS_IN_HOUR, "lastCheck after successful download");
     test.equal(subscription.errors, 0, "errors after successful download");
 
     this.registerHandler("/subscription", metadata =>
@@ -542,7 +541,7 @@ exports.testStateFields = function(test)
   }).then(() =>
   {
     test.equal(subscription.downloadStatus, "synchronize_connection_error", "downloadStatus after connection error");
-    test.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime + (2 +  initialDelay) * MILLIS_IN_HOUR, "lastDownload after connection error");
+    test.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime + (2 + initialDelay) * MILLIS_IN_HOUR, "lastDownload after connection error");
     test.equal(subscription.lastSuccess * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastSuccess after connection error");
     test.equal(subscription.lastCheck * MILLIS_IN_SECOND, startTime + (3 + initialDelay) * MILLIS_IN_HOUR, "lastCheck after connection error");
     test.equal(subscription.errors, 1, "errors after connection error");

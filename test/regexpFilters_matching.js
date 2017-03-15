@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let Filter = null;
 let RegExpFilter = null;
@@ -36,15 +36,16 @@ exports.setUp = function(callback)
 
 function testMatch(test, text, location, contentType, docDomain, thirdParty, sitekey, expected)
 {
-  function testMatch_internal(text, location, contentType, docDomain, thirdParty, sitekey, expected)
+  function testMatchInternal(filterText)
   {
-    let filter = Filter.fromText(text);
+    let filter = Filter.fromText(filterText);
     let result = filter.matches(location, RegExpFilter.typeMap[contentType], docDomain, thirdParty, sitekey);
-    test.equal(!!result, expected, '"' + text + '".matches(' + location + ", " + contentType + ", " + docDomain + ", " + (thirdParty ? "third-party" : "first-party") + ", " + (sitekey || "no-sitekey") + ")");
+    test.equal(!!result, expected, '"' + filterText + '".matches(' + location + ", " + contentType + ", " + docDomain + ", " + (thirdParty ? "third-party" : "first-party") + ", " + (sitekey || "no-sitekey") + ")");
   }
-  testMatch_internal(text, location, contentType, docDomain, thirdParty, sitekey, expected);
+
+  testMatchInternal(text);
   if (!/^@@/.test(text))
-    testMatch_internal("@@" + text, location, contentType, docDomain, thirdParty, sitekey, expected);
+    testMatchInternal("@@" + text);
 }
 
 exports.testBasicFilters = function(test)

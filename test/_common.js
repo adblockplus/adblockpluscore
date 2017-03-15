@@ -17,9 +17,9 @@
 
 "use strict";
 
-let fs = require("fs");
-let path = require("path");
-let SandboxedModule = require("sandboxed-module");
+const fs = require("fs");
+const path = require("path");
+const SandboxedModule = require("sandboxed-module");
 
 const Cr = exports.Cr = {
   NS_OK: 0,
@@ -30,7 +30,47 @@ const Cr = exports.Cr = {
 const MILLIS_IN_SECOND = exports.MILLIS_IN_SECOND = 1000;
 const MILLIS_IN_MINUTE = exports.MILLIS_IN_MINUTE = 60 * MILLIS_IN_SECOND;
 const MILLIS_IN_HOUR = exports.MILLIS_IN_HOUR = 60 * MILLIS_IN_MINUTE;
-const MILLIS_IN_DAY = exports.MILLIS_IN_DAY = 24 * MILLIS_IN_HOUR;
+
+function URL(urlString)
+{
+  return require("url").parse(urlString);
+}
+
+let Services = {
+  obs: {
+    addObserver() {}
+  },
+  vc: {
+    compare(v1, v2)
+    {
+      function comparePart(p1, p2)
+      {
+        if (p1 != "*" && p2 == "*")
+          return -1;
+        else if (p1 == "*" && p2 != "*")
+          return 1;
+        else if (p1 == p2)
+          return 0;
+        return parseInt(p1, 10) - parseInt(p2, 10);
+      }
+
+      let parts1 = v1.split(".");
+      let parts2 = v2.split(".");
+      for (let i = 0; i < Math.max(parts1.length, parts2.length); i++)
+      {
+        let result = comparePart(parts1[i] || "0", parts2[i] || "0");
+        if (result != 0)
+          return result;
+      }
+      return 0;
+    }
+  }
+};
+let XPCOMUtils = {
+  generateQI() {}
+};
+let FileUtils = {};
+let resources = {Services, XPCOMUtils, FileUtils};
 
 let globals = {
   atob: data => new Buffer(data, "base64").toString("binary"),
@@ -38,70 +78,41 @@ let globals = {
   Ci: {
   },
   Cu: {
-    import: () => {},
-    reportError: e => undefined
+    import(resource)
+    {
+      let match = /^resource:\/\/gre\/modules\/(.+)\.jsm$/.exec(resource);
+      let resourceName = match && match[1];
+      if (resourceName && resources.hasOwnProperty(resourceName))
+        return {[resourceName]: resources[resourceName]};
+
+      throw new Error(
+        "Attempt to import unknown JavaScript module " + resource
+      );
+    },
+    reportError(e) {}
   },
   console: {
-    log: () => undefined,
-    error: () => undefined,
+    log() {},
+    error() {}
   },
   navigator: {
   },
   onShutdown: {
-    add: () =>
-    {
-    }
+    add() {}
   },
-  Services: {
-    obs: {
-      addObserver: () =>
-      {
-      }
-    },
-    vc: {
-      compare: (v1, v2) =>
-      {
-        function comparePart(p1, p2)
-        {
-          if (p1 != "*" && p2 == "*")
-            return -1;
-          else if (p1 == "*" && p2 != "*")
-            return 1;
-          else if (p1 == p2)
-            return 0;
-          else
-            return parseInt(p1, 10) - parseInt(p2, 10);
-        }
-
-        let parts1 = v1.split(".");
-        let parts2 = v2.split(".");
-        for (let i = 0; i < Math.max(parts1.length, parts2.length); i++)
-        {
-          let result = comparePart(parts1[i] || "0", parts2[i] || "0");
-          if (result != 0)
-            return result;
-        }
-        return 0;
-      }
-    }
-  },
-  XPCOMUtils: {
-    generateQI: () =>
-    {
-    }
-  },
-  URL: function(urlString)
-  {
-    return require("url").parse(urlString);
-  }
+  URL
 };
 
 let knownModules = new Map();
 for (let dir of [path.join(__dirname, "stub-modules"),
                  path.join(__dirname, "..", "lib")])
+{
   for (let file of fs.readdirSync(path.resolve(dir)))
+  {
     if (path.extname(file) == ".js")
       knownModules[path.basename(file, ".js")] = path.resolve(dir, file);
+  }
+}
 
 function addExports(exports)
 {
@@ -109,9 +120,13 @@ function addExports(exports)
   {
     let extraExports = exports[path.basename(this.filename, ".js")];
     if (extraExports)
+    {
       for (let name of extraExports)
+      {
         source += `
           Object.defineProperty(exports, "${name}", {get: () => ${name}});`;
+      }
+    }
     return source;
   };
 }
@@ -144,7 +159,7 @@ exports.createSandbox = function(options)
   // function which can be used to load further modules into the sandbox.
   return SandboxedModule.require("./_common", {
     globals: Object.assign({}, globals, options.globals),
-    sourceTransformers: sourceTransformers
+    sourceTransformers
   }).require;
 };
 
@@ -160,7 +175,7 @@ exports.setupTimerAndXMLHttp = function()
     delay: -1,
     nextExecution: 0,
 
-    initWithCallback: function(callback, delay, type)
+    initWithCallback(callback, delay, type)
     {
       if (this.callback)
         throw new Error("Only one timer instance supported");
@@ -172,7 +187,7 @@ exports.setupTimerAndXMLHttp = function()
       this.nextExecution = currentTime + delay;
     },
 
-    trigger: function()
+    trigger()
     {
       if (currentTime < this.nextExecution)
         currentTime = this.nextExecution;
@@ -186,7 +201,7 @@ exports.setupTimerAndXMLHttp = function()
       }
     },
 
-    cancel: function()
+    cancel()
     {
       this.nextExecution = -1;
     }
@@ -198,9 +213,8 @@ exports.setupTimerAndXMLHttp = function()
     this._host = "http://example.com";
     this._loadHandlers = [];
     this._errorHandlers = [];
-  };
-  XMLHttpRequest.prototype =
-  {
+  }
+  XMLHttpRequest.prototype = {
     _path: null,
     _data: null,
     _queryString: null,
@@ -210,7 +224,7 @@ exports.setupTimerAndXMLHttp = function()
     readyState: 0,
     responseText: null,
 
-    addEventListener: function(eventName, handler, capture)
+    addEventListener(eventName, handler, capture)
     {
       let list;
       if (eventName == "load")
@@ -224,7 +238,7 @@ exports.setupTimerAndXMLHttp = function()
         list.push(handler);
     },
 
-    removeEventListener: function(eventName, handler, capture)
+    removeEventListener(eventName, handler, capture)
     {
       let list;
       if (eventName == "load")
@@ -239,7 +253,7 @@ exports.setupTimerAndXMLHttp = function()
         list.splice(index, 1);
     },
 
-    open: function(method, url, async, user, password)
+    open(method, url, async, user, password)
     {
       if (method != "GET")
         throw new Error("Only GET requests are supported");
@@ -269,7 +283,7 @@ exports.setupTimerAndXMLHttp = function()
       }
     },
 
-    send: function(data)
+    send(data)
     {
       if (!this._data && !this._path)
         throw new Error("No request path set");
@@ -300,7 +314,7 @@ exports.setupTimerAndXMLHttp = function()
       }));
     },
 
-    overrideMimeType: function(mime)
+    overrideMimeType(mime)
     {
     },
 
@@ -316,9 +330,9 @@ exports.setupTimerAndXMLHttp = function()
   };
 
   XMLHttpRequest.requestHandlers = {};
-  this.registerHandler = (path, handler) =>
+  this.registerHandler = (requestPath, handler) =>
   {
-    XMLHttpRequest.requestHandlers[path] = handler;
+    XMLHttpRequest.requestHandlers[requestPath] = handler;
   };
 
   function waitForRequests()
@@ -332,8 +346,7 @@ exports.setupTimerAndXMLHttp = function()
         console.error(e);
       }).then(() => waitForRequests());
     }
-    else
-      return Promise.resolve();
+    return Promise.resolve();
   }
 
   function runScheduledTasks(maxMillis)
@@ -344,13 +357,8 @@ exports.setupTimerAndXMLHttp = function()
       currentTime = endTime;
       return Promise.resolve();
     }
-    else
-    {
-      fakeTimer.trigger();
-      return waitForRequests().then(() => runScheduledTasks(endTime - currentTime));
-    }
-
-    currentTime = endTime;
+    fakeTimer.trigger();
+    return waitForRequests().then(() => runScheduledTasks(endTime - currentTime));
   }
 
   this.runScheduledTasks = (maxHours, initial, skip) =>
@@ -399,7 +407,7 @@ exports.setupTimerAndXMLHttp = function()
         TYPE_REPEATING_SLACK: 1,
         TYPE_REPEATING_PRECISE: 2
       },
-      nsIHttpChannel: () => null,
+      nsIHttpChannel: () => null
     },
     Cr,
     XMLHttpRequest,
@@ -408,6 +416,8 @@ exports.setupTimerAndXMLHttp = function()
     }
   };
 };
+
+console.warn = console.log;
 
 exports.setupRandomResult = function()
 {

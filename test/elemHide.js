@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let ElemHide = null;
 let Filter = null;
@@ -37,9 +37,9 @@ function normalizeSelectors(selectors)
 {
   // getSelectorsForDomain is currently allowed to return duplicate selectors
   // for performance reasons, so we need to remove duplicates here.
-  return selectors.sort().filter((selector, index, selectors) =>
+  return selectors.sort().filter((selector, index, sortedSelectors) =>
   {
-    return index == 0 || selector != selectors[index -  1];
+    return index == 0 || selector != sortedSelectors[index - 1];
   });
 }
 
@@ -215,7 +215,7 @@ exports.testGetSelectorsForDomain = function(test)
   testResult(test, "foo.com", [], ElemHide.SPECIFIC_ONLY);
   // Note: We don't take care to track conditional selectors which became
   //       unconditional when a filter was removed. This was too expensive.
-  //testResult(test, "foo.com", [], ElemHide.NO_UNCONDITIONAL);
+  // testResult(test, "foo.com", [], ElemHide.NO_UNCONDITIONAL);
   testResult(test, "foo.com", ["hello"], ElemHide.ALL_MATCHING);
   testResult(test, "foo.com", ["hello"]);
   testResult(test, "bar.com", [], ElemHide.SPECIFIC_ONLY);

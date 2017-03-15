@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let Filter = null;
 
@@ -54,7 +54,7 @@ exports.testUnrestrictedBlockingFilters = function(test)
 
 exports.testUnrestrictedHidingRules = function(test)
 {
-  testActive(test,"#foo", null, true, false);
+  testActive(test, "#foo", null, true, false);
   testActive(test, "#foo", "com", true, false);
   testActive(test, "#foo", "example.com", true, false);
   testActive(test, "#foo", "example.com.", true, false);

@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let Filter = null;
 let RegExpFilter = null;
@@ -42,13 +42,13 @@ function compareKeywords(test, text, expected)
   {
     let matcher = new Matcher();
     let result = [];
-    for (let dummy of expected)
+    for (let i = 0; i < expected.length; i++)
     {
       let keyword = matcher.findKeyword(filter);
       result.push(keyword);
       if (keyword)
       {
-        let dummyFilter = Filter.fromText('^' + keyword + '^');
+        let dummyFilter = Filter.fromText("^" + keyword + "^");
         dummyFilter.filterCount = Infinity;
         matcher.add(dummyFilter);
       }
@@ -76,7 +76,7 @@ function checkMatch(test, filters, location, contentType, docDomain, thirdParty,
     for (let filter of filters)
       combinedMatcher.add(Filter.fromText(filter));
 
-    let result = combinedMatcher.matchesAny(location, RegExpFilter.typeMap[contentType], docDomain, thirdParty, sitekey, specificOnly);
+    result = combinedMatcher.matchesAny(location, RegExpFilter.typeMap[contentType], docDomain, thirdParty, sitekey, specificOnly);
     if (result)
       result = result.text;
 
@@ -88,7 +88,7 @@ function checkMatch(test, filters, location, contentType, docDomain, thirdParty,
       continue;
 
     // For next run: add whitelisting filters for filters that aren't already
-    filters = filters.map((text) => text.substr(0, 2) == "@@" ? text : "@@" + text);
+    filters = filters.map(text => text.substr(0, 2) == "@@" ? text : "@@" + text);
     if (expected && expected.substr(0, 2) != "@@")
       expected = "@@" + expected;
   }

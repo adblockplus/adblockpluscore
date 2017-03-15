@@ -1,3 +1,5 @@
+"use strict";
+
 let data = {};
 
 //
@@ -17,11 +19,11 @@ FakeFile.prototype =
   {
     this.path = value;
   },
-  append: function(path)
+  append(path)
   {
     this.path += path;
   },
-  exists: function()
+  exists()
   {
     return this.path in data;
   },
@@ -42,34 +44,34 @@ FakeFile.prototype =
   {
     return (data[this.path] || {}).lastModified = value;
   },
-  clone: function()
+  clone()
   {
     return new FakeFile(this.path);
   },
   get parent()
   {
-    return {create: function() {}};
+    return {create() {}};
   },
-  normalize: function() {}
+  normalize() {}
 };
 
 exports.IO = {
   lineBreak: "\n",
-  resolveFilePath: function(path)
+  resolveFilePath(path)
   {
     return new FakeFile(path);
   },
-  writeToFile: function(file, generator, callback)
+  writeToFile(file, generator, callback)
   {
     Promise.resolve().then(() =>
     {
-      let data = [];
+      let lines = [];
       for (let line of generator)
-        data.push(line);
-      file.contents = data.join("\n") + "\n";
+        lines.push(line);
+      file.contents = lines.join("\n") + "\n";
     }).then(() => callback(null)).catch(e => callback(e));
   },
-  readFromFile: function(file, listener, callback)
+  readFromFile(file, listener, callback)
   {
     Promise.resolve().then(() =>
     {
@@ -84,7 +86,7 @@ exports.IO = {
       listener.process(null);
     }).then(() => callback(null)).catch(e => callback(e));
   },
-  copyFile: function(from, to, callback)
+  copyFile(from, to, callback)
   {
     Promise.resolve().then(() =>
     {
@@ -96,7 +98,7 @@ exports.IO = {
       to.contents = from.contents;
     }).then(() => callback(null)).catch(e => callback(e));
   },
-  renameFile: function(from, newName, callback)
+  renameFile(from, newName, callback)
   {
     Promise.resolve().then(() =>
     {
@@ -109,7 +111,7 @@ exports.IO = {
       delete data[from.path];
     }).then(() => callback(null)).catch(e => callback(e));
   },
-  removeFile: function(file, callback)
+  removeFile(file, callback)
   {
     Promise.resolve().then(() =>
     {
@@ -119,7 +121,7 @@ exports.IO = {
       delete data[file.path];
     }).then(() => callback(null)).catch(e => callback(e));
   },
-  statFile: function(file, callback)
+  statFile(file, callback)
   {
     Promise.resolve().then(() =>
     {
@@ -132,15 +134,12 @@ exports.IO = {
           lastModified: file.lastModifiedTime
         };
       }
-      else
-      {
-        return {
-          exists: false,
-          isDirectory: false,
-          isFile: false,
-          lastModified: 0
-        };
-      }
+      return {
+        exists: false,
+        isDirectory: false,
+        isFile: false,
+        lastModified: 0
+      };
     }).then(result => callback(null, result)).catch(e => callback(e));
-  },
+  }
 };
