@@ -25,10 +25,10 @@ GENERATION_PARAMS = {
   'ALLOW_MEMORY_GROWTH': 1,
   'NO_EXIT_RUNTIME': 1,
   'NO_DYNAMIC_EXECUTION': 1,
-  'NO_BROWSER': 1,
   'NO_FILESYSTEM': 1,
   'INVOKE_RUN': 0,
-  'NODE_STDOUT_FLUSH_WORKAROUND': 0,
+  'TEXTDECODER': 0,
+  'EXPORTED_RUNTIME_METHODS': ['cwrap', 'ccall', 'stringToAscii'],
 }
 DEFINES = []
 ADDITIONAL_PARAMS = ['-O3', '-m32', '-std=gnu++14', '--memory-init-file', '0',

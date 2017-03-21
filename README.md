@@ -17,7 +17,7 @@ via Empscripten.
 
 ### Requirements
 
-* [Emscripten 1.35.0](https://github.com/kripken/emscripten)
+* [Emscripten 1.37.3](https://github.com/kripken/emscripten)
 * [Python 2.7](https://www.python.org)
 * [Node.js 6 or higher](https://nodejs.org/en/)
 

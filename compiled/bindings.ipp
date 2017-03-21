@@ -486,50 +486,51 @@ namespace bindings_internal
     printf("var sizeofString = %i;\n", sizeof(String));
 
     puts(R"(
-  function copyString(str, buffer)
-  {
-    var length = str.length;
-    for (var i = 0, pointer = (buffer >> 1); i < length; i++, pointer++)
-      HEAP16[pointer] = str.charCodeAt(i);
-    return length;
-  }
+      function copyString(str, buffer)
+      {
+        var length = str.length;
+        for (var i = 0, pointer = (buffer >> 1); i < length; i++, pointer++)
+          HEAP16[pointer] = str.charCodeAt(i);
+        return length;
+      }
 
-  function createString(str)
-  {
-    var length = 0;
-    var buffer = 0;
-    if (str)
-    {
-      buffer = Runtime.stackAlloc(str.length * 2);
-      length = copyString(str, buffer);
-    }
+      function createString(str)
+      {
+        var length = 0;
+        var buffer = 0;
+        if (str)
+        {
+          buffer = Runtime.stackAlloc(str.length * 2);
+          length = copyString(str, buffer);
+        }
 
-    var result = Module.Runtime.stackAlloc(sizeofString);
-    Module._InitString(result, buffer, length);
-    return result;
-  }
+        var result = Runtime.stackAlloc(sizeofString);
+        Module._InitString(result, buffer, length);
+        return result;
+      }
 
-  function readString(str)
-  {
-    var length = Module._GetStringLength(str);
-    var pointer = Module._GetStringData(str) >> 1;
-    return String.fromCharCode.apply(String, HEAP16.slice(pointer, pointer + length));
-  }
+      function readString(str)
+      {
+        var length = Module._GetStringLength(str);
+        var pointer = Module._GetStringData(str) >> 1;
+        return String.fromCharCode.apply(String, HEAP16.slice(pointer, pointer + length));
+      }
 
-  function createClass(superclass, ref_counted_offset)
-  {
-    var result = function(pointer)
-    {
-      this._pointer = pointer;
-    };
-    if (superclass)
-      result.prototype = Object.create(superclass.prototype);
-    result.prototype.delete = function()
-    {
-      Module._ReleaseRef(this._pointer + ref_counted_offset);
-    };
-    return result;
-  })");
+      function createClass(superclass, ref_counted_offset)
+      {
+        var result = function(pointer)
+        {
+          this._pointer = pointer;
+        };
+        if (superclass)
+          result.prototype = Object.create(superclass.prototype);
+        result.prototype.delete = function()
+        {
+          Module._ReleaseRef(this._pointer + ref_counted_offset);
+        };
+        return result;
+      }
+    )");
   }
 
   void printClass(const ClassInfo& cls)
