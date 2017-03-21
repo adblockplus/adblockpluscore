@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+
+import json
+import os
+import re
+import subprocess
+import warnings
+
+EMSCRIPTEN_PATH = '../emscripten'
+SOURCE_DIR = './compiled'
+SOURCE_FILES = [
+  os.path.join(SOURCE_DIR, f)
+  for f in os.listdir(SOURCE_DIR)
+  if f.endswith('.cpp')
+]
+BINDINGS_FILE = os.path.join(SOURCE_DIR, 'bindings.cpp')
+BINDINGS_GENERATOR = os.path.join(SOURCE_DIR, 'bindings.cpp.js')
+BINDINGS_OUTPUT = os.path.join(SOURCE_DIR, 'bindings.js')
+COMPILER_OUTPUT = './lib/compiled.js'
+GENERATION_PARAMS = {
+  'SHELL_FILE': "'%s'" % os.path.abspath(os.path.join(SOURCE_DIR, 'shell.js')),
+  'ASM_JS': 2,  # "almost asm"
+  'TOTAL_MEMORY': 16*1024*1024,
+  'TOTAL_STACK': 1*1024*1024,
+  'ALLOW_MEMORY_GROWTH': 1,
+  'NO_EXIT_RUNTIME': 1,
+  'NO_DYNAMIC_EXECUTION': 1,
+  'NO_BROWSER': 1,
+  'NO_FILESYSTEM': 1,
+  'INVOKE_RUN': 0,
+  'NODE_STDOUT_FLUSH_WORKAROUND': 0,
+}
+DEFINES = []
+ADDITIONAL_PARAMS = ['-O3', '-m32', '-std=gnu++14', '--memory-init-file', '0',
+    '--emit-symbol-map']
+
+def getenv():
+  path = []
+  env = {}
+  output = subprocess.check_output([
+      '/bin/bash', '-c', os.path.join(EMSCRIPTEN_PATH, 'emsdk_env.sh')])
+  for line in output.splitlines():
+    match = re.search(r'^\s*PATH\s*\+=\s*(.*)', line)
+    if match:
+      path.append(match.group(1))
+    match = re.search(r'^\s*(\w+)\s*=\s*(.*)', line)
+    if match:
+      env[match.group(1)] = match.group(2)
+  env['PATH'] = os.pathsep.join([os.environ['PATH']] + path)
+  return env
+
+def generate_bindings(env):
+  params = [os.path.join(env['EMSCRIPTEN'], 'emcc'), BINDINGS_FILE,
+    '-o', BINDINGS_GENERATOR, '-std=gnu++14', '-DPRINT_BINDINGS',
+    '-s', 'WARN_ON_UNDEFINED_SYMBOLS=0',
+  ]
+  subprocess.check_call(params, env=env)
+
+  node = subprocess.check_output('which node', env=env, shell=True).strip();
+  with open(BINDINGS_OUTPUT, 'w') as file:
+    subprocess.check_call([node, BINDINGS_GENERATOR], env=env, stdout=file)
+
+def run_compiler(env):
+  params = [
+    os.path.join(env['EMSCRIPTEN'], 'emcc'),
+    '-o', COMPILER_OUTPUT,
+    '--post-js', BINDINGS_OUTPUT,
+  ]
+  params.extend(SOURCE_FILES)
+  params.extend('-D' + flag for flag in DEFINES)
+  for key, value in GENERATION_PARAMS.iteritems():
+    params.extend(['-s', '%s=%s' % (key, str(value))])
+  params.extend(ADDITIONAL_PARAMS)
+  subprocess.check_call(params, env=env)
+
+if __name__ == '__main__':
+  env = getenv()
+  generate_bindings(env)
+  run_compiler(env)

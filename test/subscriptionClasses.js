@@ -17,10 +17,25 @@
 
 "use strict";
 
-let {
-  Subscription, SpecialSubscription, DownloadableSubscription,
-  RegularSubscription, ExternalSubscription
-} = require("../lib/subscriptionClasses");
+let {createSandbox} = require("./_common");
+
+let Subscription = null;
+let SpecialSubscription = null;
+let DownloadableSubscription = null;
+let RegularSubscription = null;
+let ExternalSubscription = null;
+
+exports.setUp = function(callback)
+{
+  let sandboxedRequire = createSandbox();
+  (
+    {
+      Subscription, SpecialSubscription, DownloadableSubscription,
+      RegularSubscription, ExternalSubscription
+    } = sandboxedRequire("../lib/subscriptionClasses")
+  );
+  callback();
+};
 
 function compareSubscription(test, url, expected, postInit)
 {

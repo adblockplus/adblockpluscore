@@ -1,1 +1,7 @@
 ^node_modules$
+
+syntax: glob
+*.symbols
+compiled/bindings.cpp.js
+compiled/bindings.js
+lib/compiled.js

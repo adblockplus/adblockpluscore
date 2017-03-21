@@ -17,329 +17,377 @@
 
 "use strict";
 
-let {
-  Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
-  BlockingFilter, WhitelistFilter, ElemHideBase, ElemHideFilter,
-  ElemHideException, CSSPropertyFilter
-} = require("../lib/filterClasses");
+let {createSandbox} = require("./_common");
 
-function serializeFilter(filter)
+let Filter = null;
+let InvalidFilter = null;
+let CommentFilter = null;
+let ActiveFilter = null;
+let RegExpFilter = null;
+let BlockingFilter = null;
+let WhitelistFilter = null;
+let ElemHideBase = null;
+let ElemHideFilter = null;
+let ElemHideException = null;
+let CSSPropertyFilter = null;
+
+exports.setUp = function(callback)
 {
-  // Filter serialization only writes out essential properties, need to do a full serialization here
-  let result = [];
-  result.push("text=" + filter.text);
-  if (filter instanceof InvalidFilter)
-  {
-    result.push("type=invalid");
-    result.push("reason=" + filter.reason);
-  }
-  else if (filter instanceof CommentFilter)
-  {
-    result.push("type=comment");
-  }
-  else if (filter instanceof ActiveFilter)
-  {
-    result.push("disabled=" + filter.disabled);
-    result.push("lastHit=" + filter.lastHit);
-    result.push("hitCount=" + filter.hitCount);
-
-    let domains = [];
-    if (filter.domains)
+  let sandboxedRequire = createSandbox();
+  (
     {
-      for (let domain in filter.domains)
-        if (domain != "")
-          domains.push(filter.domains[domain] ? domain : "~" + domain);
-    }
-    result.push("domains=" + domains.sort().join("|"));
+      Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
+      BlockingFilter, WhitelistFilter, ElemHideBase, ElemHideFilter,
+      ElemHideException, CSSPropertyFilter
+    } = sandboxedRequire("../lib/filterClassesNew")
+  );
+  callback();
+};
 
-    if (filter instanceof RegExpFilter)
-    {
-      result.push("regexp=" + filter.regexp.source);
-      result.push("contentType=" + filter.contentType);
-      result.push("matchCase=" + filter.matchCase);
+exports.testFromText = function(test)
+{
+  let tests = [
+    ["!asdf", CommentFilter, "comment"],
+    ["asdf", BlockingFilter, "blocking"],
+    ["asdf$image,~collapse", BlockingFilter, "blocking"],
+    ["/asdf/", BlockingFilter, "blocking"],
+    ["/asdf??+/", InvalidFilter, "invalid"],
+    ["@@asdf", WhitelistFilter, "whitelist"],
+    ["@@asdf$image,~collapse", WhitelistFilter, "whitelist"],
+    ["@@/asdf/", WhitelistFilter, "whitelist"],
+    ["@@/asdf??+/", InvalidFilter, "invalid"],
+    ["##asdf", ElemHideFilter, "elemhide"],
+    ["#@#asdf", ElemHideException, "elemhideexception"],
+    ["foobar##asdf", ElemHideFilter, "elemhide"],
+    ["foobar#@#asdf", ElemHideException, "elemhideexception"],
+    ["foobar##a", ElemHideFilter, "elemhide"],
+    ["foobar#@#a", ElemHideException, "elemhideexception"],
 
-      let sitekeys = filter.sitekeys || [];
-      result.push("sitekeys=" + sitekeys.slice().sort().join("|"));
+    ["foobar#asdf", BlockingFilter, "blocking"],
+    ["foobar|foobas##asdf", BlockingFilter, "blocking"],
+    ["foobar##asdf{asdf}", BlockingFilter, "blocking"],
+    ["foobar##", BlockingFilter, "blocking"],
+    ["foobar#@#", BlockingFilter, "blocking"],
+    ["asdf$foobar", InvalidFilter, "invalid"],
+    ["asdf$image,foobar", InvalidFilter, "invalid"],
+    ["asdf$image=foobar", BlockingFilter, "blocking"],
+    ["asdf$image=foobar=xyz,~collapse", BlockingFilter, "blocking"],
 
-      result.push("thirdParty=" + filter.thirdParty);
-      if (filter instanceof BlockingFilter)
-      {
-        result.push("type=filterlist");
-        result.push("collapse=" + filter.collapse);
-      }
-      else if (filter instanceof WhitelistFilter)
-      {
-        result.push("type=whitelist");
-      }
-    }
-    else if (filter instanceof ElemHideBase)
-    {
-      if (filter instanceof ElemHideFilter)
-        result.push("type=elemhide");
-      else if (filter instanceof ElemHideException)
-        result.push("type=elemhideexception");
-      else if (filter instanceof CSSPropertyFilter)
-      {
-        result.push("type=cssrule");
-        result.push("prefix=" + (filter.selectorPrefix || ""));
-        result.push("regexp=" + filter.regexpString);
-        result.push("suffix=" + (filter.selectorSuffix || ""));
-      }
-
-      result.push("selectorDomain=" + (filter.selectorDomain || ""));
-      result.push("selector=" + filter.selector);
-    }
+    ["##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
+    ["#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
+    ["example.com##foo[-abp-properties='something']bar", CSSPropertyFilter, "cssproperty"],
+    ["example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
+    ["~example.com##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
+    ["~example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
+    ["~example.com,~example.info##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
+    ["~example.com,~example.info#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
+    ["~sub.example.com,example.com##foo[-abp-properties='something']bar", CSSPropertyFilter, "cssproperty"],
+    ["~sub.example.com,example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
+    ["example.com,~sub.example.com##foo[-abp-properties='something']bar", CSSPropertyFilter, "cssproperty"],
+    ["example.com,~sub.example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
+    ["example.com##[-abp-properties='something']", CSSPropertyFilter, "cssproperty"],
+    ["example.com#@#[-abp-properties='something']", ElemHideException, "elemhideexception"],
+    ["example.com##[-abp-properties=\"something\"]", CSSPropertyFilter, "cssproperty"],
+    ["example.com#@#[-abp-properties=\"something\"]", ElemHideException, "elemhideexception"],
+    ["example.com##[-abp-properties=(something)]", ElemHideFilter, "elemhide"],
+    ["example.com#@#[-abp-properties=(something)]", ElemHideException, "elemhideexception"],
+  ];
+  for (let [text, type, typeName, location] of tests)
+  {
+    let filter = Filter.fromText(text);
+    test.ok(filter instanceof Filter, "Got filter for " + text);
+    test.equal(filter.text, text, "Correct filter text for " + text);
+    test.ok(filter instanceof type, "Correct filter type for " + text);
+    test.equal(filter.type, typeName, "Type name for " + text + " is " + typeName);
+    if (type == InvalidFilter)
+      test.ok(filter.reason, "Invalid filter " + text + " has a reason set");
+    filter.delete();
   }
-  return result;
+  test.done();
+};
+
+exports.testClassHierarchy = function(test)
+{
+  let allClasses = ["Filter", "InvalidFilter", "CommentFilter", "ActiveFilter",
+    "RegExpFilter", "BlockingFilter", "WhitelistFilter", "ElemHideBase",
+    "ElemHideFilter", "ElemHideException", "CSSPropertyFilter"];
+  let tests = [
+    ["/asdf??+/", "Filter", "InvalidFilter"],
+    ["!asdf", "Filter", "CommentFilter"],
+    ["asdf", "Filter", "ActiveFilter", "RegExpFilter", "BlockingFilter"],
+    ["@@asdf", "Filter", "ActiveFilter", "RegExpFilter", "WhitelistFilter"],
+    ["##asdf", "Filter", "ActiveFilter", "ElemHideBase", "ElemHideFilter"],
+    ["#@#asdf", "Filter", "ActiveFilter", "ElemHideBase", "ElemHideException"],
+    ["example.com##[-abp-properties='something']", "Filter", "ActiveFilter", "ElemHideBase", "CSSPropertyFilter"],
+  ];
+
+  for (let list of tests)
+  {
+    let filter = Filter.fromText(list.shift());
+    for (let cls of list)
+    {
+      test.ok(filter instanceof eval(cls),
+          "Filter " + filter.text + " is an instance of " + cls);
+    }
+
+    for (let cls of allClasses)
+    {
+      if (list.indexOf(cls) < 0)
+      {
+        test.ok(!(filter instanceof eval(cls)),
+            "Filter " + filter.text + " isn't an instance of " + cls);
+      }
+    }
+    filter.delete();
+  }
+
+  test.done();
+};
+
+exports.testGC = function(test)
+{
+  let filter1 = Filter.fromText("someknownfilter");
+  test.equal(filter1.hitCount, 0, "Initial hit count");
+
+  filter1.hitCount = 432;
+
+  let filter2 = Filter.fromText("someknownfilter");
+  test.equal(filter2.hitCount, 432, "Known filter returned");
+
+  filter2.hitCount = 234;
+  test.equal(filter1.hitCount, 234, "Changing second wrapper modifies original as well");
+
+  filter1.delete();
+  filter2.delete();
+
+  let filter3 = Filter.fromText("someknownfilter");
+  test.equal(filter3.hitCount, 0, "Filter data has been reset once previous instances have been released");
+  filter3.delete();
+
+  test.done();
+};
+
+exports.testNormalize = function(test)
+{
+  let tests = [
+    [" !  comment something ", "!  comment something"],
+    [" ! \n comment something ", "!  comment something"],
+    ["  foo bar ", "foobar"],
+    [" foo , bar #  # foo > bar ", "foo,bar##foo > bar", "foo,bar", "foo > bar"],
+    [" foo , bar # @   # foo > bar ", "foo,bar#@#foo > bar", "foo,bar", "foo > bar"],
+    ["foOBar"],
+    ["foOBar#xyz"],
+    ["foOBar$iMaGe,object_subrequest,~coLLapse", "foOBar$image,object-subrequest,~collapse"],
+    ["foOBar$doMain=EXample.COM|~exAMPLE.РФ", "foOBar$domain=example.com|~example.рф"],
+    ["foOBar$sitekeY=SiteKey", "foOBar$sitekey=SiteKey"],
+    ["exampLE.com##fooBAr", "example.com##fooBAr"],
+    ["exampLE.com#@#fooBAr", "example.com#@#fooBAr"],
+    ["exampLE.РФ#@#fooBAr", "example.рф#@#fooBAr"],
+  ];
+
+  for (let [text, expected, selectorDomain, selector] of tests)
+  {
+    if (!expected)
+      expected = text;
+
+    let filter1 = Filter.fromText(text);
+    let filter2 = Filter.fromText(expected);
+
+    test.equal(filter1.text, expected, "Filter text " + text + " got normalized");
+    test.equal(filter2.text, expected, "Already normalized text " + expected + " didn't change");
+
+    if (filter1 instanceof ActiveFilter)
+    {
+      filter1.hitCount = 567;
+      test.equal(filter1.hitCount, filter2.hitCount, "Property changes on filter " + text + " get reflected on filter " + expected);
+    }
+
+    if (selectorDomain)
+    {
+      let expectedDomains = selectorDomain.split(",").sort().join(",");
+      let actualDomains1 = filter1.selectorDomain.split(",").sort().join(",");
+      let actualDomains2 = filter2.selectorDomain.split(",").sort().join(",");
+      test.equal(actualDomains1, expectedDomains, "Correct selector domain for filter " + text);
+      test.equal(actualDomains1, expectedDomains, "Correct selector domain for filter " + expected);
+
+      test.equal(filter1.selector, selector, "Correct selector for filter " + text);
+      test.equal(filter2.selector, selector, "Correct selector for filter " + expected);
+    }
+
+    filter1.delete();
+    filter2.delete();
+  }
+
+  test.done();
+};
+
+exports.testSerialize = function(test)
+{
+  // Comment
+  let filter = Filter.fromText("! serialize");
+  test.equal(filter.serialize(), "[Filter]\ntext=! serialize\n");
+  filter.delete();
+
+  // Blocking filter
+  filter = Filter.fromText("serialize");
+  test.equal(filter.serialize(), "[Filter]\ntext=serialize\n");
+  filter.disabled = true;
+  test.equal(filter.serialize(), "[Filter]\ntext=serialize\ndisabled=true\n");
+  filter.disabled = false;
+  filter.hitCount = 10;
+  filter.lastHit = 12;
+  test.equal(filter.serialize(), "[Filter]\ntext=serialize\nhitCount=10\nlastHit=12\n");
+  filter.delete();
+
+  // Invalid filter
+  filter = Filter.fromText("serialize$foobar");
+  test.equal(filter.serialize(), "[Filter]\ntext=serialize$foobar\n");
+  filter.delete();
+
+  // Element hiding filter
+  filter = Filter.fromText("example.com##serialize");
+  test.equal(filter.serialize(), "[Filter]\ntext=example.com##serialize\n");
+  filter.disabled = true;
+  filter.lastHit = 5;
+  test.equal(filter.serialize(), "[Filter]\ntext=example.com##serialize\ndisabled=true\nlastHit=5\n");
+  filter.delete();
+
+  test.done();
+};
+
+exports.testInvalidReasons = function(test)
+{
+  let tests = [
+    ["/??/", "filter_invalid_regexp"],
+    ["asd$foobar", "filter_unknown_option"],
+    ["~foo.com##[-abp-properties='abc']", "filter_cssproperty_nodomain"],
+  ];
+
+  for (let [text, reason] of tests)
+  {
+    let filter = Filter.fromText(text);
+    test.equals(filter.reason, reason, "Reason why filter " + text + " is invalid");
+    filter.delete();
+  }
+
+  test.done();
+};
+
+exports.testActiveFilter = function(test)
+{
+  let filter1 = Filter.fromText("asdf");
+  let filter1copy = Filter.fromText("asdf");
+  let filter2 = Filter.fromText("##foobar");
+
+  test.ok(!filter1.disabled && !filter1copy.disabled && !filter2.disabled, "Filters are initially enabled");
+  filter1.disabled = true;
+  test.ok(filter1.disabled, "Disabling filter works");
+  test.ok(filter1copy.disabled, "Filter copies are also disabled");
+  test.ok(!filter2.disabled, "Disabling one filter doesn't disable others");
+
+  test.ok(filter1.hitCount === 0 && filter1copy.hitCount === 0 && filter2.hitCount === 0, "Filters have no hit initially");
+  filter1.hitCount = 5;
+  test.equal(filter1.hitCount, 5, "Changing hit count works");
+  test.equal(filter1copy.hitCount, 5, "Hit count of filter copies is also changed");
+  test.equal(filter2.hitCount, 0, "Hit count of other filters isn't affected");
+
+  test.ok(filter1.lastHit === 0 && filter1copy.lastHit === 0 && filter2.lastHit === 0, "Filters have no last hit time initially");
+  filter1.lastHit = 10;
+  test.equal(filter1.lastHit, 10, "Changing last hit time works");
+  test.equal(filter1copy.lastHit, 10, "Last hit time of filter copies is also changed");
+  test.equal(filter2.lastHit, 0, "Last hit time of other filters isn't affected");
+
+  filter1.delete();
+  filter1copy.delete();
+  filter2.delete();
+
+  test.done();
+};
+
+exports.testIsGeneric = function(test)
+{
+  let tests = [
+    ["asfd", true],
+    ["|http://example.com/asdf", true],
+    ["||example.com/asdf", true],
+    ["asfd$third-party", true],
+    ["asdf$domain=com", false],
+    ["asdf$domain=example.com", false],
+    ["asdf$image,domain=example.com", false],
+    ["asdf$~image,domain=example.com", false],
+    ["asdf$third-party,domain=example.com", false],
+    ["||example.com/asdf$~coLLapse,domain=example.com", false],
+    ["||example.com/asdf$domain=~example.com", true],
+    ["||example.com/asdf$third-party,domain=~example.com", true],
+    ["asdf$domain=foo.example.com|~example.com", false],
+    ["asdf$domain=foo.com|~example.com", false],
+    ["asdf$domain=~foo.com|~example.com", true],
+  ];
+
+  for (let [text, generic] of tests)
+  {
+    let filter = Filter.fromText(text);
+    test.equal(filter.isGeneric(), generic, "Filter " + text + " is generic");
+    filter.delete();
+  }
+
+  test.done();
 }
 
-function addDefaults(expected)
+exports.testElemHideSelector = function(test)
 {
-  let type = null;
-  let hasProperty = {};
-  for (let entry of expected)
+  function doTest(text, selector, selectorDomain)
   {
-    if (/^type=(.*)/.test(entry))
-      type = RegExp.$1;
-    else if (/^(\w+)/.test(entry))
-      hasProperty[RegExp.$1] = true;
+    let filter = Filter.fromText(text);
+    test.equal(filter.selector, selector, "Correct selector for " + text);
+
+    let actualDomains = filter.selectorDomain.split(",").sort().join(",");
+    let expectedDomains = selectorDomain.split(",").sort().join(",");
+    test.equal(actualDomains, expectedDomains, "Correct domains list for " + text);
+
+    filter.delete();
   }
 
-  function addProperty(prop, value)
-  {
-    if (!(prop in hasProperty))
-      expected.push(prop + "=" + value);
-  }
+  let tests = [
+    ["##foobar", "foobar", ""],
+    ["~example.com##foobar", "foobar", ""],
+    ["example.com##body > div:first-child", "body > div:first-child", "example.com"],
+    ["xYz,~example.com##foobar:not(whatever)", "foobar:not(whatever)","xyz"],
+    ["~xyz,com,~abc.com,example.info##foobar", "foobar", "com,example.info"],
+    ["foo,bar,bas,bam##foobar", "foobar", "foo,bar,bas,bam"],
 
-  if (type == "whitelist" || type == "filterlist" || type == "elemhide" || type == "elemhideexception" || type == "cssrule")
-  {
-    addProperty("disabled", "false");
-    addProperty("lastHit", "0");
-    addProperty("hitCount", "0");
-  }
-  if (type == "whitelist" || type == "filterlist")
-  {
-    addProperty("contentType", 0x7FFFFFFF & ~(
-      RegExpFilter.typeMap.DOCUMENT | RegExpFilter.typeMap.ELEMHIDE |
-      RegExpFilter.typeMap.POPUP | RegExpFilter.typeMap.GENERICHIDE |
-      RegExpFilter.typeMap.GENERICBLOCK
-    ));
-    addProperty("matchCase", "false");
-    addProperty("thirdParty", "null");
-    addProperty("domains", "");
-    addProperty("sitekeys", "");
-  }
-  if (type == "filterlist")
-  {
-    addProperty("collapse", "null");
-  }
-  if (type == "elemhide" || type == "elemhideexception" || type == "cssrule")
-  {
-    addProperty("selectorDomain", "");
-    addProperty("domains", "");
-  }
-  if (type == "cssrule")
-  {
-    addProperty("regexp", "");
-    addProperty("prefix", "");
-    addProperty("suffix", "");
-  }
-}
+    // Good idea to test this? Maybe consider behavior undefined in this case.
+    ["foo,bar,bas,~bar##foobar", "foobar", "foo,bas"],
+  ];
 
-function compareFilter(test, text, expected, postInit)
-{
-  addDefaults(expected);
-
-  let filter = Filter.fromText(text);
-  if (postInit)
-    postInit(filter)
-  let result = serializeFilter(filter);
-  test.equal(result.sort().join("\n"), expected.sort().join("\n"), text);
-
-  // Test round-trip
-  let filter2;
-  let buffer = [];
-  filter.serialize(buffer);
-  if (buffer.length)
+  for (let [text, selector, selectorDomain] of tests)
   {
-    let map = {__proto__: null};
-    for (let line of buffer.slice(1))
-    {
-      if (/(.*?)=(.*)/.test(line))
-        map[RegExp.$1] = RegExp.$2;
-    }
-    filter2 = Filter.fromObject(map);
+    doTest(text, selector, selectorDomain);
+    doTest(text.replace("##", "#@#"), selector, selectorDomain);
   }
-  else
-  {
-    filter2 = Filter.fromText(filter.text);
-  }
-
-  test.equal(serializeFilter(filter).join("\n"), serializeFilter(filter2).join("\n"), text + " deserialization");
-}
-
-exports.testFilterClassDefinitions = function(test)
-{
-  test.equal(typeof Filter, "function", "typeof Filter");
-  test.equal(typeof InvalidFilter, "function", "typeof InvalidFilter");
-  test.equal(typeof CommentFilter, "function", "typeof CommentFilter");
-  test.equal(typeof ActiveFilter, "function", "typeof ActiveFilter");
-  test.equal(typeof RegExpFilter, "function", "typeof RegExpFilter");
-  test.equal(typeof BlockingFilter, "function", "typeof BlockingFilter");
-  test.equal(typeof WhitelistFilter, "function", "typeof WhitelistFilter");
-  test.equal(typeof ElemHideBase, "function", "typeof ElemHideBase");
-  test.equal(typeof ElemHideFilter, "function", "typeof ElemHideFilter");
-  test.equal(typeof ElemHideException, "function", "typeof ElemHideException");
-  test.equal(typeof CSSPropertyFilter, "function", "typeof CSSPropertyFilter");
 
   test.done();
 };
 
-exports.testComments = function(test)
+exports.testCSSRules = function(test)
 {
-  compareFilter(test, "!asdf", ["type=comment", "text=!asdf"]);
-  compareFilter(test, "!foo#bar", ["type=comment", "text=!foo#bar"]);
-  compareFilter(test, "!foo##bar", ["type=comment", "text=!foo##bar"]);
+  let tests = [
+    ["foo.com##[-abp-properties='abc']", "abc", "", ""],
+    ["foo.com##[-abp-properties='a\"bc']", "a\\\"bc", "", ""],
+    ["foo.com##[-abp-properties=\"abc\"]", "abc", "", ""],
+    ["foo.com##[-abp-properties=\"a'bc\"]", "a\\'bc", "", ""],
+    ["foo.com##aaa [-abp-properties='abc'] bbb", "abc", "aaa ", " bbb"],
+    ["foo.com##[-abp-properties='|background-image: url(data:*)']", "^background\\-image\\:\\ url\\(data\\:.*\\)", "", ""],
+  ];
 
-  test.done();
-};
-
-exports.testInvalidFilters = function(test)
-{
-  compareFilter(test, "/??/", ["type=invalid", "text=/??/", "reason=filter_invalid_regexp"]);
-  compareFilter(test, "asd$foobar", ["type=invalid", "text=asd$foobar", "reason=filter_unknown_option"]);
-  compareFilter(test, "#dd(asd)(ddd)", ["type=invalid", "text=#dd(asd)(ddd)", "reason=filter_elemhide_duplicate_id"]);
-  compareFilter(test, "#*", ["type=invalid", "text=#*", "reason=filter_elemhide_nocriteria"]);
-
-  function compareCSSRule(domains)
+  for (let [text, regexp, prefix, suffix] of tests)
   {
-    let filterText = domains + "##[-abp-properties='abc']";
-    compareFilter(test, filterText, ["type=invalid", "text=" + filterText, "reason=filter_cssproperty_nodomain"]);
+    let filter = Filter.fromText(text);
+    test.equal(filter.regexpString, regexp, "Regular expression of " + text);
+    test.equal(filter.selectorPrefix, prefix, "Selector prefix of " + text);
+    test.equal(filter.selectorSuffix, suffix, "Selector suffix of " + text);
+    filter.delete();
   }
-  compareCSSRule("");
-  compareCSSRule("~foo.com");
-  compareCSSRule("~foo.com,~bar.com");
-  compareCSSRule("foo");
-  compareCSSRule("~foo.com,bar");
-
-  test.done();
-};
-
-exports.testFiltersWithState  = function(test)
-{
-  compareFilter(test, "blabla", ["type=filterlist", "text=blabla", "regexp=blabla"]);
-  compareFilter(test, "blabla_default", ["type=filterlist", "text=blabla_default", "regexp=blabla_default"], function(filter)
-  {
-    filter.disabled = false;
-    filter.hitCount = 0;
-    filter.lastHit = 0;
-  });
-  compareFilter(test, "blabla_non_default", ["type=filterlist", "text=blabla_non_default", "regexp=blabla_non_default", "disabled=true", "hitCount=12", "lastHit=20"], function(filter)
-  {
-    filter.disabled = true;
-    filter.hitCount = 12;
-    filter.lastHit = 20;
-  });
-
-  test.done();
-};
-
-let t = RegExpFilter.typeMap;
-let defaultTypes = 0x7FFFFFFF & ~(t.ELEMHIDE | t.DOCUMENT | t.POPUP | t.GENERICHIDE | t.GENERICBLOCK);
-
-exports.testSpecialCharacters = function(test)
-{
-  compareFilter(test, "/ddd|f?a[s]d/", ["type=filterlist", "text=/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d"]);
-  compareFilter(test, "*asdf*d**dd*", ["type=filterlist", "text=*asdf*d**dd*", "regexp=asdf.*d.*dd"]);
-  compareFilter(test, "|*asd|f*d**dd*|", ["type=filterlist", "text=|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$"]);
-  compareFilter(test, "dd[]{}$%<>&()d", ["type=filterlist", "text=dd[]{}$%<>&()d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\)d"]);
-
-  compareFilter(test, "@@/ddd|f?a[s]d/", ["type=whitelist", "text=@@/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d", "contentType=" + defaultTypes]);
-  compareFilter(test, "@@*asdf*d**dd*", ["type=whitelist", "text=@@*asdf*d**dd*", "regexp=asdf.*d.*dd", "contentType=" + defaultTypes]);
-  compareFilter(test, "@@|*asd|f*d**dd*|", ["type=whitelist", "text=@@|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$", "contentType=" + defaultTypes]);
-  compareFilter(test, "@@dd[]{}$%<>&()d", ["type=whitelist", "text=@@dd[]{}$%<>&()d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\)d", "contentType=" + defaultTypes]);
-
-  test.done();
-};
-
-exports.testFilterOptions = function(test)
-{
-  compareFilter(test, "bla$match-case,script,other,third-party,domain=foo.com,sitekey=foo", ["type=filterlist", "text=bla$match-case,script,other,third-party,domain=foo.com,sitekey=foo", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=FOO.COM", "sitekeys=FOO"]);
-  compareFilter(test, "bla$~match-case,~script,~other,~third-party,domain=~bar.com", ["type=filterlist", "text=bla$~match-case,~script,~other,~third-party,domain=~bar.com", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~BAR.COM"]);
-  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=BAR.COM|FOO.COM|~BAR.FOO.COM|~FOO.BAR.COM", "sitekeys=BAR|FOO"]);
-
-  // background and image should be the same for backwards compatibility
-  compareFilter(test, "bla$image", ["type=filterlist", "text=bla$image", "regexp=bla", "contentType=" + (t.IMAGE)]);
-  compareFilter(test, "bla$background", ["type=filterlist", "text=bla$background", "regexp=bla", "contentType=" + (t.IMAGE)]);
-  compareFilter(test, "bla$~image", ["type=filterlist", "text=bla$~image", "regexp=bla", "contentType=" + (defaultTypes & ~t.IMAGE)]);
-  compareFilter(test, "bla$~background", ["type=filterlist", "text=bla$~background", "regexp=bla", "contentType=" + (defaultTypes & ~t.IMAGE)]);
-
-  compareFilter(test, "@@bla$~script,~other", ["type=whitelist", "text=@@bla$~script,~other", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@http://bla$~script,~other", ["type=whitelist", "text=@@http://bla$~script,~other", "regexp=http\\:\\/\\/bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@|ftp://bla$~script,~other", ["type=whitelist", "text=@@|ftp://bla$~script,~other", "regexp=^ftp\\:\\/\\/bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "regexp=bla", "contentType=" +  (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.DOCUMENT)]);
-  compareFilter(test, "@@bla$~script,~other,~document", ["type=whitelist", "text=@@bla$~script,~other,~document", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$document", ["type=whitelist", "text=@@bla$document", "regexp=bla", "contentType=" + t.DOCUMENT]);
-  compareFilter(test, "@@bla$~script,~other,elemhide", ["type=whitelist", "text=@@bla$~script,~other,elemhide", "regexp=bla", "contentType=" +  (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.ELEMHIDE)]);
-  compareFilter(test, "@@bla$~script,~other,~elemhide", ["type=whitelist", "text=@@bla$~script,~other,~elemhide", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$elemhide", ["type=whitelist", "text=@@bla$elemhide", "regexp=bla", "contentType=" + t.ELEMHIDE]);
-
-  compareFilter(test, "@@bla$~script,~other,donottrack", ["type=invalid", "text=@@bla$~script,~other,donottrack", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$~script,~other,~donottrack", ["type=invalid", "text=@@bla$~script,~other,~donottrack", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$donottrack", ["type=invalid", "text=@@bla$donottrack", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$foobar", ["type=invalid", "text=@@bla$foobar", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$image,foobar", ["type=invalid", "text=@@bla$image,foobar", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$foobar,image", ["type=invalid", "text=@@bla$foobar,image", "reason=filter_unknown_option"]);
-
-  test.done();
-};
-
-exports.testElementHidingRules = function(test)
-{
-  compareFilter(test, "#ddd", ["type=elemhide", "text=#ddd", "selector=ddd"]);
-  compareFilter(test, "#ddd(fff)", ["type=elemhide", "text=#ddd(fff)", "selector=ddd.fff,ddd#fff"]);
-  compareFilter(test, "#ddd(foo=bar)(foo2^=bar2)(foo3*=bar3)(foo4$=bar4)", ["type=elemhide", "text=#ddd(foo=bar)(foo2^=bar2)(foo3*=bar3)(foo4$=bar4)", 'selector=ddd[foo="bar"][foo2^="bar2"][foo3*="bar3"][foo4$="bar4"]']);
-  compareFilter(test, "#ddd(fff)(foo=bar)", ["type=elemhide", "text=#ddd(fff)(foo=bar)", 'selector=ddd.fff[foo="bar"],ddd#fff[foo="bar"]']);
-  compareFilter(test, "#*(fff)", ["type=elemhide", "text=#*(fff)", "selector=.fff,#fff"]);
-  compareFilter(test, "#*(foo=bar)", ["type=elemhide", "text=#*(foo=bar)", 'selector=[foo="bar"]']);
-  compareFilter(test, "##body > div:first-child", ["type=elemhide", "text=##body > div:first-child", "selector=body > div:first-child"]);
-  compareFilter(test, "foo#ddd", ["type=elemhide", "text=foo#ddd", "selectorDomain=foo", "selector=ddd", "domains=FOO"]);
-  compareFilter(test, "foo,bar#ddd", ["type=elemhide", "text=foo,bar#ddd", "selectorDomain=foo,bar", "selector=ddd", "domains=BAR|FOO"]);
-  compareFilter(test, "foo,~bar#ddd", ["type=elemhide", "text=foo,~bar#ddd", "selectorDomain=foo", "selector=ddd", "domains=FOO|~BAR"]);
-  compareFilter(test, "foo,~baz,bar#ddd", ["type=elemhide", "text=foo,~baz,bar#ddd", "selectorDomain=foo,bar", "selector=ddd", "domains=BAR|FOO|~BAZ"]);
-
-  test.done();
-};
-
-exports.testElementHidingExceptions = function(test)
-{
-  compareFilter(test, "#@ddd", ["type=elemhideexception", "text=#@ddd", "selector=ddd"]);
-  compareFilter(test, "#@ddd(fff)", ["type=elemhideexception", "text=#@ddd(fff)", "selector=ddd.fff,ddd#fff"]);
-  compareFilter(test, "#@ddd(foo=bar)(foo2^=bar2)(foo3*=bar3)(foo4$=bar4)", ["type=elemhideexception", "text=#@ddd(foo=bar)(foo2^=bar2)(foo3*=bar3)(foo4$=bar4)", 'selector=ddd[foo="bar"][foo2^="bar2"][foo3*="bar3"][foo4$="bar4"]']);
-  compareFilter(test, "#@ddd(fff)(foo=bar)", ["type=elemhideexception", "text=#@ddd(fff)(foo=bar)", 'selector=ddd.fff[foo="bar"],ddd#fff[foo="bar"]']);
-  compareFilter(test, "#@*(fff)", ["type=elemhideexception", "text=#@*(fff)", "selector=.fff,#fff"]);
-  compareFilter(test, "#@*(foo=bar)", ["type=elemhideexception", "text=#@*(foo=bar)", 'selector=[foo="bar"]']);
-  compareFilter(test, "#@#body > div:first-child", ["type=elemhideexception", "text=#@#body > div:first-child", "selector=body > div:first-child"]);
-  compareFilter(test, "foo#@ddd", ["type=elemhideexception", "text=foo#@ddd", "selectorDomain=foo", "selector=ddd", "domains=FOO"]);
-  compareFilter(test, "foo,bar#@ddd", ["type=elemhideexception", "text=foo,bar#@ddd", "selectorDomain=foo,bar", "selector=ddd", "domains=BAR|FOO"]);
-  compareFilter(test, "foo,~bar#@ddd", ["type=elemhideexception", "text=foo,~bar#@ddd", "selectorDomain=foo", "selector=ddd", "domains=FOO|~BAR"]);
-  compareFilter(test, "foo,~baz,bar#@ddd", ["type=elemhideexception", "text=foo,~baz,bar#@ddd", "selectorDomain=foo,bar", "selector=ddd", "domains=BAR|FOO|~BAZ"]);
-
-  test.done();
-};
-
-exports.testCSSPropertyFilters = function(test)
-{
-  // Check valid domain combinations
-  compareFilter(test, "foo.com##[-abp-properties='abc']", ["type=cssrule", "text=foo.com##[-abp-properties='abc']", "selectorDomain=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM", "regexp=abc"]);
-  compareFilter(test, "foo.com,~bar.com##[-abp-properties='abc']", ["type=cssrule", "text=foo.com,~bar.com##[-abp-properties='abc']", "selectorDomain=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM|~BAR.COM", "regexp=abc"]);
-  compareFilter(test, "foo.com,~bar##[-abp-properties='abc']", ["type=cssrule", "text=foo.com,~bar##[-abp-properties='abc']", "selectorDomain=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM|~BAR", "regexp=abc"]);
-  compareFilter(test, "~foo.com,bar.com##[-abp-properties='abc']", ["type=cssrule", "text=~foo.com,bar.com##[-abp-properties='abc']", "selectorDomain=bar.com", "selector=[-abp-properties='abc']", "domains=BAR.COM|~FOO.COM", "regexp=abc"]);
-
-  compareFilter(test, "##[-abp-properties='']", ["type=elemhide", "text=##[-abp-properties='']", "selector=[-abp-properties='']"]);
-  compareFilter(test, "foo.com#@#[-abp-properties='abc']", ["type=elemhideexception", "text=foo.com#@#[-abp-properties='abc']", "selectorDomain=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com##aaa [-abp-properties='abc'] bbb", ["type=cssrule", "text=foo.com##aaa [-abp-properties='abc'] bbb", "selectorDomain=foo.com", "selector=aaa [-abp-properties='abc'] bbb", "domains=FOO.COM", "prefix=aaa ", "regexp=abc", "suffix= bbb"]);
-  compareFilter(test, "foo.com##[-abp-properties='|background-image: url(data:*)']", ["type=cssrule", "text=foo.com##[-abp-properties='|background-image: url(data:*)']", "selectorDomain=foo.com", "selector=[-abp-properties='|background-image: url(data:*)']", "domains=FOO.COM", "regexp=^background\\-image\\:\\ url\\(data\\:.*\\)"]);
 
   test.done();
 };
