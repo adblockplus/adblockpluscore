@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
+import argparse
 import os
 import re
 import subprocess
 
 BASE_DIR = os.path.dirname(__file__)
-EMSCRIPTEN_PATH = os.path.join(BASE_DIR, '..', 'emscripten')
 SOURCE_DIR = os.path.join(BASE_DIR, 'compiled')
 SOURCE_FILES = [
     os.path.join(path, f)
@@ -36,11 +36,11 @@ ADDITIONAL_PARAMS = ['-O3', '-m32', '-std=gnu++14', '--memory-init-file', '0',
                      '--emit-symbol-map']
 
 
-def getenv():
+def getenv(emscripten_path):
     path = []
     env = {}
     output = subprocess.check_output([
-        '/bin/bash', '-c', os.path.join(EMSCRIPTEN_PATH, 'emsdk_env.sh')
+        '/bin/bash', '-c', os.path.join(emscripten_path, 'emsdk_env.sh')
     ])
     for line in output.splitlines():
         match = re.search(r'^\s*PATH\s*\+=\s*(.*)', line)
@@ -66,7 +66,7 @@ def generate_bindings(env):
         subprocess.check_call([node, BINDINGS_GENERATOR], env=env, stdout=file)
 
 
-def run_compiler(env):
+def run_compiler(env, debug=False, tracing=False):
     params = [
         os.path.join(env['EMSCRIPTEN'], 'emcc'),
         '-o', COMPILER_OUTPUT,
@@ -76,11 +76,36 @@ def run_compiler(env):
     params.extend('-D' + flag for flag in DEFINES)
     for key, value in GENERATION_PARAMS.iteritems():
         params.extend(['-s', '{}={}'.format(key, str(value))])
+    if debug:
+        params.append('-g1')
+    if tracing:
+        params.append('--tracing')
     params.extend(ADDITIONAL_PARAMS)
     subprocess.check_call(params, env=env)
 
 
 if __name__ == '__main__':
-    env = getenv()
+    parser = argparse.ArgumentParser(
+        description='Compile Emscripten-based C++ code to JavaScript'
+    )
+    parser.add_argument(
+        '--emscripten',
+        metavar='DIR',
+        default=os.path.join(BASE_DIR, '..', 'emscripten'),
+        help='Emscripten installation directory'
+    )
+    parser.add_argument(
+        '-d', '--debug',
+        action='store_true',
+        help='Disable code minification'
+    )
+    parser.add_argument(
+        '-t', '--tracing',
+        action='store_true',
+        help='Enable memory tracing'
+    )
+    args = parser.parse_args()
+
+    env = getenv(args.emscripten)
     generate_bindings(env)
-    run_compiler(env)
+    run_compiler(env, debug=args.debug, tracing=args.tracing)
