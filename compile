@@ -4,8 +4,9 @@ import os
 import re
 import subprocess
 
-EMSCRIPTEN_PATH = '../emscripten'
-SOURCE_DIR = './compiled'
+BASE_DIR = os.path.dirname(__file__)
+EMSCRIPTEN_PATH = os.path.join(BASE_DIR, '..', 'emscripten')
+SOURCE_DIR = os.path.join(BASE_DIR, 'compiled')
 SOURCE_FILES = [
     os.path.join(path, f)
     for (path, dirs, files) in os.walk(SOURCE_DIR)
@@ -15,7 +16,7 @@ SOURCE_FILES = [
 BINDINGS_FILE = os.path.join(SOURCE_DIR, 'bindings.cpp')
 BINDINGS_GENERATOR = os.path.join(SOURCE_DIR, 'bindings.cpp.js')
 BINDINGS_OUTPUT = os.path.join(SOURCE_DIR, 'bindings.js')
-COMPILER_OUTPUT = './lib/compiled.js'
+COMPILER_OUTPUT = os.path.join(BASE_DIR, 'lib', 'compiled.js')
 GENERATION_PARAMS = {
     'SHELL_FILE': "'{}'".format(os.path.abspath(os.path.join(SOURCE_DIR,
                                                              'shell.js'))),
