@@ -68,7 +68,9 @@ def run_compiler(env, debug=False, tracing=False):
         '-o', COMPILER_OUTPUT,
         '--post-js', BINDINGS_OUTPUT,
     ]
-    params.extend(SOURCE_FILES)
+    # Order matters. We sort source files so that we always get the same
+    # results for the same source code.
+    params.extend(sorted(SOURCE_FILES))
     params.extend('-D' + flag for flag in DEFINES)
     for key, value in GENERATION_PARAMS.iteritems():
         params.extend(['-s', '{}={}'.format(key, str(value))])
