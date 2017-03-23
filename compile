@@ -2,8 +2,8 @@
 
 import argparse
 import os
-import re
 import subprocess
+import sys
 
 BASE_DIR = os.path.dirname(__file__)
 SOURCE_DIR = os.path.join(BASE_DIR, 'compiled')
@@ -36,39 +36,35 @@ ADDITIONAL_PARAMS = ['-O3', '-m32', '-std=gnu++14', '--memory-init-file', '0',
                      '--emit-symbol-map']
 
 
-def getenv(emscripten_path):
-    path = []
-    env = {}
-    output = subprocess.check_output([
-        '/bin/bash', '-c', os.path.join(emscripten_path, 'emsdk_env.sh')
-    ])
-    for line in output.splitlines():
-        match = re.search(r'^\s*PATH\s*\+=\s*(.*)', line)
-        if match:
-            path.append(match.group(1))
-        match = re.search(r'^\s*(\w+)\s*=\s*(.*)', line)
-        if match:
-            env[match.group(1)] = match.group(2)
-        env['PATH'] = os.pathsep.join([os.environ['PATH']] + path)
+def getenv(emscripten_config):
+    scope = {}
+    execfile(emscripten_config, scope, scope)
+    env = os.environ.copy()
+    env.update({
+        'EM_CONFIG': emscripten_config,
+        'EMSCRIPTEN': scope['EMSCRIPTEN_ROOT'],
+        'PYTHON': scope.get('PYTHON', sys.executable),
+        'NODE_JS': scope.get('NODE_JS', 'node'),
+    })
     return env
 
 
 def generate_bindings(env):
     params = [
-        os.path.join(env['EMSCRIPTEN'], 'emcc'), BINDINGS_FILE,
+        env['PYTHON'], os.path.join(env['EMSCRIPTEN'], 'emcc'), BINDINGS_FILE,
         '-o', BINDINGS_GENERATOR, '-std=gnu++14', '-DPRINT_BINDINGS',
         '-s', 'WARN_ON_UNDEFINED_SYMBOLS=0',
     ]
     subprocess.check_call(params, env=env)
 
-    node = subprocess.check_output('which node', env=env, shell=True).strip()
     with open(BINDINGS_OUTPUT, 'w') as file:
-        subprocess.check_call([node, BINDINGS_GENERATOR], env=env, stdout=file)
+        subprocess.check_call([env['NODE_JS'], BINDINGS_GENERATOR],
+                              stdout=file)
 
 
 def run_compiler(env, debug=False, tracing=False):
     params = [
-        os.path.join(env['EMSCRIPTEN'], 'emcc'),
+        env['PYTHON'], os.path.join(env['EMSCRIPTEN'], 'emcc'),
         '-o', COMPILER_OUTPUT,
         '--post-js', BINDINGS_OUTPUT,
     ]
@@ -89,9 +85,9 @@ if __name__ == '__main__':
         description='Compile Emscripten-based C++ code to JavaScript'
     )
     parser.add_argument(
-        '--emscripten',
+        '--emscripten-config',
         metavar='DIR',
-        default=os.path.join(BASE_DIR, '..', 'emscripten'),
+        default=os.path.expanduser('~/.emscripten'),
         help='Emscripten installation directory'
     )
     parser.add_argument(
@@ -106,6 +102,6 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    env = getenv(args.emscripten)
+    env = getenv(args.emscripten_config)
     generate_bindings(env)
     run_compiler(env, debug=args.debug, tracing=args.tracing)
