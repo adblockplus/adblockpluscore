@@ -363,6 +363,9 @@ exports.testElemHideEmulationFilters = function(test)
   compareFilter(test, "foo.com##aaa [-abp-properties='abc'] bbb", ["type=elemhideemulation", "text=foo.com##aaa [-abp-properties='abc'] bbb", "selectorDomain=foo.com", "selector=aaa [-abp-properties='abc'] bbb", "domains=FOO.COM"]);
   compareFilter(test, "foo.com##[-abp-properties='|background-image: url(data:*)']", ["type=elemhideemulation", "text=foo.com##[-abp-properties='|background-image: url(data:*)']", "selectorDomain=foo.com", "selector=[-abp-properties='|background-image: url(data:*)']", "domains=FOO.COM"]);
 
+  // test matching -abp-properties= (https://issues.adblockplus.org/ticket/5037).
+  compareFilter(test, "foo.com##[-abp-properties-bogus='abc']", ["type=elemhide", "text=foo.com##[-abp-properties-bogus='abc']", "selectorDomain=foo.com", "selector=[-abp-properties-bogus='abc']", "domains=FOO.COM"]);
+
   test.done();
 };
 
