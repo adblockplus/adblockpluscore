@@ -39,7 +39,7 @@ exports.setUp = function(callback)
       Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
       BlockingFilter, WhitelistFilter, ElemHideBase, ElemHideFilter,
       ElemHideException, ElemHideEmulationFilter
-    } = sandboxedRequire("../lib/filterClassesNew")
+    } = sandboxedRequire("../lib/filterClasses")
   );
   callback();
 };

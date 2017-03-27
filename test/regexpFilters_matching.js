@@ -25,7 +25,7 @@ let RegExpFilter = null;
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox();
-  ({Filter, RegExpFilter} = sandboxedRequire("../lib/filterClassesNew"));
+  ({Filter, RegExpFilter} = sandboxedRequire("../lib/filterClasses"));
   callback();
 };
 

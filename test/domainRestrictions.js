@@ -24,7 +24,7 @@ let Filter = null;
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox();
-  ({Filter} = sandboxedRequire("../lib/filterClassesNew"));
+  ({Filter} = sandboxedRequire("../lib/filterClasses"));
   callback();
 };
 
