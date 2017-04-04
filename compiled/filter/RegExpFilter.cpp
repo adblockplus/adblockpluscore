@@ -34,6 +34,8 @@ namespace
     TYPE_OBJECT = 0x10,
     TYPE_SUBDOCUMENT = 0x20,
     TYPE_DOCUMENT = 0x40,
+    TYPE_WEBSOCKET = 0x80,
+    TYPE_WEBRTC = 0x100,
     TYPE_PING = 0x400,
     TYPE_XMLHTTPREQUEST = 0x800,
     TYPE_OBJECT_SUBREQUEST = 0x1000,
@@ -45,7 +47,7 @@ namespace
     TYPE_ELEMHIDE = 0x40000000,
   };
 
-  StringMap<int> typeMap {
+  const StringMap<int> typeMap {
     {u"other"_str, TYPE_OTHER},
     {u"script"_str, TYPE_SCRIPT},
     {u"image"_str, TYPE_IMAGE},
@@ -53,6 +55,8 @@ namespace
     {u"object"_str, TYPE_OBJECT},
     {u"subdocument"_str, TYPE_SUBDOCUMENT},
     {u"document"_str, TYPE_DOCUMENT},
+    {u"websocket"_str, TYPE_WEBSOCKET},
+    {u"webrtc"_str, TYPE_WEBRTC},
     {u"xbl"_str, TYPE_OTHER},          // Backwards compat
     {u"ping"_str, TYPE_PING},
     {u"xmlhttprequest"_str, TYPE_XMLHTTPREQUEST},

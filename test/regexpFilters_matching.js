@@ -128,6 +128,12 @@ exports.testTypeOptions = function(test)
   testMatch(test, "abc$subdocument", "http://abc/adf", "IMAGE", null, false, null, false);
   testMatch(test, "abc$subdocument", "http://abc/adf", "SUBDOCUMENT", null, false, null, true);
   testMatch(test, "abc$~subdocument", "http://abc/adf", "SUBDOCUMENT", null, false, null, false);
+  testMatch(test, "abc$websocket", "http://abc/adf", "OBJECT", null, false, null, false);
+  testMatch(test, "abc$websocket", "http://abc/adf", "WEBSOCKET", null, false, null, true);
+  testMatch(test, "abc$~websocket", "http://abc/adf", "WEBSOCKET", null, false, null, false);
+  testMatch(test, "abc$webrtc", "http://abc/adf", "OBJECT", null, false, null, false);
+  testMatch(test, "abc$webrtc", "http://abc/adf", "WEBRTC", null, false, null, true);
+  testMatch(test, "abc$~webrtc", "http://abc/adf", "WEBRTC", null, false, null, false);
   testMatch(test, "abc$background", "http://abc/adf", "OBJECT", null, false, null, false);
   testMatch(test, "abc$background", "http://abc/adf", "IMAGE", null, false, null, true);
   testMatch(test, "abc$~background", "http://abc/adf", "IMAGE", null, false, null, false);
