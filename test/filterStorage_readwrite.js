@@ -110,12 +110,15 @@ function canonize(data)
 
 function testReadWrite(test, withExternal)
 {
+  test.ok(!FilterStorage.initialized, "Uninitialized before the first load");
+
   return testData.then(data =>
   {
     dataFile.contents = data;
     return loadFilters();
   }).then(() =>
   {
+    test.ok(FilterStorage.initialized, "Initialize after the first load");
     test.equal(FilterStorage.fileProperties.version, FilterStorage.formatVersion, "File format version");
 
     if (withExternal)
