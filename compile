@@ -90,7 +90,7 @@ def run_compiler(env, debug=False, tracing=False):
     for key, value in GENERATION_PARAMS.iteritems():
         params.extend(['-s', '{}={}'.format(key, str(value))])
     if debug:
-        params.append('-g1')
+        params.append('-g3')
     if tracing:
         params.append('--tracing')
     params.extend(ADDITIONAL_PARAMS)
