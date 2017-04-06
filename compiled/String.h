@@ -17,9 +17,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <algorithm>
+#include <type_traits>
 
 #include <emscripten.h>
 
@@ -356,5 +357,34 @@ public:
   void append(value_type c)
   {
     append(&c, 1);
+  }
+
+  template<typename T,
+      typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
+  void append(T num)
+  {
+    bool negative = false;
+    if (num < 0)
+    {
+      negative = true;
+      num = -num;
+    }
+
+    size_type size = 0;
+    for (int i = num; i; i /= 10)
+      size++;
+    size = (size ? size : 1);
+
+    size_type pos = length();
+    grow((negative ? 1 : 0) + size);
+
+    if (negative)
+      mBuf[pos++] = '-';
+
+    for (int i = size - 1; i >= 0; i--)
+    {
+      mBuf[pos + i] = '0' + (num % 10);
+      num /= 10;
+    }
   }
 };

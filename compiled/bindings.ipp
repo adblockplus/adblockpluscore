@@ -449,24 +449,23 @@ namespace bindings_internal
 
   const std::string wrapCall(const FunctionInfo& call)
   {
-    char buffer[20];
     bool hasStringArgs = false;
     std::vector<std::string> params;
     std::string prefix = "function(";
     for (int i = 0; i < call.args.size(); i++)
     {
-      sprintf(buffer, "arg%i", i);
+      std::string argName("arg" + std::to_string(i));
       if (i > 0)
         prefix += ", ";
-      prefix += buffer;
+      prefix += argName;
 
       if (call.args[i] == TypeCategory::STRING_REF)
       {
         hasStringArgs = true;
-        params.push_back(std::string("createString(") + buffer + ")");
+        params.push_back(std::string("createString(") + argName + ")");
       }
       else
-        params.push_back(buffer);
+        params.push_back(argName);
     }
     prefix += ")\n{\n";
 

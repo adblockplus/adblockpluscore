@@ -23,17 +23,6 @@
 namespace
 {
   const DependentString DEFAULT_DOMAIN(u""_str);
-
-  OwnedString to_string(unsigned int i)
-  {
-    char buffer[11];
-    int len = sprintf(buffer, "%u", i);
-
-    OwnedString result(len);
-    for (String::size_type i = 0; i < len; i++)
-      result[i] = buffer[i];
-    return result;
-  }
 }
 
 ActiveFilter::ActiveFilter(Type type, const String& text, bool ignoreTrailingDot)
@@ -194,13 +183,13 @@ OwnedString ActiveFilter::Serialize() const
   if (mHitCount)
   {
     result.append(u"hitCount="_str);
-    result.append(to_string(mHitCount));
+    result.append(mHitCount);
     result.append(u'\n');
   }
   if (mLastHit)
   {
     result.append(u"lastHit="_str);
-    result.append(to_string(mLastHit));
+    result.append(mLastHit);
     result.append(u'\n');
   }
   return result;
