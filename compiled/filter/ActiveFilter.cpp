@@ -159,16 +159,16 @@ bool ActiveFilter::IsActiveOnlyOnDomain(DependentString& docDomain) const
   String::size_type len = docDomain.length();
   if (len > 0 && mIgnoreTrailingDot && docDomain[len - 1] == '.')
     docDomain.reset(docDomain, 0, len - 1);
-  for (auto it = domains->begin(); it != domains->end(); ++it)
+  for (const auto& item : *domains)
   {
-    if (!it->second || it->first.equals(docDomain))
+    if (!item.second || item.first.equals(docDomain))
       continue;
 
-    size_t len1 = it->first.length();
+    size_t len1 = item.first.length();
     size_t len2 = docDomain.length();
     if (len1 > len2 &&
-        DependentString(it->first, len1 - len2).equals(docDomain) &&
-        it->first[len1 - len2 - 1] == u'.')
+        DependentString(item.first, len1 - len2).equals(docDomain) &&
+        item.first[len1 - len2 - 1] == u'.')
     {
       continue;
     }

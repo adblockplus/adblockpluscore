@@ -324,8 +324,8 @@ public:
   StringMap(std::initializer_list<entry_type> list)
       : super(list.size())
   {
-    for (auto it = list.begin(); it != list.end(); ++it)
-      super::insert(*it);
+    for (const auto& item : list)
+      super::insert(item);
   }
 
   ~StringMap()

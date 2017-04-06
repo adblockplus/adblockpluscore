@@ -133,13 +133,13 @@ OwnedString ElemHideBase::GetSelectorDomain() const
   OwnedString result;
   if (mDomains)
   {
-    for (auto it = mDomains->begin(); it != mDomains->end(); ++it)
+    for (const auto& item : *mDomains)
     {
-      if (it->second && !it->first.empty())
+      if (item.second && !item.first.empty())
       {
         if (!result.empty())
           result.append(u',');
-        result.append(it->first);
+        result.append(item.first);
       }
     }
   }
