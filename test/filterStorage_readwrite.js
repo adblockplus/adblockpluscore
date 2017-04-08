@@ -24,7 +24,6 @@ let FilterNotifier = null;
 let FilterStorage = null;
 let IO = null;
 let Prefs = null;
-let Subscription = null;
 let ExternalSubscription = null;
 let dataFile = null;
 
@@ -37,7 +36,7 @@ exports.setUp = function(callback)
     {FilterStorage} = sandboxedRequire("../lib/filterStorage"),
     {IO} = sandboxedRequire("./stub-modules/io"),
     {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-    {Subscription, ExternalSubscription} = sandboxedRequire("../lib/subscriptionClasses")
+    {ExternalSubscription} = sandboxedRequire("../lib/subscriptionClasses")
   );
 
   Prefs.patternsfile = "patterns.ini";
