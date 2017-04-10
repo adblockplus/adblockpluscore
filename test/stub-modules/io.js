@@ -1,145 +1,98 @@
 "use strict";
 
-let data = {};
-
-//
-// Fake nsIFile implementation for our I/O
-//
-function FakeFile(path)
-{
-  this.path = path;
-}
-FakeFile.prototype =
-{
-  get leafName()
-  {
-    return this.path;
-  },
-  set leafName(value)
-  {
-    this.path = value;
-  },
-  append(path)
-  {
-    this.path += path;
-  },
-  exists()
-  {
-    return this.path in data;
-  },
-  get contents()
-  {
-    return (data[this.path] || {}).contents;
-  },
-  set contents(value)
-  {
-    data[this.path] = {lastModified: Date.now()};
-    return data[this.path].contents = value;
-  },
-  get lastModifiedTime()
-  {
-    return (data[this.path] || {}).lastModified;
-  },
-  set lastModifiedTime(value)
-  {
-    return (data[this.path] || {}).lastModified = value;
-  },
-  clone()
-  {
-    return new FakeFile(this.path);
-  },
-  get parent()
-  {
-    return {create() {}};
-  },
-  normalize() {}
-};
+let data = new Map();
 
 exports.IO = {
-  lineBreak: "\n",
-  resolveFilePath(path)
+  // Non-public API, for tests only
+  _getFileContents(fileName)
   {
-    return new FakeFile(path);
+    if (data.has(fileName))
+      return data.get(fileName).contents;
+    return null;
   },
-  writeToFile(file, generator, callback)
+  _setFileContents(fileName, contents)
   {
-    Promise.resolve().then(() =>
-    {
-      let lines = [];
-      for (let line of generator)
-        lines.push(line);
-      file.contents = lines.join("\n") + "\n";
-    }).then(() => callback(null)).catch(e => callback(e));
+    data.set(fileName, {
+      lastModified: Date.now(),
+      contents
+    });
   },
-  readFromFile(file, listener, callback)
+  _getModifiedTime(fileName)
   {
-    Promise.resolve().then(() =>
+    if (data.has(fileName))
+      return data.get(fileName).lastModified;
+    return 0;
+  },
+  _setModifiedTime(fileName, lastModified)
+  {
+    if (data.has(fileName))
+      data.get(fileName).lastModified = lastModified;
+  },
+
+  // Public API
+  writeToFile(fileName, generator)
+  {
+    return Promise.resolve().then(() =>
     {
-      if (!data.hasOwnProperty(file.path))
+      data.set(fileName, {
+        lastModified: Date.now(),
+        contents: Array.from(generator)
+      });
+    });
+  },
+  readFromFile(fileName, listener)
+  {
+    return Promise.resolve().then(() =>
+    {
+      if (!data.has(fileName))
         throw new Error("File doesn't exist");
 
-      let lines = file.contents.split("\n");
-      if (lines.length && lines[lines.length - 1] == "")
-        lines.pop();
+      let lines = data.get(fileName).contents;
       for (let line of lines)
-        listener.process(line);
-      listener.process(null);
-    }).then(() => callback(null)).catch(e => callback(e));
+        listener(line);
+    });
   },
-  copyFile(from, to, callback)
+  copyFile(fromName, toName)
   {
-    Promise.resolve().then(() =>
+    return Promise.resolve().then(() =>
     {
-      if (!data.hasOwnProperty(from.path))
+      if (!data.has(fromName))
         throw new Error("File doesn't exist");
-      if (from.path == to.path)
+      if (fromName == toName)
         throw new Error("Cannot copy file to itself");
 
-      to.contents = from.contents;
-    }).then(() => callback(null)).catch(e => callback(e));
+      data.set(toName, data.get(fromName));
+    });
   },
-  renameFile(from, newName, callback)
+  renameFile(fromName, toName)
   {
-    Promise.resolve().then(() =>
-    {
-      if (!data.hasOwnProperty(from.path))
-        throw new Error("File doesn't exist");
-      if (from.path == newName)
-        throw new Error("Cannot move file to itself");
-
-      data[newName] = data[from.path];
-      delete data[from.path];
-    }).then(() => callback(null)).catch(e => callback(e));
+    return this.copyFile(fromName, toName).then(() => this.removeFile(fromName));
   },
-  removeFile(file, callback)
+  removeFile(fileName)
   {
-    Promise.resolve().then(() =>
+    return Promise.resolve().then(() =>
     {
-      if (!data.hasOwnProperty(file.path))
+      if (!data.has(fileName))
         throw new Error("File doesn't exist");
 
-      delete data[file.path];
-    }).then(() => callback(null)).catch(e => callback(e));
+      data.delete(fileName);
+    });
   },
-  statFile(file, callback)
+  statFile(fileName)
   {
-    Promise.resolve().then(() =>
+    return Promise.resolve().then(() =>
     {
-      if (file.exists())
+      if (data.has(fileName))
       {
         return {
           exists: true,
-          isDirectory: false,
-          isFile: true,
-          lastModified: file.lastModifiedTime
+          lastModified: data.get(fileName).lastModified
         };
       }
       return {
         exists: false,
-        isDirectory: false,
-        isFile: false,
         lastModified: 0
       };
-    }).then(result => callback(null, result)).catch(e => callback(e));
+    });
   }
 };

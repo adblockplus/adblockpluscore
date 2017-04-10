@@ -20,27 +20,21 @@
 const {createSandbox, unexpectedError} = require("./_common");
 
 let Filter = null;
-let FilterNotifier = null;
 let FilterStorage = null;
 let IO = null;
 let Prefs = null;
 let ExternalSubscription = null;
-let dataFile = null;
 
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox();
   (
     {Filter} = sandboxedRequire("../lib/filterClasses"),
-    {FilterNotifier} = sandboxedRequire("../lib/filterNotifier"),
     {FilterStorage} = sandboxedRequire("../lib/filterStorage"),
     {IO} = sandboxedRequire("./stub-modules/io"),
     {Prefs} = sandboxedRequire("./stub-modules/prefs"),
     {ExternalSubscription} = sandboxedRequire("../lib/subscriptionClasses")
   );
-
-  Prefs.patternsfile = "patterns.ini";
-  dataFile = IO.resolveFilePath(Prefs.patternsfile);
 
   FilterStorage.addFilter(Filter.fromText("foobar"));
   callback();
@@ -57,27 +51,15 @@ let testData = new Promise((resolve, reject) =>
     if (error)
       reject(error);
     else
-      resolve(data);
+      resolve(data.split(/[\r\n]+/));
   });
 });
-
-function loadFilters()
-{
-  FilterStorage.loadFromDisk();
-  return FilterNotifier.once("load");
-}
-
-function saveFilters()
-{
-  FilterStorage.saveToDisk();
-  return FilterNotifier.once("save");
-}
 
 function canonize(data)
 {
   let curSection = null;
   let sections = [];
-  for (let line of (data + "\n[end]").split(/[\r\n]+/))
+  for (let line of data)
   {
     if (/^\[.*\]$/.test(line))
     {
@@ -89,6 +71,9 @@ function canonize(data)
     else if (curSection && /\S/.test(line))
       curSection.data.push(line);
   }
+  if (curSection)
+    sections.push(curSection);
+
   for (let section of sections)
   {
     section.key = section.header + " " + section.data[0];
@@ -102,9 +87,7 @@ function canonize(data)
       return 1;
     return 0;
   });
-  return sections.map(
-    section => [section.header].concat(section.data).join("\n")
-  ).join("\n");
+  return sections;
 }
 
 function testReadWrite(test, withExternal)
@@ -113,8 +96,8 @@ function testReadWrite(test, withExternal)
 
   return testData.then(data =>
   {
-    dataFile.contents = data;
-    return loadFilters();
+    IO._setFileContents(FilterStorage.sourceFile, data);
+    return FilterStorage.loadFromDisk();
   }).then(() =>
   {
     test.ok(FilterStorage.initialized, "Initialize after the first load");
@@ -135,10 +118,11 @@ function testReadWrite(test, withExternal)
       test.equal(externalSubscriptions[0].filters.length, 2, "Number of filters in external subscription");
     }
 
-    return saveFilters();
+    return FilterStorage.saveToDisk();
   }).then(() => testData).then(expected =>
   {
-    test.equal(canonize(dataFile.contents), canonize(expected), "Read/write result");
+    test.deepEqual(canonize(IO._getFileContents(FilterStorage.sourceFile)),
+               canonize(expected), "Read/write result");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 }
 
@@ -158,9 +142,11 @@ for (let url of ["~wl~", "~fl~", "~eh~"])
 {
   exports.testLegacyGroups["read empty " + url] = function(test)
   {
-    dataFile.contents = "[Subscription]\nurl=" + url;
+    IO._setFileContents(FilterStorage.sourceFile, [
+      "[Subscription]", "url=" + url
+    ]);
 
-    loadFilters(() =>
+    FilterStorage.loadFromDisk().then(() =>
     {
       test.equal(FilterStorage.subscriptions.length, 0, "Number of filter subscriptions");
     }).catch(unexpectedError.bind(test)).then(() => test.done());
@@ -168,9 +154,12 @@ for (let url of ["~wl~", "~fl~", "~eh~"])
 
   exports.testLegacyGroups["read non-empty " + url] = function(test)
   {
-    dataFile.contents = "[Subscription]\nurl=" + url + "\n[Subscription filters]\nfoo";
+    IO._setFileContents(FilterStorage.sourceFile, [
+      "[Subscription]", "url=" + url,
+      "[Subscription filters]", "foo"
+    ]);
 
-    loadFilters().then(() =>
+    FilterStorage.loadFromDisk().then(() =>
     {
       test.equal(FilterStorage.subscriptions.length, 1, "Number of filter subscriptions");
       if (FilterStorage.subscriptions.length == 1)
@@ -189,9 +178,13 @@ for (let url of ["~wl~", "~fl~", "~eh~"])
 
 exports.testReadLegacyFilters = function(test)
 {
-  dataFile.contents = "[Subscription]\nurl=~user~1234\ntitle=Foo\n[Subscription filters]\n[User patterns]\nfoo\n\\[bar]\nfoo#bar";
+  IO._setFileContents(FilterStorage.sourceFile, [
+    "[Subscription]", "url=~user~1234", "title=Foo",
+    "[Subscription filters]",
+    "[User patterns]", "foo", "\\[bar]", "foo#bar"
+  ]);
 
-  loadFilters().then(() =>
+  FilterStorage.loadFromDisk().then(() =>
   {
     test.equal(FilterStorage.subscriptions.length, 1, "Number of filter subscriptions");
     if (FilterStorage.subscriptions.length == 1)
@@ -210,9 +203,8 @@ exports.testReadLegacyFilters = function(test)
 
 exports.testImportExport = function(test)
 {
-  testData.then(data =>
+  testData.then(lines =>
   {
-    let lines = data.split("\n");
     if (lines.length && lines[lines.length - 1] == "")
       lines.pop();
 
@@ -223,10 +215,8 @@ exports.testImportExport = function(test)
 
     test.equal(FilterStorage.fileProperties.version, FilterStorage.formatVersion, "File format version");
 
-    let exported = "";
-    for (let line of FilterStorage.exportData())
-      exported += line + "\n";
-    test.equal(canonize(exported), canonize(data), "Import/export result");
+    let exported = Array.from(FilterStorage.exportData());
+    test.deepEqual(canonize(exported), canonize(lines), "Import/export result");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -235,14 +225,13 @@ exports.testSavingWithoutBackups = function(test)
   Prefs.patternsbackups = 0;
   Prefs.patternsbackupinterval = 24;
 
-  saveFilters().then(() =>
+  FilterStorage.saveToDisk().then(() =>
   {
-    return saveFilters();
+    return FilterStorage.saveToDisk();
   }).then(() =>
   {
-    let backupFile = dataFile.clone();
-    backupFile.leafName = backupFile.leafName.replace(/\.ini$/, "-backup1.ini");
-    test.ok(!backupFile.exists(), "Backup shouldn't be created");
+    test.ok(!IO._getFileContents(FilterStorage.getBackupName(1)),
+            "Backup shouldn't be created");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -251,56 +240,51 @@ exports.testSavingWithBackups = function(test)
   Prefs.patternsbackups = 2;
   Prefs.patternsbackupinterval = 24;
 
-  let backupFile = dataFile.clone();
-  backupFile.leafName = backupFile.leafName.replace(/\.ini$/, "-backup1.ini");
-
-  let backupFile2 = dataFile.clone();
-  backupFile2.leafName = backupFile2.leafName.replace(/\.ini$/, "-backup2.ini");
-
-  let backupFile3 = dataFile.clone();
-  backupFile3.leafName = backupFile3.leafName.replace(/\.ini$/, "-backup3.ini");
+  let backupFile = FilterStorage.getBackupName(1);
+  let backupFile2 = FilterStorage.getBackupName(2);
+  let backupFile3 = FilterStorage.getBackupName(3);
 
   let oldModifiedTime;
 
-  saveFilters().then(() =>
+  FilterStorage.saveToDisk().then(() =>
   {
     // Save again immediately
-    return saveFilters();
+    return FilterStorage.saveToDisk();
   }).then(() =>
   {
-    test.ok(backupFile.exists(), "First backup created");
+    test.ok(IO._getFileContents(backupFile), "First backup created");
 
-    backupFile.lastModifiedTime -= 10000;
-    oldModifiedTime = backupFile.lastModifiedTime;
-    return saveFilters();
+    oldModifiedTime = IO._getModifiedTime(backupFile) - 10000;
+    IO._setModifiedTime(backupFile, oldModifiedTime);
+    return FilterStorage.saveToDisk();
   }).then(() =>
   {
-    test.equal(backupFile.lastModifiedTime, oldModifiedTime, "Backup not overwritten if it is only 10 seconds old");
+    test.equal(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup not overwritten if it is only 10 seconds old");
 
-    backupFile.lastModifiedTime -= 40 * 60 * 60 * 1000;
-    oldModifiedTime = backupFile.lastModifiedTime;
-    return saveFilters();
+    oldModifiedTime -= 40 * 60 * 60 * 1000;
+    IO._setModifiedTime(backupFile, oldModifiedTime);
+    return FilterStorage.saveToDisk();
   }).then(() =>
   {
-    test.notEqual(backupFile.lastModifiedTime, oldModifiedTime, "Backup overwritten if it is 40 hours old");
+    test.notEqual(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup overwritten if it is 40 hours old");
 
-    test.ok(backupFile2.exists(), "Second backup created when first backup is overwritten");
+    test.ok(IO._getFileContents(backupFile2), "Second backup created when first backup is overwritten");
 
-    backupFile.lastModifiedTime -= 20000;
-    oldModifiedTime = backupFile2.lastModifiedTime;
-    return saveFilters();
+    IO._setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 20000);
+    oldModifiedTime = IO._getModifiedTime(backupFile2);
+    return FilterStorage.saveToDisk();
   }).then(() =>
   {
-    test.equal(backupFile2.lastModifiedTime, oldModifiedTime, "Second backup not overwritten if first one is only 20 seconds old");
+    test.equal(IO._getModifiedTime(backupFile2), oldModifiedTime, "Second backup not overwritten if first one is only 20 seconds old");
 
-    backupFile.lastModifiedTime -= 25 * 60 * 60 * 1000;
-    oldModifiedTime = backupFile2.lastModifiedTime;
-    return saveFilters();
+    IO._setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 25 * 60 * 60 * 1000);
+    oldModifiedTime = IO._getModifiedTime(backupFile2);
+    return FilterStorage.saveToDisk();
   }).then(() =>
   {
-    test.notEqual(backupFile2.lastModifiedTime, oldModifiedTime, "Second backup overwritten if first one is 25 hours old");
+    test.notEqual(IO._getModifiedTime(backupFile2), oldModifiedTime, "Second backup overwritten if first one is 25 hours old");
 
-    test.ok(!backupFile3.exists(), "Third backup not created with patternsbackups = 2");
+    test.ok(!IO._getFileContents(backupFile3), "Third backup not created with patternsbackups = 2");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -309,24 +293,25 @@ exports.testRestoringBackup = function(test)
   Prefs.patternsbackups = 2;
   Prefs.patternsbackupinterval = 24;
 
-  saveFilters().then(() =>
+  FilterStorage.saveToDisk().then(() =>
   {
-    test.equal(FilterStorage.subscriptions.length, 1, "Initial subscription count");
-    FilterStorage.removeSubscription(FilterStorage.subscriptions[0]);
-    return saveFilters();
+    test.equal(FilterStorage.subscriptions[0].filters.length, 1, "Initial filter count");
+    FilterStorage.addFilter(Filter.fromText("barfoo"));
+    test.equal(FilterStorage.subscriptions[0].filters.length, 2, "Filter count after adding a filter");
+    return FilterStorage.saveToDisk();
   }).then(() =>
   {
-    return loadFilters();
+    return FilterStorage.loadFromDisk();
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions.length, 0, "Subscription count after removing subscriptions and reloading");
+    test.equal(FilterStorage.subscriptions[0].filters.length, 2, "Filter count after adding filter and reloading");
     return FilterStorage.restoreBackup(1);
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions.length, 1, "Subscription count after restoring backup");
-    return loadFilters();
+    test.equal(FilterStorage.subscriptions[0].filters.length, 1, "Filter count after restoring backup");
+    return FilterStorage.loadFromDisk();
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions.length, 1, "Subscription count after reloading");
+    test.equal(FilterStorage.subscriptions[0].filters.length, 1, "Filter count after reloading");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
