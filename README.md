@@ -19,16 +19,10 @@ via Empscripten.
 
 * [Emscripten 1.37.3](https://github.com/kripken/emscripten)
 * [Python 2.7](https://www.python.org)
-* [Node.js 6 or higher](https://nodejs.org/en/)
 
 ### Running Emscripten
 
-*Note*: The `compile` script will likely be replaced by a more elaborate
-solution later.
-
-Before you start make sure to edit the `compile` script and make sure that
-`EMSCRIPTEN_PATH` constant at the top of it points to your Emscripten install.
-After that run the following command:
+After installing and configuring Emscripten you can run the following command:
 
     python compile
 
@@ -36,17 +30,18 @@ This will produce a `lib/compiled.js` exporting the classes defined in C++ code.
 
 ### Technical details
 
-Compilation is currently a two-step process. In the first step,
-`compiled/bindings.cpp` (definitions of classes to be exported) is compiled into
-`compiled/bindings.cpp.js` with `PRINT_BINDINGS` symbol defined. This
-application is then executed via Node.js and will print JavaScript wrappers for
-the C++ classes to `compiled/bindings.js`.
+Compilation is currently a two-step process. In the bindings generation step,
+the source files are compiled into `compiled/bindings.cpp.js` with the
+`PRINT_BINDINGS` symbol defined. This application is then executed via Node.js
+and will print JavaScript wrappers for the C++ classes to
+`compiled/bindings.js` according to definitions within the `EMSCRIPTEN_BINDINGS`
+macro in `compiled/bindings.cpp`.
 
-In the next step all the C++ files in `compiled` directory are compiled,
-including `compiled/bindings.cpp` - without `PRINT_BINDINGS` symbol the
-`EMSCRIPTEN_BINDINGS` macro in this file will ignore its contents but rather
-emit some functions necessary for the JavaScript bindings to work. The
-`compiled/bindings.js` file is added to the end of Emscripten output.
+In the actual compilation step the source files are compiled into
+`lib/compiled.js` without the `PRINT_BINDINGS` symbol, so that the
+`EMSCRIPTEN_BINDINGS` macro ignores its contents and merely emits some generic
+functions necessary for the JavaScript bindings to work. The previously
+generated `compiled/bindings.js` file is added to the end of Emscripten output.
 
 The binding generation approach is heavily inspired by
 [embind](http://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/embind.html).

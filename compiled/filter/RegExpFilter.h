@@ -106,7 +106,7 @@ public:
   ~RegExpFilter();
   static Type Parse(DependentString& text, DependentString& error,
       RegExpFilterData& data);
-  EMSCRIPTEN_KEEPALIVE static void InitJSTypes();
+  static void GenerateCustomBindings();
   EMSCRIPTEN_KEEPALIVE bool Matches(const String& location, int typeMask,
       DependentString& docDomain, bool thirdParty, const String& sitekey) const;
 };

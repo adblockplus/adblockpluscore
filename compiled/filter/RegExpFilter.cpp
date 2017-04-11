@@ -15,7 +15,10 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cctype>
 #include <climits>
+#include <cstdio>
+#include <string>
 
 #include <emscripten.h>
 
@@ -346,11 +349,18 @@ void RegExpFilter::ParseSitekeys(const String& sitekeys) const
   }
 }
 
-void RegExpFilter::InitJSTypes()
+void RegExpFilter::GenerateCustomBindings()
 {
-  EM_ASM(exports.RegExpFilter.typeMap = {};);
-  for (auto it = typeMap.begin(); it != typeMap.end(); ++it)
-    EM_ASM_ARGS(exports.RegExpFilter.typeMap[readString($0).replace("-", "_").toUpperCase()] = $1, &(it->first), it->second);
+  printf("exports.RegExpFilter.typeMap = {\n");
+
+  for (const auto& item : typeMap)
+  {
+    std::string type(item.first.length(), '\0');
+    for (int i = 0; i < item.first.length(); i++)
+      type[i] = (item.first[i] == '-' ? '_' : toupper(item.first[i]));
+    printf("  %s: %i,\n", type.c_str(), item.second);
+  }
+  printf("};\n");
 }
 
 RegExpFilter::DomainMap* RegExpFilter::GetDomains() const

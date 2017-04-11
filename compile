@@ -28,7 +28,6 @@ SOURCE_FILES = [
     for f in files
     if f.endswith('.cpp')
 ]
-BINDINGS_FILE = os.path.join(SOURCE_DIR, 'bindings.cpp')
 BINDINGS_GENERATOR = os.path.join(SOURCE_DIR, 'bindings.cpp.js')
 BINDINGS_OUTPUT = os.path.join(SOURCE_DIR, 'bindings.js')
 COMPILER_OUTPUT = os.path.join(BASE_DIR, 'lib', 'compiled.js')
@@ -66,10 +65,9 @@ def getenv(emscripten_config):
 
 def generate_bindings(env):
     params = [
-        env['PYTHON'], os.path.join(env['EMSCRIPTEN'], 'emcc'), BINDINGS_FILE,
+        env['PYTHON'], os.path.join(env['EMSCRIPTEN'], 'emcc'),
         '-o', BINDINGS_GENERATOR, '-std=gnu++14', '-DPRINT_BINDINGS',
-        '-s', 'WARN_ON_UNDEFINED_SYMBOLS=0',
-    ]
+    ] + SOURCE_FILES
     subprocess.check_call(params, env=env)
 
     with open(BINDINGS_OUTPUT, 'w') as file:

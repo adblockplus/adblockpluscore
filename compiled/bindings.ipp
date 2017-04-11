@@ -22,6 +22,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <exception>
+#include <functional>
 #include <map>
 #include <string>
 #include <type_traits>
@@ -336,12 +337,14 @@ namespace bindings_internal
     std::string name;
     std::vector<PropertyInfo> properties;
     std::vector<MethodInfo> methods;
-    std::vector<FunctionInfo> initializers;
     DifferentiatorInfo subclass_differentiator;
     ptrdiff_t ref_counted_offset;
   };
 
+  typedef std::function<void()>  CustomGenerator;
+
   std::map<TYPEID, ClassInfo> classes;
+  std::vector<CustomGenerator> customGenerators;
 
   void register_class(const char* name, TYPEID classID, TYPEID baseClassID,
                       ptrdiff_t ref_counted_offset)
@@ -394,15 +397,6 @@ namespace bindings_internal
     methodInfo.name = name;
     methodInfo.call = call;
     it->second.methods.push_back(methodInfo);
-  }
-
-  void register_initializer(TYPEID classID, const FunctionInfo& call)
-  {
-    auto it = classes.find(classID);
-    if (it == classes.end())
-      throw std::runtime_error("Initializer defined on unknown class");
-
-    it->second.initializers.push_back(call);
   }
 
   void register_differentiator(TYPEID classID, size_t offset,
@@ -640,9 +634,6 @@ namespace bindings_internal
       printf("%s.%s = %s;\n", obj.c_str(), item.name.c_str(),
           wrapCall(item.call).c_str());
     }
-
-    for (const auto& item : cls.initializers)
-      printf("%s()\n", item.name);
   }
 
   void printBindings()
@@ -651,6 +642,9 @@ namespace bindings_internal
 
     for (const auto& item : classes)
       printClass(item.second);
+
+    for (const auto& item : customGenerators)
+      item();
   }
 }
 
@@ -658,26 +652,25 @@ namespace bindings_internal
   // Bindings generation step: collect bindings information and print
   // corresponding JS code.
   #define EMSCRIPTEN_BINDINGS \
-      struct BindingsInitializer {\
-          BindingsInitializer();\
-          BindingsInitializer(bool dummy)\
-          {\
-            try\
-            {\
-              BindingsInitializer();\
-              bindings_internal::printBindings();\
-            }\
-            catch (const std::exception& e)\
-            {\
-              EM_ASM_ARGS(\
-                console.error("Error occurred generating JavaScript bindings: " +\
-                    Module.AsciiToString($0)), e.what()\
-              );\
-              abort();\
-            }\
-          }\
-      } BindingsInitializer_instance(true);\
-      BindingsInitializer::BindingsInitializer()
+      void InitializeBindings();\
+      int main()\
+      {\
+        try\
+        {\
+          InitializeBindings();\
+          bindings_internal::printBindings();\
+        }\
+        catch (const std::exception& e)\
+        {\
+          EM_ASM_ARGS(\
+            console.error("Error occurred generating JavaScript bindings: " +\
+                Module.AsciiToString($0)), e.what()\
+          );\
+          abort();\
+        }\
+        return 0;\
+      }\
+      void InitializeBindings()
 #else
   // Actual compilation step: ignore bindings information but define some
   // exported helper functions necessary for the bindings.
@@ -778,13 +771,6 @@ public:
     return *this;
   }
 
-  const class_& class_initializer(void (*function)()) const
-  {
-    bindings_internal::register_initializer(
-        bindings_internal::TypeInfo<ClassType>(), function);
-    return *this;
-  }
-
   template<typename ReturnType,
       typename std::enable_if<std::is_convertible<ReturnType, int32_t>::value>::type* = nullptr>
   const class_& subclass_differentiator(ReturnType ClassType::* member,
@@ -802,3 +788,8 @@ public:
     return *this;
   }
 };
+
+void custom_generator(bindings_internal::CustomGenerator generator)
+{
+  bindings_internal::customGenerators.push_back(generator);
+}

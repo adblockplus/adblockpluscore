@@ -64,8 +64,9 @@ EMSCRIPTEN_BINDINGS
       .function("serialize", &ActiveFilter::Serialize);
 
   class_<RegExpFilter,ActiveFilter>("RegExpFilter")
-      .function("matches", &RegExpFilter::Matches)
-      .class_initializer(&RegExpFilter::InitJSTypes);
+      .function("matches", &RegExpFilter::Matches);
+
+  custom_generator(&RegExpFilter::GenerateCustomBindings);
 
   class_<BlockingFilter,RegExpFilter>("BlockingFilter")
       .class_property("type", "'blocking'");
