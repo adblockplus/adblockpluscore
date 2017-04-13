@@ -70,11 +70,11 @@ public:
   {
   }
 
-  explicit intrusive_ptr(T* pointer)
+  explicit intrusive_ptr(T* pointer, bool addRef = true)
       : mPointer(pointer)
   {
-    // Raw pointers always had their reference count increased by whatever gave
-    // us the pointer so we don't need to do it here.
+    if (mPointer && addRef)
+      mPointer->AddRef();
   }
 
   intrusive_ptr(const intrusive_ptr& other)

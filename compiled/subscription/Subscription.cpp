@@ -39,6 +39,23 @@ Subscription::~Subscription()
   knownSubscriptions.erase(mID);
 }
 
+Filter* Subscription::FilterAt(unsigned index)
+{
+  if (index >= mFilters.size())
+    return nullptr;
+
+  FilterPtr result(mFilters[index]);
+  return result.release();
+}
+
+int Subscription::IndexOfFilter(Filter* filter)
+{
+  for (unsigned i = 0; i < mFilters.size(); i++)
+    if (mFilters[i] == filter)
+      return i;
+  return -1;
+}
+
 OwnedString Subscription::Serialize() const
 {
   OwnedString result(u"[Subscription]\nurl="_str);
@@ -58,8 +75,17 @@ OwnedString Subscription::Serialize() const
 
 OwnedString Subscription::SerializeFilters() const
 {
-  // TODO
-  return OwnedString();
+  if (!mFilters.size())
+    return OwnedString();
+
+  OwnedString result(u"[Subscription filters]\n"_str);
+  for (const auto& filter : mFilters)
+  {
+    // TODO: Escape [ characters
+    result.append(filter->GetText());
+    result.append(u'\n');
+  }
+  return result;
 }
 
 Subscription* Subscription::FromID(const String& id)
@@ -90,9 +116,9 @@ Subscription* Subscription::FromID(const String& id)
 
   SubscriptionPtr subscription;
   if (!id.empty() && id[0] == '~')
-    subscription = new UserDefinedSubscription(id);
+    subscription = SubscriptionPtr(new UserDefinedSubscription(id), false);
   else
-    subscription = new DownloadableSubscription(id);
+    subscription = SubscriptionPtr(new DownloadableSubscription(id), false);
 
   // This is a hack: we looked up the entry using id but create it using
   // subscription->mID. This works because both are equal at this point.

@@ -90,6 +90,9 @@ EMSCRIPTEN_BINDINGS
       .property("url", &Subscription::GetID)
       .property("title", &Subscription::GetTitle, &Subscription::SetTitle)
       .property("disabled", &Subscription::GetDisabled, &Subscription::SetDisabled)
+      .property("filterCount", &Subscription::GetFilterCount)
+      .function("filterAt", &Subscription::FilterAt)
+      .function("indexOfFilter", &Subscription::IndexOfFilter)
       .function("serialize", &Subscription::Serialize)
       .function("serializeFilters", &Subscription::SerializeFilters)
       .class_function("fromURL", &Subscription::FromID)
@@ -101,6 +104,8 @@ EMSCRIPTEN_BINDINGS
   class_<UserDefinedSubscription,Subscription>("SpecialSubscription")
       .function("isDefaultFor", &UserDefinedSubscription::IsDefaultFor)
       .function("makeDefaultFor", &UserDefinedSubscription::MakeDefaultFor)
+      .function("insertFilterAt", &UserDefinedSubscription::InsertFilterAt)
+      .function("removeFilterAt", &UserDefinedSubscription::RemoveFilterAt)
       .function("serialize", &UserDefinedSubscription::Serialize);
 
   class_<DownloadableSubscription,Subscription>("DownloadableSubscription")

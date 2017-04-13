@@ -70,6 +70,23 @@ void UserDefinedSubscription::MakeDefaultFor(const Filter* filter)
   mDefaults |= filterTypeToCategory[filter->mType];
 }
 
+void UserDefinedSubscription::InsertFilterAt(Filter* filter, unsigned pos)
+{
+  if (pos >= mFilters.size())
+    mFilters.emplace_back(filter);
+  else
+    mFilters.emplace(mFilters.begin() + pos, filter);
+}
+
+bool UserDefinedSubscription::RemoveFilterAt(unsigned pos)
+{
+  if (pos >= mFilters.size())
+    return false;
+
+  mFilters.erase(mFilters.begin() + pos);
+  return true;
+}
+
 OwnedString UserDefinedSubscription::Serialize() const
 {
   OwnedString result(Subscription::Serialize());

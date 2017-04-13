@@ -47,10 +47,6 @@ public:
 
   Type mType;
 
-  /* TODO
-  std::vector<Subscription> mSubscriptions;
-  */
-
   EMSCRIPTEN_KEEPALIVE const String& GetText() const
   {
     return mText;

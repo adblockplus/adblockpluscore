@@ -84,7 +84,7 @@ class Subscription : public ref_counted
 {
 protected:
   OwnedString mID;
-  std::vector<Filter> mFilters;
+  std::vector<FilterPtr> mFilters;
 
 public:
   enum Type
@@ -107,6 +107,13 @@ public:
   SUBSCRIPTION_STRING_PROPERTY(mTitle, GetTitle, SetTitle);
   SUBSCRIPTION_PROPERTY(bool, mDisabled, GetDisabled, SetDisabled);
 
+  EMSCRIPTEN_KEEPALIVE unsigned GetFilterCount() const
+  {
+    return mFilters.size();
+  }
+
+  EMSCRIPTEN_KEEPALIVE Filter* FilterAt(unsigned index);
+  EMSCRIPTEN_KEEPALIVE int IndexOfFilter(Filter* filter);
   EMSCRIPTEN_KEEPALIVE OwnedString Serialize() const;
   EMSCRIPTEN_KEEPALIVE OwnedString SerializeFilters() const;
 

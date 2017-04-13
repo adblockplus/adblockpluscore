@@ -29,5 +29,7 @@ public:
   explicit UserDefinedSubscription(const String& id);
   EMSCRIPTEN_KEEPALIVE bool IsDefaultFor(const Filter* filter) const;
   EMSCRIPTEN_KEEPALIVE void MakeDefaultFor(const Filter* filter);
+  EMSCRIPTEN_KEEPALIVE void InsertFilterAt(Filter* filter, unsigned pos);
+  EMSCRIPTEN_KEEPALIVE bool RemoveFilterAt(unsigned pos);
   EMSCRIPTEN_KEEPALIVE OwnedString Serialize() const;
 };

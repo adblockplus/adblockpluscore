@@ -123,27 +123,27 @@ Filter* Filter::FromText(DependentString& text)
   switch (type)
   {
     case Filter::Type::COMMENT:
-      filter = new CommentFilter(text);
+      filter = FilterPtr(new CommentFilter(text), false);
       break;
     case Filter::Type::INVALID:
-      filter = new InvalidFilter(text, error);
+      filter = FilterPtr(new InvalidFilter(text, error), false);
       break;
     case Filter::Type::BLOCKING:
-      filter = new BlockingFilter(text, data.regexp);
+      filter = FilterPtr(new BlockingFilter(text, data.regexp), false);
       break;
     case Filter::Type::WHITELIST:
-      filter = new WhitelistFilter(text, data.regexp);
+      filter = FilterPtr(new WhitelistFilter(text, data.regexp), false);
       break;
     case Filter::Type::ELEMHIDE:
-      filter = new ElemHideFilter(text, data.elemhide);
+      filter = FilterPtr(new ElemHideFilter(text, data.elemhide), false);
       break;
     case Filter::Type::ELEMHIDEEXCEPTION:
-      filter = new ElemHideException(text, data.elemhide);
+      filter = FilterPtr(new ElemHideException(text, data.elemhide), false);
       break;
     case Filter::Type::ELEMHIDEEMULATION:
-      filter = new ElemHideEmulationFilter(text, data.elemhide);
+      filter = FilterPtr(new ElemHideEmulationFilter(text, data.elemhide), false);
       if (static_cast<ElemHideEmulationFilter*>(filter.get())->IsGeneric())
-        filter = new InvalidFilter(text, u"filter_elemhideemulation_nodomain"_str);
+        filter = FilterPtr(new InvalidFilter(text, u"filter_elemhideemulation_nodomain"_str), false);
       break;
     default:
       // This should never happen but just in case

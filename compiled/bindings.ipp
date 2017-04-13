@@ -490,6 +490,8 @@ namespace bindings_internal
         }
 
         result += "  }\n";
+        result += "  else\n";
+        result += "    result = null;\n";
         return result;
       }
       default:

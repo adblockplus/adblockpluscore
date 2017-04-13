@@ -164,3 +164,97 @@ exports.testGC = function(test)
 
   test.done();
 };
+
+exports.testDownloadableSubscriptionFilters = function(test)
+{
+  let filter = Filter.fromText("test");
+
+  let subscription = Subscription.fromURL("http://example.com/");
+  test.equal(subscription.filterCount, 0, "Initial filter count");
+  test.equal(subscription.filterAt(0), null, "Retrieving non-existent filter");
+  test.equal(subscription.indexOfFilter(filter), -1, "Index of non-existent filter");
+
+  subscription.delete();
+  filter.delete();
+
+  test.done();
+};
+
+exports.testSpecialSubscriptionFilters = function(test)
+{
+  let filter1 = Filter.fromText("filter1");
+  let filter2 = Filter.fromText("filter2");
+  let subscription = Subscription.fromURL("~user~12345");
+
+  function checkFilterAt(pos, expected, message)
+  {
+    let filter = subscription.filterAt(pos);
+    test.equal(filter && filter.text, expected, message);
+    if (filter)
+      filter.delete();
+  }
+
+  test.equal(subscription.filterCount, 0, "Initial filter count");
+  checkFilterAt(0, null, "Retrieving non-existent filter");
+  test.equal(subscription.indexOfFilter(filter1), -1, "Index of non-existent filter");
+
+  subscription.insertFilterAt(filter1, 0);
+  test.equal(subscription.filterCount, 1, "Filter count after insert");
+  checkFilterAt(0, filter1.text, "First filter after insert");
+  checkFilterAt(1, null, "Retrieving non-existent filter");
+  test.equal(subscription.indexOfFilter(filter1), 0, "Index of existent filter");
+  test.equal(subscription.indexOfFilter(filter2), -1, "Index of non-existent filter");
+
+  subscription.insertFilterAt(filter2, 0);
+  test.equal(subscription.filterCount, 2, "Filter count after second insert");
+  checkFilterAt(0, filter2.text, "First filter after second insert");
+  checkFilterAt(1, filter1.text, "Second filter after second insert");
+  test.equal(subscription.indexOfFilter(filter1), 1, "Index of first filter");
+  test.equal(subscription.indexOfFilter(filter2), 0, "Index of second filter");
+
+  subscription.insertFilterAt(filter1, 1);
+  test.equal(subscription.filterCount, 3, "Filter count after inserting duplicate filter");
+  checkFilterAt(0, filter2.text, "First filter after inserting duplicate filter");
+  checkFilterAt(1, filter1.text, "Second filter after inserting duplicate filter");
+  checkFilterAt(2, filter1.text, "Third filter after inserting duplicate filter");
+  test.equal(subscription.indexOfFilter(filter1), 1, "Index of first filter");
+
+  subscription.removeFilterAt(1);
+  test.equal(subscription.filterCount, 2, "Filter count after remove");
+  checkFilterAt(0, filter2.text, "First filter after remove");
+  checkFilterAt(1, filter1.text, "Second filter after remove");
+  test.equal(subscription.indexOfFilter(filter1), 1, "Index of first filter");
+
+  filter1.delete();
+  filter2.delete();
+  Filter.fromText("dummy overwriting some released memory").delete();
+  checkFilterAt(0, "filter2", "First filter after releasing filter references");
+  checkFilterAt(1, "filter1", "Second filter after releasing filter references");
+
+  subscription.delete();
+
+  test.done();
+};
+
+exports.testFilterSerialization = function(test)
+{
+  let filter1 = Filter.fromText("filter1");
+  let filter2 = Filter.fromText("filter2");
+
+  let subscription = Subscription.fromURL("~user~12345");
+  test.equal(subscription.serializeFilters(), "", "No filters added");
+
+  subscription.insertFilterAt(filter1, 0);
+  subscription.insertFilterAt(filter1, 1);
+  subscription.insertFilterAt(filter2, 1);
+  test.equal(subscription.serializeFilters(), "[Subscription filters]\nfilter1\nfilter2\nfilter1\n", "Three filters added");
+
+  subscription.removeFilterAt(0);
+  test.equal(subscription.serializeFilters(), "[Subscription filters]\nfilter2\nfilter1\n", "One filter removed");
+
+  subscription.delete();
+  filter1.delete();
+  filter2.delete();
+
+  test.done();
+};
