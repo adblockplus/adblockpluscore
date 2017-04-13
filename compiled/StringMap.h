@@ -232,6 +232,11 @@ namespace StringMap_internal
     {
       return const_iterator(&mBuckets[mBucketCount], &mBuckets[mBucketCount]);
     }
+
+    size_type size() const
+    {
+      return mEntryCount;
+    }
   };
 
   struct StringSetEntry

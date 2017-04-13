@@ -349,6 +349,18 @@ public:
     std::memcpy(mBuf + oldLength, source, sizeof(value_type) * sourceLen);
   }
 
+  void append(const char* source, size_type sourceLen)
+  {
+    if (!sourceLen)
+      return;
+
+    assert(source, u"Null buffer passed to OwnedString.append()"_str);
+    size_t oldLength = length();
+    grow(sourceLen);
+    for (size_t i = 0; i < sourceLen; i++)
+      mBuf[oldLength + i] = source[i];
+  }
+
   void append(const String& str)
   {
     append(str.mBuf, str.length());
@@ -371,7 +383,7 @@ public:
     }
 
     size_type size = 0;
-    for (int i = num; i; i /= 10)
+    for (T i = num; i; i /= 10)
       size++;
     size = (size ? size : 1);
 

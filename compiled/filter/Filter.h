@@ -39,6 +39,7 @@ public:
     ELEMHIDE = 5,
     ELEMHIDEEXCEPTION = 6,
     ELEMHIDEEMULATION = 7,
+    VALUE_COUNT = 8
   };
 
   explicit Filter(Type type, const String& text);

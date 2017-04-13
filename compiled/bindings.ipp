@@ -42,6 +42,9 @@ namespace bindings_internal
     UNKNOWN,
     VOID,
     INT,
+    INT64,
+    FLOAT,
+    DOUBLE,
     DEPENDENT_STRING,
     OWNED_STRING,
     STRING_REF,
@@ -70,8 +73,17 @@ namespace bindings_internal
       if (std::is_void<T>())
         return TypeCategory::VOID;
 
+      if (std::is_same<T, uint64_t>())
+        return TypeCategory::INT64;
+
       if (std::is_integral<T>() || std::is_enum<T>())
         return TypeCategory::INT;
+
+      if (std::is_same<T, float>())
+        return TypeCategory::FLOAT;
+
+      if (std::is_same<T, double>())
+        return TypeCategory::DOUBLE;
 
       if (std::is_same<DependentString, T>() || std::is_same<const DependentString, T>())
         return TypeCategory::DEPENDENT_STRING;
@@ -132,39 +144,73 @@ namespace bindings_internal
       if (!*reinterpret_cast<int*>(function))
         return;
 
-      for (const auto& item : argTypes)
+      std::string signature;
+
+      // Add return type to the signature. Similar logic in Emscripten:
+      // https://github.com/kripken/emscripten/blob/1.37.3/src/modules.js#L46
+      switch (returnType)
       {
-        if (item != TypeCategory::INT && item != TypeCategory::STRING_REF &&
-            item != TypeCategory::CLASS_PTR)
-        {
-          throw std::runtime_error("Unexpected function argument type");
-        }
-        args.push_back(item);
+        case TypeCategory::DEPENDENT_STRING:
+        case TypeCategory::OWNED_STRING:
+          // Technically, objects aren't really returned with clang. The caller
+          // instead adds the reference to the resulting object as an implicit
+          // parameter.
+          signature += "vi";
+          break;
+        case TypeCategory::VOID:
+          signature += 'v';
+          break;
+        case TypeCategory::FLOAT:
+          signature += 'f';
+          break;
+        case TypeCategory::DOUBLE:
+          signature += 'd';
+          break;
+        case TypeCategory::INT:
+        case TypeCategory::INT64:
+        case TypeCategory::STRING_REF:
+        case TypeCategory::CLASS_PTR:
+          signature += 'i';
+          break;
+        default:
+          throw std::runtime_error("Unexpected function return type");
       }
 
-      if (returnType != TypeCategory::VOID && returnType != TypeCategory::INT &&
-          returnType != TypeCategory::DEPENDENT_STRING &&
-          returnType != TypeCategory::OWNED_STRING &&
-          returnType != TypeCategory::STRING_REF &&
-          returnType != TypeCategory::CLASS_PTR)
-      {
-        throw std::runtime_error("Unexpected function return type");
-      }
-
-      effectiveArgs = args.size();
-      effectiveReturnType = returnType;
+      // `this` pointer is an implicit parameter with clang and should be added
+      // to the signature.
       if (instance_function)
-        effectiveArgs++;
+        signature += 'i';
 
-      if (returnType == TypeCategory::DEPENDENT_STRING ||
-          returnType == TypeCategory::OWNED_STRING)
+      // Add explicit parameters to the signature, Similar logic in Emscripten:
+      // https://github.com/kripken/emscripten/blob/1.37.3/src/modules.js#L67
+      for (const auto& type : argTypes)
       {
-        effectiveArgs++;
-        effectiveReturnType = TypeCategory::VOID;
+        switch (type)
+        {
+          case TypeCategory::INT:
+          case TypeCategory::STRING_REF:
+          case TypeCategory::CLASS_PTR:
+            signature += 'i';
+            break;
+          case TypeCategory::INT64:
+            // See https://github.com/kripken/emscripten/blob/1.37.3/src/modules.js#L73,
+            // numerical types larger than 32-bit are split into multiple
+            // 32-bit parameters.
+            signature += "ii";
+            break;
+          case TypeCategory::FLOAT:
+            signature += 'f';
+            break;
+          case TypeCategory::DOUBLE:
+            signature += 'd';
+            break;
+          default:
+            throw std::runtime_error("Unexpected function argument type");
+        }
+        args.push_back(type);
       }
 
-      get_function_name(function, effectiveArgs,
-          effectiveReturnType == TypeCategory::VOID);
+      get_function_name(function, signature.c_str());
     }
 
     template<typename ReturnType, typename... Args>
@@ -196,7 +242,7 @@ namespace bindings_internal
       return name[0] == '\0';
     }
 
-    void get_function_name(void* ptr, int numArgs, bool voidResult)
+    void get_function_name(void* ptr, const char* signature)
     {
       // This is a hack, C++ won't let us get the mangled function name.
       // JavaScript is more dynamic so we pass the pointer to our function
@@ -208,13 +254,10 @@ namespace bindings_internal
       // for the name of our function.
 
       EM_ASM_ARGS({
-        var signature = $3 ? "v" : "i";
+        var signature = AsciiToString($2);
         var args = [];
-        for (var i = 0; i < $2; i++)
-        {
-          signature += "i";
+        for (var i = 1; i < signature.length; i++)
           args.push(0);
-        }
 
         var oldPrint = Module.print;
         var oldPrintErr = Module.printErr;
@@ -259,7 +302,7 @@ namespace bindings_internal
           Module.printErr = oldPrintErr;
           stackTrace = oldStackTrace;
         }
-      }, name, ptr, numArgs, voidResult);
+      }, name, ptr, signature);
     }
   };
 
@@ -397,54 +440,61 @@ namespace bindings_internal
     }
     call_str += ")";
 
-    if (call.returnType == TypeCategory::VOID)
-      return "  " + call_str + ";\n";
-    else if (call.returnType == TypeCategory::INT)
-      return "  var result = " + call_str + ";\n";
-    else if (call.returnType == TypeCategory::DEPENDENT_STRING ||
-        call.returnType == TypeCategory::OWNED_STRING)
+    switch (call.returnType)
     {
-      std::string result;
-      result += "  var string = createString();\n";
-      result += "  " + call_str + ";\n";
-      result += "  var result = readString(string);\n";
-      if (call.returnType == TypeCategory::OWNED_STRING)
-        result += "  Module._DestroyString(string);\n";
-      return result;
-    }
-    else if (call.returnType == TypeCategory::STRING_REF)
-    {
-      return "  var result = readString(" + call_str + ");\n";
-    }
-    else if (call.returnType == TypeCategory::CLASS_PTR)
-    {
-      std::string result;
-      result += "  var result = " + call_str + ";\n";
-      result += "  if (result)\n";
-      result += "  {\n";
-
-      auto it = classes.find(call.pointerType);
-      if (it == classes.end())
-        throw std::runtime_error("Function " + std::string(call.name) + " returns pointer to unknown class");
-
-      const ClassInfo& cls = it->second;
-      auto offset = cls.subclass_differentiator.offset;
-      if (offset == SIZE_MAX)
-        result += "    result = " + cls.name + "(result);\n";
-      else
+      case TypeCategory::VOID:
+        return "  " + call_str + ";\n";
+      case TypeCategory::INT:
+      case TypeCategory::FLOAT:
+      case TypeCategory::DOUBLE:
+        return "  var result = " + call_str + ";\n";
+      case TypeCategory::INT64:
+        return "  var result = Runtime.makeBigInt(" + call_str + ", " +
+                                                  "Runtime.getTempRet0(), " +
+                                                  "true);\n";
+      case TypeCategory::DEPENDENT_STRING:
+      case TypeCategory::OWNED_STRING:
       {
-        result += "    var type = HEAP32[result + " + std::to_string(offset)+ " >> 2];\n";
-        result += "    if (type in " + cls.name + "_mapping)\n";
-        result += "      result = new (exports[" + cls.name + "_mapping[type]])(result);\n";
-        result += "    else\n";
-        result += "      throw new Error('Unexpected " + cls.name + " type: ' + type);\n";
+        std::string result;
+        result += "  var string = createString();\n";
+        result += "  " + call_str + ";\n";
+        result += "  var result = readString(string);\n";
+        if (call.returnType == TypeCategory::OWNED_STRING)
+          result += "  Module._DestroyString(string);\n";
+        return result;
       }
+      case TypeCategory::STRING_REF:
+        return "  var result = readString(" + call_str + ");\n";
+      case TypeCategory::CLASS_PTR:
+      {
+        std::string result;
+        result += "  var result = " + call_str + ";\n";
+        result += "  if (result)\n";
+        result += "  {\n";
 
-      result += "  }\n";
-      return result;
+        auto it = classes.find(call.pointerType);
+        if (it == classes.end())
+          throw std::runtime_error("Function " + std::string(call.name) + " returns pointer to unknown class");
+
+        const ClassInfo& cls = it->second;
+        auto offset = cls.subclass_differentiator.offset;
+        if (offset == SIZE_MAX)
+          result += "    result = " + cls.name + "(result);\n";
+        else
+        {
+          result += "    var type = HEAP32[result + " + std::to_string(offset)+ " >> 2];\n";
+          result += "    if (type in " + cls.name + "_mapping)\n";
+          result += "      result = new (exports[" + cls.name + "_mapping[type]])(result);\n";
+          result += "    else\n";
+          result += "      throw new Error('Unexpected " + cls.name + " type: ' + type);\n";
+        }
+
+        result += "  }\n";
+        return result;
+      }
+      default:
+        throw std::runtime_error("Unexpected return type for " + std::string(call.name));
     }
-    else
-      throw std::runtime_error("Unexpected return type for " + std::string(call.name));
   }
 
   const std::string wrapCall(const FunctionInfo& call)
@@ -463,6 +513,14 @@ namespace bindings_internal
       {
         hasStringArgs = true;
         params.push_back(std::string("createString(") + argName + ")");
+      }
+      else if (call.args[i] == TypeCategory::CLASS_PTR)
+        params.push_back(argName + "._pointer");
+      else if (call.args[i] == TypeCategory::INT64)
+      {
+        // 64-bit integers are passed as two integer parameters
+        params.push_back(argName + " >>> 0");
+        params.push_back(argName + " / 0x100000000 >>> 0");
       }
       else
         params.push_back(argName);

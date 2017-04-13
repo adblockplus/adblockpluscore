@@ -15,11 +15,19 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+#pragma once
 
-let compiled = require("compiled");
-for (let cls of ["Subscription", "SpecialSubscription",
-    "DownloadableSubscription"])
+#include "Subscription.h"
+#include "../filter/Filter.h"
+
+class UserDefinedSubscription : public Subscription
 {
-  exports[cls] = compiled[cls];
-}
+private:
+  int mDefaults;
+
+public:
+  explicit UserDefinedSubscription(const String& id);
+  EMSCRIPTEN_KEEPALIVE bool IsDefaultFor(const Filter* filter) const;
+  EMSCRIPTEN_KEEPALIVE void MakeDefaultFor(const Filter* filter);
+  EMSCRIPTEN_KEEPALIVE OwnedString Serialize() const;
+};
