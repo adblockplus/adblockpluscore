@@ -73,7 +73,7 @@ namespace
 }
 
 Filter::Filter(Type type, const String& text)
-    : mType(type), mText(text)
+    : mText(text), mType(type)
 {
   annotate_address(this, "Filter");
 }

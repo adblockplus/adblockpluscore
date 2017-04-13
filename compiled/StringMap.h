@@ -319,7 +319,7 @@ public:
   typedef typename super::entry_type entry_type;
   typedef typename super::const_reference const_reference;
   typedef StringMap_internal::StringMapEntryReference<T> reference;
-  friend class StringMap_internal::StringMapEntryReference<T>;
+  friend struct StringMap_internal::StringMapEntryReference<T>;
 
   explicit StringMap(size_type expectedEntries = 0)
       : super(expectedEntries)

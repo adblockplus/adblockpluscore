@@ -321,13 +321,13 @@ public:
 
   OwnedString& operator=(const String& str)
   {
-    *this = std::move(OwnedString(str));
+    *this = OwnedString(str);
     return *this;
   }
 
   OwnedString& operator=(const OwnedString& str)
   {
-    *this = std::move(OwnedString(str));
+    *this = OwnedString(str);
     return *this;
   }
 

@@ -26,8 +26,8 @@ namespace
 }
 
 ActiveFilter::ActiveFilter(Type type, const String& text, bool ignoreTrailingDot)
-    : Filter(type, text), mDisabled(false), mHitCount(0), mLastHit(0),
-      mIgnoreTrailingDot(ignoreTrailingDot)
+    : Filter(type, text), mIgnoreTrailingDot(ignoreTrailingDot),
+      mDisabled(false), mHitCount(0), mLastHit(0)
 {
 }
 
