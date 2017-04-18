@@ -79,7 +79,7 @@ exports.testAddingSubscriptions = function(test)
 
   changes = [];
   FilterStorage.addSubscription(subscription1);
-  compareSubscriptionList(test, "Regular add", [subscription1]);
+  compareSubscriptionList(test, "Adding first subscription", [subscription1]);
   test.deepEqual(changes, ["subscription.added http://test1/"], "Received changes");
 
   changes = [];
@@ -88,9 +88,9 @@ exports.testAddingSubscriptions = function(test)
   test.deepEqual(changes, [], "Received changes");
 
   changes = [];
-  FilterStorage.addSubscription(subscription2, true);
-  compareSubscriptionList(test, "Silent add", [subscription1, subscription2]);
-  test.deepEqual(changes, [], "Received changes");
+  FilterStorage.addSubscription(subscription2);
+  compareSubscriptionList(test, "Adding second", [subscription1, subscription2]);
+  test.deepEqual(changes, ["subscription.added http://test2/"], "Received changes");
 
   FilterStorage.removeSubscription(subscription1);
   compareSubscriptionList(test, "Remove", [subscription2]);
@@ -123,7 +123,7 @@ exports.testRemovingSubscriptions = function(test)
 
   changes = [];
   FilterStorage.removeSubscription(subscription1);
-  compareSubscriptionList(test, "Regular remove", [subscription2]);
+  compareSubscriptionList(test, "Removing first subscription", [subscription2]);
   test.deepEqual(changes, ["subscription.removed http://test1/"], "Received changes");
 
   changes = [];
@@ -132,9 +132,9 @@ exports.testRemovingSubscriptions = function(test)
   test.deepEqual(changes, [], "Received changes");
 
   changes = [];
-  FilterStorage.removeSubscription(subscription2, true);
-  compareSubscriptionList(test, "Silent remove", []);
-  test.deepEqual(changes, [], "Received changes");
+  FilterStorage.removeSubscription(subscription2);
+  compareSubscriptionList(test, "Removing remaining subscription", []);
+  test.deepEqual(changes, ["subscription.removed http://test2/"], "Received changes");
 
   FilterStorage.addSubscription(subscription1);
   compareSubscriptionList(test, "Add", [subscription1]);
@@ -250,9 +250,9 @@ exports.testAddingFilters = function(test)
   test.deepEqual(changes, ["filter.added foo#@#bar"], "Received changes");
 
   changes = [];
-  FilterStorage.addFilter(Filter.fromText("!foobar"), undefined, undefined, true);
-  compareFiltersList(test, "Adding comment silent", [["foo"], ["@@bar", "foo#bar", "foo#@#bar"], ["!foobar"]]);
-  test.deepEqual(changes, [], "Received changes");
+  FilterStorage.addFilter(Filter.fromText("!foobar"));
+  compareFiltersList(test, "Adding comment", [["foo"], ["@@bar", "foo#bar", "foo#@#bar"], ["!foobar"]]);
+  test.deepEqual(changes, ["filter.added !foobar"], "Received changes");
 
   changes = [];
   FilterStorage.addFilter(Filter.fromText("foo"));
