@@ -47,7 +47,8 @@ GENERATION_PARAMS = {
 }
 DEFINES = []
 ADDITIONAL_PARAMS = ['-O3', '-m32', '-std=gnu++14', '--memory-init-file', '0',
-                     '--emit-symbol-map', '-Wall', '-Werror', '-fno-exceptions']
+                     '--emit-symbol-map', '-Wall', '-Werror', '-fno-exceptions',
+                     '-fno-rtti']
 
 
 def getenv(emscripten_config):
