@@ -19,8 +19,6 @@
 
 "Compiled from https://hg.adblockplus.org/adblockplus/ with Emscripten {{{EMSCRIPTEN_VERSION}}}";
 
-var FilterNotifier = require("filterNotifier").FilterNotifier;
-
 var regexps =
 {
   _data: Object.create(null),

@@ -21,8 +21,9 @@
 
 #include "Filter.h"
 #include "../StringMap.h"
+#include "../FilterNotifier.h"
 
-#define FILTER_PROPERTY(type, name, getter, setter) \
+#define FILTER_PROPERTY(type, name, topic, getter, setter) \
     private:\
       type name;\
     public:\
@@ -34,13 +35,11 @@
       {\
         if (name != value)\
         {\
-          type oldvalue = name;\
           name = value;\
-          DependentString action(u"filter."_str #name);\
-          EM_ASM_ARGS({\
-            var filter = new (exports[Filter_mapping[$2]])($1);\
-            FilterNotifier.triggerListeners(readString($0), filter, $3, $4);\
-          }, &action, this, mType, value, oldvalue);\
+          if (FilterNotifier::Topic::topic != FilterNotifier::Topic::NONE)\
+          {\
+            FilterNotifier::FilterChange(FilterNotifier::Topic::topic, this);\
+          }\
         }\
       }
 
@@ -59,9 +58,11 @@ private:
   bool mIgnoreTrailingDot;
 public:
   explicit ActiveFilter(Type type, const String& text, bool ignoreTrailingDot);
-  FILTER_PROPERTY(bool, mDisabled, GetDisabled, SetDisabled);
-  FILTER_PROPERTY(unsigned int, mHitCount, GetHitCount, SetHitCount);
-  FILTER_PROPERTY(unsigned int, mLastHit, GetLastHit, SetLastHit);
+  FILTER_PROPERTY(bool, mDisabled, FILTER_DISABLED, GetDisabled, SetDisabled);
+  FILTER_PROPERTY(unsigned int, mHitCount, FILTER_HITCOUNT,
+      GetHitCount, SetHitCount);
+  FILTER_PROPERTY(unsigned int, mLastHit, FILTER_LASTHIT,
+      GetLastHit, SetLastHit);
   bool EMSCRIPTEN_KEEPALIVE IsActiveOnDomain(DependentString& docDomain,
       const String& sitekey) const;
   bool EMSCRIPTEN_KEEPALIVE IsActiveOnlyOnDomain(DependentString& docDomain) const;

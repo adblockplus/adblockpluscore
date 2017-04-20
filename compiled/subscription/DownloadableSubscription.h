@@ -24,18 +24,30 @@ class DownloadableSubscription : public Subscription
 public:
   explicit DownloadableSubscription(const String& id);
 
-  SUBSCRIPTION_PROPERTY(bool, mFixedTitle, GetFixedTitle, SetFixedTitle);
-  SUBSCRIPTION_STRING_PROPERTY(mHomepage, GetHomepage, SetHomepage);
-  SUBSCRIPTION_PROPERTY(uint64_t, mLastCheck, GetLastCheck, SetLastCheck);
-  SUBSCRIPTION_PROPERTY(uint64_t, mHardExpiration, GetHardExpiration, SetHardExpiration);
-  SUBSCRIPTION_PROPERTY(uint64_t, mSoftExpiration, GetSoftExpiration, SetSoftExpiration);
-  SUBSCRIPTION_PROPERTY(uint64_t, mLastDownload, GetLastDownload, SetLastDownload);
-  SUBSCRIPTION_STRING_PROPERTY(mDownloadStatus, GetDownloadStatus, SetDownloadStatus);
-  SUBSCRIPTION_PROPERTY(uint64_t, mLastSuccess, GetLastSuccess, SetLastSuccess);
-  SUBSCRIPTION_PROPERTY(int, mErrorCount, GetErrorCount, SetErrorCount);
-  SUBSCRIPTION_PROPERTY(uint64_t, mDataRevision, GetDataRevision, SetDataRevision);
-  SUBSCRIPTION_STRING_PROPERTY(mRequiredVersion, GetRequiredVersion, SetRequiredVersion);
-  SUBSCRIPTION_PROPERTY(int, mDownloadCount, GetDownloadCount, SetDownloadCount);
+  SUBSCRIPTION_PROPERTY(bool, mFixedTitle, SUBSCRIPTION_FIXEDTITLE,
+      GetFixedTitle, SetFixedTitle);
+  SUBSCRIPTION_STRING_PROPERTY(mHomepage, SUBSCRIPTION_HOMEPAGE,
+      GetHomepage, SetHomepage);
+  SUBSCRIPTION_PROPERTY(uint64_t, mLastCheck, SUBSCRIPTION_LASTCHECK,
+      GetLastCheck, SetLastCheck);
+  SUBSCRIPTION_PROPERTY(uint64_t, mHardExpiration, NONE,
+      GetHardExpiration, SetHardExpiration);
+  SUBSCRIPTION_PROPERTY(uint64_t, mSoftExpiration, NONE,
+      GetSoftExpiration, SetSoftExpiration);
+  SUBSCRIPTION_PROPERTY(uint64_t, mLastDownload, SUBSCRIPTION_LASTDOWNLOAD,
+      GetLastDownload, SetLastDownload);
+  SUBSCRIPTION_STRING_PROPERTY(mDownloadStatus, SUBSCRIPTION_DOWNLOADSTATUS,
+      GetDownloadStatus, SetDownloadStatus);
+  SUBSCRIPTION_PROPERTY(uint64_t, mLastSuccess, NONE,
+      GetLastSuccess, SetLastSuccess);
+  SUBSCRIPTION_PROPERTY(int, mErrorCount, SUBSCRIPTION_ERRORS,
+      GetErrorCount, SetErrorCount);
+  SUBSCRIPTION_PROPERTY(uint64_t, mDataRevision, NONE,
+      GetDataRevision, SetDataRevision);
+  SUBSCRIPTION_STRING_PROPERTY(mRequiredVersion, NONE,
+      GetRequiredVersion, SetRequiredVersion);
+  SUBSCRIPTION_PROPERTY(int, mDownloadCount, NONE,
+      GetDownloadCount, SetDownloadCount);
 
   EMSCRIPTEN_KEEPALIVE OwnedString Serialize() const;
 };

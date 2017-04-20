@@ -22,63 +22,37 @@
 
 #include "../filter/Filter.h"
 #include "../String.h"
+#include "../FilterNotifier.h"
 #include "../intrusive_ptr.h"
 #include "../debug.h"
 
-#define SUBSCRIPTION_PROPERTY(type, name, getter, setter) \
-    static_assert(std::is_arithmetic<type>::value, "SUBSCRIPTION_PROPERTY macro can only be used with arithmetic types");\
+#define SUBSCRIPTION_PROPERTY_INTERNAL(field_type, param_type, name, topic, getter, setter) \
     private:\
-      type name;\
+      field_type name;\
     public:\
-      type EMSCRIPTEN_KEEPALIVE getter() const\
+      param_type EMSCRIPTEN_KEEPALIVE getter() const\
       {\
         return name;\
       }\
-      void EMSCRIPTEN_KEEPALIVE setter(type value)\
+      void EMSCRIPTEN_KEEPALIVE setter(param_type value)\
       {\
         if (name != value)\
         {\
-          type oldvalue = name;\
           name = value;\
-          DependentString action(u"subscription."_str #name);\
-          if (sizeof(type) <= 4)\
+          if (FilterNotifier::Topic::topic != FilterNotifier::Topic::NONE)\
           {\
-            EM_ASM_ARGS({\
-              var subscription = new (exports[Subscription_mapping[$2]])($1);\
-              FilterNotifier.triggerListeners(readString($0), subscription, $3, $4);\
-            }, &action, this, mType, value, oldvalue);\
-          }\
-          else\
-          {\
-            EM_ASM_ARGS({\
-              var subscription = new (exports[Subscription_mapping[$2]])($1);\
-              FilterNotifier.triggerListeners(readString($0), subscription, $3, $4);\
-            }, &action, this, mType, (double)value, (double)oldvalue);\
+            FilterNotifier::SubscriptionChange(FilterNotifier::Topic::topic,\
+                this);\
           }\
         }\
       }
 
-#define SUBSCRIPTION_STRING_PROPERTY(name, getter, setter) \
-    private:\
-      OwnedString name;\
-    public:\
-      const String& EMSCRIPTEN_KEEPALIVE getter() const\
-      {\
-        return name;\
-      }\
-      void EMSCRIPTEN_KEEPALIVE setter(const String& value)\
-      {\
-        if (!name.equals(value))\
-        {\
-          OwnedString oldvalue(name);\
-          name = value;\
-          DependentString action(u"subscription."_str #name);\
-          EM_ASM_ARGS({\
-            var subscription = new (exports[Subscription_mapping[$2]])($1);\
-            FilterNotifier.triggerListeners(readString($0), subscription, readString($3), readString($4));\
-          }, &action, this, mType, &value, &oldvalue);\
-        }\
-      }
+#define SUBSCRIPTION_PROPERTY(type, name, topic, getter, setter) \
+    static_assert(std::is_arithmetic<type>::value, "SUBSCRIPTION_PROPERTY macro can only be used with arithmetic types");\
+    SUBSCRIPTION_PROPERTY_INTERNAL(type, type, name, topic, getter, setter)
+
+#define SUBSCRIPTION_STRING_PROPERTY(name, topic, getter, setter) \
+    SUBSCRIPTION_PROPERTY_INTERNAL(OwnedString, const String&, name, topic, getter, setter)
 
 class Subscription : public ref_counted
 {
@@ -104,8 +78,9 @@ public:
     return mID;
   }
 
-  SUBSCRIPTION_STRING_PROPERTY(mTitle, GetTitle, SetTitle);
-  SUBSCRIPTION_PROPERTY(bool, mDisabled, GetDisabled, SetDisabled);
+  SUBSCRIPTION_STRING_PROPERTY(mTitle, SUBSCRIPTION_TITLE, GetTitle, SetTitle);
+  SUBSCRIPTION_PROPERTY(bool, mDisabled, SUBSCRIPTION_DISABLED,
+        GetDisabled, SetDisabled);
 
   EMSCRIPTEN_KEEPALIVE unsigned GetFilterCount() const
   {

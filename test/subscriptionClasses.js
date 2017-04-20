@@ -25,6 +25,7 @@ let SpecialSubscription = null;
 let DownloadableSubscription = null;
 let RegularSubscription = null;
 let ExternalSubscription = null;
+let FilterNotifier = null;
 
 exports.setUp = function(callback)
 {
@@ -35,6 +36,7 @@ exports.setUp = function(callback)
       Subscription, SpecialSubscription, DownloadableSubscription
     } = sandboxedRequire("../lib/subscriptionClasses")
   );
+  ({FilterNotifier} = sandboxedRequire("../lib/filterNotifier"));
   callback();
 };
 
@@ -256,5 +258,112 @@ exports.testFilterSerialization = function(test)
   filter1.delete();
   filter2.delete();
 
+  test.done();
+};
+
+exports.testNotifications = function(test)
+{
+  function checkNotifications(action, expected, message)
+  {
+    let result = null;
+    let listener = (topic, subscription) =>
+    {
+      if (result)
+        test.ok(false, "Got more that one notification - " + message);
+      else
+        result = [topic, subscription.url];
+    };
+    FilterNotifier.addListener(listener);
+    action();
+    FilterNotifier.removeListener(listener);
+    test.deepEqual(result, expected, message);
+  }
+
+  let subscription = Subscription.fromURL("http://example.com/");
+  checkNotifications(() =>
+  {
+    subscription.title = "foobar";
+  }, ["subscription.title", "http://example.com/"], "Changing subscription title");
+  checkNotifications(() =>
+  {
+    subscription.title = "foobar";
+  }, null, "Setting subscription title to same value");
+  checkNotifications(() =>
+  {
+    subscription.title = null;
+  }, ["subscription.title", "http://example.com/"], "Resetting subscription title");
+
+  checkNotifications(() =>
+  {
+    subscription.disabled = true;
+  }, ["subscription.disabled", "http://example.com/"], "Disabling subscription");
+  checkNotifications(() =>
+  {
+    subscription.disabled = true;
+  }, null, "Disabling already disabled subscription");
+  checkNotifications(() =>
+  {
+    subscription.disabled = false;
+  }, ["subscription.disabled", "http://example.com/"], "Enabling subscription");
+
+  checkNotifications(() =>
+  {
+    subscription.fixedTitle = true;
+  }, ["subscription.fixedTitle", "http://example.com/"], "Marking title as fixed");
+  checkNotifications(() =>
+  {
+    subscription.fixedTitle = false;
+  }, ["subscription.fixedTitle", "http://example.com/"], "Marking title as editable");
+
+  checkNotifications(() =>
+  {
+    subscription.homepage = "http://example.info/";
+  }, ["subscription.homepage", "http://example.com/"], "Changing subscription homepage");
+  checkNotifications(() =>
+  {
+    subscription.homepage = null;
+  }, ["subscription.homepage", "http://example.com/"], "Resetting subscription homepage");
+
+  checkNotifications(() =>
+  {
+    subscription.lastCheck = 1234;
+  }, ["subscription.lastCheck", "http://example.com/"], "Changing subscription.lastCheck");
+  checkNotifications(() =>
+  {
+    subscription.lastCheck = 1234;
+  }, null, "Setting subscription.lastCheck to same value");
+  checkNotifications(() =>
+  {
+    subscription.lastCheck = 0;
+  }, ["subscription.lastCheck", "http://example.com/"], "Resetting subscription.lastCheck");
+
+  checkNotifications(() =>
+  {
+    subscription.lastDownload = 4321;
+  }, ["subscription.lastDownload", "http://example.com/"], "Changing subscription.lastDownload");
+  checkNotifications(() =>
+  {
+    subscription.lastDownload = 0;
+  }, ["subscription.lastDownload", "http://example.com/"], "Resetting subscription.lastDownload");
+
+  checkNotifications(() =>
+  {
+    subscription.downloadStatus = "ok";
+  }, ["subscription.downloadStatus", "http://example.com/"], "Changing subscription.downloadStatus");
+  checkNotifications(() =>
+  {
+    subscription.downloadStatus = null;
+  }, ["subscription.downloadStatus", "http://example.com/"], "Resetting subscription.downloadStatus");
+
+  checkNotifications(() =>
+  {
+    subscription.errors++;
+  }, ["subscription.errors", "http://example.com/"], "Increasing subscription.errors");
+  checkNotifications(() =>
+  {
+    subscription.errors = 0;
+  }, ["subscription.errors", "http://example.com/"], "Resetting subscription.erros");
+
+  subscription.delete();
   test.done();
 };

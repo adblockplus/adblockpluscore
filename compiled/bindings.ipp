@@ -473,15 +473,9 @@ namespace bindings_internal
         const ClassInfo& cls = it->second;
         auto offset = cls.subclass_differentiator.offset;
         if (offset == SIZE_MAX)
-          result += "    result = " + cls.name + "(result);\n";
+          result += "    result = exports." + cls.name + "(result);\n";
         else
-        {
-          result += "    var type = HEAP32[result + " + std::to_string(offset)+ " >> 2];\n";
-          result += "    if (type in " + cls.name + "_mapping)\n";
-          result += "      result = new (exports[" + cls.name + "_mapping[type]])(result);\n";
-          result += "    else\n";
-          result += "      throw new Error('Unexpected " + cls.name + " type: ' + type);\n";
-        }
+          result += "    result = exports." + cls.name + ".fromPointer(result);\n";
 
         result += "  }\n";
         result += "  else\n";
@@ -605,6 +599,10 @@ namespace bindings_internal
 
   void printClass(const ClassInfo& cls)
   {
+    printf("exports.%s = createClass(%s, %i);\n", cls.name.c_str(),
+        (cls.baseClass ? ("exports." + cls.baseClass->name).c_str() : "null"),
+        cls.ref_counted_offset);
+
     DifferentiatorInfo differentiator = cls.subclass_differentiator;
     if (differentiator.offset != SIZE_MAX)
     {
@@ -613,11 +611,22 @@ namespace bindings_internal
       for (const auto& item : differentiator.mapping)
         printf("  %i: '%s',\n", item.first, item.second.c_str());
       puts("};");
-    }
 
-    printf("exports.%s = createClass(%s, %i);\n", cls.name.c_str(),
-        (cls.baseClass ? ("exports." + cls.baseClass->name).c_str() : "null"),
-        cls.ref_counted_offset);
+      printf("exports.%s.fromPointer = function(ptr)\n", cls.name.c_str());
+      puts("{");
+      printf("  var type = HEAP32[ptr + %i >> 2];\n", differentiator.offset);
+      printf("  if (type in %s_mapping)\n", cls.name.c_str());
+      printf("    return new (exports[%s_mapping[type]])(ptr);\n", cls.name.c_str());
+      printf("  throw new Error('Unexpected %s type: ' + type);\n", cls.name.c_str());
+      puts("};");
+    }
+    else
+    {
+      printf("exports.%s.fromPointer = function(ptr)\n", cls.name.c_str());
+      puts("{");
+      printf("  return new exports.%s(ptr);\n", cls.name.c_str());
+      puts("};");
+    }
 
     for (const auto& item : cls.properties)
     {

@@ -30,6 +30,7 @@
 #include "subscription/Subscription.h"
 #include "subscription/DownloadableSubscription.h"
 #include "subscription/UserDefinedSubscription.h"
+#include "FilterNotifier.h"
 
 EMSCRIPTEN_BINDINGS
 {
@@ -123,4 +124,6 @@ EMSCRIPTEN_BINDINGS
       .property("requiredVersion", &DownloadableSubscription::GetRequiredVersion, &DownloadableSubscription::SetRequiredVersion)
       .property("downloadCount", &DownloadableSubscription::GetDownloadCount, &DownloadableSubscription::SetDownloadCount)
       .function("serialize", &DownloadableSubscription::Serialize);
+
+  custom_generator(&FilterNotifier::GenerateCustomBindings);
 }

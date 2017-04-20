@@ -113,6 +113,16 @@ public:
     return std::memcmp(mBuf, other.mBuf, sizeof(value_type) * length()) == 0;
   }
 
+  bool operator==(const String& other) const
+  {
+    return equals(other);
+  }
+
+  bool operator!=(const String& other) const
+  {
+    return !equals(other);
+  }
+
   size_type find(value_type c, size_type pos = 0) const
   {
     for (size_type i = pos; i < length(); ++i)

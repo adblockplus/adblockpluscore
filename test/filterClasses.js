@@ -30,6 +30,7 @@ let ElemHideBase = null;
 let ElemHideFilter = null;
 let ElemHideException = null;
 let ElemHideEmulationFilter = null;
+let FilterNotifier = null;
 
 exports.setUp = function(callback)
 {
@@ -41,6 +42,7 @@ exports.setUp = function(callback)
       ElemHideException, ElemHideEmulationFilter
     } = sandboxedRequire("../lib/filterClasses")
   );
+  ({FilterNotifier} = sandboxedRequire("../lib/filterNotifier"));
   callback();
 };
 
@@ -367,5 +369,63 @@ exports.testElemHideSelector = function(test)
     doTest(text.replace("##", "#@#"), selector, selectorDomain);
   }
 
+  test.done();
+};
+
+exports.testNotifications = function(test)
+{
+  function checkNotifications(action, expected, message)
+  {
+    let result = null;
+    let listener = (topic, filter) =>
+    {
+      if (result)
+        test.ok(false, "Got more that one notification - " + message);
+      else
+        result = [topic, filter.text];
+    };
+    FilterNotifier.addListener(listener);
+    action();
+    FilterNotifier.removeListener(listener);
+    test.deepEqual(result, expected, message);
+  }
+
+  let filter = Filter.fromText("foobar");
+  checkNotifications(() =>
+  {
+    filter.disabled = true;
+  }, ["filter.disabled", "foobar"], "Disabling filter");
+  checkNotifications(() =>
+  {
+    filter.disabled = true;
+  }, null, "Disabling already disabled filter");
+  checkNotifications(() =>
+  {
+    filter.disabled = false;
+  }, ["filter.disabled", "foobar"], "Enabling filter");
+
+  checkNotifications(() =>
+  {
+    filter.lastHit = 1234;
+  }, ["filter.lastHit", "foobar"], "Changing last filter hit");
+  checkNotifications(() =>
+  {
+    filter.lastHit = 1234;
+  }, null, "Changing last filter hit to same value");
+  checkNotifications(() =>
+  {
+    filter.lastHit = 0;
+  }, ["filter.lastHit", "foobar"], "Resetting last filter hit");
+
+  checkNotifications(() =>
+  {
+    filter.hitCount++;
+  }, ["filter.hitCount", "foobar"], "Increasing filter hit counts");
+  checkNotifications(() =>
+  {
+    filter.hitCount = 0;
+  }, ["filter.hitCount", "foobar"], "Resetting filter hit counts");
+
+  filter.delete();
   test.done();
 };
