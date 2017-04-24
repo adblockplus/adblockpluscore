@@ -15,14 +15,20 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* eslint-env node */
+
 "use strict";
 
-let fs = require("fs");
-let path = require("path");
-let process = require("process");
-let nodeunit = require("nodeunit");
+const childProcess = require("child_process");
+const fs = require("fs");
+const nodeunit = require("nodeunit");
+const path = require("path");
+const phantomjs = require("phantomjs2");
+const process = require("process");
+const url = require("url");
 
-let files = [];
+let unitFiles = [];
+let browserFiles = [];
 function addTestPaths(testPaths, recurse)
 {
   for (let testPath of testPaths)
@@ -35,17 +41,47 @@ function addTestPaths(testPaths, recurse)
         addTestPaths(fs.readdirSync(testPath).map(
           file => path.join(testPath, file)));
       }
+      continue;
     }
-    else if (path.extname(testPath) == ".js" &&
-             !path.basename(testPath).startsWith("_"))
+    if (path.basename(testPath).startsWith("_"))
+      continue;
+    if (path.extname(testPath) == ".js")
     {
-      files.push(testPath);
+      if (testPath.split(path.sep).includes("browser"))
+        browserFiles.push(testPath);
+      else
+        unitFiles.push(testPath);
     }
   }
 }
 if (process.argv.length > 2)
   addTestPaths(process.argv.slice(2), true);
 else
-  addTestPaths([path.join(__dirname, "test")], true);
+{
+  addTestPaths(
+    [path.join(__dirname, "test"), path.join(__dirname, "test", "browser")],
+    true
+  );
+}
 
-nodeunit.reporters.default.run(files);
+if (browserFiles.length)
+{
+  let nodeunitPath = path.join(
+    path.dirname(require.resolve("nodeunit")),
+    "examples", "browser", "nodeunit.js"
+  );
+  browserFiles.unshift(nodeunitPath);
+
+  let urls = browserFiles.map(file =>
+  {
+    return url.format({
+      protocol: "file",
+      slashes: "true",
+      pathname: path.resolve(process.cwd(), file).split(path.sep).join("/")
+    });
+  });
+  let args = [path.join(__dirname, "browsertests.js")].concat(urls);
+  childProcess.execFileSync(phantomjs.path, args, {stdio: "inherit"});
+}
+if (unitFiles.length)
+  nodeunit.reporters.default.run(unitFiles);
