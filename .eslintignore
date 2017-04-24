@@ -1,5 +1,6 @@
 lib/jsbn.js
 lib/rusha.js
+lib/compiled.js
 
 # These files can not yet be linted, see
 # https://issues.adblockplus.org/ticket/4796
