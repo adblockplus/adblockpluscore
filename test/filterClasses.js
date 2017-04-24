@@ -92,9 +92,9 @@ exports.testFromText = function(test)
     ["example.com##[-abp-properties=\"something\"]", ElemHideEmulationFilter, "elemhideemulation"],
     ["example.com#@#[-abp-properties=\"something\"]", ElemHideException, "elemhideexception"],
     ["example.com##[-abp-properties=(something)]", ElemHideEmulationFilter, "elemhideemulation"],
-    ["example.com#@#[-abp-properties=(something)]", ElemHideException, "elemhideexception"],
+    ["example.com#@#[-abp-properties=(something)]", ElemHideException, "elemhideexception"]
   ];
-  for (let [text, type, typeName, location] of tests)
+  for (let [text, type, typeName] of tests)
   {
     let filter = Filter.fromText(text);
     test.ok(filter instanceof Filter, "Got filter for " + text);
@@ -110,17 +110,19 @@ exports.testFromText = function(test)
 
 exports.testClassHierarchy = function(test)
 {
-  let allClasses = ["Filter", "InvalidFilter", "CommentFilter", "ActiveFilter",
-    "RegExpFilter", "BlockingFilter", "WhitelistFilter", "ElemHideBase",
-    "ElemHideFilter", "ElemHideException", "ElemHideEmulationFilter"];
+  let allClasses = [
+    Filter, InvalidFilter, CommentFilter, ActiveFilter,
+    RegExpFilter, BlockingFilter, WhitelistFilter, ElemHideBase,
+    ElemHideFilter, ElemHideException, ElemHideEmulationFilter
+  ];
   let tests = [
-    ["/asdf??+/", "Filter", "InvalidFilter"],
-    ["!asdf", "Filter", "CommentFilter"],
-    ["asdf", "Filter", "ActiveFilter", "RegExpFilter", "BlockingFilter"],
-    ["@@asdf", "Filter", "ActiveFilter", "RegExpFilter", "WhitelistFilter"],
-    ["##asdf", "Filter", "ActiveFilter", "ElemHideBase", "ElemHideFilter"],
-    ["#@#asdf", "Filter", "ActiveFilter", "ElemHideBase", "ElemHideException"],
-    ["example.com##[-abp-properties='something']", "Filter", "ActiveFilter", "ElemHideBase", "ElemHideEmulationFilter"],
+    ["/asdf??+/", Filter, InvalidFilter],
+    ["!asdf", Filter, CommentFilter],
+    ["asdf", Filter, ActiveFilter, RegExpFilter, BlockingFilter],
+    ["@@asdf", Filter, ActiveFilter, RegExpFilter, WhitelistFilter],
+    ["##asdf", Filter, ActiveFilter, ElemHideBase, ElemHideFilter],
+    ["#@#asdf", Filter, ActiveFilter, ElemHideBase, ElemHideException],
+    ["example.com##[-abp-properties='something']", Filter, ActiveFilter, ElemHideBase, ElemHideEmulationFilter]
   ];
 
   for (let list of tests)
@@ -128,16 +130,16 @@ exports.testClassHierarchy = function(test)
     let filter = Filter.fromText(list.shift());
     for (let cls of list)
     {
-      test.ok(filter instanceof eval(cls),
-          "Filter " + filter.text + " is an instance of " + cls);
+      test.ok(filter instanceof cls,
+          "Testing correct superclass for filter " + filter.text);
     }
 
     for (let cls of allClasses)
     {
       if (list.indexOf(cls) < 0)
       {
-        test.ok(!(filter instanceof eval(cls)),
-            "Filter " + filter.text + " isn't an instance of " + cls);
+        test.ok(!(filter instanceof cls),
+            "Testing wrong superclass for filter " + filter.text);
       }
     }
     filter.delete();
@@ -184,7 +186,7 @@ exports.testNormalize = function(test)
     ["foOBar$sitekeY=SiteKey", "foOBar$sitekey=SiteKey"],
     ["exampLE.com##fooBAr", "example.com##fooBAr"],
     ["exampLE.com#@#fooBAr", "example.com#@#fooBAr"],
-    ["exampLE.РФ#@#fooBAr", "example.рф#@#fooBAr"],
+    ["exampLE.РФ#@#fooBAr", "example.рф#@#fooBAr"]
   ];
 
   for (let [text, expected, selectorDomain, selector] of tests)
@@ -210,7 +212,7 @@ exports.testNormalize = function(test)
       let actualDomains1 = filter1.selectorDomain.split(",").sort().join(",");
       let actualDomains2 = filter2.selectorDomain.split(",").sort().join(",");
       test.equal(actualDomains1, expectedDomains, "Correct selector domain for filter " + text);
-      test.equal(actualDomains1, expectedDomains, "Correct selector domain for filter " + expected);
+      test.equal(actualDomains2, expectedDomains, "Correct selector domain for filter " + expected);
 
       test.equal(filter1.selector, selector, "Correct selector for filter " + text);
       test.equal(filter2.selector, selector, "Correct selector for filter " + expected);
@@ -262,7 +264,7 @@ exports.testInvalidReasons = function(test)
   let tests = [
     ["/??/", "filter_invalid_regexp"],
     ["asd$foobar", "filter_unknown_option"],
-    ["~foo.com##[-abp-properties='abc']", "filter_elemhideemulation_nodomain"],
+    ["~foo.com##[-abp-properties='abc']", "filter_elemhideemulation_nodomain"]
   ];
 
   for (let [text, reason] of tests)
@@ -323,7 +325,7 @@ exports.testIsGeneric = function(test)
     ["||example.com/asdf$third-party,domain=~example.com", true],
     ["asdf$domain=foo.example.com|~example.com", false],
     ["asdf$domain=foo.com|~example.com", false],
-    ["asdf$domain=~foo.com|~example.com", true],
+    ["asdf$domain=~foo.com|~example.com", true]
   ];
 
   for (let [text, generic] of tests)
@@ -334,7 +336,7 @@ exports.testIsGeneric = function(test)
   }
 
   test.done();
-}
+};
 
 exports.testElemHideSelector = function(test)
 {
@@ -354,13 +356,13 @@ exports.testElemHideSelector = function(test)
     ["##foobar", "foobar", ""],
     ["~example.com##foobar", "foobar", ""],
     ["example.com##body > div:first-child", "body > div:first-child", "example.com"],
-    ["xYz,~example.com##foobar:not(whatever)", "foobar:not(whatever)","xyz"],
+    ["xYz,~example.com##foobar:not(whatever)", "foobar:not(whatever)", "xyz"],
     ["~xyz,com,~abc.com,example.info##foobar", "foobar", "com,example.info"],
     ["foo,bar,bas,bam##foobar", "foobar", "foo,bar,bas,bam"],
     ["foo.com##x[-abp-properties='abc']y", "x[-abp-properties='abc']y", "foo.com"],
 
     // Good idea to test this? Maybe consider behavior undefined in this case.
-    ["foo,bar,bas,~bar##foobar", "foobar", "foo,bas"],
+    ["foo,bar,bas,~bar##foobar", "foobar", "foo,bas"]
   ];
 
   for (let [text, selector, selectorDomain] of tests)

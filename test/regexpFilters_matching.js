@@ -17,7 +17,7 @@
 
 "use strict";
 
-let {createSandbox} = require("./_common");
+const {createSandbox} = require("./_common");
 
 let Filter = null;
 let RegExpFilter = null;
@@ -25,22 +25,28 @@ let RegExpFilter = null;
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox();
-  ({Filter, RegExpFilter} = sandboxedRequire("../lib/filterClasses"));
+  (
+    {Filter, RegExpFilter} = sandboxedRequire("../lib/filterClasses")
+  );
+
   callback();
 };
 
+
+
 function testMatch(test, text, location, contentType, docDomain, thirdParty, sitekey, expected)
 {
-  function testMatch_internal(text, location, contentType, docDomain, thirdParty, sitekey, expected)
+  function testMatchInternal(filterText)
   {
-    let filter = Filter.fromText(text);
+    let filter = Filter.fromText(filterText);
     let result = filter.matches(location, RegExpFilter.typeMap[contentType], docDomain, thirdParty, sitekey);
-    test.equal(result, expected, '"' + text + '".matches(' + location + ", " + contentType + ", " + docDomain + ", " + (thirdParty ? "third-party" : "first-party") + ", " + (sitekey || "no-sitekey") + ")");
-    filter.delete()
+    test.equal(!!result, expected, '"' + filterText + '".matches(' + location + ", " + contentType + ", " + docDomain + ", " + (thirdParty ? "third-party" : "first-party") + ", " + (sitekey || "no-sitekey") + ")");
+    filter.delete();
   }
-  testMatch_internal(text, location, contentType, docDomain, thirdParty, sitekey, expected);
+
+  testMatchInternal(text);
   if (!/^@@/.test(text))
-    testMatch_internal("@@" + text, location, contentType, docDomain, thirdParty, sitekey, expected);
+    testMatchInternal("@@" + text);
 }
 
 exports.testBasicFilters = function(test)
@@ -92,7 +98,7 @@ exports.testSeparatorPlaceholders = function(test)
   test.done();
 };
 
-exports.testWildcards = function(test)
+exports.testWildcardMatching = function(test)
 {
   testMatch(test, "abc*d", "http://abc/adf", "IMAGE", null, false, null, true);
   testMatch(test, "abc*d", "http://abcd/af", "IMAGE", null, false, null, true);
@@ -216,7 +222,7 @@ exports.testRegularExpressions = function(test)
   test.done();
 };
 
-exports.textRegularExpressionsWithTypeOptions = function(test)
+exports.testRegularExpressionsWithTypeOptions = function(test)
 {
   testMatch(test, "/abc/$image", "http://abc/adf", "IMAGE", null, false, null, true);
   testMatch(test, "/abc/$image", "http://aBc/adf", "IMAGE", null, false, null, true);

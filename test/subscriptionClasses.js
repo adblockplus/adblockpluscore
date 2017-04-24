@@ -23,8 +23,6 @@ let Filter = null;
 let Subscription = null;
 let SpecialSubscription = null;
 let DownloadableSubscription = null;
-let RegularSubscription = null;
-let ExternalSubscription = null;
 let FilterNotifier = null;
 
 exports.setUp = function(callback)
@@ -42,10 +40,10 @@ exports.setUp = function(callback)
 
 function compareSubscription(test, url, expected, postInit)
 {
-  expected.push("[Subscription]")
+  expected.push("[Subscription]");
   let subscription = Subscription.fromURL(url);
   if (postInit)
-    postInit(subscription)
+    postInit(subscription);
   let result = subscription.serialize().trim().split("\n");
   test.equal(result.sort().join("\n"), expected.sort().join("\n"), url);
   subscription.delete();
@@ -64,7 +62,7 @@ exports.testSubscriptionsWithState = function(test)
 {
   compareSubscription(test, "~fl~", ["url=~fl~"]);
   compareSubscription(test, "http://test/default", ["url=http://test/default", "title=http://test/default"]);
-  compareSubscription(test, "http://test/default_titled", ["url=http://test/default_titled", "title=test"], function(subscription)
+  compareSubscription(test, "http://test/default_titled", ["url=http://test/default_titled", "title=test"], subscription =>
   {
     subscription.title = "test";
   });
@@ -74,7 +72,7 @@ exports.testSubscriptionsWithState = function(test)
     "lastDownload=5124097847590911", "lastCheck=18446744069414584320",
     "softExpiration=2682143778081159", "expires=4294967295",
     "downloadStatus=foo", "errors=3", "version=24", "requiredVersion=0.6"
-  ], function(subscription)
+  ], subscription =>
   {
     subscription.title = "test";
     subscription.fixedTitle = true;
@@ -86,10 +84,10 @@ exports.testSubscriptionsWithState = function(test)
     subscription.expires = 4294967295;               // 0xFFFFFFFF
     subscription.downloadStatus = "foo";
     subscription.errors = 3;
-    subscription.version = 24
+    subscription.version = 24;
     subscription.requiredVersion = "0.6";
   });
-  compareSubscription(test, "~wl~", ["url=~wl~", "disabled=true", "title=Test group"], function(subscription)
+  compareSubscription(test, "~wl~", ["url=~wl~", "disabled=true", "title=Test group"], subscription =>
   {
     subscription.title = "Test group";
     subscription.disabled = true;
@@ -131,7 +129,7 @@ exports.testSubscriptionDefaults = function(test)
 
   for (let [defaults, ...filters] of tests)
   {
-    compareSubscription(test, "~user~" + filters.join("~"), ["url=~user~" + filters.join("~"), "defaults= " + defaults], function(subscription)
+    compareSubscription(test, "~user~" + filters.join("~"), ["url=~user~" + filters.join("~"), "defaults= " + defaults], subscription =>
     {
       for (let text of filters)
       {
