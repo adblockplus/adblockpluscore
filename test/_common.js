@@ -428,12 +428,11 @@ exports.setupRandomResult = function()
   });
 
   return {
-    Math: {
-      random: () => randomResult,
-      min: Math.min,
-      max: Math.max,
-      round: Math.round
-    }
+    Math: Object.create(Math, {
+      random: {
+        value: () => randomResult
+      }
+    })
   };
 };
 
