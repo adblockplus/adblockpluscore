@@ -206,12 +206,10 @@ namespace bindings_internal
   void register_differentiator(TYPEID classID, size_t offset,
       std::vector<std::pair<int, std::string>>& mapping);
 
-  const std::string generateCall(const FunctionInfo& call,
+  std::string generateCall(const FunctionInfo& call,
       std::vector<std::string>& params);
 
-  const std::string wrapCall(const FunctionInfo& call);
-
-  std::string generatePropertyDescriptor(const PropertyInfo& property);
+  std::string wrapCall(const FunctionInfo& call, bool isFunction = true);
 
   void printHelpers();
 

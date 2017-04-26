@@ -253,7 +253,7 @@ namespace bindings_internal
     classInfo->subclass_differentiator = differentiatorInfo;
   }
 
-  const std::string generateCall(const FunctionInfo& call,
+  std::string generateCall(const FunctionInfo& call,
       std::vector<std::string>& params)
   {
     if (call.returnType == TypeCategory::DEPENDENT_STRING ||
@@ -324,11 +324,15 @@ namespace bindings_internal
     }
   }
 
-  const std::string wrapCall(const FunctionInfo& call)
+  std::string wrapCall(const FunctionInfo& call, bool isFunction)
   {
     bool hasStringArgs = false;
     std::vector<std::string> params;
-    std::string prefix = "function(";
+    std::string prefix;
+
+    if (isFunction)
+      prefix += "function";
+    prefix += "(";
     for (int i = 0; i < call.args.size(); i++)
     {
       std::string argName("arg" + std::to_string(i));
@@ -371,17 +375,6 @@ namespace bindings_internal
     return prefix + generateCall(call, params) + suffix;
   }
 
-  std::string generatePropertyDescriptor(const PropertyInfo& property)
-  {
-    if (!property.jsValue.empty())
-      return "value: " + property.jsValue;
-
-    std::string result("get: " + wrapCall(property.getter));
-    if (!property.setter.empty())
-      result += ", set: " + wrapCall(property.setter);
-    return result;
-  }
-
   void printHelpers()
   {
     printf("var sizeofString = %i;\n", sizeof(String));
@@ -417,14 +410,14 @@ namespace bindings_internal
         return String.fromCharCode.apply(String, HEAP16.slice(pointer, pointer + length));
       }
 
-      function createClass(superclass, ref_counted_offset)
+      function createClass(superclass, ref_counted_offset, props)
       {
         var result = function(pointer)
         {
           this._pointer = pointer;
         };
-        if (superclass)
-          result.prototype = Object.create(superclass.prototype);
+        var proto = (superclass ? superclass.prototype : null);
+        result.prototype = Object.create(proto, Object.getOwnPropertyDescriptors(props));
         result.prototype.delete = function()
         {
           Module._ReleaseRef(this._pointer + ref_counted_offset);
@@ -436,10 +429,40 @@ namespace bindings_internal
 
   void printClass(const ClassInfo& cls)
   {
+    // Begin class definition
+
     ClassInfo* baseClass = find_class(cls.baseClass);
-    printf("exports.%s = createClass(%s, %i);\n", cls.name.c_str(),
+    printf("exports.%s = createClass(%s, %i, {\n", cls.name.c_str(),
         (baseClass ? ("exports." + baseClass->name).c_str() : "null"),
         cls.ref_counted_offset);
+
+    // Print prototype members
+
+    for (const auto& property : cls.properties)
+    {
+      if (property.jsValue.empty())
+      {
+        printf("get %s%s,\n", property.name.c_str(),
+               wrapCall(property.getter, false).c_str());
+        if (!property.setter.empty())
+        {
+          printf("set %s%s,\n", property.name.c_str(),
+                 wrapCall(property.setter, false).c_str());
+        }
+      }
+      else
+        printf("%s: %s,\n", property.name.c_str(), property.jsValue.c_str());
+    }
+
+    for (const auto& method : cls.methods)
+      if (method.call.instance_function)
+        printf("%s: %s,\n", method.name.c_str(), wrapCall(method.call).c_str());
+
+    // End class definition
+
+    printf("});\n");
+
+    // Print static members
 
     DifferentiatorInfo differentiator = cls.subclass_differentiator;
     if (differentiator.offset != SIZE_MAX)
@@ -466,20 +489,13 @@ namespace bindings_internal
       puts("};");
     }
 
-    for (const auto& item : cls.properties)
+    for (const auto& method : cls.methods)
     {
-      printf("Object.defineProperty(exports.%s.prototype, '%s', {%s});\n",
-          cls.name.c_str(), item.name.c_str(),
-          generatePropertyDescriptor(item).c_str());
-    }
-
-    for (const auto& item : cls.methods)
-    {
-      std::string obj("exports." + cls.name);
-      if (item.call.instance_function)
-        obj += ".prototype";
-      printf("%s.%s = %s;\n", obj.c_str(), item.name.c_str(),
-          wrapCall(item.call).c_str());
+      if (!method.call.instance_function)
+      {
+        printf("exports.%s.%s = %s;\n", cls.name.c_str(), method.name.c_str(),
+               wrapCall(method.call).c_str());
+      }
     }
   }
 }
