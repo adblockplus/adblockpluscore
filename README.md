@@ -64,7 +64,7 @@ Running the unit tests
 ### Requirements
 
 In order to run the unit test suite you need
-[Node.js 6 or higher](https://nodejs.org/). Once Node.js is installed please run
+[Node.js 7 or higher](https://nodejs.org/). Once Node.js is installed please run
 `npm install` in the repository directory in order to install the required
 dependencies.
 
@@ -81,8 +81,6 @@ You can specify specific test files or directories on the command line, e.g.:
 
 The tests under `test/browser` require a browser environment. `npm test` will
 run these in a headless browser, with each module being loaded in a new frame.
-*Note*: Currently this environment is limited to ECMAScript 5, this limitation
-should hopefully be resolved soon.
 
 Linting
 -------

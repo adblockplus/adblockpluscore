@@ -4,9 +4,10 @@
   "license": "GPL-3.0",
   "dependencies": {},
   "devDependencies": {
+    "chrome-remote-interface": "^0.20.0",
     "nodeunit": "0.9.1",
-    "phantomjs2": "^2.2.0",
-    "sandboxed-module": "2.0.3"
+    "sandboxed-module": "2.0.3",
+    "unzip": "^0.1.11"
   },
   "scripts": {
     "test": "node test_runner.js"

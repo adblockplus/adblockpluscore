@@ -1,4 +1,5 @@
 /node_modules/
+/chromium-snapshots/
 *.symbols
 /compiled/bindings.cpp.js
 /compiled/bindings.js

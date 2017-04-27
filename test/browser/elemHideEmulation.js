@@ -15,41 +15,25 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// We are currently limited to ECMAScript 5 in this file, because it is being
-// used in the browser tests. See https://issues.adblockplus.org/ticket/4796
+"use strict";
 
-// TODO: This should be using document.currentScript once supported by
-// PhantomJS.
-var myUrl = document.head.lastChild.src;
+/* globals ElemHideEmulation */
 
-exports.setUp = function(callback)
-{
-  // The URL object in PhantomJS 2.1.7 does not implement any properties, so
-  // we need a polyfill.
-  if (!URL || !("origin" in URL))
-  {
-    var doc = document.implementation.createHTMLDocument();
-    var anchor = doc.createElement("a");
-    doc.body.appendChild(anchor);
-    URL = function(url)
-    {
-      if (!url)
-        throw "Invalid URL";
-      anchor.href = url;
-      this.origin = anchor.origin;
-    };
-  }
-
-  callback();
-};
+let myUrl = document.currentScript.src;
 
 exports.tearDown = function(callback)
 {
-  var styleElements = document.head.getElementsByTagName("style");
+  let styleElements = document.head.getElementsByTagName("style");
   while (styleElements.length)
     styleElements[0].parentNode.removeChild(styleElements[0]);
   callback();
 };
+
+function unexpectedError(error)
+{
+  console.error(error);
+  this.ok(false, "Unexpected error: " + error);
+}
 
 function expectHidden(test, element)
 {
@@ -65,7 +49,7 @@ function expectVisible(test, element)
 
 function findUniqueId()
 {
-  var id = "elemHideEmulationTest-" + Math.floor(Math.random() * 10000);
+  let id = "elemHideEmulationTest-" + Math.floor(Math.random() * 10000);
   if (!document.getElementById(id))
     return id;
   return findUniqueId();
@@ -73,8 +57,8 @@ function findUniqueId()
 
 function insertStyleRule(rule)
 {
-  var styleElement;
-  var styleElements = document.head.getElementsByTagName("style");
+  let styleElement;
+  let styleElements = document.head.getElementsByTagName("style");
   if (styleElements.length)
     styleElement = styleElements[0];
   else
@@ -87,131 +71,120 @@ function insertStyleRule(rule)
 
 function createElementWithStyle(styleBlock)
 {
-  var element = document.createElement("div");
+  let element = document.createElement("div");
   element.id = findUniqueId();
   document.body.appendChild(element);
   insertStyleRule("#" + element.id + " " + styleBlock);
   return element;
 }
 
-function applyElemHideEmulation(selectors, callback)
+function applyElemHideEmulation(selectors)
 {
   if (typeof ElemHideEmulation == "undefined")
   {
-    loadScript(myUrl + "/../../../lib/common.js", function()
+    return loadScript(myUrl + "/../../../lib/common.js").then(() =>
     {
-      loadScript(myUrl + "/../../../chrome/content/elemHideEmulation.js",
-          function()
-          {
-            applyElemHideEmulation(selectors, callback);
-          });
+      return loadScript(myUrl + "/../../../chrome/content/elemHideEmulation.js");
+    }).then(() =>
+    {
+      return applyElemHideEmulation(selectors);
     });
-    return;
   }
 
-  var elemHideEmulation = new ElemHideEmulation(
+  let elemHideEmulation = new ElemHideEmulation(
     window,
-    function(callback)
+    callback =>
     {
-      var patterns = [];
-      selectors.forEach(function(selector)
+      let patterns = [];
+      selectors.forEach(selector =>
       {
-        patterns.push({selector: selector});
+        patterns.push({selector});
       });
       callback(patterns);
-    },
-    function(selectors)
+    }, newSelectors =>
     {
-      if (!selectors.length)
+      if (!newSelectors.length)
         return;
-      var selector = selectors.join(", ");
+      let selector = newSelectors.join(", ");
       insertStyleRule(selector + "{display: none !important;}");
     }
   );
 
   elemHideEmulation.apply();
-  callback();
+  return Promise.resolve();
 }
 
 exports.testVerbatimPropertySelector = function(test)
 {
-  var toHide = createElementWithStyle("{background-color: #000}");
+  let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='background-color: rgb(0, 0, 0)']"],
-    function()
-    {
-      expectHidden(test, toHide);
-      test.done();
-    }
-  );
+    ["[-abp-properties='background-color: rgb(0, 0, 0)']"]
+  ).then(() =>
+  {
+    expectHidden(test, toHide);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
 exports.testPropertySelectorWithWildcard = function(test)
 {
-  var toHide = createElementWithStyle("{background-color: #000}");
+  let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='*color: rgb(0, 0, 0)']"],
-    function()
-    {
-      expectHidden(test, toHide);
-      test.done();
-    }
-  );
+    ["[-abp-properties='*color: rgb(0, 0, 0)']"]
+  ).then(() =>
+  {
+    expectHidden(test, toHide);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
 exports.testPropertySelectorWithRegularExpression = function(test)
 {
-  var toHide = createElementWithStyle("{background-color: #000}");
+  let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='/.*color: rgb\\(0, 0, 0\\)/']"],
-    function()
-    {
-      expectHidden(test, toHide);
-      test.done();
-    }
-  );
+    ["[-abp-properties='/.*color: rgb\\(0, 0, 0\\)/']"]
+  ).then(() =>
+  {
+    expectHidden(test, toHide);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
 exports.testPropertySelectorWithEscapedBrace = function(test)
 {
-  var toHide = createElementWithStyle("{background-color: #000}");
+  let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='/background.\\x7B 0,6\\x7D : rgb\\(0, 0, 0\\)/']"],
-    function()
-    {
-      expectHidden(test, toHide);
-      test.done();
-    }
-  );
+    ["[-abp-properties='/background.\\x7B 0,6\\x7D : rgb\\(0, 0, 0\\)/']"]
+  ).then(() =>
+  {
+    expectHidden(test, toHide);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
 exports.testPropertySelectorWithImproperlyEscapedBrace = function(test)
 {
-  var toHide = createElementWithStyle("{background-color: #000}");
+  let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='/background.\\x7B0,6\\x7D: rgb\\(0, 0, 0\\)/']"],
-    function()
-    {
-      expectVisible(test, toHide);
-      test.done();
-    }
-  );
+    ["[-abp-properties='/background.\\x7B0,6\\x7D: rgb\\(0, 0, 0\\)/']"]
+  ).then(() =>
+  {
+    expectVisible(test, toHide);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
 exports.testDynamicallyChangedProperty = function(test)
 {
-  var toHide = createElementWithStyle("{}");
+  let toHide = createElementWithStyle("{}");
   applyElemHideEmulation(
-    ["[-abp-properties='background-color: rgb(0, 0, 0)']"],
-    function()
+    ["[-abp-properties='background-color: rgb(0, 0, 0)']"]
+  ).then(() =>
+  {
+    expectVisible(test, toHide);
+    insertStyleRule("#" + toHide.id + " {background-color: #000}");
+    return new Promise((resolve, reject) =>
     {
-      expectVisible(test, toHide);
-      insertStyleRule("#" + toHide.id + " {background-color: #000}");
-      window.setTimeout(function()
+      window.setTimeout(() =>
       {
         expectHidden(test, toHide);
-        test.done();
+        resolve();
       }, 0);
-    }
-  );
+    });
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
 };

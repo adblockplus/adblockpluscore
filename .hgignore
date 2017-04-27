@@ -1,4 +1,5 @@
 ^node_modules$
+^chromium-snapshots$
 
 syntax: glob
 *.symbols
