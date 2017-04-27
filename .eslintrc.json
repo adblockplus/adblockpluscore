@@ -1,16 +1,4 @@
 {
   "extends": "eslint-config-eyeo",
-  "root": true,
-  "env": {
-    "commonjs": true
-  },
-  "globals": {
-    "atob": true,
-    "onShutdown": true,
-    "Cc": true,
-    "Ci": true,
-    "Cu": true,
-    "URL": true,
-    "XMLHttpRequest": true
-  }
+  "root": true
 }

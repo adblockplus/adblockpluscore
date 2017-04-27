@@ -1,21 +1,39 @@
-// We are currently limited to ECMAScript 5 in this file, because it is being
-// used in the browser tests. See https://issues.adblockplus.org/ticket/4796
+/*
+ * This file is part of Adblock Plus <https://adblockplus.org/>,
+ * Copyright (C) 2006-2017 eyeo GmbH
+ *
+ * Adblock Plus is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * Adblock Plus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-var propertySelectorRegExp = /\[\-abp\-properties=(["'])([^"']+)\1\]/;
+/* globals filterToRegExp */
+
+"use strict";
+
+let propertySelectorRegExp = /\[-abp-properties=(["'])([^"']+)\1\]/;
 
 function splitSelector(selector)
 {
   if (selector.indexOf(",") == -1)
     return [selector];
 
-  var selectors = [];
-  var start = 0;
-  var level = 0;
-  var sep = "";
+  let selectors = [];
+  let start = 0;
+  let level = 0;
+  let sep = "";
 
-  for (var i = 0; i < selector.length; i++)
+  for (let i = 0; i < selector.length; i++)
   {
-    var chr = selector[i];
+    let chr = selector[i];
 
     if (chr == "\\")        // ignore escaped characters
       i++;
@@ -49,21 +67,22 @@ function ElemHideEmulation(window, getFiltersFunc, addSelectorsFunc)
 }
 
 ElemHideEmulation.prototype = {
-  stringifyStyle: function(style)
+  stringifyStyle(style)
   {
-    var styles = [];
-    for (var i = 0; i < style.length; i++)
+    let styles = [];
+    for (let i = 0; i < style.length; i++)
     {
-      var property = style.item(i);
-      var value    = style.getPropertyValue(property);
-      var priority = style.getPropertyPriority(property);
-      styles.push(property + ": " + value + (priority ? " !" + priority : "") + ";");
+      let property = style.item(i);
+      let value = style.getPropertyValue(property);
+      let priority = style.getPropertyPriority(property);
+      styles.push(property + ": " + value + (priority ? " !" + priority : "") +
+                  ";");
     }
     styles.sort();
     return styles.join(" ");
   },
 
-  isSameOrigin: function(stylesheet)
+  isSameOrigin(stylesheet)
   {
     try
     {
@@ -76,33 +95,30 @@ ElemHideEmulation.prototype = {
     }
   },
 
-  findSelectors: function(stylesheet, selectors, filters)
+  findSelectors(stylesheet, selectors, filters)
   {
     // Explicitly ignore third-party stylesheets to ensure consistent behavior
     // between Firefox and Chrome.
     if (!this.isSameOrigin(stylesheet))
       return;
 
-    var rules = stylesheet.cssRules;
+    let rules = stylesheet.cssRules;
     if (!rules)
       return;
 
-    for (var i = 0; i < rules.length; i++)
+    for (let rule of rules)
     {
-      var rule = rules[i];
       if (rule.type != rule.STYLE_RULE)
         continue;
 
-      var style = this.stringifyStyle(rule.style);
-      for (var j = 0; j < this.patterns.length; j++)
+      let style = this.stringifyStyle(rule.style);
+      for (let pattern of this.patterns)
       {
-        var pattern = this.patterns[j];
         if (pattern.regexp.test(style))
         {
-          var subSelectors = splitSelector(rule.selectorText);
-          for (var k = 0; k < subSelectors.length; k++)
+          let subSelectors = splitSelector(rule.selectorText);
+          for (let subSelector of subSelectors)
           {
-            var subSelector = subSelectors[k];
             selectors.push(pattern.prefix + subSelector + pattern.suffix);
             filters.push(pattern.text);
           }
@@ -111,40 +127,41 @@ ElemHideEmulation.prototype = {
     }
   },
 
-  addSelectors: function(stylesheets)
+  addSelectors(stylesheets)
   {
-    var selectors = [];
-    var filters = [];
-    for (var i = 0; i < stylesheets.length; i++)
-      this.findSelectors(stylesheets[i], selectors, filters);
+    let selectors = [];
+    let filters = [];
+    for (let stylesheet of stylesheets)
+      this.findSelectors(stylesheet, selectors, filters);
     this.addSelectorsFunc(selectors, filters);
   },
 
-  onLoad: function(event)
+  onLoad(event)
   {
-    var stylesheet = event.target.sheet;
+    let stylesheet = event.target.sheet;
     if (stylesheet)
       this.addSelectors([stylesheet]);
   },
 
-  apply: function()
+  apply()
   {
-    this.getFiltersFunc(function(patterns)
+    this.getFiltersFunc(patterns =>
     {
       this.patterns = [];
-      for (var i = 0; i < patterns.length; i++)
+      for (let pattern of patterns)
       {
-        var pattern = patterns[i];
-        var match = propertySelectorRegExp.exec(pattern.selector);
+        let match = propertySelectorRegExp.exec(pattern.selector);
         if (!match)
           continue;
 
-        var propertyExpression = match[2];
-        var regexpString;
+        let propertyExpression = match[2];
+        let regexpString;
         if (propertyExpression.length >= 2 && propertyExpression[0] == "/" &&
             propertyExpression[propertyExpression.length - 1] == "/")
+        {
           regexpString = propertyExpression.slice(1, -1)
               .replace("\\x7B ", "{").replace("\\x7D ", "}");
+        }
         else
           regexpString = filterToRegExp(propertyExpression);
 
@@ -158,10 +175,10 @@ ElemHideEmulation.prototype = {
 
       if (this.patterns.length > 0)
       {
-        var document = this.window.document;
+        let {document} = this.window;
         this.addSelectors(document.styleSheets);
         document.addEventListener("load", this.onLoad.bind(this), true);
       }
-    }.bind(this));
+    });
   }
 };

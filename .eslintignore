@@ -1,9 +1,2 @@
 lib/jsbn.js
 lib/rusha.js
-
-# These files can not yet be linted, see
-# https://issues.adblockplus.org/ticket/4796
-browsertests.js
-chrome/content/elemHideEmulation.js
-lib/common.js
-test/browser/elemHideEmulation.js

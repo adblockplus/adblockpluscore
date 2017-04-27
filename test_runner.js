@@ -19,16 +19,17 @@
 
 "use strict";
 
-const childProcess = require("child_process");
 const fs = require("fs");
-const nodeunit = require("nodeunit");
 const path = require("path");
-const phantomjs = require("phantomjs2");
-const process = require("process");
 const url = require("url");
+
+const nodeunit = require("nodeunit");
+
+const chromiumProcess = require("./chromium_process");
 
 let unitFiles = [];
 let browserFiles = [];
+
 function addTestPaths(testPaths, recurse)
 {
   for (let testPath of testPaths)
@@ -54,6 +55,37 @@ function addTestPaths(testPaths, recurse)
     }
   }
 }
+
+function getFileURL(filePath)
+{
+  return url.format({
+    protocol: "file",
+    slashes: "true",
+    pathname: path.resolve(process.cwd(), filePath).split(path.sep).join("/")
+  });
+}
+
+function runBrowserTests()
+{
+  if (!browserFiles.length)
+    return;
+
+  // Navigate to this directory because about:blank won't be allowed to load
+  // file:/// URLs.
+  let initialPage = getFileURL(__dirname);
+  let bootstrapPath = path.join(__dirname, "test", "browser",
+                                "_bootstrap.js");
+  let nodeunitPath = path.join(
+    path.dirname(require.resolve("nodeunit")),
+    "examples", "browser", "nodeunit.js"
+  );
+  let args = [
+    getFileURL(nodeunitPath),
+    ...browserFiles.map(getFileURL)
+  ];
+  return chromiumProcess(initialPage, bootstrapPath, args);
+}
+
 if (process.argv.length > 2)
   addTestPaths(process.argv.slice(2), true);
 else
@@ -64,24 +96,12 @@ else
   );
 }
 
-if (browserFiles.length)
+Promise.resolve(runBrowserTests()).catch(error =>
 {
-  let nodeunitPath = path.join(
-    path.dirname(require.resolve("nodeunit")),
-    "examples", "browser", "nodeunit.js"
-  );
-  browserFiles.unshift(nodeunitPath);
-
-  let urls = browserFiles.map(file =>
-  {
-    return url.format({
-      protocol: "file",
-      slashes: "true",
-      pathname: path.resolve(process.cwd(), file).split(path.sep).join("/")
-    });
-  });
-  let args = [path.join(__dirname, "browsertests.js")].concat(urls);
-  childProcess.execFileSync(phantomjs.path, args, {stdio: "inherit"});
-}
-if (unitFiles.length)
-  nodeunit.reporters.default.run(unitFiles);
+  console.error("Failed running browser tests");
+  console.error(error);
+}).then(() =>
+{
+  if (unitFiles.length)
+    nodeunit.reporters.default.run(unitFiles);
+});
