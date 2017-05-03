@@ -19,36 +19,6 @@
 
 "Compiled from https://hg.adblockplus.org/adblockplus/ with Emscripten {{{EMSCRIPTEN_VERSION}}}";
 
-var regexps =
-{
-  _data: Object.create(null),
-  _counter: 0,
-
-  create: function(source, matchCase)
-  {
-    var id = ++this._counter;
-    try
-    {
-      this._data[id] = new RegExp(readString(source), matchCase ? "" : "i");
-      return id;
-    }
-    catch (e)
-    {
-      return -1;
-    }
-  },
-
-  delete: function(id)
-  {
-    delete this._data[id];
-  },
-
-  test: function(id, str)
-  {
-    return this._data[id].test(readString(str));
-  }
-};
-
 var Module =
 {
   preRun: [],

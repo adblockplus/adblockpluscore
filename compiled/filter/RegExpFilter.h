@@ -19,6 +19,7 @@
 
 #include "Filter.h"
 #include "ActiveFilter.h"
+#include "../bindings/runtime.h"
 
 enum class TrippleState {YES, NO, ANY};
 
@@ -107,6 +108,6 @@ public:
   static Type Parse(DependentString& text, DependentString& error,
       RegExpFilterData& data);
   static void GenerateCustomBindings();
-  EMSCRIPTEN_KEEPALIVE bool Matches(const String& location, int typeMask,
+  BINDINGS_EXPORTED bool Matches(const String& location, int typeMask,
       DependentString& docDomain, bool thirdParty, const String& sitekey) const;
 };

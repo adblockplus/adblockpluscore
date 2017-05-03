@@ -22,9 +22,8 @@
 #include <cstring>
 #include <type_traits>
 
-#include <emscripten.h>
-
 #include "debug.h"
+#include "library.h"
 
 inline void String_assert_readonly(bool readOnly);
 
@@ -188,11 +187,7 @@ public:
         mBuf[i] = currChar + u'a' - u'A';
       else if (currChar >= 128)
       {
-        // It seems that calling JS is the easiest solution for lowercasing
-        // Unicode characters.
-        mBuf[i] = EM_ASM_INT({
-          return String.fromCharCode($0).toLowerCase().charCodeAt(0);
-        }, currChar);
+        mBuf[i] = CharToLower(currChar);
       }
     }
   }

@@ -15,19 +15,11 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "debug.h"
+#pragma once
 
-struct InitTracing
-{
-  InitTracing()
-  {
-    init_tracing();
-  }
-
-  ~InitTracing()
-  {
-    shutdown_tracing();
-  }
-};
-
-InitTracing foo;
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#define BINDINGS_EXPORTED EMSCRIPTEN_KEEPALIVE
+#else
+#define BINDINGS_EXPORTED
+#endif

@@ -22,6 +22,7 @@
 #include "../String.h"
 #include "../intrusive_ptr.h"
 #include "../debug.h"
+#include "../bindings/runtime.h"
 
 class Filter : public ref_counted
 {
@@ -47,14 +48,14 @@ public:
 
   Type mType;
 
-  EMSCRIPTEN_KEEPALIVE const String& GetText() const
+  BINDINGS_EXPORTED const String& GetText() const
   {
     return mText;
   }
 
-  EMSCRIPTEN_KEEPALIVE OwnedString Serialize() const;
+  BINDINGS_EXPORTED OwnedString Serialize() const;
 
-  static EMSCRIPTEN_KEEPALIVE Filter* FromText(DependentString& text);
+  static BINDINGS_EXPORTED Filter* FromText(DependentString& text);
 };
 
 typedef intrusive_ptr<Filter> FilterPtr;

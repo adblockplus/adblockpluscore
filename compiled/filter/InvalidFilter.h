@@ -18,12 +18,13 @@
 #pragma once
 
 #include "Filter.h"
+#include "../bindings/runtime.h"
 
 class InvalidFilter : public Filter
 {
 public:
   explicit InvalidFilter(const String& text, const String& reason);
-  EMSCRIPTEN_KEEPALIVE const String& GetReason() const
+  BINDINGS_EXPORTED const String& GetReason() const
   {
     return mReason;
   };

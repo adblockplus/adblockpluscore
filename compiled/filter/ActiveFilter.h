@@ -17,21 +17,20 @@
 
 #pragma once
 
-#include <emscripten.h>
-
 #include "Filter.h"
 #include "../StringMap.h"
 #include "../FilterNotifier.h"
+#include "../bindings/runtime.h"
 
 #define FILTER_PROPERTY(type, name, topic, getter, setter) \
     private:\
       type name;\
     public:\
-      type EMSCRIPTEN_KEEPALIVE getter() const\
+      type BINDINGS_EXPORTED getter() const\
       {\
         return name;\
       }\
-      void EMSCRIPTEN_KEEPALIVE setter(type value)\
+      void BINDINGS_EXPORTED setter(type value)\
       {\
         if (name != value)\
         {\
@@ -63,9 +62,9 @@ public:
       GetHitCount, SetHitCount);
   FILTER_PROPERTY(unsigned int, mLastHit, FILTER_LASTHIT,
       GetLastHit, SetLastHit);
-  bool EMSCRIPTEN_KEEPALIVE IsActiveOnDomain(DependentString& docDomain,
+  bool BINDINGS_EXPORTED IsActiveOnDomain(DependentString& docDomain,
       const String& sitekey) const;
-  bool EMSCRIPTEN_KEEPALIVE IsActiveOnlyOnDomain(DependentString& docDomain) const;
-  bool EMSCRIPTEN_KEEPALIVE IsGeneric() const;
-  OwnedString EMSCRIPTEN_KEEPALIVE Serialize() const;
+  bool BINDINGS_EXPORTED IsActiveOnlyOnDomain(DependentString& docDomain) const;
+  bool BINDINGS_EXPORTED IsGeneric() const;
+  OwnedString BINDINGS_EXPORTED Serialize() const;
 };

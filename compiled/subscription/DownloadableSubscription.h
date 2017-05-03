@@ -17,7 +17,10 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "Subscription.h"
+#include "../bindings/runtime.h"
 
 class DownloadableSubscription : public Subscription
 {
@@ -49,5 +52,5 @@ public:
   SUBSCRIPTION_PROPERTY(int, mDownloadCount, NONE,
       GetDownloadCount, SetDownloadCount);
 
-  EMSCRIPTEN_KEEPALIVE OwnedString Serialize() const;
+  BINDINGS_EXPORTED OwnedString Serialize() const;
 };

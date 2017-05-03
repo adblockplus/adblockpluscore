@@ -15,9 +15,11 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "generator.h"
-
 #include <cstdio>
+
+#include <emscripten.h>
+
+#include "generator.h"
 
 namespace
 {

@@ -20,6 +20,7 @@
 #include <cstddef>
 
 #include "ActiveFilter.h"
+#include "../bindings/runtime.h"
 
 struct ElemHideData
 {
@@ -60,10 +61,10 @@ public:
   explicit ElemHideBase(Type type, const String& text, const ElemHideData& data);
   static Type Parse(DependentString& text, ElemHideData& data);
 
-  EMSCRIPTEN_KEEPALIVE const DependentString GetSelector() const
+  BINDINGS_EXPORTED const DependentString GetSelector() const
   {
     return mData.GetSelector(mText);
   }
 
-  EMSCRIPTEN_KEEPALIVE OwnedString GetSelectorDomain() const;
+  BINDINGS_EXPORTED OwnedString GetSelectorDomain() const;
 };

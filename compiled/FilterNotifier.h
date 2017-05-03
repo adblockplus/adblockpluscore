@@ -19,6 +19,7 @@
 
 #include <cstdio>
 
+#include "library.h"
 #include "String.h"
 
 class Filter;
@@ -60,6 +61,13 @@ namespace FilterNotifier
     printf("]);");
   }
 
-  void FilterChange(Topic topic, Filter* filter);
-  void SubscriptionChange(Topic topic, Subscription* subscription);
+  inline void FilterChange(Topic topic, Filter* filter)
+  {
+    JSNotifyFilterChange(topic, filter);
+  }
+
+  inline void SubscriptionChange(Topic topic, Subscription* subscription)
+  {
+    JSNotifySubscriptionChange(topic, subscription);
+  }
 }

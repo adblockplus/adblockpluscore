@@ -20,9 +20,8 @@
 #include <cstdio>
 #include <string>
 
-#include <emscripten.h>
-
 #include "RegExpFilter.h"
+#include "../library.h"
 #include "../StringScanner.h"
 #include "../StringMap.h"
 
@@ -135,11 +134,6 @@ namespace
       prevChar = currChar;
     }
     return result;
-  }
-
-  int GenerateRegExp(const String& regexp, bool matchCase)
-  {
-    return EM_ASM_INT(return regexps.create($0, $1), &regexp, matchCase);
   }
 
   void NormalizeWhitespace(DependentString& text)
@@ -291,7 +285,7 @@ RegExpFilter::RegExpFilter(Type type, const String& text, const RegExpFilterData
 RegExpFilter::~RegExpFilter()
 {
   if (mData.HasRegExp())
-    EM_ASM_ARGS(regexps.delete($0), mData.mRegexpId);
+    DeleteRegExp(mData.mRegexpId);
 }
 
 Filter::Type RegExpFilter::Parse(DependentString& text, DependentString& error,
@@ -399,5 +393,5 @@ bool RegExpFilter::Matches(const String& location, int typeMask,
     const OwnedString pattern(mData.GetRegExpSource(mText));
     mData.SetRegExp(GenerateRegExp(RegExpFromSource(pattern), mData.mMatchCase));
   }
-  return EM_ASM_INT(return regexps.test($0, $1), mData.mRegexpId, &location);
+  return TestRegExp(mData.mRegexpId, location);
 }

@@ -19,6 +19,7 @@
 
 #include "Subscription.h"
 #include "../filter/Filter.h"
+#include "../bindings/runtime.h"
 
 class UserDefinedSubscription : public Subscription
 {
@@ -27,9 +28,9 @@ private:
 
 public:
   explicit UserDefinedSubscription(const String& id);
-  EMSCRIPTEN_KEEPALIVE bool IsDefaultFor(const Filter* filter) const;
-  EMSCRIPTEN_KEEPALIVE void MakeDefaultFor(const Filter* filter);
-  EMSCRIPTEN_KEEPALIVE void InsertFilterAt(Filter* filter, unsigned pos);
-  EMSCRIPTEN_KEEPALIVE bool RemoveFilterAt(unsigned pos);
-  EMSCRIPTEN_KEEPALIVE OwnedString Serialize() const;
+  BINDINGS_EXPORTED bool IsDefaultFor(const Filter* filter) const;
+  BINDINGS_EXPORTED void MakeDefaultFor(const Filter* filter);
+  BINDINGS_EXPORTED void InsertFilterAt(Filter* filter, unsigned pos);
+  BINDINGS_EXPORTED bool RemoveFilterAt(unsigned pos);
+  BINDINGS_EXPORTED OwnedString Serialize() const;
 };

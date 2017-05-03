@@ -15,22 +15,28 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <emscripten.h>
+#pragma once
 
-#include "FilterNotifier.h"
+class String;
+class Filter;
+class Subscription;
 
-void FilterNotifier::FilterChange(Topic topic, Filter* filter)
+namespace FilterNotifier
 {
-  EM_ASM_ARGS({
-    FilterNotifier.triggerListeners(notifierTopics.get($0),
-                                    exports.Filter.fromPointer($1));
-  }, topic, filter);
+  enum class Topic;
 }
 
-void FilterNotifier::SubscriptionChange(Topic topic, Subscription* subscription)
+extern "C"
 {
-  EM_ASM_ARGS({
-    FilterNotifier.triggerListeners(notifierTopics.get($0),
-                                    exports.Subscription.fromPointer($1));
-  }, topic, subscription);
+  void LogString(const String& str);
+  void LogInteger(int i);
+  void LogPointer(const void* ptr);
+  void LogError(const String& str);
+  char16_t CharToLower(char16_t charCode);
+  void JSNotifyFilterChange(FilterNotifier::Topic topic, Filter* filter);
+  void JSNotifySubscriptionChange(FilterNotifier::Topic topic,
+      Subscription* subscription);
+  int GenerateRegExp(const String& regexp, bool matchCase);
+  void DeleteRegExp(int id);
+  bool TestRegExp(int id, const String& str);
 }

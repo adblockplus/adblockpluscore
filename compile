@@ -22,6 +22,7 @@ import sys
 
 BASE_DIR = os.path.dirname(__file__)
 SOURCE_DIR = os.path.join(BASE_DIR, 'compiled')
+JS_LIBRARY = os.path.join(SOURCE_DIR, 'library.js')
 BINDINGS_GENERATOR = os.path.join(SOURCE_DIR, 'bindings.cpp.js')
 BINDINGS_OUTPUT = os.path.join(SOURCE_DIR, 'bindings.js')
 COMPILER_OUTPUT = os.path.join(BASE_DIR, 'lib', 'compiled.js')
@@ -42,7 +43,7 @@ GENERATION_PARAMS = {
 DEFINES = []
 ADDITIONAL_PARAMS = ['-O3', '-m32', '-std=gnu++14', '--memory-init-file', '0',
                      '--emit-symbol-map', '-Wall', '-Werror', '-fno-exceptions',
-                     '-fno-rtti']
+                     '-fno-rtti', '--js-library', JS_LIBRARY]
 
 
 def get_source_files(phase):
@@ -74,7 +75,7 @@ def getenv(emscripten_config):
 def generate_bindings(env):
     params = [
         env['PYTHON'], os.path.join(env['EMSCRIPTEN'], 'emcc'),
-        '-o', BINDINGS_GENERATOR, '-std=gnu++14', '-DPRINT_BINDINGS',
+        '-o', BINDINGS_GENERATOR, '-std=gnu++14', '--js-library', JS_LIBRARY,
     ] + list(get_source_files('bindings'))
     subprocess.check_call(params, env=env)
 

@@ -25,16 +25,17 @@
 #include "../FilterNotifier.h"
 #include "../intrusive_ptr.h"
 #include "../debug.h"
+#include "../bindings/runtime.h"
 
 #define SUBSCRIPTION_PROPERTY_INTERNAL(field_type, param_type, name, topic, getter, setter) \
     private:\
       field_type name;\
     public:\
-      param_type EMSCRIPTEN_KEEPALIVE getter() const\
+      param_type BINDINGS_EXPORTED getter() const\
       {\
         return name;\
       }\
-      void EMSCRIPTEN_KEEPALIVE setter(param_type value)\
+      void BINDINGS_EXPORTED setter(param_type value)\
       {\
         if (name != value)\
         {\
@@ -73,7 +74,7 @@ public:
 
   Type mType;
 
-  EMSCRIPTEN_KEEPALIVE const String& GetID() const
+  BINDINGS_EXPORTED const String& GetID() const
   {
     return mID;
   }
@@ -82,17 +83,17 @@ public:
   SUBSCRIPTION_PROPERTY(bool, mDisabled, SUBSCRIPTION_DISABLED,
         GetDisabled, SetDisabled);
 
-  EMSCRIPTEN_KEEPALIVE unsigned GetFilterCount() const
+  BINDINGS_EXPORTED unsigned GetFilterCount() const
   {
     return mFilters.size();
   }
 
-  EMSCRIPTEN_KEEPALIVE Filter* FilterAt(unsigned index);
-  EMSCRIPTEN_KEEPALIVE int IndexOfFilter(Filter* filter);
-  EMSCRIPTEN_KEEPALIVE OwnedString Serialize() const;
-  EMSCRIPTEN_KEEPALIVE OwnedString SerializeFilters() const;
+  BINDINGS_EXPORTED Filter* FilterAt(unsigned index);
+  BINDINGS_EXPORTED int IndexOfFilter(Filter* filter);
+  BINDINGS_EXPORTED OwnedString Serialize() const;
+  BINDINGS_EXPORTED OwnedString SerializeFilters() const;
 
-  static EMSCRIPTEN_KEEPALIVE Subscription* FromID(const String& id);
+  static BINDINGS_EXPORTED Subscription* FromID(const String& id);
 };
 
 typedef intrusive_ptr<Subscription> SubscriptionPtr;

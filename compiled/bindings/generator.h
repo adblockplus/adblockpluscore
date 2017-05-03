@@ -26,8 +26,6 @@
 #include <utility>
 #include <vector>
 
-#include <emscripten.h>
-
 #include "../String.h"
 #include "../intrusive_ptr.h"
 
