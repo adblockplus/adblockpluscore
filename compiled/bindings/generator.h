@@ -119,7 +119,7 @@ namespace bindings_internal
     bool instance_function;
     int effectiveArgs;
     TypeCategory effectiveReturnType;
-    char name[1024];
+    std::string name;
 
     FunctionInfo();
 

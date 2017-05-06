@@ -17,9 +17,8 @@
 
 #include <cstdio>
 
-#include <emscripten.h>
-
 #include "generator.h"
+#include "library.h"
 
 namespace
 {
@@ -30,7 +29,6 @@ namespace bindings_internal
 {
   FunctionInfo::FunctionInfo()
   {
-    name[0] = '\0';
   }
 
   FunctionInfo::FunctionInfo(TypeCategory returnType, TYPEID pointerType,
@@ -39,8 +37,6 @@ namespace bindings_internal
       : returnType(returnType), pointerType(pointerType),
         instance_function(instance_function)
   {
-    name[0] = '\0';
-
     // The function parameter is a pointer to the function pointer.
     // Emscripten's "function pointers" are actually integers indicating the
     // position in the call table. 0 represents nullptr.
@@ -113,75 +109,14 @@ namespace bindings_internal
       args.push_back(type);
     }
 
-    get_function_name(function, signature.c_str());
+    int nameLength = GetFunctionName(nullptr, function, signature.c_str());
+    name.resize(nameLength);
+    GetFunctionName(name.data(), function, signature.c_str());
   }
 
   bool FunctionInfo::empty() const
   {
-    return name[0] == '\0';
-  }
-
-  void FunctionInfo::get_function_name(void* ptr, const char* signature)
-  {
-    // This is a hack, C++ won't let us get the mangled function name.
-    // JavaScript is more dynamic so we pass the pointer to our function
-    // there. With that and the function signature we can call the function -
-    // with a full stack so that we will cause it to abort. Sometimes the
-    // function we are calling will also be missing from the build. The result
-    // is the same: abort() is called which in turn calls stackTrace(). By
-    // replacing stackTrace() we get access to the call stack and search it
-    // for the name of our function.
-
-    EM_ASM_ARGS({
-      var signature = AsciiToString($2);
-      var args = [];
-      for (var i = 1; i < signature.length; i++)
-        args.push(0);
-
-      var oldPrint = Module.print;
-      var oldPrintErr = Module.printErr;
-      var oldStackTrace = stackTrace;
-      var sp = Runtime.stackSave();
-      Module.print = function(){};
-      Module.printErr = function(){};
-      stackTrace = function()
-      {
-        var stack = [];
-        for (var f = arguments.callee.caller; f; f = f.caller)
-        {
-          if (f.name)
-          {
-            if (f.name.indexOf("dynCall") == 0)
-              break;
-            else
-              stack.push(f.name);
-          }
-        }
-
-        result = stack[stack.length - 1];
-        if (result && result.indexOf("__wrapper") >= 0)
-          result = stack[stack.length - 2];
-        throw result;
-      };
-
-      Runtime.stackRestore(STACK_MAX);
-
-      try
-      {
-        Runtime.dynCall(signature, HEAP32[$1 >> 2], args);
-      }
-      catch(e)
-      {
-        Module.stringToAscii(e, $0);
-      }
-      finally
-      {
-        Runtime.stackRestore(sp);
-        Module.print = oldPrint;
-        Module.printErr = oldPrintErr;
-        stackTrace = oldStackTrace;
-      }
-    }, name, ptr, signature);
+    return name.empty();
   }
 
   ClassInfo* find_class(TYPEID classID)
@@ -308,7 +243,7 @@ namespace bindings_internal
 
         const ClassInfo* cls = find_class(call.pointerType);
         if (!cls)
-          throw std::runtime_error("Function " + std::string(call.name) + " returns pointer to unknown class");
+          throw std::runtime_error("Function " + call.name + " returns pointer to unknown class");
 
         auto offset = cls->subclass_differentiator.offset;
         if (offset == SIZE_MAX)
@@ -322,7 +257,7 @@ namespace bindings_internal
         return result;
       }
       default:
-        throw std::runtime_error("Unexpected return type for " + std::string(call.name));
+        throw std::runtime_error("Unexpected return type for " + call.name);
     }
   }
 

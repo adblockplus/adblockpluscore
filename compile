@@ -41,7 +41,7 @@ GENERATION_PARAMS = {
     'EXPORTED_RUNTIME_METHODS': ['cwrap', 'ccall', 'stringToAscii'],
 }
 DEFINES = []
-ADDITIONAL_PARAMS = ['-O3', '-m32', '-std=gnu++14', '--memory-init-file', '0',
+ADDITIONAL_PARAMS = ['-O3', '-m32', '-std=c++1z', '--memory-init-file', '0',
                      '--emit-symbol-map', '-Wall', '-Werror', '-fno-exceptions',
                      '-fno-rtti', '--js-library', JS_LIBRARY]
 
@@ -75,7 +75,8 @@ def getenv(emscripten_config):
 def generate_bindings(env):
     params = [
         env['PYTHON'], os.path.join(env['EMSCRIPTEN'], 'emcc'),
-        '-o', BINDINGS_GENERATOR, '-std=gnu++14', '--js-library', JS_LIBRARY,
+        '-o', BINDINGS_GENERATOR, '-std=c++1z', '--js-library', JS_LIBRARY,
+        '--js-library', os.path.join(SOURCE_DIR, 'bindings', 'library.js'),
     ] + list(get_source_files('bindings'))
     subprocess.check_call(params, env=env)
 
