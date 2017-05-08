@@ -404,17 +404,11 @@ namespace bindings_internal
     DifferentiatorInfo differentiator = cls.subclass_differentiator;
     if (differentiator.offset != SIZE_MAX)
     {
-      printf("var %s_mapping = \n", cls.name.c_str());
-      puts("{");
-      for (const auto& item : differentiator.mapping)
-        printf("  %i: '%s',\n", item.first, item.second.c_str());
-      puts("};");
-
       printf("exports.%s.fromPointer = function(ptr)\n", cls.name.c_str());
       puts("{");
       printf("  var type = HEAP32[ptr + %i >> 2];\n", differentiator.offset);
       printf("  if (type in %s_mapping)\n", cls.name.c_str());
-      printf("    return new (exports[%s_mapping[type]])(ptr);\n", cls.name.c_str());
+      printf("    return new %s_mapping[type](ptr);\n", cls.name.c_str());
       printf("  throw new Error('Unexpected %s type: ' + type);\n", cls.name.c_str());
       puts("};");
     }
@@ -435,12 +429,27 @@ namespace bindings_internal
       }
     }
   }
+
+  void printClassMapping(const ClassInfo& cls)
+  {
+      DifferentiatorInfo differentiator = cls.subclass_differentiator;
+      if (differentiator.offset == SIZE_MAX)
+        return;
+
+      printf("var %s_mapping = \n", cls.name.c_str());
+      puts("{");
+      for (const auto& item : differentiator.mapping)
+        printf("  %i: exports.%s,\n", item.first, item.second.c_str());
+      puts("};");
+  }
 }
 
 void printBindings()
 {
   bindings_internal::printHelpers();
 
-  for (const auto& item : classes)
-    bindings_internal::printClass(item);
+  for (const auto& cls : classes)
+    bindings_internal::printClass(cls);
+  for (const auto& cls : classes)
+    bindings_internal::printClassMapping(cls);
 }

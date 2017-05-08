@@ -204,14 +204,7 @@ namespace bindings_internal
   void register_differentiator(TYPEID classID, size_t offset,
       std::vector<std::pair<int, std::string>>& mapping);
 
-  std::string generateCall(const FunctionInfo& call,
-      std::vector<std::string>& params);
-
   std::string wrapCall(const FunctionInfo& call, bool isFunction = true);
-
-  void printHelpers();
-
-  void printClass(const ClassInfo& cls);
 }
 
 template<typename ClassType,
