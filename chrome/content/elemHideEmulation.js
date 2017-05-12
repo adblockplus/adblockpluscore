@@ -230,6 +230,31 @@ HasSelector.prototype = {
   }
 };
 
+function ContainsSelector(textContent)
+{
+  this._text = textContent;
+}
+
+ContainsSelector.prototype = {
+  requiresHiding: true,
+
+  *getSelectors(prefix, subtree, stylesheet)
+  {
+    for (let element of this.getElements(prefix, subtree, stylesheet))
+      yield [makeSelector(element, ""), subtree];
+  },
+
+  *getElements(prefix, subtree, stylesheet)
+  {
+    let actualPrefix = (!prefix || incompletePrefixRegexp.test(prefix)) ?
+        prefix + "*" : prefix;
+    let elements = subtree.querySelectorAll(actualPrefix);
+    for (let element of elements)
+      if (element.textContent.includes(this._text))
+        yield element;
+  }
+};
+
 function PropsSelector(propertyExpression)
 {
   let regexpString;
@@ -323,6 +348,8 @@ ElemHideEmulation.prototype = {
         return null;
       selectors.push(new HasSelector(hasSelectors));
     }
+    else if (match[1] == "contains")
+      selectors.push(new ContainsSelector(content.text));
     else
     {
       // this is an error, can't parse selector.
@@ -339,6 +366,14 @@ ElemHideEmulation.prototype = {
 
     selectors.push(...suffix);
 
+    if (selectors.length == 1 && selectors[0] instanceof ContainsSelector)
+    {
+      this.window.console.error(
+        new SyntaxError("Failed to parse Adblock Plus " +
+                        `selector ${selector}, can't ` +
+                        "have a lonely :-abp-contains()."));
+      return null;
+    }
     return selectors;
   },
 

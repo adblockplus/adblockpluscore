@@ -392,6 +392,39 @@ exports.testPseudoClassHasSelectorWithHasAndWithSuffixSibling2 = function(test)
   runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, "div:-abp-has(:-abp-has(> div.inside)) + div > div");
 };
 
+exports.testPseudoClassContains = function(test)
+{
+  document.body.innerHTML = `<div id="parent">
+      <div id="middle">
+        <div id="middle1"><div id="inside" class="inside"></div></div>
+      </div>
+      <div id="sibling">
+        <div id="tohide">to hide</div>
+      </div>
+      <div id="sibling2">
+        <div id="sibling21"><div id="sibling211" class="inside"></div></div>
+      </div>
+    </div>`;
+  let parent = document.getElementById("parent");
+  let middle = document.getElementById("middle");
+  let inside = document.getElementById("inside");
+  let sibling = document.getElementById("sibling");
+  let sibling2 = document.getElementById("sibling2");
+  let toHide = document.getElementById("tohide");
+
+  applyElemHideEmulation(
+    ["#parent div:-abp-contains(to hide)"]
+  ).then(() =>
+  {
+    expectVisible(test, parent);
+    expectVisible(test, middle);
+    expectVisible(test, inside);
+    expectHidden(test, sibling);
+    expectVisible(test, sibling2);
+    expectHidden(test, toHide);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
 exports.testPseudoClassHasSelectorWithPropSelector = function(test)
 {
   let parent = createElementWithStyle("{}");
