@@ -7,7 +7,7 @@
     "chrome-remote-interface": "^0.20.0",
     "nodeunit": "0.9.1",
     "sandboxed-module": "2.0.3",
-    "unzip": "^0.1.11"
+    "extract-zip": "1.6.5"
   },
   "scripts": {
     "test": "node test_runner.js"
