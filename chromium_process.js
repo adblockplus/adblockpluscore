@@ -27,7 +27,7 @@ const os = require("os");
 const path = require("path");
 
 const remoteInterface = require("chrome-remote-interface");
-const unzip = require("unzip");
+const extractZip = require("extract-zip");
 
 const CHROMIUM_REVISION = 467222;
 
@@ -93,31 +93,86 @@ function ensureChromium()
     return Promise.reject(err);
   }
 
-  let chromiumDir = path.join(__dirname, "chromium-snapshots",
-                              `chromium-${platform}-${CHROMIUM_REVISION}`);
-  if (fs.existsSync(chromiumDir))
-    return Promise.resolve(getChromiumExecutable(chromiumDir));
 
-  if (!fs.existsSync(path.dirname(chromiumDir)))
-    fs.mkdirSync(path.dirname(chromiumDir));
+  return Promise.resolve().then(() =>
+  {
+    let snapshotsDir = path.join(__dirname, "chromium-snapshots");
+    let chromiumDir = path.join(snapshotsDir,
+                                `chromium-${platform}-${CHROMIUM_REVISION}`);
+    if (fs.existsSync(chromiumDir))
+      return chromiumDir;
+
+    if (!fs.existsSync(path.dirname(chromiumDir)))
+      fs.mkdirSync(path.dirname(chromiumDir));
+
+    let [dir, fileName] = buildTypes[platform];
+    let archive = path.join(snapshotsDir, "download-cache",
+                            `${CHROMIUM_REVISION}-${fileName}`);
+
+    return Promise.resolve()
+      .then(() =>
+      {
+        if (!fs.existsSync(archive))
+        {
+          let url = `https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/${dir}%2F${CHROMIUM_REVISION}%2F${fileName}?alt=media`;
+          console.info("Downloading Chromium...");
+          return download(url, archive);
+        }
+        console.info(`Reusing cached archive ${archive}`);
+      })
+      .then(() => unzipArchive(archive, chromiumDir))
+      .then(() => chromiumDir);
+  }).then(dir => getChromiumExecutable(dir));
+}
+
+function download(url, destFile)
+{
   return new Promise((resolve, reject) =>
   {
-    console.info("Downloading Chromium...");
-    let [dir, fileName] = buildTypes[platform];
-    let url = `https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/${dir}%2F${CHROMIUM_REVISION}%2F${fileName}?alt=media`;
+    let cacheDir = path.dirname(destFile);
+    if (!fs.existsSync(cacheDir))
+      fs.mkdirSync(cacheDir);
+    let tempDest = destFile + "-" + process.pid;
+    let writable = fs.createWriteStream(tempDest);
+
     https.get(url, response =>
     {
       if (response.statusCode != 200)
       {
-        reject(new Error(`Unexpected server response: ${response.statusCode}`));
+        reject(
+          new Error(`Unexpected server response: ${response.statusCode}`));
         response.resume();
         return;
       }
 
-      response.pipe(unzip.Extract({path: chromiumDir}))
-              .on("error", reject)
-              .on("close", () => resolve(getChromiumExecutable(chromiumDir)));
+      response.pipe(writable)
+              .on("error", error =>
+              {
+                writable.close();
+                fs.unlinkSync(tempDest);
+                reject(error);
+              })
+              .on("close", () =>
+              {
+                writable.close();
+                fs.renameSync(tempDest, destFile);
+                resolve();
+              });
     }).on("error", reject);
+  });
+}
+
+function unzipArchive(archive, destDir)
+{
+  return new Promise((resolve, reject) =>
+  {
+    extractZip(archive, {dir: destDir}, err =>
+    {
+      if (err)
+        reject(err);
+      else
+        resolve();
+    });
   });
 }
 
