@@ -5,11 +5,15 @@
   "dependencies": {},
   "devDependencies": {
     "chrome-remote-interface": "^0.20.0",
+    "eslint": "^3.19.0",
+    "eslint-config-eyeo": "1.0.4",
     "nodeunit": "0.9.1",
     "sandboxed-module": "2.0.3",
     "extract-zip": "1.6.5"
   },
   "scripts": {
-    "test": "node test_runner.js"
+    "eslint": "eslint *.js lib test chrome",
+    "test": "node test_runner.js",
+    "posttest": "npm run eslint"
   }
 }
