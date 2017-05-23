@@ -21,6 +21,8 @@
 
 const abpSelectorRegexp = /:-abp-([\w-]+)\(/i;
 
+let reportError = () => {};
+
 function splitSelector(selector)
 {
   if (selector.indexOf(",") == -1)
@@ -59,29 +61,276 @@ function splitSelector(selector)
   return selectors;
 }
 
-function ElemHideEmulation(window, getFiltersFunc, addSelectorsFunc)
+/** Return position of node from parent.
+ * @param {Node} node the node to find the position of.
+ * @return {number} One-based index like for :nth-child(), or 0 on error.
+ */
+function positionInParent(node)
+{
+  let {children} = node.parentNode;
+  for (let i = 0; i < children.length; i++)
+    if (children[i] == node)
+      return i + 1;
+  return 0;
+}
+
+function makeSelector(node, selector)
+{
+  if (!node.parentElement)
+  {
+    let newSelector = ":root";
+    if (selector)
+      newSelector += " > " + selector;
+    return newSelector;
+  }
+  let idx = positionInParent(node);
+  if (idx > 0)
+  {
+    let newSelector = `${node.tagName}:nth-child(${idx})`;
+    if (selector)
+      newSelector += " > " + selector;
+    return makeSelector(node.parentElement, newSelector);
+  }
+
+  return selector;
+}
+
+function parseSelectorContent(content, startIndex)
+{
+  let parens = 1;
+  let quote = null;
+  let i = startIndex;
+  for (; i < content.length; i++)
+  {
+    let c = content[i];
+    if (c == "\\")
+    {
+      // Ignore escaped characters
+      i++;
+    }
+    else if (quote)
+    {
+      if (c == quote)
+        quote = null;
+    }
+    else if (c == "'" || c == '"')
+      quote = c;
+    else if (c == "(")
+      parens++;
+    else if (c == ")")
+    {
+      parens--;
+      if (parens == 0)
+        break;
+    }
+  }
+
+  if (parens > 0)
+    return null;
+  return {text: content.substring(startIndex, i), end: i};
+}
+
+/** Parse the selector
+ * @param {string} selector the selector to parse
+ * @return {Object} selectors is an array of objects,
+ * or null in case of errors. hide is true if we'll hide
+ * elements instead of styles..
+ */
+function parseSelector(selector)
+{
+  if (selector.length == 0)
+    return [];
+
+  let match = abpSelectorRegexp.exec(selector);
+  if (!match)
+    return [new PlainSelector(selector)];
+
+  let selectors = [];
+  if (match.index > 0)
+    selectors.push(new PlainSelector(selector.substr(0, match.index)));
+
+  let startIndex = match.index + match[0].length;
+  let content = parseSelectorContent(selector, startIndex);
+  if (!content)
+  {
+    reportError(new SyntaxError("Failed to parse Adblock Plus " +
+                                `selector ${selector}, ` +
+                                "due to unmatched parentheses."));
+    return null;
+  }
+  if (match[1] == "properties")
+    selectors.push(new PropsSelector(content.text));
+  else if (match[1] == "has")
+  {
+    let hasSelector = new HasSelector(content.text);
+    if (!hasSelector.valid())
+      return null;
+    selectors.push(hasSelector);
+  }
+  else
+  {
+    // this is an error, can't parse selector.
+    reportError(new SyntaxError("Failed to parse Adblock Plus " +
+                                `selector ${selector}, invalid ` +
+                                `pseudo-class :-abp-${match[1]}().`));
+    return null;
+  }
+
+  let suffix = parseSelector(selector.substr(content.end + 1));
+  if (suffix == null)
+    return null;
+
+  selectors.push(...suffix);
+
+  return selectors;
+}
+
+/** Stringified style objects
+ * @typedef {Object} StringifiedStyle
+ * @property {string} style CSS style represented by a string.
+ * @property {string[]} subSelectors selectors the CSS properties apply to.
+ */
+
+/**
+ * Produce a string representation of the stylesheet entry.
+ * @param {CSSStyleRule} rule the CSS style rule.
+ * @return {StringifiedStyle} the stringified style.
+ */
+function stringifyStyle(rule)
+{
+  let styles = [];
+  for (let i = 0; i < rule.style.length; i++)
+  {
+    let property = rule.style.item(i);
+    let value = rule.style.getPropertyValue(property);
+    let priority = rule.style.getPropertyPriority(property);
+    styles.push(`${property}: ${value}${priority ? " !" + priority : ""};`);
+  }
+  styles.sort();
+  return {
+    style: styles.join(" "),
+    subSelectors: splitSelector(rule.selectorText)
+  };
+}
+
+function* evaluate(chain, index, prefix, subtree, styles)
+{
+  if (index >= chain.length)
+  {
+    yield prefix;
+    return;
+  }
+  for (let [selector, element] of
+       chain[index].getSelectors(prefix, subtree, styles))
+    yield* evaluate(chain, index + 1, selector, element, styles);
+}
+
+function PlainSelector(selector)
+{
+  this._selector = selector;
+}
+
+PlainSelector.prototype = {
+  /**
+   * Generator function returning a pair of selector
+   * string and subtree.
+   * @param {string} prefix the prefix for the selector.
+   * @param {Node} subtree the subtree we work on.
+   * @param {StringifiedStyle[]} styles the stringified style objects.
+   */
+  *getSelectors(prefix, subtree, styles)
+  {
+    yield [prefix + this._selector, subtree];
+  }
+};
+
+const incompletePrefixRegexp = /[\s>+~]$/;
+
+function HasSelector(selector)
+{
+  this._innerSelectors = parseSelector(selector);
+}
+
+HasSelector.prototype = {
+  requiresHiding: true,
+
+  valid()
+  {
+    return this._innerSelectors != null;
+  },
+
+  *getSelectors(prefix, subtree, styles)
+  {
+    for (let element of this.getElements(prefix, subtree, styles))
+      yield [makeSelector(element, ""), element];
+  },
+
+  /**
+   * Generator function returning selected elements.
+   * @param {string} prefix the prefix for the selector.
+   * @param {Node} subtree the subtree we work on.
+   * @param {StringifiedStyle[]} styles the stringified style objects.
+   */
+  *getElements(prefix, subtree, styles)
+  {
+    let actualPrefix = (!prefix || incompletePrefixRegexp.test(prefix)) ?
+        prefix + "*" : prefix;
+    let elements = subtree.querySelectorAll(actualPrefix);
+    for (let element of elements)
+    {
+      let newPrefix = makeSelector(element, "");
+      let iter = evaluate(this._innerSelectors, 0, newPrefix + " ",
+                          element, styles);
+      for (let selector of iter)
+        // we insert a space between the two. It becomes a no-op if selector
+        // doesn't have a combinator
+        if (subtree.querySelector(selector))
+          yield element;
+    }
+  }
+};
+
+function PropsSelector(propertyExpression)
+{
+  let regexpString;
+  if (propertyExpression.length >= 2 && propertyExpression[0] == "/" &&
+      propertyExpression[propertyExpression.length - 1] == "/")
+  {
+    regexpString = propertyExpression.slice(1, -1)
+      .replace("\\x7B ", "{").replace("\\x7D ", "}");
+  }
+  else
+    regexpString = filterToRegExp(propertyExpression);
+
+  this._regexp = new RegExp(regexpString, "i");
+}
+
+PropsSelector.prototype = {
+  *findPropsSelectors(styles, prefix, regexp)
+  {
+    for (let style of styles)
+      if (regexp.test(style.style))
+        for (let subSelector of style.subSelectors)
+          yield prefix + subSelector;
+  },
+
+  *getSelectors(prefix, subtree, styles)
+  {
+    for (let selector of this.findPropsSelectors(styles, prefix, this._regexp))
+      yield [selector, subtree];
+  }
+};
+
+function ElemHideEmulation(window, getFiltersFunc, addSelectorsFunc,
+                           hideElemsFunc)
 {
   this.window = window;
   this.getFiltersFunc = getFiltersFunc;
   this.addSelectorsFunc = addSelectorsFunc;
+  this.hideElemsFunc = hideElemsFunc;
 }
 
 ElemHideEmulation.prototype = {
-  stringifyStyle(style)
-  {
-    let styles = [];
-    for (let i = 0; i < style.length; i++)
-    {
-      let property = style.item(i);
-      let value = style.getPropertyValue(property);
-      let priority = style.getPropertyPriority(property);
-      styles.push(property + ": " + value + (priority ? " !" + priority : "") +
-                  ";");
-    }
-    styles.sort();
-    return styles.join(" ");
-  },
-
   isSameOrigin(stylesheet)
   {
     try
@@ -95,45 +344,60 @@ ElemHideEmulation.prototype = {
     }
   },
 
-  findSelectors(stylesheet, selectors, filters)
+  addSelectors(stylesheets)
   {
-    // Explicitly ignore third-party stylesheets to ensure consistent behavior
-    // between Firefox and Chrome.
-    if (!this.isSameOrigin(stylesheet))
-      return;
+    let selectors = [];
+    let selectorFilters = [];
 
-    let rules = stylesheet.cssRules;
-    if (!rules)
-      return;
+    let elements = [];
+    let elementFilters = [];
 
-    for (let rule of rules)
+    let cssStyles = [];
+
+    for (let stylesheet of stylesheets)
     {
-      if (rule.type != rule.STYLE_RULE)
+      // Explicitly ignore third-party stylesheets to ensure consistent behavior
+      // between Firefox and Chrome.
+      if (!this.isSameOrigin(stylesheet))
         continue;
 
-      let style = this.stringifyStyle(rule.style);
-      for (let pattern of this.patterns)
+      let rules = stylesheet.cssRules;
+      if (!rules)
+        continue;
+
+      for (let rule of rules)
       {
-        if (pattern.regexp.test(style))
+        if (rule.type != rule.STYLE_RULE)
+          continue;
+
+        cssStyles.push(stringifyStyle(rule));
+      }
+    }
+
+    let {document} = this.window;
+    for (let pattern of this.patterns)
+    {
+      for (let selector of evaluate(pattern.selectors,
+                                    0, "", document, cssStyles))
+      {
+        if (!pattern.selectors.some(s => s.requiresHiding))
         {
-          let subSelectors = splitSelector(rule.selectorText);
-          for (let subSelector of subSelectors)
+          selectors.push(selector);
+          selectorFilters.push(pattern.text);
+        }
+        else
+        {
+          for (let element of document.querySelectorAll(selector))
           {
-            selectors.push(pattern.prefix + subSelector + pattern.suffix);
-            filters.push(pattern.text);
+            elements.push(element);
+            elementFilters.push(pattern.text);
           }
         }
       }
     }
-  },
 
-  addSelectors(stylesheets)
-  {
-    let selectors = [];
-    let filters = [];
-    for (let stylesheet of stylesheets)
-      this.findSelectors(stylesheet, selectors, filters);
-    this.addSelectorsFunc(selectors, filters);
+    this.addSelectorsFunc(selectors, selectorFilters);
+    this.hideElemsFunc(elements, elementFilters);
   },
 
   onLoad(event)
@@ -147,74 +411,15 @@ ElemHideEmulation.prototype = {
   {
     this.getFiltersFunc(patterns =>
     {
+      let oldReportError = reportError;
+      reportError = error => this.window.console.error(error);
+
       this.patterns = [];
       for (let pattern of patterns)
       {
-        let match = abpSelectorRegexp.exec(pattern.selector);
-        if (!match || match[1] != "properties")
-        {
-          console.error(new SyntaxError(
-            `Failed to parse Adblock Plus selector ${pattern.selector}, ` +
-            `invalid pseudo-class :-abp-${match[1]}().`
-          ));
-          continue;
-        }
-
-        let expressionStart = match.index + match[0].length;
-        let parens = 1;
-        let quote = null;
-        let i;
-        for (i = expressionStart; i < pattern.selector.length; i++)
-        {
-          let c = pattern.selector[i];
-          if (c == "\\")
-          {
-            // Ignore escaped characters
-            i++;
-          }
-          else if (quote)
-          {
-            if (c == quote)
-              quote = null;
-          }
-          else if (c == "'" || c == '"')
-            quote = c;
-          else if (c == "(")
-            parens++;
-          else if (c == ")")
-          {
-            parens--;
-            if (parens == 0)
-              break;
-          }
-        }
-
-        if (parens > 0)
-        {
-          console.error(new SyntaxError(
-            `Failed to parse Adblock Plus selector ${pattern.selector} ` +
-            "due to unmatched parentheses."
-          ));
-          continue;
-        }
-
-        let propertyExpression = pattern.selector.substring(expressionStart, i);
-        let regexpString;
-        if (propertyExpression.length >= 2 && propertyExpression[0] == "/" &&
-            propertyExpression[propertyExpression.length - 1] == "/")
-        {
-          regexpString = propertyExpression.slice(1, -1)
-              .replace("\\x7B ", "{").replace("\\x7D ", "}");
-        }
-        else
-          regexpString = filterToRegExp(propertyExpression);
-
-        this.patterns.push({
-          text: pattern.text,
-          regexp: new RegExp(regexpString, "i"),
-          prefix: pattern.selector.substr(0, match.index),
-          suffix: pattern.selector.substr(i + 1)
-        });
+        let selectors = parseSelector(pattern.selector);
+        if (selectors != null && selectors.length > 0)
+          this.patterns.push({selectors, text: pattern.text});
       }
 
       if (this.patterns.length > 0)
@@ -223,6 +428,7 @@ ElemHideEmulation.prototype = {
         this.addSelectors(document.styleSheets);
         document.addEventListener("load", this.onLoad.bind(this), true);
       }
+      reportError = oldReportError;
     });
   }
 };
