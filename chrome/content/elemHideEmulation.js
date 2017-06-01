@@ -19,7 +19,7 @@
 
 "use strict";
 
-let propertySelectorRegExp = /\[-abp-properties=(["'])([^"']+)\1\]/;
+const abpSelectorRegexp = /:-abp-([\w-]+)\(/i;
 
 function splitSelector(selector)
 {
@@ -150,11 +150,55 @@ ElemHideEmulation.prototype = {
       this.patterns = [];
       for (let pattern of patterns)
       {
-        let match = propertySelectorRegExp.exec(pattern.selector);
-        if (!match)
+        let match = abpSelectorRegexp.exec(pattern.selector);
+        if (!match || match[1] != "properties")
+        {
+          console.error(new SyntaxError(
+            `Failed to parse Adblock Plus selector ${pattern.selector}, ` +
+            `invalid pseudo-class :-abp-${match[1]}().`
+          ));
           continue;
+        }
 
-        let propertyExpression = match[2];
+        let expressionStart = match.index + match[0].length;
+        let parens = 1;
+        let quote = null;
+        let i;
+        for (i = expressionStart; i < pattern.selector.length; i++)
+        {
+          let c = pattern.selector[i];
+          if (c == "\\")
+          {
+            // Ignore escaped characters
+            i++;
+          }
+          else if (quote)
+          {
+            if (c == quote)
+              quote = null;
+          }
+          else if (c == "'" || c == '"')
+            quote = c;
+          else if (c == "(")
+            parens++;
+          else if (c == ")")
+          {
+            parens--;
+            if (parens == 0)
+              break;
+          }
+        }
+
+        if (parens > 0)
+        {
+          console.error(new SyntaxError(
+            `Failed to parse Adblock Plus selector ${pattern.selector} ` +
+            "due to unmatched parentheses."
+          ));
+          continue;
+        }
+
+        let propertyExpression = pattern.selector.substring(expressionStart, i);
         let regexpString;
         if (propertyExpression.length >= 2 && propertyExpression[0] == "/" &&
             propertyExpression[propertyExpression.length - 1] == "/")
@@ -169,7 +213,7 @@ ElemHideEmulation.prototype = {
           text: pattern.text,
           regexp: new RegExp(regexpString, "i"),
           prefix: pattern.selector.substr(0, match.index),
-          suffix: pattern.selector.substr(match.index + match[0].length)
+          suffix: pattern.selector.substr(i + 1)
         });
       }
 

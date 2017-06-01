@@ -118,7 +118,7 @@ exports.testVerbatimPropertySelector = function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='background-color: rgb(0, 0, 0)']"]
+    [":-abp-properties(background-color: rgb(0, 0, 0))"]
   ).then(() =>
   {
     expectHidden(test, toHide);
@@ -129,7 +129,7 @@ exports.testPropertySelectorWithWildcard = function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='*color: rgb(0, 0, 0)']"]
+    [":-abp-properties(*color: rgb(0, 0, 0))"]
   ).then(() =>
   {
     expectHidden(test, toHide);
@@ -140,7 +140,7 @@ exports.testPropertySelectorWithRegularExpression = function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='/.*color: rgb\\(0, 0, 0\\)/']"]
+    [":-abp-properties(/.*color: rgb\\(0, 0, 0\\)/)"]
   ).then(() =>
   {
     expectHidden(test, toHide);
@@ -151,7 +151,7 @@ exports.testPropertySelectorWithEscapedBrace = function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='/background.\\x7B 0,6\\x7D : rgb\\(0, 0, 0\\)/']"]
+    [":-abp-properties(/background.\\x7B 0,6\\x7D : rgb\\(0, 0, 0\\)/)"]
   ).then(() =>
   {
     expectHidden(test, toHide);
@@ -162,7 +162,7 @@ exports.testPropertySelectorWithImproperlyEscapedBrace = function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    ["[-abp-properties='/background.\\x7B0,6\\x7D: rgb\\(0, 0, 0\\)/']"]
+    [":-abp-properties(/background.\\x7B0,6\\x7D: rgb\\(0, 0, 0\\)/)"]
   ).then(() =>
   {
     expectVisible(test, toHide);
@@ -173,7 +173,7 @@ exports.testDynamicallyChangedProperty = function(test)
 {
   let toHide = createElementWithStyle("{}");
   applyElemHideEmulation(
-    ["[-abp-properties='background-color: rgb(0, 0, 0)']"]
+    [":-abp-properties(background-color: rgb(0, 0, 0))"]
   ).then(() =>
   {
     expectVisible(test, toHide);

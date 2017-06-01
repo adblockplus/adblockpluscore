@@ -54,12 +54,12 @@ exports.testUnrestrictedBlockingFilters = function(test)
 
 exports.testUnrestrictedHidingRules = function(test)
 {
-  testActive(test, "#foo", null, true, false);
-  testActive(test, "#foo", "com", true, false);
-  testActive(test, "#foo", "example.com", true, false);
-  testActive(test, "#foo", "example.com.", true, false);
-  testActive(test, "#foo", "foo.example.com", true, false);
-  testActive(test, "#foo", "mple.com", true, false);
+  testActive(test, "##foo", null, true, false);
+  testActive(test, "##foo", "com", true, false);
+  testActive(test, "##foo", "example.com", true, false);
+  testActive(test, "##foo", "example.com.", true, false);
+  testActive(test, "##foo", "foo.example.com", true, false);
+  testActive(test, "##foo", "mple.com", true, false);
 
   test.done();
 };
@@ -80,14 +80,14 @@ exports.testDomainRestrictedBlockingFilters = function(test)
 
 exports.testDomainRestrictedHidingRules = function(test)
 {
-  testActive(test, "example.com#foo", null, false, false);
-  testActive(test, "example.com#foo", "com", false, true);
-  testActive(test, "example.com#foo", "example.com", true, true);
-  testActive(test, "example.com#foo", "example.com.", false, false);
-  testActive(test, "example.com.#foo", "example.com", false, false);
-  testActive(test, "example.com.#foo", "example.com.", true, true);
-  testActive(test, "example.com#foo", "foo.example.com", true, false);
-  testActive(test, "example.com#foo", "mple.com", false, false);
+  testActive(test, "example.com##foo", null, false, false);
+  testActive(test, "example.com##foo", "com", false, true);
+  testActive(test, "example.com##foo", "example.com", true, true);
+  testActive(test, "example.com##foo", "example.com.", false, false);
+  testActive(test, "example.com.##foo", "example.com", false, false);
+  testActive(test, "example.com.##foo", "example.com.", true, true);
+  testActive(test, "example.com##foo", "foo.example.com", true, false);
+  testActive(test, "example.com##foo", "mple.com", false, false);
 
   test.done();
 };
@@ -106,12 +106,12 @@ exports.testBlockingFiltersRestrictedToDomainAndItsSubdomain = function(test)
 
 exports.testHidingRulesRestrictedToDomainAndItsSubdomain = function(test)
 {
-  testActive(test, "example.com,foo.example.com#foo", null, false, false);
-  testActive(test, "example.com,foo.example.com#foo", "com", false, true);
-  testActive(test, "example.com,foo.example.com#foo", "example.com", true, true);
-  testActive(test, "example.com,foo.example.com#foo", "example.com.", false, false);
-  testActive(test, "example.com,foo.example.com#foo", "foo.example.com", true, false);
-  testActive(test, "example.com,foo.example.com#foo", "mple.com", false, false);
+  testActive(test, "example.com,foo.example.com##foo", null, false, false);
+  testActive(test, "example.com,foo.example.com##foo", "com", false, true);
+  testActive(test, "example.com,foo.example.com##foo", "example.com", true, true);
+  testActive(test, "example.com,foo.example.com##foo", "example.com.", false, false);
+  testActive(test, "example.com,foo.example.com##foo", "foo.example.com", true, false);
+  testActive(test, "example.com,foo.example.com##foo", "mple.com", false, false);
 
   test.done();
 };
@@ -130,12 +130,12 @@ exports.testBlockingFiltersWithExceptionForASubdomain = function(test)
 
 exports.testHidingRulesWithExceptionForASubdomain = function(test)
 {
-  testActive(test, "~foo.example.com#foo", null, true, false);
-  testActive(test, "~foo.example.com#foo", "com", true, false);
-  testActive(test, "~foo.example.com#foo", "example.com", true, false);
-  testActive(test, "~foo.example.com#foo", "example.com.", true, false);
-  testActive(test, "~foo.example.com#foo", "foo.example.com", false, false);
-  testActive(test, "~foo.example.com#foo", "mple.com", true, false);
+  testActive(test, "~foo.example.com##foo", null, true, false);
+  testActive(test, "~foo.example.com##foo", "com", true, false);
+  testActive(test, "~foo.example.com##foo", "example.com", true, false);
+  testActive(test, "~foo.example.com##foo", "example.com.", true, false);
+  testActive(test, "~foo.example.com##foo", "foo.example.com", false, false);
+  testActive(test, "~foo.example.com##foo", "mple.com", true, false);
 
   test.done();
 };
@@ -154,12 +154,12 @@ exports.testBlockingFiltersForDomainButNotItsSubdomain = function(test)
 
 exports.testHidingRulesForDomainButNotItsSubdomain = function(test)
 {
-  testActive(test, "example.com,~foo.example.com#foo", null, false, false);
-  testActive(test, "example.com,~foo.example.com#foo", "com", false, true);
-  testActive(test, "example.com,~foo.example.com#foo", "example.com", true, true);
-  testActive(test, "example.com,~foo.example.com#foo", "example.com.", false, false);
-  testActive(test, "example.com,~foo.example.com#foo", "foo.example.com", false, false);
-  testActive(test, "example.com,~foo.example.com#foo", "mple.com", false, false);
+  testActive(test, "example.com,~foo.example.com##foo", null, false, false);
+  testActive(test, "example.com,~foo.example.com##foo", "com", false, true);
+  testActive(test, "example.com,~foo.example.com##foo", "example.com", true, true);
+  testActive(test, "example.com,~foo.example.com##foo", "example.com.", false, false);
+  testActive(test, "example.com,~foo.example.com##foo", "foo.example.com", false, false);
+  testActive(test, "example.com,~foo.example.com##foo", "mple.com", false, false);
 
   test.done();
 };
@@ -178,12 +178,12 @@ exports.testBlockingFiltersForDomainButNotItsTLD = function(test)
 
 exports.testHidingRulesForDomainButNotItsTLD = function(test)
 {
-  testActive(test, "example.com,~com#foo", null, false, false);
-  testActive(test, "example.com,~com#foo", "com", false, true);
-  testActive(test, "example.com,~com#foo", "example.com", true, true);
-  testActive(test, "example.com,~com#foo", "example.com.", false, false);
-  testActive(test, "example.com,~com#foo", "foo.example.com", true, false);
-  testActive(test, "example.com,~com#foo", "mple.com", false, false);
+  testActive(test, "example.com,~com##foo", null, false, false);
+  testActive(test, "example.com,~com##foo", "com", false, true);
+  testActive(test, "example.com,~com##foo", "example.com", true, true);
+  testActive(test, "example.com,~com##foo", "example.com.", false, false);
+  testActive(test, "example.com,~com##foo", "foo.example.com", true, false);
+  testActive(test, "example.com,~com##foo", "mple.com", false, false);
 
   test.done();
 };
@@ -202,13 +202,12 @@ exports.testBlockingFiltersRestrictedToAnUnrelatedDomain = function(test)
 
 exports.testHidingRulesRestrictedToAnUnrelatedDomain = function(test)
 {
-  testActive(test, "nnnnnnn.nnn#foo", null, false, false);
-  testActive(test, "nnnnnnn.nnn#foo", "com", false, false);
-  testActive(test, "nnnnnnn.nnn#foo", "example.com", false, false);
-  testActive(test, "nnnnnnn.nnn#foo", "example.com.", false, false);
-  testActive(test, "nnnnnnn.nnn#foo", "foo.example.com", false, false);
-  testActive(test, "nnnnnnn.nnn#foo", "mple.com", false, false);
+  testActive(test, "nnnnnnn.nnn##foo", null, false, false);
+  testActive(test, "nnnnnnn.nnn##foo", "com", false, false);
+  testActive(test, "nnnnnnn.nnn##foo", "example.com", false, false);
+  testActive(test, "nnnnnnn.nnn##foo", "example.com.", false, false);
+  testActive(test, "nnnnnnn.nnn##foo", "foo.example.com", false, false);
+  testActive(test, "nnnnnnn.nnn##foo", "mple.com", false, false);
 
   test.done();
 };
-

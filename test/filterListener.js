@@ -114,10 +114,10 @@ exports.testAddingAndRemovingFilters = function(test)
 {
   let filter1 = Filter.fromText("filter1");
   let filter2 = Filter.fromText("@@filter2");
-  let filter3 = Filter.fromText("#filter3");
+  let filter3 = Filter.fromText("##filter3");
   let filter4 = Filter.fromText("!filter4");
   let filter5 = Filter.fromText("#@#filter5");
-  let filter6 = Filter.fromText("example.com##[-abp-properties='filter6']");
+  let filter6 = Filter.fromText("example.com#?#:-abp-properties(filter6')");
   let filter7 = Filter.fromText("example.com#@#[-abp-properties='filter7']");
 
   FilterStorage.addFilter(filter1);
@@ -125,13 +125,13 @@ exports.testAddingAndRemovingFilters = function(test)
   FilterStorage.addFilter(filter2);
   checkKnownFilters(test, "add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
   FilterStorage.addFilter(filter3);
-  checkKnownFilters(test, "add #filter3", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text]});
+  checkKnownFilters(test, "add ##filter3", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text]});
   FilterStorage.addFilter(filter4);
   checkKnownFilters(test, "add !filter4", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text]});
   FilterStorage.addFilter(filter5);
   checkKnownFilters(test, "add #@#filter5", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text]});
   FilterStorage.addFilter(filter6);
-  checkKnownFilters(test, "add example.com##[-abp-properties='filter6']", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters(test, "add example.com##:-abp-properties(filter6)", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], elemhideemulation: [filter6.text]});
   FilterStorage.addFilter(filter7);
   checkKnownFilters(test, "add example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
@@ -151,9 +151,9 @@ exports.testDisablingEnablingFiltersNotInTheList = function(test)
 {
   let filter1 = Filter.fromText("filter1");
   let filter2 = Filter.fromText("@@filter2");
-  let filter3 = Filter.fromText("#filter3");
+  let filter3 = Filter.fromText("##filter3");
   let filter4 = Filter.fromText("#@#filter4");
-  let filter5 = Filter.fromText("example.com##[-abp-properties='filter5']");
+  let filter5 = Filter.fromText("example.com#?#:-abp-properties(filter5)");
   let filter6 = Filter.fromText("example.com#@#[-abp-properties='filter6']");
 
   filter1.disabled = true;
@@ -167,9 +167,9 @@ exports.testDisablingEnablingFiltersNotInTheList = function(test)
   checkKnownFilters(test, "enable @@filter2 while not in list", {});
 
   filter3.disabled = true;
-  checkKnownFilters(test, "disable #filter3 while not in list", {});
+  checkKnownFilters(test, "disable ##filter3 while not in list", {});
   filter3.disabled = false;
-  checkKnownFilters(test, "enable #filter3 while not in list", {});
+  checkKnownFilters(test, "enable ##filter3 while not in list", {});
 
   filter4.disabled = true;
   checkKnownFilters(test, "disable #@#filter4 while not in list", {});
@@ -177,9 +177,9 @@ exports.testDisablingEnablingFiltersNotInTheList = function(test)
   checkKnownFilters(test, "enable #@#filter4 while not in list", {});
 
   filter5.disabled = true;
-  checkKnownFilters(test, "disable example.com##[-abp-properties='filter5'] while not in list", {});
+  checkKnownFilters(test, "disable example.com#?#:-abp-properties(filter5) while not in list", {});
   filter5.disabled = false;
-  checkKnownFilters(test, "enable example.com##[-abp-properties='filter5'] while not in list", {});
+  checkKnownFilters(test, "enable example.com#?#:-abp-properties(filter5) while not in list", {});
 
   filter6.disabled = true;
   checkKnownFilters(test, "disable example.com#@#[-abp-properties='filter6'] while not in list", {});
@@ -194,17 +194,17 @@ exports.testFilterSubscriptionOperations = function(test)
   let filter1 = Filter.fromText("filter1");
   let filter2 = Filter.fromText("@@filter2");
   filter2.disabled = true;
-  let filter3 = Filter.fromText("#filter3");
+  let filter3 = Filter.fromText("##filter3");
   let filter4 = Filter.fromText("!filter4");
   let filter5 = Filter.fromText("#@#filter5");
-  let filter6 = Filter.fromText("example.com##[-abp-properties='filter6']");
+  let filter6 = Filter.fromText("example.com#?#:-abp-properties(filter6)");
   let filter7 = Filter.fromText("example.com#@#[-abp-properties='filter7']");
 
   let subscription = Subscription.fromURL("http://test1/");
   subscription.filters = [filter1, filter2, filter3, filter4, filter5, filter6, filter7];
 
   FilterStorage.addSubscription(subscription);
-  checkKnownFilters(test, "add subscription with filter1, @@filter2, #filter3, !filter4, #@#filter5, example.com##[-abp-properties='filter6'], example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters(test, "add subscription with filter1, @@filter2, ##filter3, !filter4, #@#filter5, example.com#?#:-abp-properties(filter6), example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   filter2.disabled = false;
   checkKnownFilters(test, "enable @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
