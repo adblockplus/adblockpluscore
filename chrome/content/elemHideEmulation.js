@@ -246,6 +246,8 @@ function PropsSelector(propertyExpression)
 }
 
 PropsSelector.prototype = {
+  preferHideWithSelector: true,
+
   *findPropsSelectors(styles, prefix, regexp)
   {
     for (let style of styles)
@@ -376,7 +378,8 @@ ElemHideEmulation.prototype = {
       for (let selector of evaluate(pattern.selectors,
                                     0, "", document, cssStyles))
       {
-        if (!pattern.selectors.some(s => s.requiresHiding))
+        if (pattern.selectors.some(s => s.preferHideWithSelector) &&
+            !pattern.selectors.some(s => s.requiresHiding))
         {
           selectors.push(selector);
           selectorFilters.push(pattern.text);

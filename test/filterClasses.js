@@ -348,7 +348,7 @@ exports.testElemHideEmulationFilters = function(test)
 
   // Check some special cases
   compareFilter(test, "#?#:-abp-properties(abc)", ["type=invalid", "text=#?#:-abp-properties(abc)", "reason=filter_elemhideemulation_nodomain"]);
-  compareFilter(test, "foo.com#?#abc", ["type=invalid", "text=foo.com#?#abc", "reason=filter_elemhideemulation_plainselector"]);
+  compareFilter(test, "foo.com#?#abc", ["type=elemhideemulation", "text=foo.com#?#abc", "selectorDomain=foo.com", "selector=abc", "domains=FOO.COM"]);
   compareFilter(test, "foo.com#?#:-abp-foobar(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-foobar(abc)", "selectorDomain=foo.com", "selector=:-abp-foobar(abc)", "domains=FOO.COM"]);
   compareFilter(test, "foo.com#?#aaa :-abp-properties(abc) bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomain=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=FOO.COM"]);
   compareFilter(test, "foo.com#?#:-abp-properties(|background-image: url(data:*))", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(|background-image: url(data:*))", "selectorDomain=foo.com", "selector=:-abp-properties(|background-image: url(data:*))", "domains=FOO.COM"]);
@@ -357,7 +357,7 @@ exports.testElemHideEmulationFilters = function(test)
   compareFilter(test, "foo.com##[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(abc)", "selectorDomain=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM"]);
   test.equal(Filter.fromText("foo.com##[-abp-properties='abc']"), Filter.fromText("foo.com#?#:-abp-properties(abc)"));
   compareFilter(test, "foo.com#@#[-abp-properties='abc']", ["type=elemhideexception", "text=foo.com#@#[-abp-properties='abc']", "selectorDomain=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com#?#[-abp-properties='abc']", ["type=invalid", "text=foo.com#?#[-abp-properties='abc']", "reason=filter_elemhideemulation_plainselector"]);
+  compareFilter(test, "foo.com#?#[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#[-abp-properties='abc']", "selectorDomain=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM"]);
   compareFilter(test, "foo.com##aaa [-abp-properties='abc'] bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomain=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=FOO.COM"]);
 
   // test matching -abp-properties= (https://issues.adblockplus.org/ticket/5037).
