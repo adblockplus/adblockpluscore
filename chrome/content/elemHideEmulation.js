@@ -130,61 +130,6 @@ function parseSelectorContent(content, startIndex)
   return {text: content.substring(startIndex, i), end: i};
 }
 
-/** Parse the selector
- * @param {string} selector the selector to parse
- * @return {Object} selectors is an array of objects,
- * or null in case of errors. hide is true if we'll hide
- * elements instead of styles..
- */
-function parseSelector(selector)
-{
-  if (selector.length == 0)
-    return [];
-
-  let match = abpSelectorRegexp.exec(selector);
-  if (!match)
-    return [new PlainSelector(selector)];
-
-  let selectors = [];
-  if (match.index > 0)
-    selectors.push(new PlainSelector(selector.substr(0, match.index)));
-
-  let startIndex = match.index + match[0].length;
-  let content = parseSelectorContent(selector, startIndex);
-  if (!content)
-  {
-    reportError(new SyntaxError("Failed to parse Adblock Plus " +
-                                `selector ${selector}, ` +
-                                "due to unmatched parentheses."));
-    return null;
-  }
-  if (match[1] == "properties")
-    selectors.push(new PropsSelector(content.text));
-  else if (match[1] == "has")
-  {
-    let hasSelector = new HasSelector(content.text);
-    if (!hasSelector.valid())
-      return null;
-    selectors.push(hasSelector);
-  }
-  else
-  {
-    // this is an error, can't parse selector.
-    reportError(new SyntaxError("Failed to parse Adblock Plus " +
-                                `selector ${selector}, invalid ` +
-                                `pseudo-class :-abp-${match[1]}().`));
-    return null;
-  }
-
-  let suffix = parseSelector(selector.substr(content.end + 1));
-  if (suffix == null)
-    return null;
-
-  selectors.push(...suffix);
-
-  return selectors;
-}
-
 /** Stringified style objects
  * @typedef {Object} StringifiedStyle
  * @property {string} style CSS style represented by a string.
@@ -246,18 +191,13 @@ PlainSelector.prototype = {
 
 const incompletePrefixRegexp = /[\s>+~]$/;
 
-function HasSelector(selector)
+function HasSelector(selectors)
 {
-  this._innerSelectors = parseSelector(selector);
+  this._innerSelectors = selectors;
 }
 
 HasSelector.prototype = {
   requiresHiding: true,
-
-  valid()
-  {
-    return this._innerSelectors != null;
-  },
 
   *getSelectors(prefix, subtree, styles)
   {
@@ -344,6 +284,62 @@ ElemHideEmulation.prototype = {
     }
   },
 
+  /** Parse the selector
+   * @param {string} selector the selector to parse
+   * @return {Array} selectors is an array of objects,
+   * or null in case of errors.
+   */
+  parseSelector(selector)
+  {
+    if (selector.length == 0)
+      return [];
+
+    let match = abpSelectorRegexp.exec(selector);
+    if (!match)
+      return [new PlainSelector(selector)];
+
+    let selectors = [];
+    if (match.index > 0)
+      selectors.push(new PlainSelector(selector.substr(0, match.index)));
+
+    let startIndex = match.index + match[0].length;
+    let content = parseSelectorContent(selector, startIndex);
+    if (!content)
+    {
+      this.window.console.error(
+        new SyntaxError("Failed to parse Adblock Plus " +
+                        `selector ${selector} ` +
+                        "due to unmatched parentheses."));
+      return null;
+    }
+    if (match[1] == "properties")
+      selectors.push(new PropsSelector(content.text));
+    else if (match[1] == "has")
+    {
+      let hasSelectors = this.parseSelector(content.text);
+      if (hasSelectors == null)
+        return null;
+      selectors.push(new HasSelector(hasSelectors));
+    }
+    else
+    {
+      // this is an error, can't parse selector.
+      this.window.console.error(
+        new SyntaxError("Failed to parse Adblock Plus " +
+                        `selector ${selector}, invalid ` +
+                        `pseudo-class :-abp-${match[1]}().`));
+      return null;
+    }
+
+    let suffix = this.parseSelector(selector.substr(content.end + 1));
+    if (suffix == null)
+      return null;
+
+    selectors.push(...suffix);
+
+    return selectors;
+  },
+
   addSelectors(stylesheets)
   {
     let selectors = [];
@@ -411,13 +407,10 @@ ElemHideEmulation.prototype = {
   {
     this.getFiltersFunc(patterns =>
     {
-      let oldReportError = reportError;
-      reportError = error => this.window.console.error(error);
-
       this.patterns = [];
       for (let pattern of patterns)
       {
-        let selectors = parseSelector(pattern.selector);
+        let selectors = this.parseSelector(pattern.selector);
         if (selectors != null && selectors.length > 0)
           this.patterns.push({selectors, text: pattern.text});
       }
@@ -428,7 +421,6 @@ ElemHideEmulation.prototype = {
         this.addSelectors(document.styleSheets);
         document.addEventListener("load", this.onLoad.bind(this), true);
       }
-      reportError = oldReportError;
     });
   }
 };
