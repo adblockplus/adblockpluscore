@@ -387,8 +387,11 @@ ElemHideEmulation.prototype = {
 
     let cssStyles = [];
 
-    for (let stylesheet of stylesheets)
+    // Chrome < 51 doesn't have an iterable StyleSheetList
+    // https://issues.adblockplus.org/ticket/5381
+    for (let i = 0; i < stylesheets.length; i++)
     {
+      let stylesheet = stylesheets[i];
       // Explicitly ignore third-party stylesheets to ensure consistent behavior
       // between Firefox and Chrome.
       if (!this.isSameOrigin(stylesheet))
