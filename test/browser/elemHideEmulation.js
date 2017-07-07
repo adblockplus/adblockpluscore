@@ -89,17 +89,20 @@ function createElementWithStyle(styleBlock, parent)
 }
 
 // Will ensure the class ElemHideEmulation is loaded.
-// NOTE: if it never loads, this will probably hang.
-function loadElemHideEmulation()
+// Pass true when it calls itself.
+function loadElemHideEmulation(inside)
 {
   if (typeof ElemHideEmulation == "undefined")
   {
+    if (inside)
+      return Promise.reject("Failed to load ElemHideEmulation.");
+
     return loadScript(myUrl + "/../../../lib/common.js").then(() =>
     {
       return loadScript(myUrl + "/../../../chrome/content/elemHideEmulation.js");
     }).then(() =>
     {
-      return loadElemHideEmulation();
+      return loadElemHideEmulation(true);
     });
   }
 
