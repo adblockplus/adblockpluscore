@@ -21,8 +21,6 @@
 
 const abpSelectorRegexp = /:-abp-([\w-]+)\(/i;
 
-let reportError = () => {};
-
 function splitSelector(selector)
 {
   if (selector.indexOf(",") == -1)
