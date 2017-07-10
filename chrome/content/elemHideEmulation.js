@@ -19,6 +19,7 @@
 
 "use strict";
 
+const MIN_INVOCATION_INTERVAL = 3000;
 const abpSelectorRegexp = /:-abp-([\w-]+)\(/i;
 
 function splitSelector(selector)
@@ -197,6 +198,11 @@ function HasSelector(selectors)
 HasSelector.prototype = {
   requiresHiding: true,
 
+  get dependsOnStyles()
+  {
+    return this._innerSelectors.some(selector => selector.dependsOnStyles);
+  },
+
   *getSelectors(prefix, subtree, styles)
   {
     for (let element of this.getElements(prefix, subtree, styles))
@@ -270,6 +276,7 @@ function PropsSelector(propertyExpression)
 
 PropsSelector.prototype = {
   preferHideWithSelector: true,
+  dependsOnStyles: true,
 
   *findPropsSelectors(styles, prefix, regexp)
   {
@@ -375,8 +382,20 @@ ElemHideEmulation.prototype = {
     return selectors;
   },
 
+  _lastInvocation: 0,
+
+  /**
+   * Processes the current document and applies all rules to it.
+   * @param {CSSStyleSheet[]} [stylesheets]
+   *    The list of new stylesheets that have been added to the document and
+   *    made reprocessing necessary. This parameter shouldn't be passed in for
+   *    the initial processing, all of document's stylesheets will be considered
+   *    then and all rules, including the ones not dependent on styles.
+   */
   addSelectors(stylesheets)
   {
+    this._lastInvocation = Date.now();
+
     let selectors = [];
     let selectorFilters = [];
 
@@ -384,6 +403,10 @@ ElemHideEmulation.prototype = {
     let elementFilters = [];
 
     let cssStyles = [];
+
+    let stylesheetOnlyChange = !!stylesheets;
+    if (!stylesheets)
+      stylesheets = this.window.document.styleSheets;
 
     // Chrome < 51 doesn't have an iterable StyleSheetList
     // https://issues.adblockplus.org/ticket/5381
@@ -411,6 +434,12 @@ ElemHideEmulation.prototype = {
     let {document} = this.window;
     for (let pattern of this.patterns)
     {
+      if (stylesheetOnlyChange &&
+          !pattern.selectors.some(selector => selector.dependsOnStyles))
+      {
+        continue;
+      }
+
       for (let selector of evaluate(pattern.selectors,
                                     0, "", document, cssStyles))
       {
@@ -435,11 +464,30 @@ ElemHideEmulation.prototype = {
     this.hideElemsFunc(elements, elementFilters);
   },
 
+  _stylesheetQueue: null,
+
   onLoad(event)
   {
     let stylesheet = event.target.sheet;
     if (stylesheet)
-      this.addSelectors([stylesheet]);
+    {
+      if (!this._stylesheetQueue &&
+          Date.now() - this._lastInvocation < MIN_INVOCATION_INTERVAL)
+      {
+        this._stylesheetQueue = [];
+        this.window.setTimeout(() =>
+        {
+          let stylesheets = this._stylesheetQueue;
+          this._stylesheetQueue = null;
+          this.addSelectors(stylesheets);
+        }, MIN_INVOCATION_INTERVAL - (Date.now() - this._lastInvocation));
+      }
+
+      if (this._stylesheetQueue)
+        this._stylesheetQueue.push(stylesheet);
+      else
+        this.addSelectors([stylesheet]);
+    }
   },
 
   apply()
@@ -457,7 +505,7 @@ ElemHideEmulation.prototype = {
       if (this.patterns.length > 0)
       {
         let {document} = this.window;
-        this.addSelectors(document.styleSheets);
+        this.addSelectors();
         document.addEventListener("load", this.onLoad.bind(this), true);
       }
     });
