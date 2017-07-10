@@ -261,11 +261,13 @@ exports.testDynamicallyChangedProperty = function(test)
     insertStyleRule("#" + toHide.id + " {background-color: #000}");
     return new Promise((resolve, reject) =>
     {
+      // Re-evaluation will only happen after a few seconds
+      expectVisible(test, toHide);
       window.setTimeout(() =>
       {
         expectHidden(test, toHide);
         resolve();
-      }, 0);
+      }, 4000);
     });
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
