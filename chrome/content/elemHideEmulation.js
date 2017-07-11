@@ -189,6 +189,7 @@ PlainSelector.prototype = {
 };
 
 const incompletePrefixRegexp = /[\s>+~]$/;
+const relativeSelectorRegexp = /^[>+~]/;
 
 function HasSelector(selectors)
 {
@@ -224,8 +225,19 @@ HasSelector.prototype = {
     {
       let iter = evaluate(this._innerSelectors, 0, "", element, styles);
       for (let selector of iter)
-        if (element.querySelector(selector))
-          yield element;
+      {
+        if (relativeSelectorRegexp.test(selector))
+          selector = ":scope" + selector;
+        try
+        {
+          if (element.querySelector(selector))
+            yield element;
+        }
+        catch (e)
+        {
+          // :scope isn't supported on Edge, ignore error caused by it.
+        }
+      }
     }
   }
 };

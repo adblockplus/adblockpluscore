@@ -367,7 +367,7 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingChild = function(test)
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
-function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector)
+function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector, expectations)
 {
   document.body.innerHTML = `<div id="parent">
       <div id="middle">
@@ -380,12 +380,14 @@ function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector
         <div id="sibling21"><div id="sibling211" class="inside"></div></div>
       </div>
     </div>`;
-  let parent = document.getElementById("parent");
-  let middle = document.getElementById("middle");
-  let inside = document.getElementById("inside");
-  let sibling = document.getElementById("sibling");
-  let sibling2 = document.getElementById("sibling2");
-  let toHide = document.getElementById("tohide");
+  let elems = {
+    parent: document.getElementById("parent"),
+    middle: document.getElementById("middle"),
+    inside: document.getElementById("inside"),
+    sibling: document.getElementById("sibling"),
+    sibling2: document.getElementById("sibling2"),
+    toHide: document.getElementById("tohide")
+  };
 
   insertStyleRule(".inside {}");
 
@@ -393,18 +395,57 @@ function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector
     [selector]
   ).then(() =>
   {
-    expectVisible(test, parent);
-    expectVisible(test, middle);
-    expectVisible(test, inside);
-    expectVisible(test, sibling);
-    expectVisible(test, sibling2);
-    expectHidden(test, toHide);
+    for (let elem in expectations)
+      if (elems[elem])
+      {
+        if (expectations[elem])
+          expectVisible(test, elems[elem]);
+        else
+          expectHidden(test, elems[elem]);
+      }
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 }
 
 exports.testPseudoClassHasSelectorWithHasAndWithSuffixSibling = function(test)
 {
-  runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, "div:-abp-has(:-abp-has(div.inside)) + div > div");
+  let expectations = {
+    parent: true,
+    middile: true,
+    inside: true,
+    sibling: true,
+    sibling2: true,
+    toHide: false
+  };
+  runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(
+    test, "div:-abp-has(:-abp-has(div.inside)) + div > div", expectations);
+};
+
+exports.testPseudoClassHasSelectorWithHasAndWithSuffixSibling2 = function(test)
+{
+  let expectations = {
+    parent: true,
+    middile: true,
+    inside: true,
+    sibling: true,
+    sibling2: true,
+    toHide: false
+  };
+  runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(
+    test, "div:-abp-has(:-abp-has(> div.inside)) + div > div", expectations);
+};
+
+exports.testPseudoClassHasSelectorWithSuffixSiblingNoop = function(test)
+{
+  let expectations = {
+    parent: true,
+    middile: true,
+    inside: true,
+    sibling: true,
+    sibling2: true,
+    toHide: true
+  };
+  runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(
+    test, "div:-abp-has(> body div.inside) + div > div", expectations);
 };
 
 exports.testPseudoClassContains = function(test)
