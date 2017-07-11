@@ -222,13 +222,9 @@ HasSelector.prototype = {
     let elements = subtree.querySelectorAll(actualPrefix);
     for (let element of elements)
     {
-      let newPrefix = makeSelector(element, "");
-      let iter = evaluate(this._innerSelectors, 0, newPrefix + " ",
-                          element, styles);
+      let iter = evaluate(this._innerSelectors, 0, "", element, styles);
       for (let selector of iter)
-        // we insert a space between the two. It becomes a no-op if selector
-        // doesn't have a combinator
-        if (subtree.querySelector(selector))
+        if (element.querySelector(selector))
           yield element;
     }
   }

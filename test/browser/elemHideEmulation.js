@@ -392,11 +392,6 @@ exports.testPseudoClassHasSelectorWithHasAndWithSuffixSibling = function(test)
   runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, "div:-abp-has(:-abp-has(div.inside)) + div > div");
 };
 
-exports.testPseudoClassHasSelectorWithHasAndWithSuffixSibling2 = function(test)
-{
-  runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, "div:-abp-has(:-abp-has(> div.inside)) + div > div");
-};
-
 exports.testPseudoClassContains = function(test)
 {
   document.body.innerHTML = `<div id="parent">
@@ -434,6 +429,20 @@ exports.testPseudoClassHasSelectorWithPropSelector = function(test)
 {
   let parent = createElementWithStyle("{}");
   let child = createElementWithStyle("{background-color: #000}", parent);
+  applyElemHideEmulation(
+    ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"]
+  ).then(() =>
+  {
+    expectVisible(test, child);
+    expectHidden(test, parent);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testPseudoClassHasSelectorWithPropSelector2 = function(test)
+{
+  let parent = createElementWithStyle("{}");
+  let child = createElementWithStyle("{}", parent);
+  insertStyleRule("body #" + parent.id + " > div { background-color: #000}");
   applyElemHideEmulation(
     ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"]
   ).then(() =>
