@@ -19,18 +19,35 @@
 
 const {ElemHideEmulation} = require("../../lib/content/elemHideEmulation");
 
-exports.tearDown = function(callback)
-{
-  let styleElements = document.head.getElementsByTagName("style");
-  while (styleElements.length)
-    styleElements[0].parentNode.removeChild(styleElements[0]);
+const REFRESH_INTERVAL = 200;
 
-  let child;
-  while (child = document.body.firstChild)
-    child.parentNode.removeChild(child);
+let testDocument = null;
+
+exports.setUp = function(callback)
+{
+  let iframe = document.createElement("iframe");
+  document.body.appendChild(iframe);
+  testDocument = iframe.contentDocument;
 
   callback();
 };
+
+exports.tearDown = function(callback)
+{
+  let iframe = testDocument.defaultView.frameElement;
+  iframe.parentNode.removeChild(iframe);
+  testDocument = null;
+
+  callback();
+};
+
+function timeout(delay)
+{
+  return new Promise((resolve, reject) =>
+  {
+    window.setTimeout(resolve, delay);
+  });
+}
 
 function unexpectedError(error)
 {
@@ -53,7 +70,7 @@ function expectVisible(test, element)
 function findUniqueId()
 {
   let id = "elemHideEmulationTest-" + Math.floor(Math.random() * 10000);
-  if (!document.getElementById(id))
+  if (!testDocument.getElementById(id))
     return id;
   return findUniqueId();
 }
@@ -61,13 +78,13 @@ function findUniqueId()
 function insertStyleRule(rule)
 {
   let styleElement;
-  let styleElements = document.head.getElementsByTagName("style");
+  let styleElements = testDocument.head.getElementsByTagName("style");
   if (styleElements.length)
     styleElement = styleElements[0];
   else
   {
-    styleElement = document.createElement("style");
-    document.head.appendChild(styleElement);
+    styleElement = testDocument.createElement("style");
+    testDocument.head.appendChild(styleElement);
   }
   styleElement.sheet.insertRule(rule, styleElement.sheet.cssRules.length);
 }
@@ -76,10 +93,10 @@ function insertStyleRule(rule)
 // for the the selector matching the id.
 function createElementWithStyle(styleBlock, parent)
 {
-  let element = document.createElement("div");
+  let element = testDocument.createElement("div");
   element.id = findUniqueId();
   if (!parent)
-    document.body.appendChild(element);
+    testDocument.body.appendChild(element);
   else
     parent.appendChild(element);
   insertStyleRule("#" + element.id + " " + styleBlock);
@@ -92,7 +109,7 @@ function applyElemHideEmulation(selectors)
   return Promise.resolve().then(() =>
   {
     let elemHideEmulation = new ElemHideEmulation(
-      window,
+      testDocument.defaultView,
       callback =>
       {
         let patterns = [];
@@ -116,6 +133,7 @@ function applyElemHideEmulation(selectors)
       }
     );
 
+    elemHideEmulation.MIN_INVOCATION_INTERVAL = REFRESH_INTERVAL / 2;
     elemHideEmulation.apply();
     return elemHideEmulation;
   });
@@ -239,16 +257,16 @@ exports.testDynamicallyChangedProperty = function(test)
   {
     expectVisible(test, toHide);
     insertStyleRule("#" + toHide.id + " {background-color: #000}");
-    return new Promise((resolve, reject) =>
-    {
-      // Re-evaluation will only happen after a few seconds
-      expectVisible(test, toHide);
-      window.setTimeout(() =>
-      {
-        expectHidden(test, toHide);
-        resolve();
-      }, 4000);
-    });
+
+    return timeout(0);
+  }).then(() =>
+  {
+    // Re-evaluation will only happen after a delay
+    expectVisible(test, toHide);
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectHidden(test, toHide);
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -346,7 +364,7 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingChild = function(test)
 
 function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector, expectations)
 {
-  document.body.innerHTML = `<div id="parent">
+  testDocument.body.innerHTML = `<div id="parent">
       <div id="middle">
         <div id="middle1"><div id="inside" class="inside"></div></div>
       </div>
@@ -358,12 +376,12 @@ function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector
       </div>
     </div>`;
   let elems = {
-    parent: document.getElementById("parent"),
-    middle: document.getElementById("middle"),
-    inside: document.getElementById("inside"),
-    sibling: document.getElementById("sibling"),
-    sibling2: document.getElementById("sibling2"),
-    toHide: document.getElementById("tohide")
+    parent: testDocument.getElementById("parent"),
+    middle: testDocument.getElementById("middle"),
+    inside: testDocument.getElementById("inside"),
+    sibling: testDocument.getElementById("sibling"),
+    sibling2: testDocument.getElementById("sibling2"),
+    toHide: testDocument.getElementById("tohide")
   };
 
   insertStyleRule(".inside {}");
@@ -427,7 +445,7 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingNoop = function(test)
 
 exports.testPseudoClassContains = function(test)
 {
-  document.body.innerHTML = `<div id="parent">
+  testDocument.body.innerHTML = `<div id="parent">
       <div id="middle">
         <div id="middle1"><div id="inside" class="inside"></div></div>
       </div>
@@ -438,12 +456,12 @@ exports.testPseudoClassContains = function(test)
         <div id="sibling21"><div id="sibling211" class="inside"></div></div>
       </div>
     </div>`;
-  let parent = document.getElementById("parent");
-  let middle = document.getElementById("middle");
-  let inside = document.getElementById("inside");
-  let sibling = document.getElementById("sibling");
-  let sibling2 = document.getElementById("sibling2");
-  let toHide = document.getElementById("tohide");
+  let parent = testDocument.getElementById("parent");
+  let middle = testDocument.getElementById("middle");
+  let inside = testDocument.getElementById("inside");
+  let sibling = testDocument.getElementById("sibling");
+  let sibling2 = testDocument.getElementById("sibling2");
+  let toHide = testDocument.getElementById("tohide");
 
   applyElemHideEmulation(
     ["#parent div:-abp-contains(to hide)"]
@@ -482,5 +500,99 @@ exports.testPseudoClassHasSelectorWithPropSelector2 = function(test)
   {
     expectVisible(test, child);
     expectHidden(test, parent);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testDomUpdatesStyle = function(test)
+{
+  let parent = createElementWithStyle("{}");
+  let child = createElementWithStyle("{}", parent);
+  applyElemHideEmulation(
+    ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"]
+  ).then(() =>
+  {
+    expectVisible(test, child);
+    expectVisible(test, parent);
+
+    insertStyleRule("body #" + parent.id + " > div { background-color: #000}");
+    return timeout(0);
+  }).then(() =>
+  {
+    expectVisible(test, child);
+    expectVisible(test, parent);
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectVisible(test, child);
+    expectHidden(test, parent);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testDomUpdatesContent = function(test)
+{
+  let parent = createElementWithStyle("{}");
+  let child = createElementWithStyle("{}", parent);
+  applyElemHideEmulation(
+    ["div > div:-abp-contains(hide me)"]
+  ).then(() =>
+  {
+    expectVisible(test, parent);
+    expectVisible(test, child);
+
+    child.textContent = "hide me";
+    return timeout(0);
+  }).then(() =>
+  {
+    expectVisible(test, parent);
+    expectVisible(test, child);
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectVisible(test, parent);
+    expectHidden(test, child);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testDomUpdatesNewElement = function(test)
+{
+  let parent = createElementWithStyle("{}");
+  let child = createElementWithStyle("{ background-color: #000}", parent);
+  let sibling;
+  let child2;
+  applyElemHideEmulation(
+    ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"]
+  ).then(() =>
+  {
+    expectHidden(test, parent);
+    expectVisible(test, child);
+
+    sibling = createElementWithStyle("{}");
+    return timeout(0);
+  }).then(() =>
+  {
+    expectHidden(test, parent);
+    expectVisible(test, child);
+    expectVisible(test, sibling);
+
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectHidden(test, parent);
+    expectVisible(test, child);
+    expectVisible(test, sibling);
+
+    child2 = createElementWithStyle("{ background-color: #000}",
+                                    sibling);
+    return timeout(0);
+  }).then(() =>
+  {
+    expectVisible(test, child2);
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectHidden(test, parent);
+    expectVisible(test, child);
+    expectHidden(test, sibling);
+    expectVisible(test, child2);
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
