@@ -279,7 +279,12 @@ PropsSelector.prototype = {
     for (let style of styles)
       if (regexp.test(style.style))
         for (let subSelector of style.subSelectors)
+        {
+          let idx = subSelector.lastIndexOf("::");
+          if (idx != -1)
+            subSelector = subSelector.substr(0, idx);
           yield prefix + subSelector;
+        }
   },
 
   *getSelectors(prefix, subtree, styles)

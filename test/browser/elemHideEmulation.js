@@ -275,6 +275,21 @@ exports.testDynamicallyChangedProperty = function(test)
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
+exports.testPseudoClassWithPropBeforeSelector = function(test)
+{
+  let parent = createElementWithStyle("{}");
+  let child = createElementWithStyle("{background-color: #000}", parent);
+  insertStyleRule(`#${child.id}::before {content: "publicite"}`);
+
+  applyElemHideEmulation(
+    ["div:-abp-properties(content: \"publicite\")"]
+  ).then(() =>
+  {
+    expectHidden(test, child);
+    expectVisible(test, parent);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
 exports.testPseudoClassHasSelector = function(test)
 {
   let toHide = createElementWithStyle("{}");
