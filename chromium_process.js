@@ -26,8 +26,8 @@ const https = require("https");
 const os = require("os");
 const path = require("path");
 
-const extractZip = require("extract-zip");
 const remoteInterface = require("chrome-remote-interface");
+const extractZip = require("extract-zip");
 
 const CHROMIUM_REVISION = 467222;
 
