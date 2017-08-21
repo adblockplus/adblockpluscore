@@ -7,9 +7,12 @@
     "chrome-remote-interface": "^0.20.0",
     "eslint": "^3.19.0",
     "eslint-config-eyeo": "1.0.4",
+    "extract-zip": "1.6.5",
+    "memory-fs": "0.4.1",
     "nodeunit": "0.9.1",
     "sandboxed-module": "2.0.3",
-    "extract-zip": "1.6.5"
+    "script-loader": "0.7.0",
+    "webpack": "3.5.4"
   },
   "scripts": {
     "eslint": "eslint *.js lib test chrome",

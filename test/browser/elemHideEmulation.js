@@ -17,9 +17,7 @@
 
 "use strict";
 
-/* globals ElemHideEmulation */
-
-let myUrl = document.currentScript.src;
+const {ElemHideEmulation} = require("../../lib/content/elemHideEmulation");
 
 exports.tearDown = function(callback)
 {
@@ -74,7 +72,7 @@ function insertStyleRule(rule)
   styleElement.sheet.insertRule(rule, styleElement.sheet.cssRules.length);
 }
 
-// insert a <div> with a unique id and a CSS rule
+// Insert a <div> with a unique id and a CSS rule
 // for the the selector matching the id.
 function createElementWithStyle(styleBlock, parent)
 {
@@ -88,31 +86,10 @@ function createElementWithStyle(styleBlock, parent)
   return element;
 }
 
-// Will ensure the class ElemHideEmulation is loaded.
-// Pass true when it calls itself.
-function loadElemHideEmulation(inside)
-{
-  if (typeof ElemHideEmulation == "undefined")
-  {
-    if (inside)
-      return Promise.reject("Failed to load ElemHideEmulation.");
-
-    return loadScript(myUrl + "/../../../lib/common.js").then(() =>
-    {
-      return loadScript(myUrl + "/../../../chrome/content/elemHideEmulation.js");
-    }).then(() =>
-    {
-      return loadElemHideEmulation(true);
-    });
-  }
-
-  return Promise.resolve();
-}
-
 // Create a new ElemHideEmulation instance with @selectors.
 function applyElemHideEmulation(selectors)
 {
-  return loadElemHideEmulation().then(() =>
+  return Promise.resolve().then(() =>
   {
     let elemHideEmulation = new ElemHideEmulation(
       window,
@@ -140,7 +117,7 @@ function applyElemHideEmulation(selectors)
     );
 
     elemHideEmulation.apply();
-    return Promise.resolve(elemHideEmulation);
+    return elemHideEmulation;
   });
 }
 

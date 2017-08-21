@@ -18,124 +18,79 @@
 "use strict";
 
 /* globals nodeunit */
+require("nodeunit");
 
-(function(nodeunitUrl, ...moduleUrls)
+function runTests(moduleNames)
 {
-  function loadScript(doc, url)
+  function bold(str)
   {
-    return new Promise((resolve, reject) =>
-    {
-      let script = doc.createElement("script");
-      script.src = url;
-      script.onload = resolve;
-      doc.head.appendChild(script);
-    });
+    return "\u001B[1m" + str + "\u001B[22m";
   }
 
-  function loadModules(urls)
+  function ok(str)
   {
-    let modules = {};
+    return "\u001B[32m" + str + "\u001B[39m";
+  }
 
-    return (function loadNext()
-    {
-      if (urls.length)
+  function error(str)
+  {
+    return "\u001B[31m" + str + "\u001B[39m";
+  }
+
+  let tests = {};
+  for (let module of moduleNames)
+    tests[module] = nodeunit.testCase(require("./" + module + ".js"));
+
+  return new Promise((resolve, reject) =>
+  {
+    nodeunit.runModules(tests, {
+      moduleStart(name)
       {
-        // Load each module into a new frame so that their scopes don't clash
-        let frame = document.createElement("iframe");
-        document.body.appendChild(frame);
+        console.log(bold(name));
+      },
+      testDone(name, assertions)
+      {
+        let errors = assertions.filter(assertion => assertion.failed())
+                               .map(assertion => assertion.error);
 
-        let wnd = frame.contentWindow;
-        wnd.loadScript = url => loadScript(wnd.document, url);
-        wnd.exports = {};
-        wnd.module = {exports: wnd.exports};
-
-        let url = urls.shift();
-        let name = url.split("/").pop();
-        return wnd.loadScript(url).then(() =>
+        if (errors.length == 0)
+          console.log("\u2714 " + name);
+        else
         {
-          modules[name] = nodeunit.testCase(wnd.module.exports);
-          return loadNext();
-        });
-      }
-
-      return Promise.resolve(modules);
-    })();
-  }
-
-  function runTests(modules)
-  {
-    function bold(str)
-    {
-      return "\u001B[1m" + str + "\u001B[22m";
-    }
-
-    function ok(str)
-    {
-      return "\u001B[32m" + str + "\u001B[39m";
-    }
-
-    function error(str)
-    {
-      return "\u001B[31m" + str + "\u001B[39m";
-    }
-
-    return new Promise((resolve, reject) =>
-    {
-      nodeunit.runModules(modules, {
-        moduleStart(name)
-        {
-          console.log(bold(name));
-        },
-        testDone(name, assertions)
-        {
-          let errors = assertions.filter(assertion => assertion.failed())
-                                 .map(assertion => assertion.error);
-
-          if (errors.length == 0)
-            console.log("\u2714 " + name);
-          else
+          console.log(error("\u2716 " + name) + "\n");
+          errors.forEach(e =>
           {
-            console.log(error("\u2716 " + name) + "\n");
-            errors.forEach(e =>
-            {
-              if (e.stack)
-                console.log(e.stack);
-              else
-                console.log(String(e));
-              console.log("");
-            });
-          }
-        },
-        done(assertions)
-        {
-          let failures = assertions.filter(assertion => assertion.failed());
-          if (failures.length)
-          {
-            console.log(
-              "\n" +
-              bold(error("FAILURES: ")) +
-              failures.length + "/" + assertions.length + " assertions failed"
-            );
-          }
-          else
-          {
-            console.log(
-              "\n" + bold(ok("OK: ")) +
-              assertions.length + " assertions"
-            );
-          }
-
-          resolve();
+            if (e.stack)
+              console.log(e.stack);
+            else
+              console.log(String(e));
+            console.log("");
+          });
         }
-      });
-    });
-  }
+      },
+      done(assertions)
+      {
+        let failures = assertions.filter(assertion => assertion.failed());
+        if (failures.length)
+        {
+          console.log(
+            "\n" +
+            bold(error("FAILURES: ")) +
+            failures.length + "/" + assertions.length + " assertions failed"
+          );
+        }
+        else
+        {
+          console.log(
+            "\n" + bold(ok("OK: ")) +
+            assertions.length + " assertions"
+          );
+        }
 
-  return loadScript(document, nodeunitUrl).then(() =>
-  {
-    return loadModules(moduleUrls);
-  }).then(modules =>
-  {
-    return runTests(modules);
+        resolve();
+      }
+    });
   });
-});
+}
+
+module.exports = runTests;

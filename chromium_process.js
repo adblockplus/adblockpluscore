@@ -26,8 +26,8 @@ const https = require("https");
 const os = require("os");
 const path = require("path");
 
-const remoteInterface = require("chrome-remote-interface");
 const extractZip = require("extract-zip");
+const remoteInterface = require("chrome-remote-interface");
 
 const CHROMIUM_REVISION = 467222;
 
@@ -248,13 +248,13 @@ function connectRemoteInterface(attempt)
   });
 }
 
-function runBootstrap(initialPage, bootstrapPath, bootstrapArgs)
+function runScript(script, scriptName, scriptArgs)
 {
   return connectRemoteInterface().then(async client =>
   {
     try
     {
-      let {Runtime, Log, Console, Page} = client;
+      let {Runtime, Log, Console} = client;
 
       await Log.enable();
       Log.entryAdded(({entry}) =>
@@ -268,36 +268,34 @@ function runBootstrap(initialPage, bootstrapPath, bootstrapArgs)
         reportMessage(message.text, message.level);
       });
 
-      await Page.navigate({url: initialPage});
-
       await Runtime.enable();
       let compileResult = await Runtime.compileScript({
-        expression: fs.readFileSync(bootstrapPath, "utf-8"),
-        sourceURL: bootstrapPath,
+        expression: script,
+        sourceURL: scriptName,
         persistScript: true
       });
       if (compileResult.exceptionDetails)
-        throwException(compileResult.exceptionDetails, bootstrapPath);
+        throwException(compileResult.exceptionDetails, scriptName);
 
       let runResult = await Runtime.runScript({
         scriptId: compileResult.scriptId
       });
       if (runResult.exceptionDetails)
-        throwException(runResult.exceptionDetails, bootstrapPath);
+        throwException(runResult.exceptionDetails, scriptName);
 
       let callResult = await Runtime.callFunctionOn({
         objectId: runResult.result.objectId,
-        functionDeclaration: "function(...args) {return this(...args);}",
-        arguments: bootstrapArgs.map(url => ({value: url}))
+        functionDeclaration: "function(...args) { return this(...args); }",
+        arguments: scriptArgs.map(arg => ({value: arg}))
       });
       if (callResult.exceptionDetails)
-        throwException(callResult.exceptionDetails, bootstrapPath);
+        throwException(callResult.exceptionDetails, scriptName);
 
       let promiseResult = await Runtime.awaitPromise({
         promiseObjectId: callResult.result.objectId
       });
       if (promiseResult.exceptionDetails)
-        throwException(promiseResult.exceptionDetails, bootstrapPath);
+        throwException(promiseResult.exceptionDetails, scriptName);
     }
     finally
     {
@@ -306,14 +304,14 @@ function runBootstrap(initialPage, bootstrapPath, bootstrapArgs)
   });
 }
 
-module.exports = function(initialPage, bootstrapPath, bootstrapArgs)
+module.exports = function(script, scriptName, ...scriptArgs)
 {
   return ensureChromium().then(chromiumPath =>
   {
     let child = startChromium(chromiumPath);
     return Promise.race([
       child.done,
-      runBootstrap(initialPage, bootstrapPath, bootstrapArgs)
+      runScript(script, scriptName, scriptArgs)
     ]).then(result =>
     {
       child.kill();

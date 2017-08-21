@@ -21,9 +21,10 @@
 
 const fs = require("fs");
 const path = require("path");
-const url = require("url");
 
+const MemoryFS = require("memory-fs");
 const nodeunit = require("nodeunit");
+const webpack = require("webpack");
 
 const chromiumProcess = require("./chromium_process");
 
@@ -56,12 +57,38 @@ function addTestPaths(testPaths, recurse)
   }
 }
 
-function getFileURL(filePath)
+function webpackInMemory(bundleFilename, options)
 {
-  return url.format({
-    protocol: "file",
-    slashes: "true",
-    pathname: path.resolve(process.cwd(), filePath).split(path.sep).join("/")
+  return new Promise((resolve, reject) =>
+  {
+    // Based on this example
+    // https://webpack.js.org/api/node/#custom-file-systems
+    let memoryFS = new MemoryFS();
+
+    options.output = {filename: bundleFilename, path: "/"};
+    let webpackCompiler = webpack(options);
+    webpackCompiler.outputFileSystem = memoryFS;
+
+    webpackCompiler.run((err, stats) =>
+    {
+      // Error handling is based on this example
+      // https://webpack.js.org/api/node/#error-handling
+      if (err)
+      {
+        let reason = err.stack || err;
+        if (err.details)
+          reason += "\n" + err.details;
+        reject(reason);
+      }
+      else if (stats.hasErrors())
+        reject(stats.toJson().errors);
+      else
+      {
+        let bundle = memoryFS.readFileSync("/" + bundleFilename, "utf-8");
+        memoryFS.unlinkSync("/" + bundleFilename);
+        resolve(bundle);
+      }
+    });
   });
 }
 
@@ -70,20 +97,39 @@ function runBrowserTests()
   if (!browserFiles.length)
     return;
 
-  // Navigate to this directory because about:blank won't be allowed to load
-  // file:/// URLs.
-  let initialPage = getFileURL(__dirname);
-  let bootstrapPath = path.join(__dirname, "test", "browser",
-                                "_bootstrap.js");
-  let nodeunitPath = path.join(
-    path.dirname(require.resolve("nodeunit")),
-    "examples", "browser", "nodeunit.js"
-  );
-  let args = [
-    getFileURL(nodeunitPath),
-    ...browserFiles.map(getFileURL)
-  ];
-  return chromiumProcess(initialPage, bootstrapPath, args);
+  let nodeunitPath = path.join(__dirname, "node_modules", "nodeunit",
+                               "examples", "browser", "nodeunit.js");
+  let bundleFilename = "bundle.js";
+
+  return webpackInMemory(bundleFilename, {
+    entry: path.join(__dirname, "test", "browser", "_bootstrap.js"),
+    module: {
+      rules: [{
+        resource: nodeunitPath,
+        // I would have rather used exports-loader here, to avoid treating
+        // nodeunit as a global. Unfortunately the nodeunit browser example
+        // script is quite slopily put together, if exports isn't falsey it
+        // breaks! As a workaround we need to use script-loader, which means
+        // that exports is falsey for that script as a side-effect.
+        use: ["script-loader"]
+      }]
+    },
+    resolve: {
+      alias: {
+        nodeunit$: nodeunitPath
+      },
+      modules: [path.resolve(__dirname, "lib")]
+    }
+  }).then(bundle =>
+  {
+    return chromiumProcess(
+      bundle, bundleFilename,
+      browserFiles.map(
+        file => path.relative(path.join(__dirname, "test", "browser"),
+                              file).replace(/\.js$/, "")
+      )
+    );
+  });
 }
 
 if (process.argv.length > 2)

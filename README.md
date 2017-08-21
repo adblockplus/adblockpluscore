@@ -23,7 +23,7 @@ dependencies.
 ### Running specific tests
 
 You can specify specific test files or directories on the command line, e.g.:
-`npm test test/synchronizer.js test/browser/elemHideEmulation.html`.
+`npm test test/synchronizer.js test/browser/elemHideEmulation.js`.
 
 ### Running the browser tests in a real browser
 
