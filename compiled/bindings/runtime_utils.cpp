@@ -12,6 +12,13 @@ extern "C"
     new (str) DependentString(data, len);
   }
 
+  void BINDINGS_EXPORTED InitOwnedString(OwnedString* str)
+  {
+    // String is already allocated on stack, we merely need to call
+    // constructor.
+    new (str) OwnedString();
+  }
+
   void BINDINGS_EXPORTED DestroyString(OwnedString* str)
   {
     // Stack memory will be freed automatically, we need to call

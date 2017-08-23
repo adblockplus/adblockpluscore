@@ -222,14 +222,22 @@ namespace bindings_internal
                                                   "Runtime.getTempRet0(), " +
                                                   "true);\n";
       case TypeCategory::DEPENDENT_STRING:
-      case TypeCategory::OWNED_STRING:
       {
         std::string result;
         result += "  var string = createString();\n";
         result += "  " + call_str + ";\n";
         result += "  var result = readString(string);\n";
-        if (call.returnType == TypeCategory::OWNED_STRING)
-          result += "  Module._DestroyString(string);\n";
+        // We don't call a destructor here because we know that dependent
+        // strings don't need to clean up.
+        return result;
+      }
+      case TypeCategory::OWNED_STRING:
+      {
+        std::string result;
+        result += "  var string = createOwnedString();\n";
+        result += "  " + call_str + ";\n";
+        result += "  var result = readString(string);\n";
+        result += "  Module._DestroyString(string);\n";
         return result;
       }
       case TypeCategory::STRING_REF:
@@ -337,6 +345,13 @@ namespace bindings_internal
 
         var result = Runtime.stackAlloc(sizeofString);
         Module._InitString(result, buffer, length);
+        return result;
+      }
+
+      function createOwnedString()
+      {
+        var result = Runtime.stackAlloc(sizeofString);
+        Module._InitOwnedString(result);
         return result;
       }
 
