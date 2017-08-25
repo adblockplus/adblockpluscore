@@ -10,7 +10,9 @@ let Prefs = exports.Prefs = {
   subscriptions_fallbackurl: "",
   notificationurl: "http://example.com/notification.json",
   notificationdata: {},
-  notifications_ignoredcategories: []
+  notifications_ignoredcategories: [],
+  blocked_total: 10,
+  show_statsinpopup: true
 };
 
 for (let key of Object.keys(Prefs))

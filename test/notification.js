@@ -140,6 +140,30 @@ exports.testNoType = function(test)
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
+function testTargetSelectionFunc(propName, value, result)
+{
+  return function(test)
+  {
+    let targetInfo = {};
+    targetInfo[propName] = value;
+
+    let information = {
+      id: 1,
+      type: "information",
+      message: {"en-US": "Information"},
+      targets: [targetInfo]
+    };
+
+    registerHandler.call(this, [information]);
+    this.runScheduledTasks(1).then(() =>
+    {
+      let expected = (result ? [information] : []);
+      test.deepEqual(showNotifications(), expected, "Selected notification for " + JSON.stringify(information.targets));
+      test.deepEqual(showNotifications(), [], "No notification on second call");
+    }).catch(unexpectedError.bind(test)).then(() => test.done());
+  };
+}
+
 exports.testTargetSelection = {};
 
 for (let [propName, value, result] of [
@@ -174,29 +198,36 @@ for (let [propName, value, result] of [
   ["platformMaxVersion", "12.0", true],
   ["platformMaxVersion", "12", true],
   ["platformMaxVersion", "13", true],
-  ["platformMaxVersion", "11", false]
+  ["platformMaxVersion", "11", false],
+  ["blockedTotalMin", "11", false],
+  ["blockedTotalMin", "10", true],
+  ["blockedTotalMax", "10", true],
+  ["blockedTotalMax", "1", false]
 ])
 {
-  exports.testTargetSelection[`${propName}=${value}`] = function(test)
+  exports.testTargetSelection[`${propName}=${value}`] = testTargetSelectionFunc(propName, value, result);
+}
+
+exports.testTargetSelectionNoShowStats = {
+
+  setUp(callback)
   {
-    let targetInfo = {};
-    targetInfo[propName] = value;
-
-    let information = {
-      id: 1,
-      type: "information",
-      message: {"en-US": "Information"},
-      targets: [targetInfo]
-    };
-
-    registerHandler.call(this, [information]);
-    this.runScheduledTasks(1).then(() =>
-    {
-      let expected = (result ? [information] : []);
-      test.deepEqual(showNotifications(), expected, "Selected notification for " + JSON.stringify(information.targets));
-      test.deepEqual(showNotifications(), [], "No notification on second call");
-    }).catch(unexpectedError.bind(test)).then(() => test.done());
-  };
+    this.show_statsinpopup_orig = Prefs.show_statsinpopup;
+    Prefs.show_statsinpopup = false;
+    callback();
+  },
+  tearDown(callback)
+  {
+    Prefs.show_statsinpopup = this.show_statsinpopup_orig;
+    callback();
+  }
+};
+for (let [propName, value, result] of [
+  ["blockedTotalMin", "10", false],
+  ["blockedTotalMax", "10", false]
+])
+{
+  exports.testTargetSelectionNoShowStats[`${propName}=${value}`] = testTargetSelectionFunc(propName, value, result);
 }
 
 exports.testMultipleTargets = {};
