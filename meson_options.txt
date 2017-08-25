@@ -1,0 +1,2 @@
+option('tracing', type: 'boolean', value: false)
+option('emscripten-config', type: 'string', value: '~/.emscripten')

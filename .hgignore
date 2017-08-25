@@ -1,8 +1,7 @@
 ^node_modules$
 ^chromium-snapshots$
+^build$
 
 syntax: glob
 *.symbols
-compiled/bindings.cpp.js
-compiled/bindings.js
 lib/compiled.js

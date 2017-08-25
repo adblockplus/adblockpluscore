@@ -19,12 +19,26 @@ via Empscripten.
 
 * [Emscripten 1.37.3](https://github.com/kripken/emscripten)
 * [Python 2.7](https://www.python.org)
+* [meson 0.40.0+](https://www.mesonbuild.com)
+* [ninja](https://www.ninja-build.org)
+
+Make sure that meson and ninja are in your PATH.
 
 ### Running Emscripten
 
-After installing and configuring Emscripten you can run the following command:
+After installing and configuring Emscripten you can setup the build
+with the following commands:
 
-    python compile
+    meson build
+
+By default it will create a debug build. Pass `--buildtype release` to
+create a release build.
+
+Then to build just do:
+
+    ninja -C build
+
+This will regenerate the build files as needed.
 
 This will produce a `lib/compiled.js` exporting the classes defined in C++ code.
 
@@ -34,7 +48,7 @@ Compilation is currently a two-step process. In the bindings generation step,
 the source files are compiled into `compiled/bindings.cpp.js` with the
 `PRINT_BINDINGS` symbol defined. This application is then executed via Node.js
 and will print JavaScript wrappers for the C++ classes to
-`compiled/bindings.js` according to definitions within the `EMSCRIPTEN_BINDINGS`
+`build/bindings.js` according to definitions within the `EMSCRIPTEN_BINDINGS`
 macro in `compiled/bindings.cpp`.
 
 In the actual compilation step the source files are compiled into
