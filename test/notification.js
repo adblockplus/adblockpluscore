@@ -249,7 +249,7 @@ for (let [[propName1, value1, result1], [propName2, value2, result2]] of pairs([
   ["platform", "gecko", false],
   ["platformMinVersion", "12", true],
   ["platformMinVersion", "13", false],
-  ["unknown", "unknown", true]
+  ["unknown", "unknown", false]
 ]))
 {
   exports.testMultipleTargets[`${propName1}=${value1},${propName2}=${value2}`] = function(test)
