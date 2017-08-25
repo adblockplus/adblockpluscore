@@ -202,7 +202,11 @@ for (let [propName, value, result] of [
   ["blockedTotalMin", "11", false],
   ["blockedTotalMin", "10", true],
   ["blockedTotalMax", "10", true],
-  ["blockedTotalMax", "1", false]
+  ["blockedTotalMax", "1", false],
+  ["locales", ["en-US"], true],
+  ["locales", ["en-US", "de-DE"], true],
+  ["locales", ["de-DE"], false],
+  ["locales", ["en-GB", "de-DE"], false]
 ])
 {
   exports.testTargetSelection[`${propName}=${value}`] = testTargetSelectionFunc(propName, value, result);
