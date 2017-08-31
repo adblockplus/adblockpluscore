@@ -28,13 +28,13 @@ private:
 
 public:
   explicit UserDefinedSubscription(const String& id);
-  bool BINDINGS_EXPORTED IsDefaultFor(const Filter* filter) const;
-  void BINDINGS_EXPORTED MakeDefaultFor(const Filter* filter);
+  bool BINDINGS_EXPORTED IsDefaultFor(const Filter& filter) const;
+  void BINDINGS_EXPORTED MakeDefaultFor(const Filter& filter);
   bool BINDINGS_EXPORTED IsGeneric() const
   {
     return mDefaults == 0;
   }
-  void BINDINGS_EXPORTED InsertFilterAt(Filter* filter, unsigned pos);
+  void BINDINGS_EXPORTED InsertFilterAt(Filter& filter, unsigned pos);
   bool BINDINGS_EXPORTED RemoveFilterAt(unsigned pos);
   OwnedString BINDINGS_EXPORTED Serialize() const;
 };

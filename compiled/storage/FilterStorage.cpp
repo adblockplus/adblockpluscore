@@ -38,15 +38,15 @@ Subscription* FilterStorage::SubscriptionAt(FilterStorage::Subscriptions::size_t
   return result.release();
 }
 
-int FilterStorage::IndexOfSubscription(const Subscription* subscription) const
+int FilterStorage::IndexOfSubscription(const Subscription& subscription) const
 {
   for (Subscriptions::size_type i = 0; i < mSubscriptions.size(); i++)
-    if (mSubscriptions[i] == subscription)
+    if (mSubscriptions[i] == &subscription)
       return i;
   return -1;
 }
 
-Subscription* FilterStorage::GetSubscriptionForFilter(const Filter* filter) const
+Subscription* FilterStorage::GetSubscriptionForFilter(const Filter& filter) const
 {
   SubscriptionPtr fallback;
 
@@ -71,15 +71,13 @@ Subscription* FilterStorage::GetSubscriptionForFilter(const Filter* filter) cons
   return fallback.release();
 }
 
-bool FilterStorage::AddSubscription(Subscription* subscription)
+bool FilterStorage::AddSubscription(Subscription& subscription)
 {
-  assert(subscription, u"Attempt to add a null subscription"_str);
-
-  if (!subscription || subscription->GetListed())
+  if (subscription.GetListed())
     return false;
 
-  mSubscriptions.emplace_back(subscription);
-  subscription->SetListed(true);
+  mSubscriptions.emplace_back(&subscription);
+  subscription.SetListed(true);
 
   FilterNotifier::SubscriptionChange(
     FilterNotifier::Topic::SUBSCRIPTION_ADDED,
@@ -88,22 +86,20 @@ bool FilterStorage::AddSubscription(Subscription* subscription)
   return true;
 }
 
-bool FilterStorage::RemoveSubscription(Subscription* subscription)
+bool FilterStorage::RemoveSubscription(Subscription& subscription)
 {
-  assert(subscription, u"Attempt to remove a null subscription"_str);
-
-  if (!subscription || !subscription->GetListed())
+  if (!subscription.GetListed())
     return false;
 
   for (auto it = mSubscriptions.begin(); it != mSubscriptions.end(); ++it)
   {
-    if (*it == subscription)
+    if (*it == &subscription)
     {
       mSubscriptions.erase(it);
       break;
     }
   }
-  subscription->SetListed(false);
+  subscription.SetListed(false);
 
   FilterNotifier::SubscriptionChange(
     FilterNotifier::Topic::SUBSCRIPTION_REMOVED,
@@ -112,11 +108,9 @@ bool FilterStorage::RemoveSubscription(Subscription* subscription)
   return true;
 }
 
-bool FilterStorage::MoveSubscription(Subscription* subscription,
+bool FilterStorage::MoveSubscription(Subscription& subscription,
                                      const Subscription* insertBefore)
 {
-  assert(subscription, u"Attempt to move a null subscription"_str);
-
   int oldPos = IndexOfSubscription(subscription);
   assert(oldPos >= 0, u"Attempt to move a subscription that is not in the list"_str);
   if (oldPos == -1)
@@ -124,7 +118,7 @@ bool FilterStorage::MoveSubscription(Subscription* subscription,
 
   int newPos = -1;
   if (insertBefore)
-    newPos = IndexOfSubscription(insertBefore);
+    newPos = IndexOfSubscription(*insertBefore);
   if (newPos == -1)
     newPos = mSubscriptions.size();
 
@@ -135,7 +129,7 @@ bool FilterStorage::MoveSubscription(Subscription* subscription,
     return false;
 
   mSubscriptions.erase(mSubscriptions.begin() + oldPos);
-  mSubscriptions.emplace(mSubscriptions.begin() + newPos, subscription);
+  mSubscriptions.emplace(mSubscriptions.begin() + newPos, &subscription);
 
   FilterNotifier::SubscriptionChange(
     FilterNotifier::Topic::SUBSCRIPTION_MOVED,

@@ -38,11 +38,11 @@ public:
   Subscription* BINDINGS_EXPORTED SubscriptionAt(
       Subscriptions::size_type index) const;
   int BINDINGS_EXPORTED IndexOfSubscription(
-      const Subscription* subscription) const;
+      const Subscription& subscription) const;
   Subscription* BINDINGS_EXPORTED GetSubscriptionForFilter(
-      const Filter* filter) const;
-  bool BINDINGS_EXPORTED AddSubscription(Subscription* subscription);
-  bool BINDINGS_EXPORTED RemoveSubscription(Subscription* subscription);
-  bool BINDINGS_EXPORTED MoveSubscription(Subscription* subscription,
+      const Filter& filter) const;
+  bool BINDINGS_EXPORTED AddSubscription(Subscription& subscription);
+  bool BINDINGS_EXPORTED RemoveSubscription(Subscription& subscription);
+  bool BINDINGS_EXPORTED MoveSubscription(Subscription& subscription,
       const Subscription* insertBefore);
 };

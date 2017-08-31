@@ -48,10 +48,10 @@ Filter* Subscription::FilterAt(Subscription::Filters::size_type index)
   return result.release();
 }
 
-int Subscription::IndexOfFilter(Filter* filter)
+int Subscription::IndexOfFilter(const Filter& filter)
 {
   for (Filters::size_type i = 0; i < mFilters.size(); i++)
-    if (mFilters[i] == filter)
+    if (mFilters[i] == &filter)
       return i;
   return -1;
 }

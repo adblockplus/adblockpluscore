@@ -33,10 +33,10 @@ extern "C"
   void LogPointer(const void* ptr);
   void LogError(const String& str);
   char16_t CharToLower(char16_t charCode);
-  void JSNotifyFilterChange(FilterNotifier::Topic topic, Filter* filter,
+  void JSNotifyFilterChange(FilterNotifier::Topic topic, Filter& filter,
       Subscription* subscription, unsigned int position);
   void JSNotifySubscriptionChange(FilterNotifier::Topic topic,
-      Subscription* subscription);
+      Subscription& subscription);
   int GenerateRegExp(const String& regexp, bool matchCase);
   void DeleteRegExp(int id);
   bool TestRegExp(int id, const String& str);

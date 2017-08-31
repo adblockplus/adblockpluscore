@@ -43,7 +43,7 @@
           if (FilterNotifier::Topic::topic != FilterNotifier::Topic::NONE)\
           {\
             FilterNotifier::SubscriptionChange(FilterNotifier::Topic::topic,\
-                this);\
+                *this);\
           }\
         }\
       }
@@ -93,7 +93,7 @@ public:
   }
 
   Filter* BINDINGS_EXPORTED FilterAt(Filters::size_type index);
-  int BINDINGS_EXPORTED IndexOfFilter(Filter* filter);
+  int BINDINGS_EXPORTED IndexOfFilter(const Filter& filter);
   OwnedString BINDINGS_EXPORTED Serialize() const;
   OwnedString BINDINGS_EXPORTED SerializeFilters() const;
 

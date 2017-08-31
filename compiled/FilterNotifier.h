@@ -71,13 +71,13 @@ namespace FilterNotifier
     printf("]);");
   }
 
-  inline void FilterChange(Topic topic, Filter* filter,
+  inline void FilterChange(Topic topic, Filter& filter,
       Subscription* subscription = nullptr, unsigned int position = 0)
   {
     JSNotifyFilterChange(topic, filter, subscription, position);
   }
 
-  inline void SubscriptionChange(Topic topic, Subscription* subscription)
+  inline void SubscriptionChange(Topic topic, Subscription& subscription)
   {
     JSNotifySubscriptionChange(topic, subscription);
   }

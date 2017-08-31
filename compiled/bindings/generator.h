@@ -44,7 +44,8 @@ namespace bindings_internal
     DEPENDENT_STRING,
     OWNED_STRING,
     STRING_REF,
-    CLASS_PTR
+    CLASS_PTR,
+    CLASS_REF
   };
 
   template<typename T>
@@ -95,6 +96,9 @@ namespace bindings_internal
 
       if (std::is_pointer<T>() && std::is_class<typename std::remove_pointer<T>::type>())
         return TypeCategory::CLASS_PTR;
+
+      if (std::is_reference<T>() && std::is_class<typename std::remove_reference<T>::type>())
+        return TypeCategory::CLASS_REF;
 
       return TypeCategory::UNKNOWN;
     }

@@ -69,6 +69,7 @@ namespace bindings_internal
       case TypeCategory::INT64:
       case TypeCategory::STRING_REF:
       case TypeCategory::CLASS_PTR:
+      case TypeCategory::CLASS_REF:
         signature += 'i';
         break;
       default:
@@ -89,6 +90,7 @@ namespace bindings_internal
         case TypeCategory::INT:
         case TypeCategory::STRING_REF:
         case TypeCategory::CLASS_PTR:
+        case TypeCategory::CLASS_REF:
           signature += 'i';
           break;
         case TypeCategory::INT64:
@@ -245,6 +247,7 @@ namespace bindings_internal
       case TypeCategory::STRING_REF:
         return "  var result = readString(" + call_str + ");\n";
       case TypeCategory::CLASS_PTR:
+      case TypeCategory::CLASS_REF:
       {
         std::string result;
         result += "  var result = " + call_str + ";\n";
@@ -293,6 +296,8 @@ namespace bindings_internal
       }
       else if (call.args[i] == TypeCategory::CLASS_PTR)
         params.push_back(argName + " ? " + argName + "._pointer : 0");
+      else if (call.args[i] == TypeCategory::CLASS_REF)
+        params.push_back(argName + "._pointer");
       else if (call.args[i] == TypeCategory::INT64)
       {
         // 64-bit integers are passed as two integer parameters

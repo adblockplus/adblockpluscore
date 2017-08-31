@@ -52,36 +52,36 @@ UserDefinedSubscription::UserDefinedSubscription(const String& id)
 {
 }
 
-bool UserDefinedSubscription::IsDefaultFor(const Filter* filter) const
+bool UserDefinedSubscription::IsDefaultFor(const Filter& filter) const
 {
-  if (filter->mType >= Filter::Type::VALUE_COUNT)
+  if (filter.mType >= Filter::Type::VALUE_COUNT)
   {
     assert(false, "Filter type exceeds valid range");
     abort();
   }
-  return mDefaults & filterTypeToCategory[filter->mType];
+  return mDefaults & filterTypeToCategory[filter.mType];
 }
 
-void UserDefinedSubscription::MakeDefaultFor(const Filter* filter)
+void UserDefinedSubscription::MakeDefaultFor(const Filter& filter)
 {
-  if (filter->mType >= Filter::Type::VALUE_COUNT)
+  if (filter.mType >= Filter::Type::VALUE_COUNT)
   {
     assert(false, "Filter type exceeds valid range");
     abort();
   }
-  mDefaults |= filterTypeToCategory[filter->mType];
+  mDefaults |= filterTypeToCategory[filter.mType];
 }
 
-void UserDefinedSubscription::InsertFilterAt(Filter* filter, unsigned pos)
+void UserDefinedSubscription::InsertFilterAt(Filter& filter, unsigned pos)
 {
   if (pos >= mFilters.size())
     pos = mFilters.size();
-  mFilters.emplace(mFilters.begin() + pos, filter);
+  mFilters.emplace(mFilters.begin() + pos, &filter);
 
   if (GetListed())
   {
-    FilterNotifier::FilterChange(FilterNotifier::Topic::FILTER_ADDED, filter, this,
-        pos);
+    FilterNotifier::FilterChange(FilterNotifier::Topic::FILTER_ADDED, filter,
+        this, pos);
   }
 }
 
@@ -95,7 +95,7 @@ bool UserDefinedSubscription::RemoveFilterAt(unsigned pos)
   if (GetListed())
   {
     FilterNotifier::FilterChange(FilterNotifier::Topic::FILTER_REMOVED,
-        filter.get(), this, pos);
+        *filter.get(), this, pos);
   }
   return true;
 }

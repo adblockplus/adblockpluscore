@@ -37,7 +37,7 @@
           name = value;\
           if (FilterNotifier::Topic::topic != FilterNotifier::Topic::NONE)\
           {\
-            FilterNotifier::FilterChange(FilterNotifier::Topic::topic, this);\
+            FilterNotifier::FilterChange(FilterNotifier::Topic::topic, *this);\
           }\
         }\
       }
