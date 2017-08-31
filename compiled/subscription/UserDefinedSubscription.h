@@ -28,15 +28,15 @@ private:
 
 public:
   explicit UserDefinedSubscription(const String& id);
-  BINDINGS_EXPORTED bool IsDefaultFor(const Filter* filter) const;
-  BINDINGS_EXPORTED void MakeDefaultFor(const Filter* filter);
-  BINDINGS_EXPORTED bool IsGeneric() const
+  bool BINDINGS_EXPORTED IsDefaultFor(const Filter* filter) const;
+  void BINDINGS_EXPORTED MakeDefaultFor(const Filter* filter);
+  bool BINDINGS_EXPORTED IsGeneric() const
   {
     return mDefaults == 0;
   }
-  BINDINGS_EXPORTED void InsertFilterAt(Filter* filter, unsigned pos);
-  BINDINGS_EXPORTED bool RemoveFilterAt(unsigned pos);
-  BINDINGS_EXPORTED OwnedString Serialize() const;
+  void BINDINGS_EXPORTED InsertFilterAt(Filter* filter, unsigned pos);
+  bool BINDINGS_EXPORTED RemoveFilterAt(unsigned pos);
+  OwnedString BINDINGS_EXPORTED Serialize() const;
 };
 
 template<>

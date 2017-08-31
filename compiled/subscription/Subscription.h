@@ -77,7 +77,7 @@ public:
 
   Type mType;
 
-  BINDINGS_EXPORTED const String& GetID() const
+  const BINDINGS_EXPORTED String& GetID() const
   {
     return mID;
   }
@@ -87,17 +87,17 @@ public:
         GetDisabled, SetDisabled);
   SUBSCRIPTION_PROPERTY(bool, mListed, NONE, GetListed, SetListed);
 
-  BINDINGS_EXPORTED Filters::size_type GetFilterCount() const
+  Filters::size_type BINDINGS_EXPORTED GetFilterCount() const
   {
     return mFilters.size();
   }
 
-  BINDINGS_EXPORTED Filter* FilterAt(Filters::size_type index);
-  BINDINGS_EXPORTED int IndexOfFilter(Filter* filter);
-  BINDINGS_EXPORTED OwnedString Serialize() const;
-  BINDINGS_EXPORTED OwnedString SerializeFilters() const;
+  Filter* BINDINGS_EXPORTED FilterAt(Filters::size_type index);
+  int BINDINGS_EXPORTED IndexOfFilter(Filter* filter);
+  OwnedString BINDINGS_EXPORTED Serialize() const;
+  OwnedString BINDINGS_EXPORTED SerializeFilters() const;
 
-  static BINDINGS_EXPORTED Subscription* FromID(const String& id);
+  static Subscription* BINDINGS_EXPORTED FromID(const String& id);
 
   template<typename T>
   T* As();

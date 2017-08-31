@@ -52,7 +52,7 @@ public:
   SUBSCRIPTION_PROPERTY(int, mDownloadCount, NONE,
       GetDownloadCount, SetDownloadCount);
 
-  BINDINGS_EXPORTED OwnedString Serialize() const;
+  OwnedString BINDINGS_EXPORTED Serialize() const;
 };
 
 template<>

@@ -108,6 +108,6 @@ public:
   static Type Parse(DependentString& text, DependentString& error,
       RegExpFilterData& data);
   static void GenerateCustomBindings();
-  BINDINGS_EXPORTED bool Matches(const String& location, int typeMask,
+  bool BINDINGS_EXPORTED Matches(const String& location, int typeMask,
       DependentString& docDomain, bool thirdParty, const String& sitekey) const;
 };

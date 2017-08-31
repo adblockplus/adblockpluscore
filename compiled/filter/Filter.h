@@ -48,14 +48,14 @@ public:
 
   Type mType;
 
-  BINDINGS_EXPORTED const String& GetText() const
+  const String& BINDINGS_EXPORTED GetText() const
   {
     return mText;
   }
 
-  BINDINGS_EXPORTED OwnedString Serialize() const;
+  OwnedString BINDINGS_EXPORTED Serialize() const;
 
-  static BINDINGS_EXPORTED Filter* FromText(DependentString& text);
+  static Filter* BINDINGS_EXPORTED FromText(DependentString& text);
 };
 
 typedef intrusive_ptr<Filter> FilterPtr;

@@ -24,7 +24,7 @@ class InvalidFilter : public Filter
 {
 public:
   explicit InvalidFilter(const String& text, const String& reason);
-  BINDINGS_EXPORTED const String& GetReason() const
+  const String& BINDINGS_EXPORTED GetReason() const
   {
     return mReason;
   };
