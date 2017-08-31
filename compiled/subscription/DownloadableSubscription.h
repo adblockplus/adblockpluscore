@@ -54,3 +54,12 @@ public:
 
   BINDINGS_EXPORTED OwnedString Serialize() const;
 };
+
+template<>
+inline DownloadableSubscription* Subscription::As<DownloadableSubscription>()
+{
+  if (mType != Type::DOWNLOADABLE)
+    return nullptr;
+
+  return static_cast<DownloadableSubscription*>(this);
+}

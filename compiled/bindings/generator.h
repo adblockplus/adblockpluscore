@@ -180,19 +180,24 @@ namespace bindings_internal
     std::vector<std::pair<int, std::string>> mapping;
   };
 
+  typedef std::vector<PropertyInfo> Properties;
+  typedef std::vector<MethodInfo> Methods;
+
   struct ClassInfo
   {
     TYPEID id;
     TYPEID baseClass;
     std::string name;
-    std::vector<PropertyInfo> properties;
-    std::vector<MethodInfo> methods;
+    Properties properties;
+    Methods methods;
     DifferentiatorInfo subclass_differentiator;
     ptrdiff_t ref_counted_offset;
+    FunctionInfo instanceGetter;
   };
 
   void register_class(const char* name, TYPEID classID, TYPEID baseClassID,
-                      ptrdiff_t ref_counted_offset);
+                      ptrdiff_t ref_counted_offset,
+                      const FunctionInfo& instanceGetter = FunctionInfo());
 
   void register_property(TYPEID classID, const char* name,
       const FunctionInfo& getter, const FunctionInfo& setter,
@@ -204,7 +209,8 @@ namespace bindings_internal
   void register_differentiator(TYPEID classID, size_t offset,
       std::vector<std::pair<int, std::string>>& mapping);
 
-  std::string wrapCall(const FunctionInfo& call, bool isFunction = true);
+  std::string wrapCall(const FunctionInfo& call, bool isFunction = true,
+      const FunctionInfo& instanceGetter = FunctionInfo());
 }
 
 template<typename ClassType,
@@ -284,6 +290,47 @@ public:
 
     bindings_internal::register_differentiator(
         bindings_internal::TypeInfo<ClassType>(), offset, mapping);
+    return *this;
+  }
+};
+
+template<typename ClassType>
+class singleton
+{
+public:
+  singleton(const char* name, ClassType* (*instanceGetter)())
+  {
+    bindings_internal::register_class(name,
+        bindings_internal::TypeInfo<ClassType>(),
+        bindings_internal::TypeInfo<bindings_internal::NoBaseClass>(),
+        0,
+        instanceGetter
+      );
+  }
+
+  template<typename FieldType>
+  const singleton& property(const char* name,
+      FieldType (ClassType::*getter)() const,
+      void (ClassType::*setter)(FieldType) = nullptr) const
+  {
+    bindings_internal::register_property(
+        bindings_internal::TypeInfo<ClassType>(), name, getter, setter);
+    return *this;
+  }
+
+  template<typename ReturnType, typename... Args>
+  const singleton& function(const char* name, ReturnType (ClassType::*method)(Args...)) const
+  {
+    bindings_internal::register_method(
+        bindings_internal::TypeInfo<ClassType>(), name, method);
+    return *this;
+  }
+
+  template<typename ReturnType, typename... Args>
+  const singleton& function(const char* name, ReturnType (ClassType::*method)(Args...) const) const
+  {
+    bindings_internal::register_method(
+        bindings_internal::TypeInfo<ClassType>(), name, method);
     return *this;
   }
 };

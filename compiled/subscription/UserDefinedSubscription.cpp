@@ -18,11 +18,13 @@
 #include <cstdlib>
 
 #include "UserDefinedSubscription.h"
+#include "../FilterNotifier.h"
 
 namespace
 {
   enum FilterCategory
   {
+    NONE = 0,
     WHITELIST = 1,
     BLOCKING = 2,
     ELEMHIDE = 4,
@@ -30,8 +32,8 @@ namespace
 
   const FilterCategory filterTypeToCategory[] = {
     FilterCategory::BLOCKING,   // UNKNOWN
-    FilterCategory::BLOCKING,   // INVALID
-    FilterCategory::BLOCKING,   // COMMENT
+    FilterCategory::NONE,       // INVALID
+    FilterCategory::NONE,       // COMMENT
     FilterCategory::BLOCKING,   // BLOCKING
     FilterCategory::WHITELIST,  // WHITELIST
     FilterCategory::ELEMHIDE,   // ELEMHIDE
@@ -73,9 +75,14 @@ void UserDefinedSubscription::MakeDefaultFor(const Filter* filter)
 void UserDefinedSubscription::InsertFilterAt(Filter* filter, unsigned pos)
 {
   if (pos >= mFilters.size())
-    mFilters.emplace_back(filter);
-  else
-    mFilters.emplace(mFilters.begin() + pos, filter);
+    pos = mFilters.size();
+  mFilters.emplace(mFilters.begin() + pos, filter);
+
+  if (GetListed())
+  {
+    FilterNotifier::FilterChange(FilterNotifier::Topic::FILTER_ADDED, filter, this,
+        pos);
+  }
 }
 
 bool UserDefinedSubscription::RemoveFilterAt(unsigned pos)
@@ -83,14 +90,20 @@ bool UserDefinedSubscription::RemoveFilterAt(unsigned pos)
   if (pos >= mFilters.size())
     return false;
 
+  FilterPtr filter(mFilters[pos]);
   mFilters.erase(mFilters.begin() + pos);
+  if (GetListed())
+  {
+    FilterNotifier::FilterChange(FilterNotifier::Topic::FILTER_REMOVED,
+        filter.get(), this, pos);
+  }
   return true;
 }
 
 OwnedString UserDefinedSubscription::Serialize() const
 {
   OwnedString result(Subscription::Serialize());
-  if (mDefaults)
+  if (!IsGeneric())
   {
     result.append(u"defaults="_str);
     if (mDefaults & FilterCategory::BLOCKING)

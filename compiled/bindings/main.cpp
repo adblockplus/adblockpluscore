@@ -33,6 +33,7 @@
 #include "../subscription/Subscription.h"
 #include "../subscription/DownloadableSubscription.h"
 #include "../subscription/UserDefinedSubscription.h"
+#include "../storage/FilterStorage.h"
 #include "../FilterNotifier.h"
 
 int main()
@@ -95,6 +96,7 @@ int main()
         .property("url", &Subscription::GetID)
         .property("title", &Subscription::GetTitle, &Subscription::SetTitle)
         .property("disabled", &Subscription::GetDisabled, &Subscription::SetDisabled)
+        .property("listed", &Subscription::GetListed)
         .property("filterCount", &Subscription::GetFilterCount)
         .function("filterAt", &Subscription::FilterAt)
         .function("indexOfFilter", &Subscription::IndexOfFilter)
@@ -109,6 +111,7 @@ int main()
     class_<UserDefinedSubscription,Subscription>("SpecialSubscription")
         .function("isDefaultFor", &UserDefinedSubscription::IsDefaultFor)
         .function("makeDefaultFor", &UserDefinedSubscription::MakeDefaultFor)
+        .function("isGeneric", &UserDefinedSubscription::IsGeneric)
         .function("insertFilterAt", &UserDefinedSubscription::InsertFilterAt)
         .function("removeFilterAt", &UserDefinedSubscription::RemoveFilterAt)
         .function("serialize", &UserDefinedSubscription::Serialize);
@@ -127,6 +130,15 @@ int main()
         .property("requiredVersion", &DownloadableSubscription::GetRequiredVersion, &DownloadableSubscription::SetRequiredVersion)
         .property("downloadCount", &DownloadableSubscription::GetDownloadCount, &DownloadableSubscription::SetDownloadCount)
         .function("serialize", &DownloadableSubscription::Serialize);
+
+    singleton<FilterStorage>("FilterStorage", &FilterStorage::GetInstance)
+        .property("subscriptionCount", &FilterStorage::GetSubscriptionCount)
+        .function("subscriptionAt", &FilterStorage::SubscriptionAt)
+        .function("indexOfSubscription", &FilterStorage::IndexOfSubscription)
+        .function("getSubscriptionForFilter", &FilterStorage::GetSubscriptionForFilter)
+        .function("addSubscription", &FilterStorage::AddSubscription)
+        .function("removeSubscription", &FilterStorage::RemoveSubscription)
+        .function("moveSubscription", &FilterStorage::MoveSubscription);
 
     printBindings();
     RegExpFilter::GenerateCustomBindings();

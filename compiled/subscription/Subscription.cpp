@@ -39,7 +39,7 @@ Subscription::~Subscription()
   knownSubscriptions.erase(mID);
 }
 
-Filter* Subscription::FilterAt(unsigned index)
+Filter* Subscription::FilterAt(Subscription::Filters::size_type index)
 {
   if (index >= mFilters.size())
     return nullptr;
@@ -50,7 +50,7 @@ Filter* Subscription::FilterAt(unsigned index)
 
 int Subscription::IndexOfFilter(Filter* filter)
 {
-  for (unsigned i = 0; i < mFilters.size(); i++)
+  for (Filters::size_type i = 0; i < mFilters.size(); i++)
     if (mFilters[i] == filter)
       return i;
   return -1;

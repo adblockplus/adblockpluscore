@@ -121,15 +121,18 @@ exports.testSubscriptionDefaults = function(test)
     ["elemhide", "##test"],
     ["elemhide", "#@#test"],
     ["elemhide", "foo##[-abp-properties='foo']"],
-    ["blocking", "!test"],
-    ["blocking", "/??/"],
+    ["", "!test"],
+    ["", "/??/"],
     ["blocking whitelist", "test", "@@test"],
     ["blocking elemhide", "test", "##test"]
   ];
 
   for (let [defaults, ...filters] of tests)
   {
-    compareSubscription(test, "~user~" + filters.join("~"), ["url=~user~" + filters.join("~"), "defaults= " + defaults], subscription =>
+    let expected = ["url=~user~" + filters.join("~")];
+    if (defaults)
+      expected.push("defaults= " + defaults);
+    compareSubscription(test, "~user~" + filters.join("~"), expected, subscription =>
     {
       for (let text of filters)
       {

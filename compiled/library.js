@@ -43,10 +43,12 @@ mergeInto(LibraryManager.library, {
     return String.fromCharCode(charCode).toLowerCase().charCodeAt(0);
   },
 
-  JSNotifyFilterChange: function(topic, filter)
+  JSNotifyFilterChange: function(topic, filter, subscription, position)
   {
+    if (subscription)
+      subscription = exports.Subscription.fromPointer(subscription);
     FilterNotifier.triggerListeners(notifierTopics.get(topic),
-        exports.Filter.fromPointer(filter));
+        exports.Filter.fromPointer(filter), subscription, position);
   },
 
   JSNotifySubscriptionChange: function(topic, subscription)

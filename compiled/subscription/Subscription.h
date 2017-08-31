@@ -57,9 +57,12 @@
 
 class Subscription : public ref_counted
 {
+public:
+  typedef std::vector<FilterPtr> Filters;
+
 protected:
   OwnedString mID;
-  std::vector<FilterPtr> mFilters;
+  Filters mFilters;
 
 public:
   enum Type
@@ -82,18 +85,22 @@ public:
   SUBSCRIPTION_STRING_PROPERTY(mTitle, SUBSCRIPTION_TITLE, GetTitle, SetTitle);
   SUBSCRIPTION_PROPERTY(bool, mDisabled, SUBSCRIPTION_DISABLED,
         GetDisabled, SetDisabled);
+  SUBSCRIPTION_PROPERTY(bool, mListed, NONE, GetListed, SetListed);
 
-  BINDINGS_EXPORTED unsigned GetFilterCount() const
+  BINDINGS_EXPORTED Filters::size_type GetFilterCount() const
   {
     return mFilters.size();
   }
 
-  BINDINGS_EXPORTED Filter* FilterAt(unsigned index);
+  BINDINGS_EXPORTED Filter* FilterAt(Filters::size_type index);
   BINDINGS_EXPORTED int IndexOfFilter(Filter* filter);
   BINDINGS_EXPORTED OwnedString Serialize() const;
   BINDINGS_EXPORTED OwnedString SerializeFilters() const;
 
   static BINDINGS_EXPORTED Subscription* FromID(const String& id);
+
+  template<typename T>
+  T* As();
 };
 
 typedef intrusive_ptr<Subscription> SubscriptionPtr;

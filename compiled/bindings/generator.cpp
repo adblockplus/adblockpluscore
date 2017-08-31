@@ -128,7 +128,8 @@ namespace bindings_internal
   }
 
   void register_class(const char* name, TYPEID classID, TYPEID baseClassID,
-                      ptrdiff_t ref_counted_offset)
+                      ptrdiff_t ref_counted_offset,
+                      const FunctionInfo& instanceGetter)
   {
     if (find_class(classID))
       throw std::runtime_error(std::string("Duplicate definition for class ") + name);
@@ -142,6 +143,7 @@ namespace bindings_internal
     classInfo.name = name;
     classInfo.subclass_differentiator.offset = SIZE_MAX;
     classInfo.ref_counted_offset = ref_counted_offset;
+    classInfo.instanceGetter = instanceGetter;
     classes.push_back(classInfo);
   }
 
@@ -247,7 +249,6 @@ namespace bindings_internal
         std::string result;
         result += "  var result = " + call_str + ";\n";
         result += "  if (result)\n";
-        result += "  {\n";
 
         const ClassInfo* cls = find_class(call.pointerType);
         if (!cls)
@@ -259,7 +260,6 @@ namespace bindings_internal
         else
           result += "    result = exports." + cls->name + ".fromPointer(result);\n";
 
-        result += "  }\n";
         result += "  else\n";
         result += "    result = null;\n";
         return result;
@@ -269,7 +269,8 @@ namespace bindings_internal
     }
   }
 
-  std::string wrapCall(const FunctionInfo& call, bool isFunction)
+  std::string wrapCall(const FunctionInfo& call, bool isFunction,
+      const FunctionInfo& instanceGetter)
   {
     bool hasStringArgs = false;
     std::vector<std::string> params;
@@ -291,7 +292,7 @@ namespace bindings_internal
         params.push_back(std::string("createString(") + argName + ")");
       }
       else if (call.args[i] == TypeCategory::CLASS_PTR)
-        params.push_back(argName + "._pointer");
+        params.push_back(argName + " ? " + argName + "._pointer : 0");
       else if (call.args[i] == TypeCategory::INT64)
       {
         // 64-bit integers are passed as two integer parameters
@@ -315,7 +316,12 @@ namespace bindings_internal
     }
 
     if (call.instance_function)
-      params.insert(params.begin(), "this._pointer");
+    {
+      if (instanceGetter.empty())
+        params.insert(params.begin(), "this._pointer");
+      else
+        params.insert(params.begin(), instanceGetter.name + "()");
+    }
 
     return prefix + generateCall(call, params) + suffix;
   }
@@ -382,24 +388,28 @@ namespace bindings_internal
   void printClass(const ClassInfo& cls)
   {
     // Begin class definition
-
-    ClassInfo* baseClass = find_class(cls.baseClass);
-    printf("exports.%s = createClass(%s, %i, {\n", cls.name.c_str(),
-        (baseClass ? ("exports." + baseClass->name).c_str() : "null"),
-        cls.ref_counted_offset);
+    bool singleton = !cls.instanceGetter.empty();
+    if (singleton)
+      printf("exports.%s = {\n", cls.name.c_str());
+    else
+    {
+      ClassInfo* baseClass = find_class(cls.baseClass);
+      printf("exports.%s = createClass(%s, %i, {\n", cls.name.c_str(),
+          (baseClass ? ("exports." + baseClass->name).c_str() : "null"),
+          cls.ref_counted_offset);
+    }
 
     // Print prototype members
-
     for (const auto& property : cls.properties)
     {
       if (property.jsValue.empty())
       {
         printf("get %s%s,\n", property.name.c_str(),
-               wrapCall(property.getter, false).c_str());
+               wrapCall(property.getter, false, cls.instanceGetter).c_str());
         if (!property.setter.empty())
         {
           printf("set %s%s,\n", property.name.c_str(),
-                 wrapCall(property.setter, false).c_str());
+                 wrapCall(property.setter, false, cls.instanceGetter).c_str());
         }
       }
       else
@@ -407,15 +417,22 @@ namespace bindings_internal
     }
 
     for (const auto& method : cls.methods)
+    {
       if (method.call.instance_function)
-        printf("%s: %s,\n", method.name.c_str(), wrapCall(method.call).c_str());
+      {
+        printf("%s: %s,\n",
+            method.name.c_str(),
+            wrapCall(method.call, true, cls.instanceGetter).c_str());
+      }
+    }
 
     // End class definition
-
-    printf("});\n");
+    if (singleton)
+      printf("};\n");
+    else
+      printf("});\n");
 
     // Print static members
-
     DifferentiatorInfo differentiator = cls.subclass_differentiator;
     if (differentiator.offset != SIZE_MAX)
     {

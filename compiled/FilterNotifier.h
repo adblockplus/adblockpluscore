@@ -30,9 +30,14 @@ namespace FilterNotifier
   enum class Topic
   {
     NONE,
+    FILTER_ADDED,
+    FILTER_REMOVED,
     FILTER_DISABLED,
     FILTER_HITCOUNT,
     FILTER_LASTHIT,
+    SUBSCRIPTION_ADDED,
+    SUBSCRIPTION_REMOVED,
+    SUBSCRIPTION_MOVED,
     SUBSCRIPTION_TITLE,
     SUBSCRIPTION_DISABLED,
     SUBSCRIPTION_FIXEDTITLE,
@@ -47,9 +52,14 @@ namespace FilterNotifier
   {
     printf("var FilterNotifier = require('filterNotifier').FilterNotifier;\n");
     printf("var notifierTopics = new Map([\n");
+    printf("  [%i, 'filter.added'],\n", Topic::FILTER_ADDED);
+    printf("  [%i, 'filter.removed'],\n", Topic::FILTER_REMOVED);
     printf("  [%i, 'filter.disabled'],\n", Topic::FILTER_DISABLED);
     printf("  [%i, 'filter.hitCount'],\n", Topic::FILTER_HITCOUNT);
     printf("  [%i, 'filter.lastHit'],\n", Topic::FILTER_LASTHIT);
+    printf("  [%i, 'subscription.added'],\n", Topic::SUBSCRIPTION_ADDED);
+    printf("  [%i, 'subscription.removed'],\n", Topic::SUBSCRIPTION_REMOVED);
+    printf("  [%i, 'subscription.moved'],\n", Topic::SUBSCRIPTION_MOVED);
     printf("  [%i, 'subscription.title'],\n", Topic::SUBSCRIPTION_TITLE);
     printf("  [%i, 'subscription.disabled'],\n", Topic::SUBSCRIPTION_DISABLED);
     printf("  [%i, 'subscription.fixedTitle'],\n", Topic::SUBSCRIPTION_FIXEDTITLE);
@@ -61,9 +71,10 @@ namespace FilterNotifier
     printf("]);");
   }
 
-  inline void FilterChange(Topic topic, Filter* filter)
+  inline void FilterChange(Topic topic, Filter* filter,
+      Subscription* subscription = nullptr, unsigned int position = 0)
   {
-    JSNotifyFilterChange(topic, filter);
+    JSNotifyFilterChange(topic, filter, subscription, position);
   }
 
   inline void SubscriptionChange(Topic topic, Subscription* subscription)
