@@ -39,31 +39,6 @@ function URL(urlString)
 let Services = {
   obs: {
     addObserver() {}
-  },
-  vc: {
-    compare(v1, v2)
-    {
-      function comparePart(p1, p2)
-      {
-        if (p1 != "*" && p2 == "*")
-          return -1;
-        else if (p1 == "*" && p2 != "*")
-          return 1;
-        else if (p1 == p2)
-          return 0;
-        return parseInt(p1, 10) - parseInt(p2, 10);
-      }
-
-      let parts1 = v1.split(".");
-      let parts2 = v2.split(".");
-      for (let i = 0; i < Math.max(parts1.length, parts2.length); i++)
-      {
-        let result = comparePart(parts1[i] || "0", parts2[i] || "0");
-        if (result != 0)
-          return result;
-      }
-      return 0;
-    }
   }
 };
 let XPCOMUtils = {
