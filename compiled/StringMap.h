@@ -293,9 +293,9 @@ namespace StringMap_internal
     void assign(const String& key, const T& value)
     {
 #if defined(DEBUG)
-      assert(mInsertCounter == mMap->mInsertCounter,
+      assert2(mInsertCounter == mMap->mInsertCounter,
           u"There should be no insert operations performed between map.find() and assign()"_str);
-      assert(mHash == mMap->hash(key),
+      assert2(mHash == mMap->hash(key),
           u"The keys used in map.find() and assign() should be identical"_str);
 #endif
 

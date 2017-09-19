@@ -265,7 +265,7 @@ inline DependentString operator "" _str(const String::value_type* str,
 
 inline void String_assert_writable(bool isWritable)
 {
-  assert(isWritable, u"Writing access to a read-only string"_str);
+  assert2(isWritable, u"Writing access to a read-only string"_str);
 }
 
 class OwnedString : public String
@@ -348,7 +348,7 @@ public:
     if (!sourceLen)
       return;
 
-    assert(source, u"Null buffer passed to OwnedString.append()"_str);
+    assert2(source, u"Null buffer passed to OwnedString.append()"_str);
     size_t oldLength = length();
     grow(sourceLen);
     std::memcpy(mBuf + oldLength, source, sizeof(value_type) * sourceLen);
@@ -359,7 +359,7 @@ public:
     if (!sourceLen)
       return;
 
-    assert(source, u"Null buffer passed to OwnedString.append()"_str);
+    assert2(source, u"Null buffer passed to OwnedString.append()"_str);
     size_t oldLength = length();
     grow(sourceLen);
     for (size_t i = 0; i < sourceLen; i++)

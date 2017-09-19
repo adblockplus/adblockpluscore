@@ -19,10 +19,6 @@
 
 #include "library.h"
 
-#if defined(assert)
-#undef assert
-#endif
-
 class String;
 
 struct console_type
@@ -51,13 +47,13 @@ struct console_type
 static console_type console;
 
 #if defined(DEBUG)
-inline void assert(bool condition, const String& str)
+inline void assert2(bool condition, const String& str)
 {
   if (!condition)
     console.error(str);
 }
 #else
-#define assert(condition, str)
+#define assert2(condition, str)
 #endif
 
 #if defined(__EMSCRIPTEN_TRACING__)

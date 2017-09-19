@@ -112,7 +112,7 @@ bool FilterStorage::MoveSubscription(Subscription& subscription,
                                      const Subscription* insertBefore)
 {
   int oldPos = IndexOfSubscription(subscription);
-  assert(oldPos >= 0, u"Attempt to move a subscription that is not in the list"_str);
+  assert2(oldPos >= 0, u"Attempt to move a subscription that is not in the list"_str);
   if (oldPos == -1)
     return false;
 
