@@ -25,7 +25,7 @@
 #include "debug.h"
 #include "library.h"
 
-inline void String_assert_readonly(bool readOnly);
+inline void String_assert_writable(bool isWritable);
 
 class String
 {
@@ -84,7 +84,7 @@ public:
 
   value_type* data()
   {
-    String_assert_readonly(is_readOnly());
+    String_assert_writable(is_writable());
     return mBuf;
   }
 
@@ -95,13 +95,13 @@ public:
 
   value_type& operator[](size_type pos)
   {
-    String_assert_readonly(is_readOnly());
+    String_assert_writable(is_writable());
     return mBuf[pos];
   }
 
-  bool is_readOnly() const
+  bool is_writable() const
   {
-    return (mLen & FLAGS_MASK) != READ_WRITE;
+    return (mLen & FLAGS_MASK) == READ_WRITE;
   }
 
   bool equals(const String& other) const
@@ -215,7 +215,7 @@ public:
       : String(
           str.mBuf + std::min(pos, str.length()),
           std::min(len, str.length() - std::min(pos, str.length())),
-          str.is_readOnly() ? READ_ONLY : READ_WRITE
+          str.is_writable() ? READ_WRITE: READ_ONLY
         )
   {
   }
@@ -263,9 +263,9 @@ inline DependentString operator "" _str(const String::value_type* str,
   return DependentString(str, len);
 }
 
-inline void String_assert_readonly(bool readOnly)
+inline void String_assert_writable(bool isWritable)
 {
-  assert(!readOnly, u"Writing access to a read-only string"_str);
+  assert(isWritable, u"Writing access to a read-only string"_str);
 }
 
 class OwnedString : public String
