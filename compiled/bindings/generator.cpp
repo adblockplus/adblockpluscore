@@ -259,7 +259,7 @@ namespace bindings_internal
 
         auto offset = cls->subclass_differentiator.offset;
         if (offset == SIZE_MAX)
-          result += "    result = exports." + cls->name + "(result);\n";
+          result += "    result = new exports." + cls->name + "(result);\n";
         else
           result += "    result = exports." + cls->name + ".fromPointer(result);\n";
 
@@ -447,13 +447,6 @@ namespace bindings_internal
       printf("  if (type in %s_mapping)\n", cls.name.c_str());
       printf("    return new %s_mapping[type](ptr);\n", cls.name.c_str());
       printf("  throw new Error('Unexpected %s type: ' + type);\n", cls.name.c_str());
-      puts("};");
-    }
-    else
-    {
-      printf("exports.%s.fromPointer = function(ptr)\n", cls.name.c_str());
-      puts("{");
-      printf("  return new exports.%s(ptr);\n", cls.name.c_str());
       puts("};");
     }
 
