@@ -71,10 +71,10 @@ function serializeFilter(filter)
     let domains = [];
     if (filter.domains)
     {
-      for (let domain in filter.domains)
+      for (let [domain, isIncluded] of filter.domains)
       {
         if (domain != "")
-          domains.push(filter.domains[domain] ? domain : "~" + domain);
+          domains.push(isIncluded ? domain : "~" + domain);
       }
     }
     result.push("domains=" + domains.sort().join("|"));
