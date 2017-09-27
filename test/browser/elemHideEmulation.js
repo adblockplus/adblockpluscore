@@ -109,16 +109,6 @@ function applyElemHideEmulation(selectors)
   return Promise.resolve().then(() =>
   {
     let elemHideEmulation = new ElemHideEmulation(
-      testDocument.defaultView,
-      callback =>
-      {
-        let patterns = [];
-        selectors.forEach(selector =>
-        {
-          patterns.push({selector});
-        });
-        callback(patterns);
-      },
       newSelectors =>
       {
         if (!newSelectors.length)
@@ -133,8 +123,9 @@ function applyElemHideEmulation(selectors)
       }
     );
 
+    elemHideEmulation.document = testDocument;
     elemHideEmulation.MIN_INVOCATION_INTERVAL = REFRESH_INTERVAL / 2;
-    elemHideEmulation.apply();
+    elemHideEmulation.apply(selectors.map(selector => ({selector})));
     return elemHideEmulation;
   });
 }
