@@ -96,15 +96,17 @@ public:
       mPointer->ReleaseRef();
   }
 
-  intrusive_ptr& operator=(intrusive_ptr& other)
+  intrusive_ptr& operator=(const intrusive_ptr& other)
   {
-    intrusive_ptr(other).swap(*this);
+    if (this != &other)
+      intrusive_ptr(other).swap(*this);
     return *this;
   }
 
   intrusive_ptr& operator=(intrusive_ptr&& other)
   {
-    intrusive_ptr(std::move(other)).swap(*this);
+    if (this != &other)
+      intrusive_ptr(std::move(other)).swap(*this);
     return *this;
   }
 
