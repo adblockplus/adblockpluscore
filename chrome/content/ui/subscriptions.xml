@@ -137,4 +137,16 @@
                 prefixes="ru,uk"
                 author="Lain_13, dimisa"
                 type="ads"/>
+  <subscription title="EasyPrivacy"
+                specialization="privacy protection"
+                url="https://easylist-downloads.adblockplus.org/easyprivacy.txt"
+                homepage="https://easylist.to/"
+                author="fanboy, MonztA, Famlam, Khrin"
+                type="privacy"/>
+  <subscription title="Fanboy&#39;s Social Blocking List"
+                specialization="removes social media integration"
+                url="https://easylist-downloads.adblockplus.org/fanboy-social.txt"
+                homepage="https://easylist.to/"
+                author="fanboy, Famlam, MonztA"
+                type="social"/>
   </subscriptions>
