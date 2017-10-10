@@ -384,6 +384,11 @@ namespace bindings_internal
         result.prototype.delete = function()
         {
           Module._ReleaseRef(this._pointer + ref_counted_offset);
+          Object.defineProperty(this, "_pointer", {
+            get: function() {
+              throw new Error("Attempt to use deleted object");
+            },
+          });
         };
         return result;
       }

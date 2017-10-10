@@ -162,6 +162,11 @@ exports.testGC = function(test)
   test.equal(filter1.hitCount, 234, "Changing second wrapper modifies original as well");
 
   filter1.delete();
+
+  test.throws(() => { filter1.delete(); });
+  test.throws(() => { filter1.hitCount; });
+  test.throws(() => { filter1._pointer; });
+
   filter2.delete();
 
   let filter3 = Filter.fromText("someknownfilter");
