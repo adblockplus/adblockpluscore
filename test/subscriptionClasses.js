@@ -363,7 +363,7 @@ exports.testNotifications = function(test)
   checkNotifications(() =>
   {
     subscription.errors = 0;
-  }, ["subscription.errors", "http://example.com/"], "Resetting subscription.erros");
+  }, ["subscription.errors", "http://example.com/"], "Resetting subscription.errors");
 
   subscription.delete();
   test.done();

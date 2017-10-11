@@ -104,11 +104,11 @@ int main()
         .function("serializeFilters", &Subscription::SerializeFilters)
         .class_function("fromURL", &Subscription::FromID)
         .subclass_differentiator(&Subscription::mType, {
-          {Subscription::Type::USERDEFINED, "SpecialSubscription"},
+          {Subscription::Type::USERDEFINED, "UserDefinedSubscription"},
           {Subscription::Type::DOWNLOADABLE, "DownloadableSubscription"},
         });
 
-    class_<UserDefinedSubscription,Subscription>("SpecialSubscription")
+    class_<UserDefinedSubscription,Subscription>("UserDefinedSubscription")
         .function("isDefaultFor", &UserDefinedSubscription::IsDefaultFor)
         .function("makeDefaultFor", &UserDefinedSubscription::MakeDefaultFor)
         .function("isGeneric", &UserDefinedSubscription::IsGeneric)
@@ -120,13 +120,13 @@ int main()
         .property("fixedTitle", &DownloadableSubscription::GetFixedTitle, &DownloadableSubscription::SetFixedTitle)
         .property("homepage", &DownloadableSubscription::GetHomepage, &DownloadableSubscription::SetHomepage)
         .property("lastCheck", &DownloadableSubscription::GetLastCheck, &DownloadableSubscription::SetLastCheck)
-        .property("expires", &DownloadableSubscription::GetHardExpiration, &DownloadableSubscription::SetHardExpiration)
+        .property("hardExpiration", &DownloadableSubscription::GetHardExpiration, &DownloadableSubscription::SetHardExpiration)
         .property("softExpiration", &DownloadableSubscription::GetSoftExpiration, &DownloadableSubscription::SetSoftExpiration)
         .property("lastDownload", &DownloadableSubscription::GetLastDownload, &DownloadableSubscription::SetLastDownload)
         .property("downloadStatus", &DownloadableSubscription::GetDownloadStatus, &DownloadableSubscription::SetDownloadStatus)
         .property("lastSuccess", &DownloadableSubscription::GetLastSuccess, &DownloadableSubscription::SetLastSuccess)
-        .property("errors", &DownloadableSubscription::GetErrorCount, &DownloadableSubscription::SetErrorCount)
-        .property("version", &DownloadableSubscription::GetDataRevision, &DownloadableSubscription::SetDataRevision)
+        .property("errorCount", &DownloadableSubscription::GetErrorCount, &DownloadableSubscription::SetErrorCount)
+        .property("dataRevision", &DownloadableSubscription::GetDataRevision, &DownloadableSubscription::SetDataRevision)
         .property("requiredVersion", &DownloadableSubscription::GetRequiredVersion, &DownloadableSubscription::SetRequiredVersion)
         .property("downloadCount", &DownloadableSubscription::GetDownloadCount, &DownloadableSubscription::SetDownloadCount)
         .function("serialize", &DownloadableSubscription::Serialize);
