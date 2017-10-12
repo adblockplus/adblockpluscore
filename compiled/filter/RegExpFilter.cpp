@@ -218,7 +218,7 @@ namespace
     else if (name.equals(u"third-party"_str))
       data.mThirdParty = reverse ? TrippleState::NO : TrippleState::YES;
     else if (name.equals(u"collapse"_str))
-      data.mCollapse = reverse ? TrippleState::NO : TrippleState::YES;
+      data.mCollapse = !reverse;
     else
       error.reset(u"filter_unknown_option"_str);
   }
@@ -228,7 +228,7 @@ namespace
   {
     data.mMatchCase = false;
     data.mThirdParty = TrippleState::ANY;
-    data.mCollapse = TrippleState::ANY;
+    data.mCollapse = true;
     data.mDomainsStart = String::npos;
     data.mSitekeysStart = String::npos;
     if (optionsStart >= text.length())

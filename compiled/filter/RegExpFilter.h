@@ -38,7 +38,7 @@ struct RegExpFilterData
   int mContentType;
   bool mMatchCase;
   TrippleState mThirdParty;
-  TrippleState mCollapse;
+  bool mCollapse;
 
   bool RegExpParsingDone() const
   {

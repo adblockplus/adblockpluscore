@@ -23,4 +23,8 @@ class BlockingFilter : public RegExpFilter
 {
 public:
   explicit BlockingFilter(const String& text, const RegExpFilterData& data);
+  bool BINDINGS_EXPORTED GetCollapse() const
+  {
+    return mData.mCollapse;
+  }
 };

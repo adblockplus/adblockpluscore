@@ -74,7 +74,9 @@ int main()
         .function("matches", &RegExpFilter::Matches);
 
     class_<BlockingFilter,RegExpFilter>("BlockingFilter")
-        .class_property("type", "'blocking'");
+        .class_property("type", "'blocking'")
+        .property("collapse", &BlockingFilter::GetCollapse);
+
 
     class_<WhitelistFilter,RegExpFilter>("WhitelistFilter")
         .class_property("type", "'whitelist'");

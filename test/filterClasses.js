@@ -48,11 +48,13 @@ exports.setUp = function(callback)
 
 exports.testFromText = function(test)
 {
+  // fields are:
+  // text, type, typeName, collapse (optional, BlockingFilter only)
   let tests = [
     ["!asdf", CommentFilter, "comment"],
-    ["asdf", BlockingFilter, "blocking"],
-    ["asdf$image,~collapse", BlockingFilter, "blocking"],
-    ["/asdf/", BlockingFilter, "blocking"],
+    ["asdf", BlockingFilter, "blocking", 1],
+    ["asdf$image,~collapse", BlockingFilter, "blocking", 0],
+    ["/asdf/", BlockingFilter, "blocking", 1],
     ["/asdf??+/", InvalidFilter, "invalid"],
     ["@@asdf", WhitelistFilter, "whitelist"],
     ["@@asdf$image,~collapse", WhitelistFilter, "whitelist"],
@@ -65,15 +67,15 @@ exports.testFromText = function(test)
     ["foobar##a", ElemHideFilter, "elemhide"],
     ["foobar#@#a", ElemHideException, "elemhideexception"],
 
-    ["foobar#asdf", BlockingFilter, "blocking"],
-    ["foobar|foobas##asdf", BlockingFilter, "blocking"],
+    ["foobar#asdf", BlockingFilter, "blocking", 1],
+    ["foobar|foobas##asdf", BlockingFilter, "blocking", 1],
     ["foobar##asdf{asdf}", ElemHideFilter, "elemhide"],
-    ["foobar##", BlockingFilter, "blocking"],
-    ["foobar#@#", BlockingFilter, "blocking"],
+    ["foobar##", BlockingFilter, "blocking", 1],
+    ["foobar#@#", BlockingFilter, "blocking", 1],
     ["asdf$foobar", InvalidFilter, "invalid"],
     ["asdf$image,foobar", InvalidFilter, "invalid"],
-    ["asdf$image=foobar", BlockingFilter, "blocking"],
-    ["asdf$image=foobar=xyz,~collapse", BlockingFilter, "blocking"],
+    ["asdf$image=foobar", BlockingFilter, "blocking", 1],
+    ["asdf$image=foobar=xyz,~collapse", BlockingFilter, "blocking", 0],
 
     ["##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
     ["#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
@@ -94,13 +96,17 @@ exports.testFromText = function(test)
     ["example.com##[-abp-properties=(something)]", ElemHideEmulationFilter, "elemhideemulation"],
     ["example.com#@#[-abp-properties=(something)]", ElemHideException, "elemhideexception"]
   ];
-  for (let [text, type, typeName] of tests)
+  for (let [text, type, typeName, collapse] of tests)
   {
     let filter = Filter.fromText(text);
     test.ok(filter instanceof Filter, "Got filter for " + text);
     test.equal(filter.text, text, "Correct filter text for " + text);
     test.ok(filter instanceof type, "Correct filter type for " + text);
     test.equal(filter.type, typeName, "Type name for " + text + " is " + typeName);
+    if (filter instanceof BlockingFilter)
+      test.equal(filter.collapse, collapse);
+    else
+      test.equal(filter.collapse, undefined);
     if (type == InvalidFilter)
       test.ok(filter.reason, "Invalid filter " + text + " has a reason set");
     filter.delete();
@@ -235,6 +241,7 @@ exports.testSerialize = function(test)
   // Comment
   let filter = Filter.fromText("! serialize");
   test.equal(filter.serialize(), "[Filter]\ntext=! serialize\n");
+  test.equal(filter.collapse, undefined);
   filter.delete();
 
   // Blocking filter
@@ -246,6 +253,7 @@ exports.testSerialize = function(test)
   filter.hitCount = 10;
   filter.lastHit = 12;
   test.equal(filter.serialize(), "[Filter]\ntext=serialize\nhitCount=10\nlastHit=12\n");
+  test.ok(filter.collapse);
   filter.delete();
 
   // Invalid filter
