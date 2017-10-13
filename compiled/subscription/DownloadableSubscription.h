@@ -25,6 +25,7 @@
 class DownloadableSubscription : public Subscription
 {
 public:
+  static constexpr Type classType = Type::DOWNLOADABLE;
   explicit DownloadableSubscription(const String& id);
 
   SUBSCRIPTION_PROPERTY(bool, mFixedTitle, SUBSCRIPTION_FIXEDTITLE,
@@ -54,12 +55,3 @@ public:
 
   OwnedString BINDINGS_EXPORTED Serialize() const;
 };
-
-template<>
-inline DownloadableSubscription* Subscription::As<DownloadableSubscription>()
-{
-  if (mType != Type::DOWNLOADABLE)
-    return nullptr;
-
-  return static_cast<DownloadableSubscription*>(this);
-}

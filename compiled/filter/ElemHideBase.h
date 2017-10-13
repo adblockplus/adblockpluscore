@@ -58,6 +58,7 @@ class ElemHideBase : public ActiveFilter
 protected:
   ElemHideData mData;
 public:
+  static constexpr Type classType = Type::ELEMHIDEBASE;
   explicit ElemHideBase(Type type, const String& text, const ElemHideData& data);
   static Type Parse(DependentString& text, ElemHideData& data);
 

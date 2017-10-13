@@ -30,46 +30,32 @@ namespace
     ELEMHIDE = 4,
   };
 
-  const FilterCategory filterTypeToCategory[] = {
-    FilterCategory::BLOCKING,   // UNKNOWN
-    FilterCategory::NONE,       // INVALID
-    FilterCategory::NONE,       // COMMENT
-    FilterCategory::BLOCKING,   // BLOCKING
-    FilterCategory::WHITELIST,  // WHITELIST
-    FilterCategory::ELEMHIDE,   // ELEMHIDE
-    FilterCategory::ELEMHIDE,   // ELEMHIDEEXCEPTION
-    FilterCategory::ELEMHIDE,   // ELEMHIDEEMULATION
-  };
+  FilterCategory filterTypeToCategory(Filter::Type type)
+  {
+    if (type == Filter::Type::BLOCKING)
+      return FilterCategory::BLOCKING;
+    if (type == Filter::Type::WHITELIST)
+      return FilterCategory::WHITELIST;
+    if ((type & Filter::Type::ELEMHIDEBASE) == Filter::Type::ELEMHIDEBASE)
+      return FilterCategory::ELEMHIDE;
 
-  static_assert(
-    sizeof(filterTypeToCategory) / sizeof(filterTypeToCategory[0]) == Filter::Type::VALUE_COUNT,
-    "Unexpected number of filter types, was a new type added?"
-  );
+    return FilterCategory::NONE;
+  }
 }
 
 UserDefinedSubscription::UserDefinedSubscription(const String& id)
-    : Subscription(Type::USERDEFINED, id), mDefaults(0)
+    : Subscription(classType, id), mDefaults(0)
 {
 }
 
 bool UserDefinedSubscription::IsDefaultFor(const Filter& filter) const
 {
-  if (filter.mType >= Filter::Type::VALUE_COUNT)
-  {
-    assert2(false, u"Filter type exceeds valid range"_str);
-    abort();
-  }
-  return mDefaults & filterTypeToCategory[filter.mType];
+  return mDefaults & filterTypeToCategory(filter.mType);
 }
 
 void UserDefinedSubscription::MakeDefaultFor(const Filter& filter)
 {
-  if (filter.mType >= Filter::Type::VALUE_COUNT)
-  {
-    assert2(false, u"Filter type exceeds valid range"_str);
-    abort();
-  }
-  mDefaults |= filterTypeToCategory[filter.mType];
+  mDefaults |= filterTypeToCategory(filter.mType);
 }
 
 void UserDefinedSubscription::InsertFilterAt(Filter& filter, unsigned pos)

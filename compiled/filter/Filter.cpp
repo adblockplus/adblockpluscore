@@ -122,25 +122,25 @@ Filter* Filter::FromText(DependentString& text)
   FilterPtr filter;
   switch (type)
   {
-    case Filter::Type::COMMENT:
+    case CommentFilter::classType:
       filter = FilterPtr(new CommentFilter(text), false);
       break;
-    case Filter::Type::INVALID:
+    case InvalidFilter::classType:
       filter = FilterPtr(new InvalidFilter(text, error), false);
       break;
-    case Filter::Type::BLOCKING:
+    case BlockingFilter::classType:
       filter = FilterPtr(new BlockingFilter(text, data.regexp), false);
       break;
-    case Filter::Type::WHITELIST:
+    case WhitelistFilter::classType:
       filter = FilterPtr(new WhitelistFilter(text, data.regexp), false);
       break;
-    case Filter::Type::ELEMHIDE:
+    case ElemHideFilter::classType:
       filter = FilterPtr(new ElemHideFilter(text, data.elemhide), false);
       break;
-    case Filter::Type::ELEMHIDEEXCEPTION:
+    case ElemHideException::classType:
       filter = FilterPtr(new ElemHideException(text, data.elemhide), false);
       break;
-    case Filter::Type::ELEMHIDEEMULATION:
+    case ElemHideEmulationFilter::classType:
       filter = FilterPtr(new ElemHideEmulationFilter(text, data.elemhide), false);
       if (static_cast<ElemHideEmulationFilter*>(filter.get())->IsGeneric())
         filter = FilterPtr(new InvalidFilter(text, u"filter_elemhideemulation_nodomain"_str), false);

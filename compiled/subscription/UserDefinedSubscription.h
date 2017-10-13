@@ -27,6 +27,7 @@ private:
   int mDefaults;
 
 public:
+  static constexpr Type classType = Type::USERDEFINED;
   explicit UserDefinedSubscription(const String& id);
   bool BINDINGS_EXPORTED IsDefaultFor(const Filter& filter) const;
   void BINDINGS_EXPORTED MakeDefaultFor(const Filter& filter);
@@ -38,12 +39,3 @@ public:
   bool BINDINGS_EXPORTED RemoveFilterAt(unsigned pos);
   OwnedString BINDINGS_EXPORTED Serialize() const;
 };
-
-template<>
-inline UserDefinedSubscription* Subscription::As<UserDefinedSubscription>()
-{
-  if (mType != Type::USERDEFINED)
-    return nullptr;
-
-  return static_cast<UserDefinedSubscription*>(this);
-}

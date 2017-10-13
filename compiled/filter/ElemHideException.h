@@ -25,5 +25,6 @@
 class ElemHideException: public ElemHideBase
 {
 public:
+  static constexpr Type classType = Type::ELEMHIDEEXCEPTION;
   explicit ElemHideException(const String& text, const ElemHideData& data);
 };

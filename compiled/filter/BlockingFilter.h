@@ -22,6 +22,7 @@
 class BlockingFilter : public RegExpFilter
 {
 public:
+  static constexpr Type classType = Type::BLOCKING;
   explicit BlockingFilter(const String& text, const RegExpFilterData& data);
   bool BINDINGS_EXPORTED GetCollapse() const
   {

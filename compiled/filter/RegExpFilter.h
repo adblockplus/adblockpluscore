@@ -103,6 +103,7 @@ protected:
   DomainMap* GetDomains() const override;
   SitekeySet* GetSitekeys() const override;
 public:
+  static constexpr Type classType = Type::REGEXP;
   explicit RegExpFilter(Type type, const String& text, const RegExpFilterData& data);
   ~RegExpFilter();
   static Type Parse(DependentString& text, DependentString& error,

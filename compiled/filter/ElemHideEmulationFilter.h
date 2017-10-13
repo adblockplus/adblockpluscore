@@ -25,6 +25,7 @@
 class ElemHideEmulationFilter : public ElemHideBase
 {
 public:
+  static constexpr Type classType = Type::ELEMHIDEEMULATION;
   explicit ElemHideEmulationFilter(const String& text,
       const ElemHideData& data);
 };

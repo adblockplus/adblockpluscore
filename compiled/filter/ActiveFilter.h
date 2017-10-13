@@ -56,6 +56,7 @@ protected:
 private:
   bool mIgnoreTrailingDot;
 public:
+  static constexpr Type classType = Type::ACTIVE;
   explicit ActiveFilter(Type type, const String& text, bool ignoreTrailingDot);
   FILTER_PROPERTY(bool, mDisabled, FILTER_DISABLED, GetDisabled, SetDisabled);
   FILTER_PROPERTY(unsigned int, mHitCount, FILTER_HITCOUNT,

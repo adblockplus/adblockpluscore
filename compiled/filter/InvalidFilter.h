@@ -23,6 +23,7 @@
 class InvalidFilter : public Filter
 {
 public:
+  static constexpr Type classType = Type::INVALID;
   explicit InvalidFilter(const String& text, const String& reason);
   const String& BINDINGS_EXPORTED GetReason() const
   {

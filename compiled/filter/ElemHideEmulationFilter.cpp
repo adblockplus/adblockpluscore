@@ -19,6 +19,6 @@
 
 ElemHideEmulationFilter::ElemHideEmulationFilter(const String& text,
     const ElemHideData& data)
-    : ElemHideBase(Type::ELEMHIDEEMULATION, text, data)
+    : ElemHideBase(classType, text, data)
 {
 }

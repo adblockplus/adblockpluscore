@@ -18,7 +18,7 @@
 #include "CommentFilter.h"
 
 CommentFilter::CommentFilter(const String& text)
-    : Filter(Type::COMMENT, text)
+    : Filter(classType, text)
 {
 }
 

@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include <type_traits>
 #include <vector>
 
 #include "../filter/Filter.h"
@@ -100,7 +99,22 @@ public:
   static Subscription* BINDINGS_EXPORTED FromID(const String& id);
 
   template<typename T>
-  T* As();
+  T* As()
+  {
+    if (mType != T::classType)
+      return nullptr;
+
+    return static_cast<T*>(this);
+  }
+
+  template<typename T>
+  const T* As() const
+  {
+    if (mType != T::classType)
+      return nullptr;
+
+    return static_cast<const T*>(this);
+  }
 };
 
 typedef intrusive_ptr<Subscription> SubscriptionPtr;

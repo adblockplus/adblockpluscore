@@ -22,6 +22,7 @@
 class CommentFilter : public Filter
 {
 public:
+  static constexpr Type classType = Type::COMMENT;
   explicit CommentFilter(const String& text);
   static Type Parse(const String& text);
   static CommentFilter* Create(const String& text);

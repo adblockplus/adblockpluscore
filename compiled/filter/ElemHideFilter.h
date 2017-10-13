@@ -25,5 +25,6 @@
 class ElemHideFilter: public ElemHideBase
 {
 public:
+  static constexpr Type classType = Type::ELEMHIDE;
   explicit ElemHideFilter(const String& text, const ElemHideData& data);
 };

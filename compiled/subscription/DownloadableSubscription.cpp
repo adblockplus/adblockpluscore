@@ -18,7 +18,7 @@
 #include "DownloadableSubscription.h"
 
 DownloadableSubscription::DownloadableSubscription(const String& id)
-    : Subscription(Type::DOWNLOADABLE, id), mFixedTitle(false), mLastCheck(0),
+    : Subscription(classType, id), mFixedTitle(false), mLastCheck(0),
       mHardExpiration(0), mSoftExpiration(0), mLastDownload(0), mLastSuccess(0),
       mErrorCount(0), mDataRevision(0), mDownloadCount(0)
 {

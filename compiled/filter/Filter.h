@@ -35,12 +35,14 @@ public:
     UNKNOWN = 0,
     INVALID = 1,
     COMMENT = 2,
-    BLOCKING = 3,
-    WHITELIST = 4,
-    ELEMHIDE = 5,
-    ELEMHIDEEXCEPTION = 6,
-    ELEMHIDEEMULATION = 7,
-    VALUE_COUNT = 8
+    ACTIVE = 4,
+    REGEXP = ACTIVE | 8,
+    BLOCKING = REGEXP | 16,
+    WHITELIST = REGEXP | 32,
+    ELEMHIDEBASE = ACTIVE | 64,
+    ELEMHIDE = ELEMHIDEBASE | 128,
+    ELEMHIDEEXCEPTION = ELEMHIDEBASE | 256,
+    ELEMHIDEEMULATION = ELEMHIDEBASE | 512
   };
 
   explicit Filter(Type type, const String& text);
@@ -56,6 +58,24 @@ public:
   OwnedString BINDINGS_EXPORTED Serialize() const;
 
   static Filter* BINDINGS_EXPORTED FromText(DependentString& text);
+
+  template<typename T>
+  T* As()
+  {
+    if ((mType & T::classType) != T::classType)
+      return nullptr;
+
+    return static_cast<T*>(this);
+  }
+
+  template<typename T>
+  const T* As() const
+  {
+    if ((mType & T::classType) != T::classType)
+      return nullptr;
+
+    return static_cast<const T*>(this);
+  }
 };
 
 typedef intrusive_ptr<Filter> FilterPtr;
