@@ -15,6 +15,8 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstring>
+
 #include "ElemHideBase.h"
 #include "../StringScanner.h"
 
@@ -103,15 +105,6 @@ Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data)
     return Type::UNKNOWN;
 
   data.mSelectorStart = scanner.position() + 1;
-  while (!scanner.done())
-  {
-    switch (scanner.next())
-    {
-      case u'{':
-      case u'}':
-        return Type::UNKNOWN;
-    }
-  }
 
   // We are done validating, now we can normalize whitespace and the domain part
   if (seenSpaces)
@@ -125,6 +118,56 @@ Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data)
     return Type::ELEMHIDEEMULATION;
 
   return Type::ELEMHIDE;
+}
+
+namespace
+{
+  static constexpr String::value_type OPENING_CURLY_REPLACEMENT[] = u"\\7B ";
+  static constexpr String::value_type CLOSING_CURLY_REPLACEMENT[] = u"\\7D ";
+  static constexpr String::size_type CURLY_REPLACEMENT_SIZE = sizeof(OPENING_CURLY_REPLACEMENT) / sizeof(OPENING_CURLY_REPLACEMENT[0]) - 1;
+
+  OwnedString EscapeCurlies(String::size_type replacementCount,
+                            const DependentString& str)
+  {
+    OwnedString result(str.length() + replacementCount * (CURLY_REPLACEMENT_SIZE - 1));
+
+    String::value_type* current = result.data();
+    for (String::size_type i = 0; i < str.length(); i++)
+    {
+      switch(str[i])
+      {
+      case u'}':
+        std::memcpy(current, CLOSING_CURLY_REPLACEMENT,
+                    sizeof(String::value_type) * CURLY_REPLACEMENT_SIZE);
+        current += CURLY_REPLACEMENT_SIZE;
+        break;
+      case u'{':
+        std::memcpy(current, OPENING_CURLY_REPLACEMENT,
+                    sizeof(String::value_type) * CURLY_REPLACEMENT_SIZE);
+        current += CURLY_REPLACEMENT_SIZE;
+        break;
+      default:
+        *current = str[i];
+        current++;
+        break;
+      }
+    }
+
+    return result;
+  }
+}
+
+OwnedString ElemHideBase::GetSelector() const
+{
+  DependentString selector = mData.GetSelector(mText);
+  String::size_type replacementCount = 0;
+  for (String::size_type i = 0; i < selector.length(); i++)
+    if (selector[i] == '}' || selector[i] == '{')
+      replacementCount++;
+  if (replacementCount)
+    return EscapeCurlies(replacementCount, selector);
+
+  return OwnedString(selector);
 }
 
 OwnedString ElemHideBase::GetSelectorDomain() const

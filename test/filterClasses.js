@@ -67,7 +67,7 @@ exports.testFromText = function(test)
 
     ["foobar#asdf", BlockingFilter, "blocking"],
     ["foobar|foobas##asdf", BlockingFilter, "blocking"],
-    ["foobar##asdf{asdf}", BlockingFilter, "blocking"],
+    ["foobar##asdf{asdf}", ElemHideFilter, "elemhide"],
     ["foobar##", BlockingFilter, "blocking"],
     ["foobar#@#", BlockingFilter, "blocking"],
     ["asdf$foobar", InvalidFilter, "invalid"],
@@ -375,6 +375,21 @@ exports.testElemHideSelector = function(test)
     doTest(text, selector, selectorDomain);
     doTest(text.replace("##", "#@#"), selector, selectorDomain);
   }
+
+  test.done();
+};
+
+exports.testElemHideRulesWithBraces = function(test)
+{
+  let filter = Filter.fromText("###foo{color: red}");
+  test.equal(filter.type, "elemhide");
+  test.equal(filter.selector, "#foo\\7B color: red\\7D ");
+  filter.delete();
+
+  filter = Filter.fromText("foo.com##[-abp-properties='/margin: [3-4]{2}/']");
+  test.equal(filter.type, "elemhideemulation");
+  test.equal(filter.selector, "[-abp-properties='/margin: [3-4]\\7B 2\\7D /']");
+  filter.delete();
 
   test.done();
 };

@@ -61,10 +61,6 @@ public:
   explicit ElemHideBase(Type type, const String& text, const ElemHideData& data);
   static Type Parse(DependentString& text, ElemHideData& data);
 
-  const DependentString BINDINGS_EXPORTED GetSelector() const
-  {
-    return mData.GetSelector(mText);
-  }
-
+  OwnedString BINDINGS_EXPORTED GetSelector() const;
   OwnedString BINDINGS_EXPORTED GetSelectorDomain() const;
 };
