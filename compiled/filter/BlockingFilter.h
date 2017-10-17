@@ -29,3 +29,5 @@ public:
     return mData.mCollapse;
   }
 };
+
+typedef intrusive_ptr<BlockingFilter> BlockingFilterPtr;

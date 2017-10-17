@@ -55,3 +55,5 @@ public:
 
   OwnedString BINDINGS_EXPORTED Serialize() const;
 };
+
+typedef intrusive_ptr<DownloadableSubscription> DownloadableSubscriptionPtr;

@@ -27,3 +27,5 @@ public:
   static Type Parse(const String& text);
   static CommentFilter* Create(const String& text);
 };
+
+typedef intrusive_ptr<CommentFilter> CommentFilterPtr;

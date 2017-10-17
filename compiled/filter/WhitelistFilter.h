@@ -25,3 +25,5 @@ public:
   static constexpr Type classType = Type::WHITELIST;
   explicit WhitelistFilter(const String& text, const RegExpFilterData& data);
 };
+
+typedef intrusive_ptr<WhitelistFilter> WhitelistFilterPtr;

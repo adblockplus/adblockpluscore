@@ -112,3 +112,5 @@ public:
   bool BINDINGS_EXPORTED Matches(const String& location, int typeMask,
       DependentString& docDomain, bool thirdParty, const String& sitekey) const;
 };
+
+typedef intrusive_ptr<RegExpFilter> RegExpFilterPtr;

@@ -69,3 +69,5 @@ public:
   bool BINDINGS_EXPORTED IsGeneric() const;
   OwnedString BINDINGS_EXPORTED Serialize() const;
 };
+
+typedef intrusive_ptr<ActiveFilter> ActiveFilterPtr;

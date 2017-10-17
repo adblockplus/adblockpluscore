@@ -65,3 +65,5 @@ public:
   OwnedString BINDINGS_EXPORTED GetSelector() const;
   OwnedString BINDINGS_EXPORTED GetSelectorDomain() const;
 };
+
+typedef intrusive_ptr<ElemHideBase> ElemHideBasePtr;

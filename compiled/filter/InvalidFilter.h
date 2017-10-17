@@ -32,3 +32,5 @@ public:
 private:
   OwnedString mReason;
 };
+
+typedef intrusive_ptr<InvalidFilter> InvalidFilterPtr;

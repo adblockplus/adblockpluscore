@@ -28,3 +28,5 @@ public:
   static constexpr Type classType = Type::ELEMHIDE;
   explicit ElemHideFilter(const String& text, const ElemHideData& data);
 };
+
+typedef intrusive_ptr<ElemHideFilter> ElemHideFilterPtr;

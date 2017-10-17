@@ -29,3 +29,5 @@ public:
   explicit ElemHideEmulationFilter(const String& text,
       const ElemHideData& data);
 };
+
+typedef intrusive_ptr<ElemHideEmulationFilter> ElemHideEmulationFilterPtr;

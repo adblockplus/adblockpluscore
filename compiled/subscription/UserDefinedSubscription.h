@@ -39,3 +39,5 @@ public:
   bool BINDINGS_EXPORTED RemoveFilterAt(unsigned pos);
   OwnedString BINDINGS_EXPORTED Serialize() const;
 };
+
+typedef intrusive_ptr<UserDefinedSubscription> UserDefinedSubscriptionPtr;
