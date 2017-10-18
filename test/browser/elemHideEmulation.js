@@ -221,7 +221,7 @@ exports.testPropertySelectorWithEscapedBrace = function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    [":-abp-properties(/background.\\x7B 0,6\\x7D : rgb\\(0, 0, 0\\)/)"]
+    [":-abp-properties(/background.\\7B 0,6\\7D : rgb\\(0, 0, 0\\)/)"]
   ).then(() =>
   {
     expectHidden(test, toHide);
@@ -232,7 +232,7 @@ exports.testPropertySelectorWithImproperlyEscapedBrace = function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
   applyElemHideEmulation(
-    [":-abp-properties(/background.\\x7B0,6\\x7D: rgb\\(0, 0, 0\\)/)"]
+    [":-abp-properties(/background.\\7B0,6\\7D: rgb\\(0, 0, 0\\)/)"]
   ).then(() =>
   {
     expectVisible(test, toHide);
