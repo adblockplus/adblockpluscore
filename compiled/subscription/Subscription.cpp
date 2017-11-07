@@ -29,7 +29,7 @@ namespace
 }
 
 Subscription::Subscription(Type type, const String& id)
-    : mID(id), mType(type), mDisabled(false)
+    : mID(id), mType(type), mDisabled(false), mListed(false)
 {
   annotate_address(this, "Subscription");
 }
