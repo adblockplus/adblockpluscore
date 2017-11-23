@@ -159,7 +159,7 @@ namespace
 
 OwnedString ElemHideBase::GetSelector() const
 {
-  DependentString selector = mData.GetSelector(mText);
+  const DependentString selector = mData.GetSelector(mText);
   String::size_type replacementCount = 0;
   for (String::size_type i = 0; i < selector.length(); i++)
     if (selector[i] == '}' || selector[i] == '{')
