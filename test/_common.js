@@ -92,8 +92,8 @@ let globals = {
     reportError(e) {}
   },
   console: {
-    log() {},
-    error() {}
+    log: console.log.bind(console),
+    error: console.error.bind(console)
   },
   navigator: {
   },
@@ -418,6 +418,25 @@ exports.setupTimerAndXMLHttp = function()
 };
 
 console.warn = console.log;
+
+exports.silenceAssertionOutput = function(test, msg)
+{
+  let msgMatch = new RegExp(`^Error: ${msg}[\r\n]`);
+  let errorHandler = globals.console.error;
+  globals.console.error = s =>
+  {
+    if (!msgMatch.test(s))
+      errorHandler(s);
+  };
+  try
+  {
+    return test();
+  }
+  finally
+  {
+    globals.console.error = errorHandler;
+  }
+};
 
 exports.setupRandomResult = function()
 {

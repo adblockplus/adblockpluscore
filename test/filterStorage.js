@@ -17,7 +17,7 @@
 
 "use strict";
 
-const {createSandbox} = require("./_common");
+const {createSandbox, silenceAssertionOutput} = require("./_common");
 
 let Filter = null;
 let FilterNotifier = null;
@@ -184,7 +184,10 @@ exports.testMovingSubscriptions = function(test)
   test.deepEqual(changes, ["subscription.moved http://test3/"], "Received changes");
 
   changes = [];
-  test.ok(!FilterStorage.moveSubscription(subscription2), "Move of removed subscription failed");
+  test.ok(!silenceAssertionOutput(
+    () => FilterStorage.moveSubscription(subscription2),
+    "Attempt to move a subscription that is not in the list"
+  ), "Move of removed subscription failed");
   compareSubscriptionList(test, "Move of removed subscription", [subscription1, subscription3]);
   test.deepEqual(changes, [], "Received changes");
 
