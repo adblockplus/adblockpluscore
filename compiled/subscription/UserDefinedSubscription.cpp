@@ -56,7 +56,7 @@ bool UserDefinedSubscription::IsDefaultFor(const Filter& filter) const
 {
   if (filter.mType >= Filter::Type::VALUE_COUNT)
   {
-    assert2(false, "Filter type exceeds valid range");
+    assert2(false, u"Filter type exceeds valid range"_str);
     abort();
   }
   return mDefaults & filterTypeToCategory[filter.mType];
@@ -66,7 +66,7 @@ void UserDefinedSubscription::MakeDefaultFor(const Filter& filter)
 {
   if (filter.mType >= Filter::Type::VALUE_COUNT)
   {
-    assert2(false, "Filter type exceeds valid range");
+    assert2(false, u"Filter type exceeds valid range"_str);
     abort();
   }
   mDefaults |= filterTypeToCategory[filter.mType];

@@ -29,6 +29,7 @@
 #include <type_traits>
 
 #include "debug.h"
+#include "String.h"
 
 class ref_counted
 {
