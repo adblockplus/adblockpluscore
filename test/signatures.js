@@ -17,7 +17,7 @@
 
 "use strict";
 
-const {createSandbox} = require("./_common");
+const {createSandbox, silenceWarnOutput} = require("./_common");
 
 let verifySignature = null;
 
@@ -52,9 +52,18 @@ exports.test512bitSigningKey = function(test)
 
   test.ok(!verifySignature(publicKey, signature, data + "1"), "Wrong data");
   test.ok(!verifySignature(publicKey, signature, data.substr(0, 3)), "Wrong data");
-  test.ok(!verifySignature(publicKey, signature.substr(0, 5) + "0" + signature.substr(6), data), "Wrong signature");
-  test.ok(!verifySignature(publicKey.substr(0, 5) + "R" + publicKey.substr(6), signature, data), "Wrong public key");
-  test.ok(!verifySignature(publicKey.substr(0, 70) + "8" + publicKey.substr(71), signature, data), "Wrong public key");
+  test.ok(!silenceWarnOutput(
+    () => verifySignature(publicKey, signature.substr(0, 5) + "0" + signature.substr(6), data),
+    "Invalid encrypted signature: Wrong padding in signature digest"
+  ), "Wrong signature");
+  test.ok(!silenceWarnOutput(
+    () => verifySignature(publicKey.substr(0, 5) + "R" + publicKey.substr(6), signature, data),
+    "Invalid RSA public key: Unexpected type"
+  ), "Wrong public key");
+  test.ok(!silenceWarnOutput(
+    () => verifySignature(publicKey.substr(0, 70) + "8" + publicKey.substr(71), signature, data),
+    "Invalid encrypted signature: Wrong padding in signature digest"
+  ), "Wrong public key");
 
   test.done();
 };
@@ -98,9 +107,18 @@ exports.test2048bitSigningKey = function(test)
 
   test.ok(!verifySignature(publicKey, signature, data + "1"), "Wrong data");
   test.ok(!verifySignature(publicKey, signature, data.substr(0, 3)), "Wrong data");
-  test.ok(!verifySignature(publicKey, signature.substr(0, 5) + "0" + signature.substr(6), data), "Wrong signature");
-  test.ok(!verifySignature(publicKey.substr(0, 5) + "R" + publicKey.substr(6), signature, data), "Wrong public key");
-  test.ok(!verifySignature(publicKey.substr(0, 70) + "8" + publicKey.substr(71), signature, data), "Wrong public key");
+  test.ok(!silenceWarnOutput(
+    () => verifySignature(publicKey, signature.substr(0, 5) + "0" + signature.substr(6), data),
+    "Invalid encrypted signature: Wrong padding in signature digest"
+  ), "Wrong signature");
+  test.ok(!silenceWarnOutput(
+    () => verifySignature(publicKey.substr(0, 5) + "R" + publicKey.substr(6), signature, data),
+    "Invalid RSA public key: Unexpected type"
+  ), "Wrong public key");
+  test.ok(!silenceWarnOutput(
+    () => verifySignature(publicKey.substr(0, 70) + "8" + publicKey.substr(71), signature, data),
+    "Invalid encrypted signature: Wrong padding in signature digest"
+  ), "Wrong public key");
 
   test.done();
 };
@@ -126,9 +144,18 @@ exports.testVeryLongData = function(test)
 
   test.ok(!verifySignature(publicKey, signature, data + "1"), "Wrong data");
   test.ok(!verifySignature(publicKey, signature, data.substr(0, 3)), "Wrong data");
-  test.ok(!verifySignature(publicKey, signature.substr(0, 5) + "0" + signature.substr(6), data), "Wrong signature");
-  test.ok(!verifySignature(publicKey.substr(0, 5) + "R" + publicKey.substr(6), signature, data), "Wrong public key");
-  test.ok(!verifySignature(publicKey.substr(0, 70) + "8" + publicKey.substr(71), signature, data), "Wrong public key");
+  test.ok(!silenceWarnOutput(
+    () => verifySignature(publicKey, signature.substr(0, 5) + "0" + signature.substr(6), data),
+    "Invalid encrypted signature: Wrong padding in signature digest"
+  ), "Wrong signature");
+  test.ok(!silenceWarnOutput(
+    () => verifySignature(publicKey.substr(0, 5) + "R" + publicKey.substr(6), signature, data),
+    "Invalid RSA public key: Unexpected type"
+  ), "Wrong public key");
+  test.ok(!silenceWarnOutput(
+    () => verifySignature(publicKey.substr(0, 70) + "8" + publicKey.substr(71), signature, data),
+    "Invalid encrypted signature: Wrong padding in signature digest"
+  ), "Wrong public key");
 
   test.done();
 };

@@ -419,6 +419,24 @@ exports.setupTimerAndXMLHttp = function()
 
 console.warn = console.log;
 
+exports.silenceWarnOutput = function(test, msg)
+{
+  let warnHandler = globals.console.warn;
+  globals.console.warn = s =>
+  {
+    if (s != msg)
+      warnHandler(s);
+  };
+  try
+  {
+    return test();
+  }
+  finally
+  {
+    globals.console.warn = warnHandler;
+  }
+};
+
 exports.silenceAssertionOutput = function(test, msg)
 {
   let msgMatch = new RegExp(`^Error: ${msg}[\r\n]`);
