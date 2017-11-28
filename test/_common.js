@@ -91,10 +91,6 @@ let globals = {
     },
     reportError(e) {}
   },
-  console: {
-    log: console.log.bind(console),
-    error: console.error.bind(console)
-  },
   navigator: {
   },
   onShutdown: {
@@ -421,11 +417,13 @@ console.warn = console.log;
 
 exports.silenceWarnOutput = function(test, msg)
 {
-  let warnHandler = globals.console.warn;
-  globals.console.warn = s =>
+  let warnHandler = console.warn;
+  console.warn = (...args) =>
   {
+    let s = (args[0] instanceof Error ? args[0].message : args[0]);
+
     if (s != msg)
-      warnHandler(s);
+      warnHandler(...args);
   };
   try
   {
@@ -433,18 +431,20 @@ exports.silenceWarnOutput = function(test, msg)
   }
   finally
   {
-    globals.console.warn = warnHandler;
+    console.warn = warnHandler;
   }
 };
 
 exports.silenceAssertionOutput = function(test, msg)
 {
-  let msgMatch = new RegExp(`^Error: ${msg}[\r\n]`);
-  let errorHandler = globals.console.error;
-  globals.console.error = s =>
+  let msgMatch = new RegExp("^Error: (.*)[\r\n]");
+  let errorHandler = console.error;
+  console.error = (...args) =>
   {
-    if (!msgMatch.test(s))
-      errorHandler(s);
+    let s = (args[0] instanceof Error ? args[0].message : args[0]);
+    let match = s && s.match(msgMatch);
+    if (!match || match[1] != msg)
+      errorHandler(...args);
   };
   try
   {
@@ -452,7 +452,7 @@ exports.silenceAssertionOutput = function(test, msg)
   }
   finally
   {
-    globals.console.error = errorHandler;
+    console.error = errorHandler;
   }
 };
 
