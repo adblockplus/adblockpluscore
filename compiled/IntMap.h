@@ -18,67 +18,67 @@
 #pragma once
 
 #include <cstddef>
+#include <climits>
 
 #include "Map.h"
-#include "String.h"
 
-namespace StringMap_internal
+namespace Uint32Map_internal
 {
-  struct StringSetEntry
+  struct Uint32SetEntry
   {
-    typedef DependentString key_type;
-    typedef const String& key_type_cref;
+  public:
+    typedef uint32_t key_type;
+    typedef key_type key_type_cref;
     typedef size_t size_type;
 
+  protected:
+    static const key_type KEY_INVALID = 0xFFFFFFFF;
+    static const key_type KEY_DELETED = 0xFFFFFFFE;
+
+  public:
     key_type first;
 
-    StringSetEntry(key_type_cref key = key_type())
+    Uint32SetEntry(key_type_cref key = KEY_INVALID)
+        : first(key)
     {
-      if (!key.is_invalid())
-        first.reset(key);
     }
 
     bool equals(key_type_cref other) const
     {
-      return first.equals(other);
+      return first == other;
     }
 
     bool is_invalid() const
     {
-      return first.is_invalid();
+      return first == KEY_INVALID;
     }
 
     bool is_deleted() const
     {
-      return first.is_deleted();
+      return first == KEY_DELETED;
     }
 
     void erase()
     {
-      first.erase();
+      first = KEY_INVALID;
     }
 
     static size_type hash(key_type_cref key)
     {
-      // FNV-1a hash function
-      size_type result = 2166136261;
-      for (String::size_type i = 0; i < key.length(); i++)
-        result = (result ^ key[i]) * 16777619;
-      return result;
+      return key;
     }
   };
 
   template<typename Value>
-  struct StringMapEntry : StringSetEntry
+  struct Uint32MapEntry : Uint32SetEntry
   {
-    typedef StringSetEntry super;
+    typedef Uint32SetEntry super;
     typedef Value value_type;
 
     value_type second;
 
-    StringMapEntry(key_type_cref key = DependentString(),
-                   value_type value = value_type())
-        : super(key), second(value)
+    Uint32MapEntry(key_type_cref key = KEY_INVALID, value_type value = value_type())
+        : Uint32SetEntry(key), second(value)
     {
     }
 
@@ -90,7 +90,7 @@ namespace StringMap_internal
   };
 }
 
-using StringSet = Set<StringMap_internal::StringSetEntry>;
+using Uint32Set = Set<Uint32Map_internal::Uint32SetEntry>;
 
 template<typename Value>
-using StringMap = Map<StringMap_internal::StringMapEntry<Value>>;
+using Uint32Map = Map<Uint32Map_internal::Uint32MapEntry<Value>>;
