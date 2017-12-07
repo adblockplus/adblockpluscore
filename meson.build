@@ -192,9 +192,35 @@ if target_type == 'js'
                                     '@INPUT@'
                                   ] + compiler_args + optional_args)
 else
+  GTEST_DIR = join_paths('third-party', 'googletest', 'googletest')
+  GTEST_PARAMS = []
+  compiler = meson.get_compiler('cpp')
+  if compiler.has_argument('-pthread')
+    GTEST_PARAMS += '-pthread'
+  endif
+
+  test_sources = [
+    'test/compiled/abptest.cpp',
+    'test/compiled/String.cpp',
+    'test/compiled/StringMap.cpp',
+    'test/compiled/RegExp.cpp',
+  ]
+
   adblockpluscore = library('adblockpluscore', shared_sources,
                             native_sources,
                             cpp_args: ADDITIONAL_PARAMS + CORE_PARAMS,
                             link_args: LINK_PARAMS)
+  gtest = static_library('gtest', files(join_paths(GTEST_DIR, 'src', 'gtest-all.cc')),
+                         include_directories: [
+                             include_directories(join_paths(GTEST_DIR, 'include'), is_system: true),
+                             include_directories(GTEST_DIR)
+                         ],
+                         cpp_args: GTEST_PARAMS)
+  abptest = executable('abptest', test_sources,
+                       cpp_args: ADDITIONAL_PARAMS + CORE_PARAMS,
+                       include_directories: include_directories(join_paths(GTEST_DIR, 'include')),
+                       link_args: LINK_PARAMS,
+                       link_with: [ adblockpluscore, gtest ])
+  test('abptest', abptest)
 endif
 
