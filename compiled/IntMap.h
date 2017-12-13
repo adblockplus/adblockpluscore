@@ -60,7 +60,7 @@ namespace Uint32Map_internal
 
     void erase()
     {
-      first = KEY_INVALID;
+      first = KEY_DELETED;
     }
 
     static size_type hash(key_type_cref key)
