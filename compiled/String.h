@@ -281,7 +281,7 @@ private:
 
 public:
   explicit OwnedString(size_type len = 0)
-      : String(nullptr, len, READ_WRITE)
+    : String(nullptr, len, len ? READ_WRITE : INVALID)
   {
     if (len)
     {
