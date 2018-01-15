@@ -31,6 +31,10 @@ with the following commands:
 
     meson build
 
+To build natively use:
+
+    meson -Dnative=true build
+
 By default it will create a debug build. Pass `--buildtype release` to
 create a release build.
 
