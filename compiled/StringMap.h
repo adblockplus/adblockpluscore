@@ -95,7 +95,7 @@ namespace StringMap_internal
 
     StringMapEntry(typename super::key_type_cref key = Key(),
                    value_type value = value_type())
-        : super(key), second(value)
+        : super(key), second(std::move(value))
     {
     }
 

@@ -107,9 +107,11 @@ namespace Map_internal
     typedef HashContainerIterator<Entry> const_iterator;
     typedef HashContainerReference<const Entry> const_reference;
 
-  private:
-    explicit HashContainer(const HashContainer& other);
-    void operator=(const HashContainer& other);
+    explicit HashContainer(HashContainer&& other) = default;
+    HashContainer& operator=(HashContainer&&) = default;
+
+    explicit HashContainer(const HashContainer& other) = delete;
+    void operator=(const HashContainer& other) = delete;
 
   protected:
     static constexpr size_type MIN_BUCKETS = 1;
@@ -154,27 +156,41 @@ namespace Map_internal
         entry_type& entry = oldBuckets[i];
         if (!entry.is_invalid() && !entry.is_deleted())
         {
-          *find_bucket(entry.first) = entry;
+          *find_bucket(entry.first) = std::move(entry);
           mEntryCount++;
         }
       }
     }
 
-    entry_type* assign(entry_type* existing, const entry_type& entry)
+    // Prepare the bucket for assigning entry at key.
+    entry_type* prepare_bucket(entry_type* existing, key_type_cref key)
     {
       if (existing->is_invalid())
       {
         if (mEntryCount + 1 >= mBucketCount * LOAD_FACTOR)
         {
           resize(mBucketCount << 1);
-          existing = find_bucket(entry.first);
+          existing = find_bucket(key);
         }
         mEntryCount++;
 #if defined(DEBUG)
         mInsertCounter++;
 #endif
       }
+      return existing;
+    }
+
+    entry_type* assign(entry_type* existing, const entry_type& entry)
+    {
+      existing = prepare_bucket(existing, entry.first);
       *existing = entry;
+      return existing;
+    }
+
+    entry_type* assign(entry_type* existing, entry_type&& entry)
+    {
+      existing = prepare_bucket(existing, entry.first);
+      *existing = std::move(entry);
       return existing;
     }
 

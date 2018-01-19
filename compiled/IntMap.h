@@ -78,7 +78,7 @@ namespace Uint32Map_internal
     value_type second;
 
     Uint32MapEntry(key_type_cref key = KEY_INVALID, value_type value = value_type())
-        : Uint32SetEntry(key), second(value)
+        : Uint32SetEntry(key), second(std::move(value))
     {
     }
 
