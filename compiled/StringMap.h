@@ -24,9 +24,11 @@
 
 namespace StringMap_internal
 {
+  template<typename Key,
+    class = typename std::enable_if<std::is_base_of<String, Key>::value>::type>
   struct StringSetEntry
   {
-    typedef DependentString key_type;
+    typedef Key key_type;
     typedef const String& key_type_cref;
     typedef size_t size_type;
 
@@ -68,15 +70,15 @@ namespace StringMap_internal
     }
   };
 
-  template<typename Value>
-  struct StringMapEntry : StringSetEntry
+  template<typename Key, typename Value>
+  struct StringMapEntry : StringSetEntry<Key>
   {
-    typedef StringSetEntry super;
+    typedef StringSetEntry<Key> super;
     typedef Value value_type;
 
     value_type second;
 
-    StringMapEntry(key_type_cref key = DependentString(),
+    StringMapEntry(typename super::key_type_cref key = Key(),
                    value_type value = value_type())
         : super(key), second(value)
     {
@@ -90,7 +92,9 @@ namespace StringMap_internal
   };
 }
 
-using StringSet = Set<StringMap_internal::StringSetEntry>;
+using StringSet = Set<StringMap_internal::StringSetEntry<DependentString>>;
 
 template<typename Value>
-using StringMap = Map<StringMap_internal::StringMapEntry<Value>>;
+using StringMap = Map<StringMap_internal::StringMapEntry<DependentString, Value>>;
+template<typename Value>
+using OwnedStringMap = Map<StringMap_internal::StringMapEntry<OwnedString, Value>>;
