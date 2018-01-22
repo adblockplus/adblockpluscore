@@ -146,9 +146,7 @@ namespace Map_internal
 
       mEntryCount = 0;
       mBucketCount = bucketCount;
-      mBuckets.reset(new entry_type[mBucketCount]);
-      // Working around https://github.com/waywardmonkeys/emscripten-trace-collector/issues/2 here
-      annotate_address(reinterpret_cast<size_type*>(mBuckets.get()) - 1, "Hash table buffer");
+      allocate();
 
       // Copy old entries into the new buffer
       for (size_type i = 0; i < oldCount; i++)
@@ -180,6 +178,13 @@ namespace Map_internal
       return existing;
     }
 
+    void allocate()
+    {
+      mBuckets.reset(new entry_type[mBucketCount]);
+      // Working around https://github.com/waywardmonkeys/emscripten-trace-collector/issues/2 here
+      annotate_address(reinterpret_cast<size_type*>(mBuckets.get()) - 1, "Hash table buffer");
+    }
+
   public:
     explicit HashContainer(size_type expectedEntries = 0)
         : mEntryCount(0)
@@ -189,9 +194,13 @@ namespace Map_internal
       while (mBucketCount < expectedEntries)
         mBucketCount <<= 1;
 
-      mBuckets.reset(new entry_type[mBucketCount]);
-      // Working around https://github.com/waywardmonkeys/emscripten-trace-collector/issues/2 here
-      annotate_address(reinterpret_cast<size_type*>(mBuckets.get()) - 1, "Hash table buffer");
+      allocate();
+    }
+
+    void clear()
+    {
+      mEntryCount = 0;
+      allocate();
     }
 
     void insert(const entry_type& entry)
