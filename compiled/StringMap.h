@@ -22,6 +22,25 @@
 #include "Map.h"
 #include "String.h"
 
+namespace {
+  size_t stringHash(const String& key)
+  {
+    // FNV-1a hash function
+    size_t result = 2166136261;
+    for (size_t i = 0; i < key.length(); i++)
+      result = (result ^ key[i]) * 16777619;
+    return result;
+  }
+}
+
+struct StringHash
+{
+  size_t operator()(const String& key) const
+  {
+    return stringHash(key);
+  }
+};
+
 namespace StringMap_internal
 {
   template<typename Key,
@@ -62,11 +81,7 @@ namespace StringMap_internal
 
     static size_type hash(key_type_cref key)
     {
-      // FNV-1a hash function
-      size_type result = 2166136261;
-      for (String::size_type i = 0; i < key.length(); i++)
-        result = (result ^ key[i]) * 16777619;
-      return result;
+      return stringHash(key);
     }
   };
 
