@@ -324,6 +324,19 @@ public:
       delete[] mBuf;
   }
 
+  void reset(const String& str)
+  {
+    *this = str;
+  }
+
+  void erase()
+  {
+    if (mBuf)
+      delete[] mBuf;
+    mBuf = nullptr;
+    mLen = DELETED;
+  }
+
   OwnedString& operator=(const String& str)
   {
     *this = OwnedString(str);
