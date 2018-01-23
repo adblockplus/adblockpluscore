@@ -87,6 +87,7 @@ shared_sources = [
   'compiled/subscription/DownloadableSubscription.cpp',
   'compiled/subscription/Subscription.cpp',
   'compiled/subscription/UserDefinedSubscription.cpp',
+  'compiled/ElemHide.cpp',
 ]
 # sources specific to core
 core_sources = [

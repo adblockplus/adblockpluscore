@@ -44,12 +44,14 @@
 
 class ActiveFilter : public Filter
 {
-protected:
+public:
   typedef StringMap<bool> DomainMap;
+  virtual DomainMap* GetDomains() const;
+  static const DependentString DEFAULT_DOMAIN;
+protected:
   typedef StringSet SitekeySet;
   void ParseDomains(const String& domains, String::value_type separator) const;
   void AddSitekey(const String& sitekey) const;
-  virtual DomainMap* GetDomains() const;
   virtual SitekeySet* GetSitekeys() const;
   mutable std::unique_ptr<DomainMap> mDomains;
   mutable std::unique_ptr<SitekeySet> mSitekeys;
@@ -64,7 +66,7 @@ public:
   FILTER_PROPERTY(unsigned int, mLastHit, FILTER_LASTHIT,
       GetLastHit, SetLastHit);
   bool BINDINGS_EXPORTED IsActiveOnDomain(DependentString& docDomain,
-      const String& sitekey) const;
+      const String& sitekey = DependentString()) const;
   bool BINDINGS_EXPORTED IsActiveOnlyOnDomain(DependentString& docDomain) const;
   bool BINDINGS_EXPORTED IsGeneric() const;
   OwnedString BINDINGS_EXPORTED Serialize() const;

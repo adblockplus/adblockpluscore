@@ -18,6 +18,7 @@
 "use strict";
 
 const {createSandbox} = require("./_common");
+const {withNAD} = require("./_test-utils");
 
 let ElemHideEmulationFilter = null;
 let ElemHideEmulation = null;
@@ -37,25 +38,129 @@ exports.setUp = function(callback)
   callback();
 };
 
+exports.testElemHideAPI = function(test)
+{
+  withNAD(0, elemHide =>
+  {
+    withNAD(0, filter =>
+    {
+      elemHide.add(filter);
+      test.equal(filter.selectorDomain, "");
+    })(Filter.fromText("###ads"));
+
+    withNAD(0, unconditionals =>
+    {
+      test.equal(unconditionals.selectorCount, 1);
+      test.equal(unconditionals.selectorAt(0), "#ads");
+      test.equal(unconditionals.filterKeyAt(0), "###ads");
+    })(elemHide.getUnconditionalSelectors());
+
+    withNAD(0, filter =>
+    {
+      elemHide.add(filter);
+      test.equal(filter.selectorDomain, "example.com");
+    })(Filter.fromText("example.com##.foo"));
+
+    withNAD(
+      0, unconditionals =>
+        test.equal(unconditionals.selectorCount, 1))(elemHide.getUnconditionalSelectors());
+
+    withNAD(0, selectors =>
+    {
+      test.equal(selectors.selectorCount, 1);
+      test.equal(selectors.selectorAt(0), ".foo");
+      test.equal(selectors.filterKeyAt(0), "example.com##.foo");
+    })(elemHide.getSelectorsForDomain("example.com", 1));
+
+    withNAD(0, selectors =>
+    {
+      test.equal(selectors.selectorCount, 2);
+      test.equal(selectors.selectorAt(0), "#ads");
+      test.equal(selectors.filterKeyAt(0), "###ads");
+      test.equal(selectors.selectorAt(1), ".foo");
+      test.equal(selectors.filterKeyAt(1), "example.com##.foo");
+    })(elemHide.getSelectorsForDomain("example.com", 0));
+
+    withNAD(0, filter3 =>
+    {
+      elemHide.add(filter3);
+
+      withNAD(
+        0, selectors =>
+          test.equal(selectors.selectorCount, 3))(
+        elemHide.getSelectorsForDomain("example.com", 0));
+
+      withNAD(
+        0, selectors =>
+          test.equal(selectors.selectorCount, 3))(
+        elemHide.getSelectorsForDomain("mail.example.com", 0));
+
+      withNAD(0, filter4 =>
+      {
+        elemHide.add(filter4);
+        withNAD(
+          0, selectors =>
+            test.equal(selectors.selectorCount, 3))(
+          elemHide.getSelectorsForDomain("example.com", 0));
+
+        withNAD(
+          0, selectors =>
+            test.equal(selectors.selectorCount, 2))(
+          elemHide.getSelectorsForDomain("mail.example.com", 0));
+
+        withNAD(
+          0,
+          unconditionals =>
+            test.equal(unconditionals.selectorCount, 1))(elemHide.getUnconditionalSelectors());
+
+        elemHide.remove(filter4);
+      })(Filter.fromText("mail.example.com#@#.message"));
+
+      withNAD(
+        0, selectors =>
+          test.equal(selectors.selectorCount, 3))(
+        elemHide.getSelectorsForDomain("example.com", 0));
+
+      withNAD(
+        0, selectors =>
+          test.equal(selectors.selectorCount, 3))(
+        elemHide.getSelectorsForDomain("mail.example.com", 0));
+
+      elemHide.remove(filter3);
+    })(Filter.fromText("example.com##.message"));
+
+    withNAD(
+      0, selectors =>
+        test.equal(selectors.selectorCount, 2))(
+      elemHide.getSelectorsForDomain("example.com", 0));
+  })(ElemHide.create());
+
+  test.done();
+};
+
 exports.testDomainRestrictions = function(test)
 {
   function testSelectorMatches(description, filters, domain, expectedMatches)
   {
-    for (let filter of filters)
+    withNAD(0, elemHide =>
     {
-      filter = Filter.fromText(filter);
-      if (filter instanceof ElemHideEmulationFilter)
-        ElemHideEmulation.add(filter);
-      else
-        ElemHide.add(filter);
-    }
+      let addFilter = withNAD(0, filter =>
+      {
+        if (filter instanceof ElemHideEmulationFilter)
+          ElemHideEmulation.add(filter);
+        else
+          elemHide.add(filter);
+      });
 
-    let matches = ElemHideEmulation.getRulesForDomain(domain)
-        .map(filter => filter.text);
-    test.deepEqual(matches.sort(), expectedMatches.sort(), description);
+      for (let text of filters)
+        addFilter(Filter.fromText(text));
 
-    ElemHideEmulation.clear();
-    ElemHide.clear();
+      let matches = ElemHideEmulation.getRulesForDomain(domain, elemHide)
+          .map(filter => filter.text);
+      test.deepEqual(matches.sort(), expectedMatches.sort(), description);
+
+      ElemHideEmulation.clear();
+    })(ElemHide.create());
   }
 
   testSelectorMatches(
@@ -109,40 +214,44 @@ exports.testDomainRestrictions = function(test)
 
 exports.testElemHideEmulationFiltersContainer = function(test)
 {
-  function compareRules(description, domain, expectedMatches)
+  withNAD(0, elemHide =>
   {
-    let result = ElemHideEmulation.getRulesForDomain(domain)
-        .map(filter => filter.text);
-    expectedMatches = expectedMatches.map(filter => filter.text);
-    test.deepEqual(result.sort(), expectedMatches.sort(), description);
-  }
+    function compareRules(description, domain, expectedMatches)
+    {
+      let result = ElemHideEmulation.getRulesForDomain(domain, elemHide)
+          .map(filter => filter.text);
+      expectedMatches = expectedMatches.map(filter => filter.text);
+      test.deepEqual(result.sort(), expectedMatches.sort(), description);
+    }
 
-  let domainFilter = Filter.fromText("example.com##filter1");
-  let subdomainFilter = Filter.fromText("www.example.com##filter2");
-  let otherDomainFilter = Filter.fromText("other.example.com##filter3");
+    withNAD([0, 1, 2], (domainFilter, subdomainFilter, otherDomainFilter) =>
+    {
+      ElemHideEmulation.add(domainFilter);
+      ElemHideEmulation.add(subdomainFilter);
+      ElemHideEmulation.add(otherDomainFilter);
+      compareRules(
+        "Return all matching filters",
+        "www.example.com",
+        [domainFilter, subdomainFilter]
+      );
 
-  ElemHideEmulation.add(domainFilter);
-  ElemHideEmulation.add(subdomainFilter);
-  ElemHideEmulation.add(otherDomainFilter);
-  compareRules(
-    "Return all matching filters",
-    "www.example.com",
-    [domainFilter, subdomainFilter]
-  );
+      ElemHideEmulation.remove(domainFilter);
+      compareRules(
+        "Return all matching filters after removing one",
+        "www.example.com",
+        [subdomainFilter]
+      );
 
-  ElemHideEmulation.remove(domainFilter);
-  compareRules(
-    "Return all matching filters after removing one",
-    "www.example.com",
-    [subdomainFilter]
-  );
-
-  ElemHideEmulation.clear();
-  compareRules(
-    "Return no filters after clearing",
-    "www.example.com",
-    []
-  );
+      ElemHideEmulation.clear();
+      compareRules(
+        "Return no filters after clearing",
+        "www.example.com",
+        []
+      );
+    })(Filter.fromText("example.com##filter1"),
+       Filter.fromText("www.example.com##filter2"),
+       Filter.fromText("other.example.com##filter3"));
+  })(ElemHide.create());
 
   test.done();
 };

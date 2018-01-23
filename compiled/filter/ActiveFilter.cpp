@@ -20,10 +20,7 @@
 #include "ActiveFilter.h"
 #include "../StringScanner.h"
 
-namespace
-{
-  const DependentString DEFAULT_DOMAIN(u""_str);
-}
+const DependentString ActiveFilter::DEFAULT_DOMAIN(u""_str);
 
 ActiveFilter::ActiveFilter(Type type, const String& text, bool ignoreTrailingDot)
     : Filter(type, text), mIgnoreTrailingDot(ignoreTrailingDot),
