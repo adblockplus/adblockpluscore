@@ -295,7 +295,9 @@ public:
   explicit OwnedString(const String& str)
       : OwnedString(str.length())
   {
-    if (length())
+    if (!str.is_invalid() && !length())
+      mLen = length() | READ_WRITE;
+    else if (length())
       std::memcpy(mBuf, str.mBuf, sizeof(value_type) * length());
   }
 
