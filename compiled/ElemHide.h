@@ -97,8 +97,8 @@ public:
                                                                  Criteria criteria) const;
   ElemHide_SelectorList* BINDINGS_EXPORTED GetUnconditionalSelectors() const;
 
-  ElemHideException* BINDINGS_EXPORTED GetException(const ElemHideBase& filter,
-                                                    DependentString& docDomain) const;
+  ElemHideException* GetException(const ElemHideBase& filter,
+                                  DependentString& docDomain) const;
 
 private:
   void AddToFiltersByDomain(const ElemHideBasePtr & filter);

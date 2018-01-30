@@ -35,6 +35,7 @@
 #include "../subscription/UserDefinedSubscription.h"
 #include "../storage/FilterStorage.h"
 #include "../ElemHide.h"
+#include "../ElemHideEmulation.h"
 #include "../FilterNotifier.h"
 
 int main()
@@ -153,9 +154,19 @@ int main()
         .function("add", &ElemHide::Add)
         .function("remove", &ElemHide::Remove)
         .function("clear", &ElemHide::Clear)
-        .function("getException", &ElemHide::GetException)
         .function("getSelectorsForDomain", &ElemHide::GetSelectorsForDomain)
         .function("getUnconditionalSelectors", &ElemHide::GetUnconditionalSelectors);
+
+    class_<ElemHideEmulation_FilterList>("ElemHideEmulation_FilterList")
+        .property("filterCount", &ElemHideEmulation_FilterList::GetFilterCount)
+        .function("filterAt", &ElemHideEmulation_FilterList::FilterAt);
+
+    class_<ElemHideEmulation>("ElemHideEmulation")
+        .class_function("create", &ElemHideEmulation::Create)
+        .function("add", &ElemHideEmulation::Add)
+        .function("remove", &ElemHideEmulation::Remove)
+        .function("clear", &ElemHideEmulation::Clear)
+        .function("getRulesForDomain", &ElemHideEmulation::GetRulesForDomain);
 
     printBindings();
     RegExpFilter::GenerateCustomBindings();

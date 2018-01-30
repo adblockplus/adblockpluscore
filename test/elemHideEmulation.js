@@ -142,12 +142,12 @@ exports.testDomainRestrictions = function(test)
 {
   function testSelectorMatches(description, filters, domain, expectedMatches)
   {
-    withNAD(0, elemHide =>
+    withNAD([0, 1], (elemHide, elemHideEmulation) =>
     {
       let addFilter = withNAD(0, filter =>
       {
         if (filter instanceof ElemHideEmulationFilter)
-          ElemHideEmulation.add(filter);
+          elemHideEmulation.add(filter);
         else
           elemHide.add(filter);
       });
@@ -155,12 +155,19 @@ exports.testDomainRestrictions = function(test)
       for (let text of filters)
         addFilter(Filter.fromText(text));
 
-      let matches = ElemHideEmulation.getRulesForDomain(domain, elemHide)
-          .map(filter => filter.text);
-      test.deepEqual(matches.sort(), expectedMatches.sort(), description);
+      withNAD(0, rules =>
+      {
+        let matches = [];
+        let push = withNAD(0, filter => matches.push(filter.text));
 
-      ElemHideEmulation.clear();
-    })(ElemHide.create());
+        for (let i = 0; i < rules.filterCount; i++)
+          push(rules.filterAt(i));
+
+        test.deepEqual(matches.sort(), expectedMatches.sort(), description);
+      })(elemHideEmulation.getRulesForDomain(elemHide, domain));
+
+      elemHideEmulation.clear();
+    })(ElemHide.create(), ElemHideEmulation.create());
   }
 
   testSelectorMatches(
@@ -214,35 +221,40 @@ exports.testDomainRestrictions = function(test)
 
 exports.testElemHideEmulationFiltersContainer = function(test)
 {
-  withNAD(0, elemHide =>
+  withNAD([0, 1], (elemHide, elemHideEmulation) =>
   {
     function compareRules(description, domain, expectedMatches)
     {
-      let result = ElemHideEmulation.getRulesForDomain(domain, elemHide)
-          .map(filter => filter.text);
-      expectedMatches = expectedMatches.map(filter => filter.text);
-      test.deepEqual(result.sort(), expectedMatches.sort(), description);
+      withNAD(0, rules =>
+      {
+        let result = [];
+        for (let i = 0; i < rules.filterCount; i++)
+          withNAD(0, filter => result.push(filter.text))(rules.filterAt(i));
+
+        expectedMatches = expectedMatches.map(filter => filter.text);
+        test.deepEqual(result.sort(), expectedMatches.sort(), description);
+      })(elemHideEmulation.getRulesForDomain(elemHide, domain));
     }
 
     withNAD([0, 1, 2], (domainFilter, subdomainFilter, otherDomainFilter) =>
     {
-      ElemHideEmulation.add(domainFilter);
-      ElemHideEmulation.add(subdomainFilter);
-      ElemHideEmulation.add(otherDomainFilter);
+      elemHideEmulation.add(domainFilter);
+      elemHideEmulation.add(subdomainFilter);
+      elemHideEmulation.add(otherDomainFilter);
       compareRules(
         "Return all matching filters",
         "www.example.com",
         [domainFilter, subdomainFilter]
       );
 
-      ElemHideEmulation.remove(domainFilter);
+      elemHideEmulation.remove(domainFilter);
       compareRules(
         "Return all matching filters after removing one",
         "www.example.com",
         [subdomainFilter]
       );
 
-      ElemHideEmulation.clear();
+      elemHideEmulation.clear();
       compareRules(
         "Return no filters after clearing",
         "www.example.com",
@@ -251,7 +263,7 @@ exports.testElemHideEmulationFiltersContainer = function(test)
     })(Filter.fromText("example.com##filter1"),
        Filter.fromText("www.example.com##filter2"),
        Filter.fromText("other.example.com##filter3"));
-  })(ElemHide.create());
+  })(ElemHide.create(), ElemHideEmulation.create());
 
   test.done();
 };
