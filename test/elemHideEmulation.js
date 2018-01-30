@@ -87,12 +87,22 @@ exports.testElemHideAPI = function(test)
 
       withNAD(
         0, selectors =>
-          test.equal(selectors.selectorCount, 3))(
+        {
+          test.equal(selectors.selectorCount, 3);
+          test.equal(selectors.selectorAt(0), "#ads");
+          test.equal(selectors.selectorAt(1), ".message");
+          test.equal(selectors.selectorAt(2), ".foo");
+        })(
         elemHide.getSelectorsForDomain("example.com", 0));
 
       withNAD(
         0, selectors =>
-          test.equal(selectors.selectorCount, 3))(
+        {
+          test.equal(selectors.selectorCount, 3);
+          test.equal(selectors.selectorAt(0), "#ads");
+          test.equal(selectors.selectorAt(1), ".message");
+          test.equal(selectors.selectorAt(2), ".foo");
+        })(
         elemHide.getSelectorsForDomain("mail.example.com", 0));
 
       withNAD(0, filter4 =>
@@ -100,31 +110,51 @@ exports.testElemHideAPI = function(test)
         elemHide.add(filter4);
         withNAD(
           0, selectors =>
-            test.equal(selectors.selectorCount, 3))(
+          {
+            test.equal(selectors.selectorCount, 3);
+            test.equal(selectors.selectorAt(0), "#ads");
+            test.equal(selectors.selectorAt(1), ".message");
+            test.equal(selectors.selectorAt(2), ".foo");
+          })(
           elemHide.getSelectorsForDomain("example.com", 0));
 
         withNAD(
           0, selectors =>
-            test.equal(selectors.selectorCount, 2))(
+          {
+            test.equal(selectors.selectorCount, 2);
+            test.equal(selectors.selectorAt(0), "#ads");
+            test.equal(selectors.selectorAt(1), ".foo");
+          })(
           elemHide.getSelectorsForDomain("mail.example.com", 0));
 
         withNAD(
           0,
           unconditionals =>
-            test.equal(unconditionals.selectorCount, 1))(elemHide.getUnconditionalSelectors());
+          {
+            test.equal(unconditionals.selectorCount, 1);
+            test.equal(unconditionals.selectorAt(0), "#ads");
+          })(elemHide.getUnconditionalSelectors());
 
         elemHide.remove(filter4);
       })(Filter.fromText("mail.example.com#@#.message"));
 
       withNAD(
         0, selectors =>
-          test.equal(selectors.selectorCount, 3))(
-        elemHide.getSelectorsForDomain("example.com", 0));
+        {
+          test.equal(selectors.selectorCount, 3);
+          test.equal(selectors.selectorAt(0), "#ads");
+          test.equal(selectors.selectorAt(1), ".message");
+          test.equal(selectors.selectorAt(2), ".foo");
+        })(elemHide.getSelectorsForDomain("example.com", 0));
 
       withNAD(
         0, selectors =>
-          test.equal(selectors.selectorCount, 3))(
-        elemHide.getSelectorsForDomain("mail.example.com", 0));
+        {
+          test.equal(selectors.selectorCount, 3);
+          test.equal(selectors.selectorAt(0), "#ads");
+          test.equal(selectors.selectorAt(1), ".message");
+          test.equal(selectors.selectorAt(2), ".foo");
+        })(elemHide.getSelectorsForDomain("mail.example.com", 0));
 
       elemHide.remove(filter3);
     })(Filter.fromText("example.com##.message"));
