@@ -192,11 +192,12 @@ if target_type == 'js'
                                     '@INPUT@'
                                   ] + compiler_args + optional_args)
 else
-  GTEST_DIR = join_paths('third-party', 'googletest', 'googletest')
+  GTEST_DIR = join_paths('third_party', 'googletest', 'googletest')
   GTEST_PARAMS = []
   compiler = meson.get_compiler('cpp')
   if compiler.has_argument('-pthread')
     GTEST_PARAMS += '-pthread'
+    LINK_PARAMS += '-lpthread'
   endif
 
   test_sources = [
