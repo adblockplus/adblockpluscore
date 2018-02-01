@@ -360,7 +360,7 @@ function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector
         <div id="middle1"><div id="inside" class="inside"></div></div>
       </div>
       <div id="sibling">
-        <div id="tohide">to hide</div>
+        <div id="tohide"><span>to hide</span></div>
       </div>
       <div id="sibling2">
         <div id="sibling21"><div id="sibling211" class="inside"></div></div>
@@ -420,6 +420,20 @@ exports.testPseudoClassHasSelectorWithHasAndWithSuffixSibling2 = function(test)
     test, "div:-abp-has(:-abp-has(> div.inside)) + div > div", expectations);
 };
 
+exports.testPseudoClassHasSelectorWithHasAndWithSuffixSibling3 = function(test)
+{
+  let expectations = {
+    parent: true,
+    middile: true,
+    inside: true,
+    sibling: true,
+    sibling2: true,
+    toHide: false
+  };
+  runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(
+    test, "div:-abp-has(> div:-abp-has(div.inside)) + div > div", expectations);
+};
+
 exports.testPseudoClassHasSelectorWithSuffixSiblingNoop = function(test)
 {
   let expectations = {
@@ -432,6 +446,20 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingNoop = function(test)
   };
   runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(
     test, "div:-abp-has(> body div.inside) + div > div", expectations);
+};
+
+exports.testPseudoClassHasSelectorWithSuffixSiblingContains = function(test)
+{
+  let expectations = {
+    parent: true,
+    middile: true,
+    inside: true,
+    sibling: true,
+    sibling2: true,
+    toHide: true
+  };
+  runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(
+    test, "div:-abp-has(> span:-abp-contains(Advertisment))", expectations);
 };
 
 exports.testPseudoClassContains = function(test)
