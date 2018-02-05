@@ -21,6 +21,10 @@
 #include <cstddef>
 #include <cstring>
 #include <type_traits>
+#ifdef INSIDE_TESTS
+#include <iostream>
+#include <codecvt>
+#endif
 
 #include "debug.h"
 #include "library.h"
@@ -193,6 +197,15 @@ public:
   }
 };
 
+#ifdef INSIDE_TESTS
+inline std::ostream& operator<<(std::ostream& os, const String& str)
+{
+  std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter;
+  os << converter.to_bytes(str.data(), str.data() + str.length());
+  return os;
+}
+#endif
+
 class DependentString : public String
 {
 public:
@@ -256,6 +269,13 @@ public:
     mLen = DELETED;
   }
 };
+
+#ifdef INSIDE_TESTS
+inline std::ostream& operator<<(std::ostream& os, const DependentString& str)
+{
+  return os << static_cast<const String&>(str);
+}
+#endif
 
 inline DependentString operator "" _str(const String::value_type* str,
     String::size_type len)
@@ -420,3 +440,10 @@ public:
     }
   }
 };
+
+#ifdef INSIDE_TESTS
+inline std::ostream& operator<<(std::ostream& os, const OwnedString& str)
+{
+  return os << static_cast<const String&>(str);
+}
+#endif

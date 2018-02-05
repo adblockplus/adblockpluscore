@@ -219,7 +219,7 @@ else
                          ],
                          cpp_args: GTEST_PARAMS)
   abptest = executable('abptest', test_sources,
-                       cpp_args: ADDITIONAL_PARAMS + CORE_PARAMS,
+                       cpp_args: ADDITIONAL_PARAMS + CORE_PARAMS + ['-DINSIDE_TESTS'],
                        include_directories: include_directories(join_paths(GTEST_DIR, 'include')),
                        link_args: LINK_PARAMS,
                        link_with: [ adblockpluscore, gtest ])
