@@ -19,8 +19,11 @@
 
 #include <cstddef>
 
+#include "../base.h"
 #include "Filter.h"
 #include "ElemHideBase.h"
+
+ABP_NS_BEGIN
 
 class ElemHideFilter: public ElemHideBase
 {
@@ -30,3 +33,5 @@ public:
 };
 
 typedef intrusive_ptr<ElemHideFilter> ElemHideFilterPtr;
+
+ABP_NS_END

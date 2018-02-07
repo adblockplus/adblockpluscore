@@ -19,8 +19,11 @@
 
 #include <cstddef>
 
+#include "../base.h"
 #include "ActiveFilter.h"
 #include "../bindings/runtime.h"
+
+ABP_NS_BEGIN
 
 struct ElemHideData
 {
@@ -67,3 +70,5 @@ public:
 };
 
 typedef intrusive_ptr<ElemHideBase> ElemHideBasePtr;
+
+ABP_NS_END

@@ -18,6 +18,8 @@
 #include "ElemHide.h"
 #include "ElemHideEmulation.h"
 
+ABP_NS_USING
+
 void ElemHideEmulation::Add(ElemHideBase& filter)
 {
   mFilters[filter.GetText()] = ElemHideBasePtr(&filter);

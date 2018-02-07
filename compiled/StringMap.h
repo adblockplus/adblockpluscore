@@ -19,11 +19,14 @@
 
 #include <cstddef>
 
+#include "base.h"
 #include "Map.h"
 #include "String.h"
 
-namespace {
-  size_t stringHash(const String& key)
+ABP_NS_BEGIN
+namespace StringMap_internal
+{
+  inline size_t stringHash(const String& key)
   {
     // FNV-1a hash function
     size_t result = 2166136261;
@@ -37,7 +40,7 @@ struct StringHash
 {
   size_t operator()(const String& key) const
   {
-    return stringHash(key);
+    return StringMap_internal::stringHash(key);
   }
 };
 
@@ -113,3 +116,4 @@ template<typename Value>
 using StringMap = Map<StringMap_internal::StringMapEntry<DependentString, Value>>;
 template<typename Value>
 using OwnedStringMap = Map<StringMap_internal::StringMapEntry<OwnedString, Value>>;
+ABP_NS_END

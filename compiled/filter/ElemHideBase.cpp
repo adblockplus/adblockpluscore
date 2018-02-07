@@ -20,6 +20,8 @@
 #include "ElemHideBase.h"
 #include "../StringScanner.h"
 
+ABP_NS_USING
+
 namespace
 {
   void NormalizeWhitespace(DependentString& text, String::size_type& domainsEnd,

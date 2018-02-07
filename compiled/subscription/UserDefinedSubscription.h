@@ -17,9 +17,12 @@
 
 #pragma once
 
+#include "../base.h"
 #include "Subscription.h"
 #include "../filter/Filter.h"
 #include "../bindings/runtime.h"
+
+ABP_NS_BEGIN
 
 class UserDefinedSubscription : public Subscription
 {
@@ -41,3 +44,5 @@ public:
 };
 
 typedef intrusive_ptr<UserDefinedSubscription> UserDefinedSubscriptionPtr;
+
+ABP_NS_END

@@ -17,6 +17,8 @@
 
 #include "ElemHide.h"
 
+ABP_NS_USING
+
 OwnedString ElemHide_SelectorList::SelectorAt(size_t idx) const
 {
   return mSelectors[idx]->GetSelector();

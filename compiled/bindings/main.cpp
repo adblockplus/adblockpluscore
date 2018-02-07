@@ -38,6 +38,8 @@
 #include "../ElemHideEmulation.h"
 #include "../FilterNotifier.h"
 
+ABP_NS_USING
+
 int main()
 {
   try

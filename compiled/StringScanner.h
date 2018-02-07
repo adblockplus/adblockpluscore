@@ -17,7 +17,10 @@
 
 #pragma once
 
+#include "base.h"
 #include "String.h"
+
+ABP_NS_BEGIN
 
 class StringScanner
 {
@@ -66,3 +69,5 @@ public:
     return skipped;
   }
 };
+
+ABP_NS_END

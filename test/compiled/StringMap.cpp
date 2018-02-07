@@ -19,6 +19,8 @@
 #include "gtest/gtest.h"
 #include "compiled/StringMap.h"
 
+ABP_NS_USING
+
 template<template <typename T> class S>
 void testStringMap()
 {

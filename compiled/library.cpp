@@ -24,6 +24,7 @@
 #include "debug.h"
 #include "library.h"
 
+ABP_NS_USING
 
 char16_t CharToLower(char16_t charCode)
 {

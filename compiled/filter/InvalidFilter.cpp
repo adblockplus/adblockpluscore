@@ -17,6 +17,8 @@
 
 #include "InvalidFilter.h"
 
+ABP_NS_USING
+
 InvalidFilter::InvalidFilter(const String& text,
     const String& reason)
     : Filter(classType, text), mReason(reason)

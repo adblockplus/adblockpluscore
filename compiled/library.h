@@ -17,6 +17,10 @@
 
 #pragma once
 
+#include "base.h"
+
+ABP_NS_BEGIN
+
 class String;
 class Filter;
 class Subscription;
@@ -26,18 +30,20 @@ namespace FilterNotifier
   enum class Topic;
 }
 
+ABP_NS_END
+
 extern "C"
 {
-  void LogString(const String& str);
+  void LogString(const ABP_NS::String& str);
   void LogInteger(int i);
   void LogPointer(const void* ptr);
-  void LogError(const String& str);
+  void LogError(const ABP_NS::String& str);
   char16_t CharToLower(char16_t charCode);
-  void JSNotifyFilterChange(FilterNotifier::Topic topic, Filter& filter,
-      Subscription* subscription, unsigned int position);
-  void JSNotifySubscriptionChange(FilterNotifier::Topic topic,
-      Subscription& subscription);
-  int GenerateRegExp(const String& regexp, bool matchCase);
+  void JSNotifyFilterChange(ABP_NS::FilterNotifier::Topic topic, ABP_NS::Filter& filter,
+      ABP_NS::Subscription* subscription, unsigned int position);
+  void JSNotifySubscriptionChange(ABP_NS::FilterNotifier::Topic topic,
+      ABP_NS::Subscription& subscription);
+  int GenerateRegExp(const ABP_NS::String& regexp, bool matchCase);
   void DeleteRegExp(int id);
-  bool TestRegExp(int id, const String& str);
+  bool TestRegExp(int id, const ABP_NS::String& str);
 }

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "../base.h"
 #include "Filter.h"
 #include "../StringMap.h"
 #include "../FilterNotifier.h"
@@ -35,12 +36,14 @@
         if (name != value)\
         {\
           name = value;\
-          if (FilterNotifier::Topic::topic != FilterNotifier::Topic::NONE)\
+          if (ABP_NS::FilterNotifier::Topic::topic != ABP_NS::FilterNotifier::Topic::NONE)\
           {\
-            FilterNotifier::FilterChange(FilterNotifier::Topic::topic, *this);\
+            ABP_NS::FilterNotifier::FilterChange(ABP_NS::FilterNotifier::Topic::topic, *this);\
           }\
         }\
       }
+
+ABP_NS_BEGIN
 
 class ActiveFilter : public Filter
 {
@@ -73,3 +76,5 @@ public:
 };
 
 typedef intrusive_ptr<ActiveFilter> ActiveFilterPtr;
+
+ABP_NS_END

@@ -28,8 +28,11 @@
 #include <algorithm>
 #include <type_traits>
 
+#include "base.h"
 #include "debug.h"
 #include "String.h"
+
+ABP_NS_BEGIN
 
 class ref_counted
 {
@@ -218,3 +221,5 @@ inline bool operator!=(const T* a, intrusive_ptr<U> const& b)
 {
   return a != b.get();
 }
+
+ABP_NS_END

@@ -20,6 +20,8 @@
 #include "ActiveFilter.h"
 #include "../StringScanner.h"
 
+ABP_NS_USING
+
 const DependentString ActiveFilter::DEFAULT_DOMAIN(u""_str);
 
 ActiveFilter::ActiveFilter(Type type, const String& text, bool ignoreTrailingDot)

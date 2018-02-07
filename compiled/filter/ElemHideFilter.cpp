@@ -17,6 +17,8 @@
 
 #include "ElemHideFilter.h"
 
+ABP_NS_USING
+
 ElemHideFilter::ElemHideFilter(const String& text, const ElemHideData& data)
     : ElemHideBase(classType, text, data)
 {

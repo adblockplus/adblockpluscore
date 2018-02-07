@@ -20,7 +20,10 @@
 #include <cstddef>
 #include <climits>
 
+#include "base.h"
 #include "Map.h"
+
+ABP_NS_BEGIN
 
 namespace Uint32Map_internal
 {
@@ -94,3 +97,5 @@ using Uint32Set = Set<Uint32Map_internal::Uint32SetEntry>;
 
 template<typename Value>
 using Uint32Map = Map<Uint32Map_internal::Uint32MapEntry<Value>>;
+
+ABP_NS_END

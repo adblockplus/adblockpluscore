@@ -17,6 +17,8 @@
 
 #include "BlockingFilter.h"
 
+ABP_NS_USING
+
 BlockingFilter::BlockingFilter(const String& text,
     const RegExpFilterData& data)
     : RegExpFilter(classType, text, data)

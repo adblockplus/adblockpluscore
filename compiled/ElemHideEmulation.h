@@ -19,9 +19,12 @@
 
 #include <vector>
 
+#include "base.h"
 #include "bindings/runtime.h"
 #include "intrusive_ptr.h"
 #include "filter/ElemHideBase.h"
+
+ABP_NS_BEGIN
 
 class ElemHide;
 
@@ -65,3 +68,4 @@ public:
   void BINDINGS_EXPORTED Clear();
   ElemHideEmulation_FilterList* BINDINGS_EXPORTED GetRulesForDomain(const ElemHide&, DependentString&);
 };
+ABP_NS_END

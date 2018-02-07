@@ -17,9 +17,12 @@
 
 #pragma once
 
+#include "../base.h"
 #include "Filter.h"
 #include "ActiveFilter.h"
 #include "../bindings/runtime.h"
+
+ABP_NS_BEGIN
 
 enum class TrippleState {YES, NO, ANY};
 
@@ -114,3 +117,5 @@ public:
 };
 
 typedef intrusive_ptr<RegExpFilter> RegExpFilterPtr;
+
+ABP_NS_END

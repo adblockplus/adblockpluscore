@@ -21,8 +21,11 @@
 #include <initializer_list>
 #include <memory>
 
+#include "base.h"
 #include "debug.h"
 #include "String.h"
+
+ABP_NS_BEGIN
 
 template<typename Entry>
 class Map;
@@ -337,3 +340,5 @@ public:
     return reference(this, key, super::find_bucket(key));
   }
 };
+
+ABP_NS_END

@@ -17,7 +17,10 @@
 
 #pragma once
 
+#include "../base.h"
 #include "RegExpFilter.h"
+
+ABP_NS_BEGIN
 
 class WhitelistFilter : public RegExpFilter
 {
@@ -27,3 +30,5 @@ public:
 };
 
 typedef intrusive_ptr<WhitelistFilter> WhitelistFilterPtr;
+
+ABP_NS_END

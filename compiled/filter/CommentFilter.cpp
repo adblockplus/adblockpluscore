@@ -17,6 +17,8 @@
 
 #include "CommentFilter.h"
 
+ABP_NS_USING
+
 CommentFilter::CommentFilter(const String& text)
     : Filter(classType, text)
 {

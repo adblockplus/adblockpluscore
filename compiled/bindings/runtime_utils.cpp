@@ -2,6 +2,8 @@
 #include "../intrusive_ptr.h"
 #include "../String.h"
 
+ABP_NS_USING
+
 extern "C"
 {
   void BINDINGS_EXPORTED InitString(DependentString* str,

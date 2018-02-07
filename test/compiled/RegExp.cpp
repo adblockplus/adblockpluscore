@@ -18,6 +18,8 @@
 #include "gtest/gtest.h"
 #include "compiled/String.h"
 
+ABP_NS_USING
+
 TEST(TestRegexp, RegExp)
 {
   auto id = GenerateRegExp(u"[0-9]*"_str, false);

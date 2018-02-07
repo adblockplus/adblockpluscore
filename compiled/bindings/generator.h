@@ -26,8 +26,11 @@
 #include <utility>
 #include <vector>
 
+#include "../base.h"
 #include "../String.h"
 #include "../intrusive_ptr.h"
+
+ABP_NS_BEGIN
 
 namespace bindings_internal
 {
@@ -340,3 +343,5 @@ public:
 };
 
 void printBindings();
+
+ABP_NS_END

@@ -19,8 +19,11 @@
 
 #include <cstdio>
 
+#include "base.h"
 #include "library.h"
 #include "String.h"
+
+ABP_NS_BEGIN
 
 class Filter;
 class Subscription;
@@ -82,3 +85,5 @@ namespace FilterNotifier
     JSNotifySubscriptionChange(topic, subscription);
   }
 }
+
+ABP_NS_END

@@ -19,10 +19,13 @@
 
 #include <vector>
 
+#include "../base.h"
 #include "../String.h"
 #include "../intrusive_ptr.h"
 #include "../debug.h"
 #include "../bindings/runtime.h"
+
+ABP_NS_BEGIN
 
 class Filter : public ref_counted
 {
@@ -79,3 +82,5 @@ public:
 };
 
 typedef intrusive_ptr<Filter> FilterPtr;
+
+ABP_NS_END

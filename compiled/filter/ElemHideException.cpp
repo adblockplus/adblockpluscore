@@ -17,6 +17,8 @@
 
 #include "ElemHideException.h"
 
+ABP_NS_USING
+
 ElemHideException::ElemHideException(const String& text,
     const ElemHideData& data)
     : ElemHideBase(classType, text, data)

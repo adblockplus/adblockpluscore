@@ -17,8 +17,11 @@
 
 #pragma once
 
+#include "../base.h"
 #include "../subscription/Subscription.h"
 #include "../bindings/runtime.h"
+
+ABP_NS_BEGIN
 
 class FilterStorage
 {
@@ -46,3 +49,5 @@ public:
   bool BINDINGS_EXPORTED MoveSubscription(Subscription& subscription,
       const Subscription* insertBefore);
 };
+
+ABP_NS_END

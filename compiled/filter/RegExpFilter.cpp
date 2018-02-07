@@ -25,6 +25,8 @@
 #include "../StringScanner.h"
 #include "../StringMap.h"
 
+ABP_NS_USING
+
 namespace
 {
   enum

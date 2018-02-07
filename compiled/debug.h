@@ -17,8 +17,10 @@
 
 #pragma once
 
+#include "base.h"
 #include "library.h"
 
+ABP_NS_BEGIN
 class String;
 
 struct console_type
@@ -45,12 +47,13 @@ struct console_type
 };
 
 static console_type console;
+ABP_NS_END
 
 #if defined(DEBUG)
 inline void assert2(bool condition, const String& str)
 {
   if (!condition)
-    console.error(str);
+    ABP_NS::console.error(str);
 }
 #else
 #define assert2(condition, str)
@@ -58,6 +61,8 @@ inline void assert2(bool condition, const String& str)
 
 #if defined(__EMSCRIPTEN_TRACING__)
 #include <emscripten/trace.h>
+
+ABP_NS_BEGIN
 
 inline void init_tracing()
 {
@@ -84,7 +89,11 @@ inline void exit_context()
   emscripten_trace_exit_context();
 }
 
+ABP_NS_END
+
 #else // defined(__EMSCRIPTEN_TRACING__)
+
+ABP_NS_BEGIN
 
 inline void init_tracing()
 {
@@ -105,5 +114,7 @@ inline void enter_context(const char* context)
 inline void exit_context()
 {
 }
+
+ABP_NS_END
 
 #endif // defined(__EMSCRIPTEN_TRACING__)

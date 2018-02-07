@@ -27,6 +27,8 @@
 #include "ElemHideEmulationFilter.h"
 #include "../StringMap.h"
 
+ABP_NS_USING
+
 namespace
 {
   StringMap<Filter*> knownFilters(8192);

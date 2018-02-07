@@ -23,6 +23,8 @@
 #include "UserDefinedSubscription.h"
 #include "../StringMap.h"
 
+ABP_NS_USING
+
 namespace
 {
   StringMap<Subscription*> knownSubscriptions(16);

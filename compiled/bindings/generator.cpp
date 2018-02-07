@@ -20,11 +20,13 @@
 #include "generator.h"
 #include "library.h"
 
+ABP_NS_USING
+
 namespace
 {
   std::vector<bindings_internal::ClassInfo> classes;
 }
-
+ABP_NS_BEGIN
 namespace bindings_internal
 {
   FunctionInfo::FunctionInfo()
@@ -477,7 +479,7 @@ namespace bindings_internal
         printf("  %i: exports.%s,\n", item.first, item.second.c_str());
       puts("};");
   }
-}
+} // namespace bindings_internal
 
 void printBindings()
 {
@@ -488,3 +490,5 @@ void printBindings()
   for (const auto& cls : classes)
     bindings_internal::printClassMapping(cls);
 }
+
+ABP_NS_END

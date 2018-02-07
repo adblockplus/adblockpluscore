@@ -19,6 +19,8 @@
 #include "gtest/gtest.h"
 #include "compiled/String.h"
 
+ABP_NS_USING
+
 TEST(TestString, constructInvalidDependentString)
 {
   DependentString s;

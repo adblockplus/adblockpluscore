@@ -17,8 +17,11 @@
 
 #pragma once
 
+#include "../base.h"
 #include "Filter.h"
 #include "../bindings/runtime.h"
+
+ABP_NS_BEGIN
 
 class InvalidFilter : public Filter
 {
@@ -34,3 +37,5 @@ private:
 };
 
 typedef intrusive_ptr<InvalidFilter> InvalidFilterPtr;
+
+ABP_NS_END

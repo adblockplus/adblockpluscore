@@ -22,6 +22,8 @@
 #include "../subscription/UserDefinedSubscription.h"
 #include "../FilterNotifier.h"
 
+ABP_NS_USING
+
 FilterStorage* FilterStorage::mInstance = new FilterStorage();
 
 FilterStorage::Subscriptions::size_type FilterStorage::GetSubscriptionCount() const

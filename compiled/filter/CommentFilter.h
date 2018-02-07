@@ -17,7 +17,10 @@
 
 #pragma once
 
+#include "../base.h"
 #include "Filter.h"
+
+ABP_NS_BEGIN
 
 class CommentFilter : public Filter
 {
@@ -29,3 +32,5 @@ public:
 };
 
 typedef intrusive_ptr<CommentFilter> CommentFilterPtr;
+
+ABP_NS_END

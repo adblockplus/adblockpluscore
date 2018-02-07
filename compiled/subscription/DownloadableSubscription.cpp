@@ -17,6 +17,8 @@
 
 #include "DownloadableSubscription.h"
 
+ABP_NS_USING
+
 DownloadableSubscription::DownloadableSubscription(const String& id)
     : Subscription(classType, id), mFixedTitle(false), mLastCheck(0),
       mHardExpiration(0), mSoftExpiration(0), mLastDownload(0), mLastSuccess(0),

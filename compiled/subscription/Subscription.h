@@ -19,6 +19,7 @@
 
 #include <vector>
 
+#include "../base.h"
 #include "../filter/Filter.h"
 #include "../String.h"
 #include "../FilterNotifier.h"
@@ -39,9 +40,9 @@
         if (name != value)\
         {\
           name = value;\
-          if (FilterNotifier::Topic::topic != FilterNotifier::Topic::NONE)\
+          if (ABP_NS::FilterNotifier::Topic::topic != ABP_NS::FilterNotifier::Topic::NONE)\
           {\
-            FilterNotifier::SubscriptionChange(FilterNotifier::Topic::topic,\
+            ABP_NS::FilterNotifier::SubscriptionChange(ABP_NS::FilterNotifier::Topic::topic,\
                 *this);\
           }\
         }\
@@ -53,6 +54,8 @@
 
 #define SUBSCRIPTION_STRING_PROPERTY(name, topic, getter, setter) \
     SUBSCRIPTION_PROPERTY_INTERNAL(OwnedString, const String&, name, topic, getter, setter)
+
+ABP_NS_BEGIN
 
 class Subscription : public ref_counted
 {
@@ -118,3 +121,5 @@ public:
 };
 
 typedef intrusive_ptr<Subscription> SubscriptionPtr;
+
+ABP_NS_END

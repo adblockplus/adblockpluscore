@@ -17,6 +17,8 @@
 
 #include "WhitelistFilter.h"
 
+ABP_NS_USING
+
 WhitelistFilter::WhitelistFilter(const String& text,
     const RegExpFilterData& data)
     : RegExpFilter(classType, text, data)

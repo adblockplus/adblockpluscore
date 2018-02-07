@@ -12,18 +12,16 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Adblock Plus. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
 
-#include <string>
-
-#include "base.h"
-#include "String.h"
-
-ABP_NS_BEGIN
-
-std::wstring StdWStringFromString(const String& str);
-
-ABP_NS_END
+// if a user config is not specified then use the default location.
+#if !defined(ABP_USER_CONFIG)
+#  define ABP_USER_CONFIG "user-config.h"
+#endif
+// it should be the first included file
+#ifdef ABP_USER_CONFIG
+#include ABP_USER_CONFIG
+#endif

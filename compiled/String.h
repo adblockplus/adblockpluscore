@@ -26,8 +26,11 @@
 #include <codecvt>
 #endif
 
+#include "base.h"
 #include "debug.h"
 #include "library.h"
+
+ABP_NS_BEGIN
 
 inline void String_assert_writable(bool isWritable);
 
@@ -447,3 +450,4 @@ inline std::ostream& operator<<(std::ostream& os, const OwnedString& str)
   return os << static_cast<const String&>(str);
 }
 #endif
+ABP_NS_END

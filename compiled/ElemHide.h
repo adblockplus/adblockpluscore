@@ -23,12 +23,15 @@
 
 #include <vector>
 
+#include "base.h"
 #include "bindings/runtime.h"
 #include "intrusive_ptr.h"
 #include "StringMap.h"
 #include "filter/Filter.h"
 #include "filter/ElemHideBase.h"
 #include "filter/ElemHideException.h"
+
+ABP_NS_BEGIN
 
 class ElemHide_SelectorList : public ref_counted
 {
@@ -103,4 +106,4 @@ public:
 private:
   void AddToFiltersByDomain(const ElemHideBasePtr & filter);
 };
-
+ABP_NS_END

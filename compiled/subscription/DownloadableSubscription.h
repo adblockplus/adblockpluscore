@@ -19,8 +19,11 @@
 
 #include <cstdint>
 
+#include "../base.h"
 #include "Subscription.h"
 #include "../bindings/runtime.h"
+
+ABP_NS_BEGIN
 
 class DownloadableSubscription : public Subscription
 {
@@ -57,3 +60,5 @@ public:
 };
 
 typedef intrusive_ptr<DownloadableSubscription> DownloadableSubscriptionPtr;
+
+ABP_NS_END

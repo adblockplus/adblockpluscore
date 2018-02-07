@@ -20,6 +20,8 @@
 #include "UserDefinedSubscription.h"
 #include "../FilterNotifier.h"
 
+ABP_NS_USING
+
 namespace
 {
   enum FilterCategory

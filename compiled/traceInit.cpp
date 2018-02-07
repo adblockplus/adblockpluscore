@@ -17,17 +17,22 @@
 
 #include "debug.h"
 
-struct InitTracing
+ABP_NS_USING
+
+namespace
 {
-  InitTracing()
+  struct InitTracing
   {
-    init_tracing();
-  }
+    InitTracing()
+    {
+      init_tracing();
+    }
 
-  ~InitTracing()
-  {
-    shutdown_tracing();
-  }
-};
+    ~InitTracing()
+    {
+      shutdown_tracing();
+    }
+  };
 
-InitTracing foo;
+  InitTracing foo;
+}

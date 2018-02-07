@@ -12,18 +12,23 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Adblock Plus. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
 
-#include <string>
+// ABP_NS, ABP_NS_BEGIN, ABP_NS_END and ABP_NS_USING allow to put the code of
+// this library into ABP_NS namespace. The easiest way to do it is to define
+// ABP_NS on the next line.
+//#define ABP_NS abp_core
+#if defined(ABP_NS)
+#define ABP_NS_BEGIN namespace ABP_NS {
+#define ABP_NS_END }
+#define ABP_NS_USING using namespace ABP_NS;
+#else
+#define ABP_NS
+#define ABP_NS_BEGIN
+#define ABP_NS_END
+#define ABP_NS_USING
+#endif
 
-#include "base.h"
-#include "String.h"
-
-ABP_NS_BEGIN
-
-std::wstring StdWStringFromString(const String& str);
-
-ABP_NS_END

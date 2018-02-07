@@ -17,7 +17,10 @@
 
 #include "Utils.h"
 
+ABP_NS_BEGIN
+
 std::wstring StdWStringFromString(const String& str)
 {
   return std::wstring(str.data(), str.data() + str.length());
 }
+ABP_NS_END
