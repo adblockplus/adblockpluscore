@@ -115,7 +115,7 @@ namespace bindings_internal
 
     int nameLength = GetFunctionName(nullptr, function, signature.c_str());
     name.resize(nameLength);
-    GetFunctionName(name.data(), function, signature.c_str());
+    GetFunctionName(&name[0], function, signature.c_str());
   }
 
   bool FunctionInfo::empty() const

@@ -315,6 +315,10 @@ public:
 
   using super::super;
 
+  Map()
+  {
+  }
+
   Map(std::initializer_list<entry_type> list)
       : super(list.size())
   {

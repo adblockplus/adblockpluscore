@@ -40,7 +40,7 @@ BINDINGS_GENERATOR = 'bindings.cpp.js'
 BINDINGS_OUTPUT = 'bindings.js'
 COMPILER_OUTPUT = 'compiled.js'
 # params for emcc compilation
-ADDITIONAL_PARAMS = [ '-O3', '-std=c++1z', '-Wall', '-Werror',
+ADDITIONAL_PARAMS = [ '-O3', '-std=c++14', '-Wall', '-Werror',
                       '-fno-rtti' ]
 if target_type == 'js'
 # CXXFLAGS specific to emcc
