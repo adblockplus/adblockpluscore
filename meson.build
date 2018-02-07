@@ -40,17 +40,30 @@ BINDINGS_GENERATOR = 'bindings.cpp.js'
 BINDINGS_OUTPUT = 'bindings.js'
 COMPILER_OUTPUT = 'compiled.js'
 # params for emcc compilation
-ADDITIONAL_PARAMS = [ '-O3', '-std=c++14', '-Wall', '-Werror',
-                      '-fno-rtti' ]
+ADDITIONAL_PARAMS = []
+
+cpp_compiler = meson.get_compiler('cpp')
+cpp_compiler_id = cpp_compiler.get_id()
+LINK_PARAMS = []
+
+if cpp_compiler_id != 'msvc'
+ADDITIONAL_PARAMS += [ '-O3', '-std=c++14', '-Wall', '-fno-rtti' ]
+endif
+
 if target_type == 'js'
 # CXXFLAGS specific to emcc
   ADDITIONAL_PARAMS += [ '-m32', '--memory-init-file', '0',
                          '--emit-symbol-map' ]
 else
-  ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
+  if cpp_compiler_id != 'msvc'
+    ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
+  endif
 endif
 # additional params just for core
-CORE_PARAMS = [ '-fno-exceptions' ]
+CORE_PARAMS = []
+if cpp_compiler_id != 'msvc'
+  CORE_PARAMS += [ '-fno-exceptions' ]
+endif
 
 DEFINES = []
 GENERATION_PARAMS = [
@@ -119,11 +132,13 @@ endforeach
 optional_args = []
 buildtype = get_option('buildtype')
 if buildtype.startswith('debug')
-  optional_args += '-DDEBUG'
-  optional_args += '-g3'
-  if target_type == 'native'
-    ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
-    LINK_PARAMS = [ '-fsanitize=address' ]
+  if cpp_compiler_id != 'msvc'
+    optional_args += '-DDEBUG'
+    optional_args += '-g3'
+    if target_type == 'native'
+      ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
+      LINK_PARAMS += [ '-fsanitize=address' ]
+    endif
   endif
 endif
 tracing = get_option('tracing')
@@ -131,9 +146,10 @@ if tracing
   optional_args += '--tracing'
 endif
 
-compiler_args = defines_args + generation_args + ADDITIONAL_PARAMS
 
 if target_type == 'js'
+  compiler_args = defines_args + generation_args + ADDITIONAL_PARAMS
+
   # build objects.
   core_objects = []
   bindings_objects = []
@@ -193,6 +209,7 @@ if target_type == 'js'
                                     '@INPUT@'
                                   ] + compiler_args + optional_args)
 else
+  compiler_args = ADDITIONAL_PARAMS + CORE_PARAMS
   GTEST_DIR = join_paths('third_party', 'googletest', 'googletest')
   GTEST_PARAMS = []
   compiler = meson.get_compiler('cpp')
@@ -208,10 +225,11 @@ else
     'test/compiled/RegExp.cpp',
   ]
 
-  adblockpluscore = library('adblockpluscore', shared_sources,
+  adblockpluscore = static_library('adblockpluscore', shared_sources,
                             native_sources,
-                            cpp_args: ADDITIONAL_PARAMS + CORE_PARAMS,
-                            link_args: LINK_PARAMS)
+                            cpp_args: compiler_args,
+                            link_args: LINK_PARAMS,
+                            pic: true)
   gtest = static_library('gtest', files(join_paths(GTEST_DIR, 'src', 'gtest-all.cc')),
                          include_directories: [
                              include_directories(join_paths(GTEST_DIR, 'include'), is_system: true),
@@ -219,7 +237,7 @@ else
                          ],
                          cpp_args: GTEST_PARAMS)
   abptest = executable('abptest', test_sources,
-                       cpp_args: ADDITIONAL_PARAMS + CORE_PARAMS + ['-DINSIDE_TESTS'],
+                       cpp_args: compiler_args + ['-DINSIDE_TESTS'],
                        include_directories: include_directories(join_paths(GTEST_DIR, 'include')),
                        link_args: LINK_PARAMS,
                        link_with: [ adblockpluscore, gtest ])

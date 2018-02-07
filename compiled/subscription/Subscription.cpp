@@ -17,6 +17,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <random>
 
 #include "Subscription.h"
 #include "DownloadableSubscription.h"
@@ -95,11 +96,11 @@ Subscription* Subscription::FromID(const String& id)
   if (id.empty())
   {
     // Generate a new random ID
-    unsigned int seed = knownSubscriptions.size();
+    std::mt19937 gen(knownSubscriptions.size());
     OwnedString randomID(u"~user~000000"_str);
     do
     {
-      int number = rand_r(&seed);
+      int number = gen();
       for (int i = randomID.length() - 6; i < randomID.length(); i++)
       {
         randomID[i] = '0' + (number % 10);
