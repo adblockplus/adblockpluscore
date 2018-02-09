@@ -6,6 +6,7 @@ if native
 else
    target_type='js'
 endif
+asan = get_option('asan')
 
 if target_type == 'js'
   # locate emscripten-config
@@ -56,7 +57,9 @@ if target_type == 'js'
                          '--emit-symbol-map' ]
 else
   if cpp_compiler_id != 'msvc'
-    ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
+    if asan
+      ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
+    endif
   endif
 endif
 # additional params just for core
@@ -136,8 +139,10 @@ if buildtype.startswith('debug')
     optional_args += '-DDEBUG'
     optional_args += '-g3'
     if target_type == 'native'
-      ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
-      LINK_PARAMS += [ '-fsanitize=address' ]
+      if asan
+        ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
+        LINK_PARAMS += [ '-fsanitize=address' ]
+      endif
     endif
   endif
 endif

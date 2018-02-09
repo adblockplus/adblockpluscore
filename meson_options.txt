@@ -1,3 +1,4 @@
 option('tracing', type: 'boolean', value: false)
 option('native', type: 'boolean', value: false)
+option('asan', type: 'boolean', value: true)
 option('emscripten-config', type: 'string', value: '~/.emscripten')
