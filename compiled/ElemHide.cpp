@@ -197,12 +197,12 @@ ElemHide_SelectorList* ElemHide::GetUnconditionalSelectors() const
 ElemHide_SelectorList* ElemHide::GetSelectorsForDomain(const String& domain,
   Criteria criteria) const
 {
-  intrusive_ptr<ElemHide_SelectorList> selectors(new ElemHide_SelectorList());
+  intrusive_ptr<ElemHide_SelectorList> selectors(new ElemHide_SelectorList(), false);
   annotate_address(selectors.get(), "ElemHide_SelectorList");
 
   if (criteria < NO_UNCONDITIONAL)
   {
-    intrusive_ptr<ElemHide_SelectorList> selector(GetUnconditionalSelectors());
+    intrusive_ptr<ElemHide_SelectorList> selector(GetUnconditionalSelectors(), false);
     selectors->append(*selector);
   }
 
