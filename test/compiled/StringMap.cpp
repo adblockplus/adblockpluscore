@@ -25,12 +25,16 @@ template<template <typename T> class S>
 void testStringMap()
 {
   S<std::string> map;
+
+  EXPECT_EQ(map.begin(), map.end());
+
   auto key = u"Foobar"_str;
   EXPECT_EQ(key.length(), 6);
   EXPECT_EQ(map.size(), 0);
 
   map[u"Foobar"_str] = "one";
   EXPECT_EQ(map.size(), 1);
+  EXPECT_NE(map.begin(), map.end());
 
   map[u""_str] = "null";
   EXPECT_EQ(map.size(), 2);
