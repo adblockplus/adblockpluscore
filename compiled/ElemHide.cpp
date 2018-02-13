@@ -183,12 +183,9 @@ ElemHide_SelectorList* ElemHide::GetUnconditionalSelectors() const
     annotate_address(mUnconditionalSelectorsCache.get(), "ElemHide_SelectorList");
     for (const auto& unconditional : mUnconditionalSelectors)
     {
-      if (!(unconditional.is_deleted() || unconditional.is_invalid()))
-      {
-        auto entry = mFilters.find(unconditional.second->GetText());
-        if (entry)
-          mUnconditionalSelectorsCache->push_back(entry->second);
-      }
+      auto entry = mFilters.find(unconditional.second->GetText());
+      if (entry)
+        mUnconditionalSelectorsCache->push_back(entry->second);
     }
   }
   return intrusive_ptr<ElemHide_SelectorList>(mUnconditionalSelectorsCache).release();
@@ -221,9 +218,6 @@ ElemHide_SelectorList* ElemHide::GetSelectorsForDomain(const String& domain,
     {
       for (const auto& entry : filters->second)
       {
-        if (entry.first.is_invalid() || entry.first.is_deleted())
-          continue;
-
         if (seenFilters.find(entry.first))
           continue;
         seenFilters.insert(entry.first);

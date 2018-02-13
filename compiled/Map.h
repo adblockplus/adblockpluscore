@@ -44,7 +44,7 @@ namespace Map_internal
     explicit HashContainerIterator(const entry_type* start, const entry_type* end)
         : mPos(start), mEnd(end)
     {
-      if (mPos != mEnd && mPos->is_invalid())
+      if (mPos != mEnd && (mPos->is_invalid() || mPos->is_deleted()))
         ++(*this);
     }
 
@@ -62,7 +62,7 @@ namespace Map_internal
     {
       do {
         ++mPos;
-      } while(mPos != mEnd && mPos->is_invalid());
+      } while(mPos != mEnd && (mPos->is_invalid() || mPos->is_deleted()));
       return *this;
     }
 
@@ -96,7 +96,7 @@ namespace Map_internal
 
     operator bool() const
     {
-      return !mEntry->is_invalid();
+      return !(mEntry->is_invalid() || mEntry->is_deleted());
     }
   };
 

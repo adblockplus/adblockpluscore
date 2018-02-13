@@ -55,10 +55,13 @@ void testStringMap()
 
   EXPECT_EQ(map.size(), 4);
 
-  map.erase(u"Foobar2"_str);
+  EXPECT_TRUE(map.erase(u"Foobar2"_str));
+  // already deleted. Returns false.
+  EXPECT_FALSE(map.erase(u"Foobar2"_str));
+  // invalid. Returns false.
+  EXPECT_FALSE(map.erase(u"Foobar42"_str));
 
-  // DISABLED. This should be true, but it isn't
-  //EXPECT_EQ(map.size(), 3);
+  EXPECT_EQ(map.size(), 4);
 
   entry = map.find(u"Foobar2"_str);
   EXPECT_FALSE(entry);
@@ -67,14 +70,15 @@ void testStringMap()
   for (const auto& e : map)
   {
     EXPECT_FALSE(e.is_invalid());
-    // DISABLED entries that are deleted shouldn't be returned.
-    // See issue #6281
-    //EXPECT_FALSE(e.is_deleted());
+    // entries that are deleted shouldn't be returned.
+    EXPECT_FALSE(e.is_deleted());
     i++;
   }
 
-  EXPECT_EQ(i, 4); // SHOULD be 3. See issue #6281
-  EXPECT_EQ(i, map.size());
+  EXPECT_EQ(i, 3);
+  // We did not return deleted entries (there is one).
+  // So size is different than actual count.
+  EXPECT_NE(i, map.size());
 }
 
 TEST(TestStringMap, stringMap)

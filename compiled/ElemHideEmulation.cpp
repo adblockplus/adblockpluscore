@@ -41,8 +41,7 @@ ElemHideEmulation_FilterList* ElemHideEmulation::GetRulesForDomain(const ElemHid
   for (const auto& entry: mFilters)
   {
     DependentString docDomain(domain);
-    if (!(entry.is_deleted() || entry.is_invalid()) &&
-        entry.second->IsActiveOnDomain(docDomain) &&
+    if (entry.second->IsActiveOnDomain(docDomain) &&
         !elemHide.GetException(*entry.second, domain))
       result->push_back(entry.second);
   }
