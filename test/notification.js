@@ -21,11 +21,9 @@ let {
   createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError, Cr
 } = require("./_common");
 
-
 let Prefs = null;
 let Utils = null;
 let Notification = null;
-
 
 exports.setUp = function(callback)
 {
@@ -541,10 +539,13 @@ exports.testMessageWithoutLocalization = function(test)
 
 exports.testLanguageOnly = function(test)
 {
-  let notification = {message: {en: "en"}};
-  test.equal(Utils.appLocale, "en-US");
+  let notification = {message: {fr: "fr"}};
+  Utils.appLocale = "fr";
   let texts = Notification.getLocalizedTexts(notification);
-  test.equal(texts.message, "en");
+  test.equal(texts.message, "fr");
+  Utils.appLocale = "fr-CA";
+  texts = Notification.getLocalizedTexts(notification);
+  test.equal(texts.message, "fr");
   test.done();
 };
 
