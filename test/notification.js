@@ -22,6 +22,7 @@ let {
 } = require("./_common");
 
 let Prefs = null;
+let Utils = null;
 let Notification = null;
 
 exports.setUp = function(callback)
@@ -34,6 +35,7 @@ exports.setUp = function(callback)
   let sandboxedRequire = createSandbox({globals});
   (
     {Prefs} = sandboxedRequire("./stub-modules/prefs"),
+    {Utils} = sandboxedRequire("./stub-modules/utils"),
     {Notification} = sandboxedRequire("../lib/notification")
   );
 
@@ -530,7 +532,7 @@ exports.testGlobalOptOut = function(test)
 exports.testMessageWithoutLocalization = function(test)
 {
   let notification = {message: "non-localized"};
-  let texts = Notification.getLocalizedTexts(notification, "en-US");
+  let texts = Notification.getLocalizedTexts(notification);
   test.equal(texts.message, "non-localized");
   test.done();
 };
@@ -538,9 +540,11 @@ exports.testMessageWithoutLocalization = function(test)
 exports.testLanguageOnly = function(test)
 {
   let notification = {message: {fr: "fr"}};
-  let texts = Notification.getLocalizedTexts(notification, "fr");
+  Utils.appLocale = "fr";
+  let texts = Notification.getLocalizedTexts(notification);
   test.equal(texts.message, "fr");
-  texts = Notification.getLocalizedTexts(notification, "fr-CA");
+  Utils.appLocale = "fr-CA";
+  texts = Notification.getLocalizedTexts(notification);
   test.equal(texts.message, "fr");
   test.done();
 };
@@ -548,9 +552,11 @@ exports.testLanguageOnly = function(test)
 exports.testLanguageAndCountry = function(test)
 {
   let notification = {message: {"fr": "fr", "fr-CA": "fr-CA"}};
-  let texts = Notification.getLocalizedTexts(notification, "fr-CA");
+  Utils.appLocale = "fr-CA";
+  let texts = Notification.getLocalizedTexts(notification);
   test.equal(texts.message, "fr-CA");
-  texts = Notification.getLocalizedTexts(notification, "fr");
+  Utils.appLocale = "fr";
+  texts = Notification.getLocalizedTexts(notification);
   test.equal(texts.message, "fr");
   test.done();
 };
@@ -558,7 +564,8 @@ exports.testLanguageAndCountry = function(test)
 exports.testMissingTranslation = function(test)
 {
   let notification = {message: {"en-US": "en-US"}};
-  let texts = Notification.getLocalizedTexts(notification, "fr");
+  Utils.appLocale = "fr";
+  let texts = Notification.getLocalizedTexts(notification);
   test.equal(texts.message, "en-US");
   test.done();
 };
