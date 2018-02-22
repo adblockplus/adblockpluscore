@@ -353,6 +353,20 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingChild = function(test)
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
+function compareExpectations(test, elems, expectations)
+{
+  for (let elem in expectations)
+  {
+    if (elems[elem])
+    {
+      if (expectations[elem])
+        expectVisible(test, elems[elem]);
+      else
+        expectHidden(test, elems[elem]);
+    }
+  }
+}
+
 function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector, expectations)
 {
   testDocument.body.innerHTML = `<div id="parent">
@@ -381,14 +395,7 @@ function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector
     [selector]
   ).then(() =>
   {
-    for (let elem in expectations)
-      if (elems[elem])
-      {
-        if (expectations[elem])
-          expectVisible(test, elems[elem]);
-        else
-          expectHidden(test, elems[elem]);
-      }
+    compareExpectations(test, elems, expectations);
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 }
 
@@ -462,7 +469,7 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingContains = function(test)
     test, "div:-abp-has(> span:-abp-contains(Advertisment))", expectations);
 };
 
-exports.testPseudoClassContains = function(test)
+function runTestPseudoClassContains(test, selector, expectations)
 {
   testDocument.body.innerHTML = `<div id="parent">
       <div id="middle">
@@ -472,27 +479,94 @@ exports.testPseudoClassContains = function(test)
         <div id="tohide">to hide</div>
       </div>
       <div id="sibling2">
-        <div id="sibling21"><div id="sibling211" class="inside"></div></div>
+        <div id="sibling21"><div id="sibling211" class="inside">Ad*</div></div>
       </div>
     </div>`;
-  let parent = testDocument.getElementById("parent");
-  let middle = testDocument.getElementById("middle");
-  let inside = testDocument.getElementById("inside");
-  let sibling = testDocument.getElementById("sibling");
-  let sibling2 = testDocument.getElementById("sibling2");
-  let toHide = testDocument.getElementById("tohide");
+  let elems = {
+    parent: testDocument.getElementById("parent"),
+    middle: testDocument.getElementById("middle"),
+    inside: testDocument.getElementById("inside"),
+    sibling: testDocument.getElementById("sibling"),
+    sibling2: testDocument.getElementById("sibling2"),
+    toHide: testDocument.getElementById("tohide")
+  };
 
   applyElemHideEmulation(
-    ["#parent div:-abp-contains(to hide)"]
-  ).then(() =>
-  {
-    expectVisible(test, parent);
-    expectVisible(test, middle);
-    expectVisible(test, inside);
-    expectHidden(test, sibling);
-    expectVisible(test, sibling2);
-    expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+    [selector]
+  ).then(
+    () => compareExpectations(test, elems, expectations)
+  ).catch(unexpectedError.bind(test)).then(() => test.done());
+}
+
+exports.testPseudoClassContainsText = function(test)
+{
+  let expectations = {
+    parent: true,
+    middle: true,
+    inside: true,
+    sibling: false,
+    sibling2: true,
+    toHide: false
+  };
+  runTestPseudoClassContains(
+    test, "#parent div:-abp-contains(to hide)", expectations);
+};
+
+exports.testPseudoClassContainsRegexp = function(test)
+{
+  let expectations = {
+    parent: true,
+    middle: true,
+    inside: true,
+    sibling: false,
+    sibling2: true,
+    toHide: false
+  };
+  runTestPseudoClassContains(
+    test, "#parent div:-abp-contains(/to\\shide/)", expectations);
+};
+
+exports.testPseudoClassContainsRegexpIFlag = function(test)
+{
+  let expectations = {
+    parent: true,
+    middle: true,
+    inside: true,
+    sibling: false,
+    sibling2: true,
+    toHide: false
+  };
+  runTestPseudoClassContains(
+    test, "#parent div:-abp-contains(/to\\sHide/i)", expectations);
+};
+
+exports.testPseudoClassContainsWildcardNoMatch = function(test)
+{
+  let expectations = {
+    parent: true,
+    middle: true,
+    inside: true,
+    sibling: true,
+    sibling2: true,
+    toHide: true
+  };
+  // this filter shouldn't match anything as "*" has no meaning.
+  runTestPseudoClassContains(
+    test, "#parent div:-abp-contains(to *hide)", expectations);
+};
+
+exports.testPseudoClassContainsWildcardMatch = function(test)
+{
+  let expectations = {
+    parent: true,
+    middle: true,
+    inside: true,
+    sibling: true,
+    sibling2: false,
+    toHide: true
+  };
+  runTestPseudoClassContains(
+    test, "#parent div:-abp-contains(Ad*)", expectations);
 };
 
 exports.testPseudoClassHasSelectorWithPropSelector = function(test)
