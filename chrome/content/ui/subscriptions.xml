@@ -95,6 +95,13 @@
                 prefixes="lt"
                 author="Algimantas Margevičius"
                 type="ads"/>
+  <subscription title="EasyList Polish+EasyList"
+                specialization="polski"
+                url="https://easylist-downloads.adblockplus.org/easylistpolish+easylist.txt"
+                homepage="https://easylist.to/"
+                prefixes="pl"
+                author="krzysiek-gala"
+                type="ads"/>
   <subscription title="EasyList Spanish+EasyList"
                 specialization="español"
                 url="https://easylist-downloads.adblockplus.org/easylistspanish+easylist.txt"
