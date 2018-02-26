@@ -33,7 +33,7 @@
                 author="heradhis"
                 type="ads"/>
   <subscription title="ABPVN List+EasyList"
-                specialization="Việt"
+                specialization="Tiếng Việt"
                 url="https://easylist-downloads.adblockplus.org/abpvn+easylist.txt"
                 homepage="http://abpvn.com/"
                 prefixes="vi"
