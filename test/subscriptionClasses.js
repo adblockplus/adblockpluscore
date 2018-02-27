@@ -120,7 +120,11 @@ exports.testSubscriptionDefaults = function(test)
     ["whitelist", "@@test"],
     ["elemhide", "##test"],
     ["elemhide", "#@#test"],
-    ["elemhide", "foo##[-abp-properties='foo']"],
+    ["elemhide", "foo##:-abp-properties(foo)"],
+    ["elemhide", "foo#?#:-abp-properties(foo)"],
+    // Invalid elemhide filter. Incorrectly classified as blocking.
+    // See https://issues.adblockplus.org/ticket/6234
+    ["blocking", "foo#@?#:-abp-properties(foo)"],
     ["", "!test"],
     ["", "/??/"],
     ["blocking whitelist", "test", "@@test"],

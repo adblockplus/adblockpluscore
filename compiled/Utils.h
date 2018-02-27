@@ -24,6 +24,13 @@
 
 ABP_NS_BEGIN
 
+// the length of a null terminated character sequence (string)
+template<typename T, size_t N>
+constexpr size_t str_length_of(T (&)[N])
+{
+  return N - 1;
+}
+
 std::wstring StdWStringFromString(const String& str);
 
 ABP_NS_END

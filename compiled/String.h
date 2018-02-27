@@ -139,16 +139,21 @@ public:
 
   size_type find(const String& str, size_type pos = 0) const
   {
-    if (pos > LENGTH_MASK || pos + str.length() > length())
+    return find(str.mBuf, pos, str.length());
+  }
+
+  size_type find(const value_type* str, size_type pos, size_type count) const
+  {
+    if (pos > LENGTH_MASK || pos + count > length())
       return npos;
 
-    if (!str.length())
+    if (!count)
       return pos;
 
-    for (; pos + str.length() <= length(); ++pos)
+    for (; pos + count <= length(); ++pos)
     {
       if (mBuf[pos] == str[0] &&
-          std::memcmp(mBuf + pos, str.mBuf, sizeof(value_type) * str.length()) == 0)
+          std::memcmp(mBuf + pos, str, sizeof(value_type) * count) == 0)
       {
         return pos;
       }

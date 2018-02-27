@@ -168,6 +168,22 @@ exports.testElemHideAPI = function(test)
   test.done();
 };
 
+exports.testSyntaxConversion = function(test)
+{
+  function checkConvertedFilter(old, converted)
+  {
+    withNAD(
+      0, filter => test.equal(filter.text, converted))(Filter.fromText(old));
+  }
+
+  checkConvertedFilter("example.com##foo[-abp-properties='something']bar", "example.com#?#foo:-abp-properties(something)bar");
+  checkConvertedFilter("example.com#@#foo[-abp-properties='something']bar", "example.com#@#foo:-abp-properties(something)bar");
+  checkConvertedFilter("example.com##[-abp-properties=\"something\"]", "example.com#?#:-abp-properties(something)");
+  checkConvertedFilter("example.com##[-abp-properties='(something)']", "example.com#?#:-abp-properties((something))");
+
+  test.done();
+};
+
 exports.testDomainRestrictions = function(test)
 {
   function testSelectorMatches(description, filters, domain, expectedMatches)
@@ -203,26 +219,26 @@ exports.testDomainRestrictions = function(test)
   testSelectorMatches(
     "Ignore generic filters",
     [
-      "##[-abp-properties='foo']", "example.com##[-abp-properties='foo']",
-      "~example.com##[-abp-properties='foo']"
+      "#?#:-abp-properties(foo)", "example.com#?#:-abp-properties(foo)",
+      "~example.com##:-abp-properties(foo)"
     ],
     "example.com",
-    ["example.com##[-abp-properties='foo']"]
+    ["example.com#?#:-abp-properties(foo)"]
   );
   testSelectorMatches(
     "Ignore selectors with exceptions",
     [
-      "example.com##[-abp-properties='foo']",
-      "example.com##[-abp-properties='bar']",
-      "example.com#@#[-abp-properties='foo']"
+      "example.com#?#:-abp-properties(foo)",
+      "example.com#?#:-abp-properties(bar)",
+      "example.com#@#:-abp-properties(foo)"
     ],
     "example.com",
-    ["example.com##[-abp-properties='bar']"]
+    ["example.com#?#:-abp-properties(bar)"]
   );
   testSelectorMatches(
     "Ignore filters that include parent domain but exclude subdomain",
     [
-      "~www.example.com,example.com##[-abp-properties='foo']"
+      "~www.example.com,example.com#?#:-abp-properties(foo)"
     ],
     "www.example.com",
     []
@@ -230,8 +246,8 @@ exports.testDomainRestrictions = function(test)
   testSelectorMatches(
     "Ignore filters with parent domain if exception matches subdomain",
     [
-      "www.example.com#@#[-abp-properties='foo']",
-      "example.com##[-abp-properties='foo']"
+      "www.example.com#@#:-abp-properties(foo)",
+      "example.com#?#:-abp-properties(foo)"
     ],
     "www.example.com",
     []
@@ -239,11 +255,11 @@ exports.testDomainRestrictions = function(test)
   testSelectorMatches(
     "Ignore filters for other subdomain",
     [
-      "www.example.com##[-abp-properties='foo']",
-      "other.example.com##[-abp-properties='foo']"
+      "www.example.com#?#:-abp-properties(foo)",
+      "other.example.com#?#:-abp-properties(foo)"
     ],
     "other.example.com",
-    ["other.example.com##[-abp-properties='foo']"]
+    ["other.example.com#?#:-abp-properties(foo)"]
   );
 
   test.done();

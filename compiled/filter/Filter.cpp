@@ -106,13 +106,21 @@ Filter* Filter::FromText(DependentString& text)
     RegExpFilterData regexp;
     ElemHideData elemhide;
   } data;
+  bool needConversion = false;
   DependentString error;
 
   Filter::Type type = CommentFilter::Parse(text);
   if (type == Filter::Type::UNKNOWN)
-    type = ElemHideBase::Parse(text, data.elemhide);
+    type = ElemHideBase::Parse(text, data.elemhide, needConversion);
   if (type == Filter::Type::UNKNOWN)
     type = RegExpFilter::Parse(text, error, data.regexp);
+
+  if (needConversion)
+    text = ElemHideBase::ConvertFilter(text, data.elemhide.mSelectorStart);
+
+  // At that point we failed the conversion.
+  if (text.empty())
+    return nullptr;
 
   auto knownFilter = knownFilters.find(text);
   if (knownFilter)
@@ -152,11 +160,14 @@ Filter* Filter::FromText(DependentString& text)
       return nullptr;
   }
 
-  // This is a hack: we looked up the entry using text but create it using
-  // filter->mText. This works because both are equal at this point. However,
-  // text refers to a temporary buffer which will go away.
   enter_context("Adding to known filters");
-  knownFilter.assign(filter->mText, filter.get());
+  if (text != filter->mText)
+    knownFilters[filter->mText] = filter.get();
+  else
+    // This is a hack: we looked up the entry using text but create it using
+    // filter->mText. This works because both are equal at this point. However,
+    // text refers to a temporary buffer which will go away.
+    knownFilter.assign(filter->mText, filter.get());
   exit_context();
 
   return filter.release();

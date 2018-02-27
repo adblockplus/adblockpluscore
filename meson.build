@@ -228,6 +228,7 @@ else
     'test/compiled/String.cpp',
     'test/compiled/StringMap.cpp',
     'test/compiled/RegExp.cpp',
+    'test/compiled/Filter.cpp',
   ]
 
   adblockpluscore = static_library('adblockpluscore', shared_sources,

@@ -18,6 +18,7 @@
 "use strict";
 
 let {createSandbox} = require("./_common");
+const {withNAD} = require("./_test-utils");
 
 let Filter = null;
 let InvalidFilter = null;
@@ -77,40 +78,48 @@ exports.testFromText = function(test)
     ["asdf$image=foobar", BlockingFilter, "blocking", 1],
     ["asdf$image=foobar=xyz,~collapse", BlockingFilter, "blocking", 0],
 
-    ["##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
-    ["#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["example.com##foo[-abp-properties='something']bar", ElemHideEmulationFilter, "elemhideemulation"],
-    ["example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["~example.com##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
-    ["~example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["~example.com,~example.info##foo[-abp-properties='something']bar", InvalidFilter, "invalid"],
-    ["~example.com,~example.info#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["~sub.example.com,example.com##foo[-abp-properties='something']bar", ElemHideEmulationFilter, "elemhideemulation"],
-    ["~sub.example.com,example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["example.com,~sub.example.com##foo[-abp-properties='something']bar", ElemHideEmulationFilter, "elemhideemulation"],
-    ["example.com,~sub.example.com#@#foo[-abp-properties='something']bar", ElemHideException, "elemhideexception"],
-    ["example.com##[-abp-properties='something']", ElemHideEmulationFilter, "elemhideemulation"],
-    ["example.com#@#[-abp-properties='something']", ElemHideException, "elemhideexception"],
-    ["example.com##[-abp-properties=\"something\"]", ElemHideEmulationFilter, "elemhideemulation"],
-    ["example.com#@#[-abp-properties=\"something\"]", ElemHideException, "elemhideexception"],
-    ["example.com##[-abp-properties=(something)]", ElemHideEmulationFilter, "elemhideemulation"],
-    ["example.com#@#[-abp-properties=(something)]", ElemHideException, "elemhideexception"]
+    ["#?#foo:-abp-properties(something)bar", InvalidFilter, "invalid"],
+    ["#@#foo:-abp-properties(something)bar", ElemHideException, "elemhideexception"],
+    ["example.com#?#foo:-abp-properties(something)bar", ElemHideEmulationFilter, "elemhideemulation"],
+    ["example.com#@#foo:-abp-properties(something)bar", ElemHideException, "elemhideexception"],
+    ["~example.com#?#foo:-abp-properties(something)bar", InvalidFilter, "invalid"],
+    ["~example.com#@#foo:-abp-properties(something)bar", ElemHideException, "elemhideexception"],
+    ["~example.com,~example.info#?#foo:-abp-properties(something)bar", InvalidFilter, "invalid"],
+    ["~example.com,~example.info#@#foo:-abp-properties(something)bar", ElemHideException, "elemhideexception"],
+    ["~sub.example.com,example.com#?#foo:-abp-properties(something)bar", ElemHideEmulationFilter, "elemhideemulation"],
+    ["~sub.example.com,example.com#@#foo:-abp-properties(something)bar", ElemHideException, "elemhideexception"],
+    ["example.com,~sub.example.com#?#foo:-abp-properties(something)bar", ElemHideEmulationFilter, "elemhideemulation"],
+    ["example.com,~sub.example.com#@#foo:-abp-properties(something)bar", ElemHideException, "elemhideexception"],
+    ["example.com#?#:-abp-properties(something)", ElemHideEmulationFilter, "elemhideemulation"],
+    ["example.com#@#:-abp-properties(something)", ElemHideException, "elemhideexception"],
+    ["example.com#?#:-abp-properties((something))", ElemHideEmulationFilter, "elemhideemulation"],
+    ["example.com#@#:-abp-properties((something))", ElemHideException, "elemhideexception"]
   ];
   for (let [text, type, typeName, collapse] of tests)
   {
-    let filter = Filter.fromText(text);
-    test.ok(filter instanceof Filter, "Got filter for " + text);
-    test.equal(filter.text, text, "Correct filter text for " + text);
-    test.ok(filter instanceof type, "Correct filter type for " + text);
-    test.equal(filter.type, typeName, "Type name for " + text + " is " + typeName);
-    if (filter instanceof BlockingFilter)
-      test.equal(filter.collapse, collapse);
-    else
-      test.equal(filter.collapse, undefined);
-    if (type == InvalidFilter)
-      test.ok(filter.reason, "Invalid filter " + text + " has a reason set");
-    filter.delete();
+    withNAD(0, filter =>
+    {
+      test.ok(filter instanceof Filter, "Got filter for " + text);
+      test.equal(filter.text, text, "Correct filter text for " + text);
+      test.ok(filter instanceof type, "Correct filter type for " + text);
+      test.equal(filter.type, typeName, "Type name for " + text + " is " + typeName);
+      if (filter instanceof BlockingFilter)
+        test.equal(filter.collapse, collapse);
+      else
+        test.equal(filter.collapse, undefined);
+      if (type == InvalidFilter)
+        test.ok(filter.reason, "Invalid filter " + text + " has a reason set");
+    })(Filter.fromText(text));
   }
+
+  // conversion from old syntax.
+  withNAD(0, filter =>
+  {
+    test.equal(filter.text, "example.com#?#:-abp-properties(something)");
+    test.ok(filter instanceof ElemHideEmulationFilter);
+    test.equal(filter.type, "elemhideemulation");
+  })(Filter.fromText("example.com##[-abp-properties='something']"));
+
   test.done();
 };
 
@@ -128,7 +137,7 @@ exports.testClassHierarchy = function(test)
     ["@@asdf", Filter, ActiveFilter, RegExpFilter, WhitelistFilter],
     ["##asdf", Filter, ActiveFilter, ElemHideBase, ElemHideFilter],
     ["#@#asdf", Filter, ActiveFilter, ElemHideBase, ElemHideException],
-    ["example.com##[-abp-properties='something']", Filter, ActiveFilter, ElemHideBase, ElemHideEmulationFilter]
+    ["example.com#?#:-abp-properties(something)", Filter, ActiveFilter, ElemHideBase, ElemHideEmulationFilter]
   ];
 
   for (let list of tests)
@@ -277,7 +286,7 @@ exports.testInvalidReasons = function(test)
   let tests = [
     ["/??/", "filter_invalid_regexp"],
     ["asd$foobar", "filter_unknown_option"],
-    ["~foo.com##[-abp-properties='abc']", "filter_elemhideemulation_nodomain"]
+    ["~foo.com#?#:-abp-properties(abc)", "filter_elemhideemulation_nodomain"]
   ];
 
   for (let [text, reason] of tests)
@@ -372,7 +381,7 @@ exports.testElemHideSelector = function(test)
     ["xYz,~example.com##foobar:not(whatever)", "foobar:not(whatever)", "xyz"],
     ["~xyz,com,~abc.com,example.info##foobar", "foobar", "com,example.info"],
     ["foo,bar,bas,bam##foobar", "foobar", "foo,bar,bas,bam"],
-    ["foo.com##x[-abp-properties='abc']y", "x[-abp-properties='abc']y", "foo.com"],
+    ["foo.com##x:-abp-properties(abc)y", "x:-abp-properties(abc)y", "foo.com"],
 
     // Good idea to test this? Maybe consider behavior undefined in this case.
     ["foo,bar,bas,~bar##foobar", "foobar", "foo,bas"]
@@ -389,15 +398,18 @@ exports.testElemHideSelector = function(test)
 
 exports.testElemHideRulesWithBraces = function(test)
 {
-  let filter = Filter.fromText("###foo{color: red}");
-  test.equal(filter.type, "elemhide");
-  test.equal(filter.selector, "#foo\\7B color: red\\7D ");
-  filter.delete();
+  withNAD(0, filter =>
+  {
+    test.equal(filter.type, "elemhide");
+    test.equal(filter.selector, "#foo\\7B color: red\\7D ");
+  })(Filter.fromText("###foo{color: red}"));
 
-  filter = Filter.fromText("foo.com##[-abp-properties='/margin: [3-4]{2}/']");
-  test.equal(filter.type, "elemhideemulation");
-  test.equal(filter.selector, "[-abp-properties='/margin: [3-4]\\7B 2\\7D /']");
-  filter.delete();
+  // Filter conversion to the new syntax dealing with braces too.
+  withNAD(0, filter =>
+  {
+    test.equal(filter.type, "elemhideemulation");
+    test.equal(filter.selector, ":-abp-properties(/margin: [3-4]\\7B 2\\7D /)");
+  })(Filter.fromText("foo.com##[-abp-properties='/margin: [3-4]{2}/']"));
 
   test.done();
 };
