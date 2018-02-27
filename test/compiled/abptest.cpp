@@ -15,7 +15,7 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "compiled/String.h"
 
 int main(int argc, char **argv)

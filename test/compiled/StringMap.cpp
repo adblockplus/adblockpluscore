@@ -16,7 +16,7 @@
  */
 
 #include <string>
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "compiled/StringMap.h"
 
 ABP_NS_USING
