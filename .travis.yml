@@ -1,0 +1,33 @@
+sudo: required
+
+services:
+  - docker
+
+language: cpp
+
+os:
+- linux
+- osx
+
+dist: trusty
+
+python: '2.7'
+
+env:
+  matrix:
+    - BUILDTYPE=release
+    - BUILDTYPE=debug
+
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python3; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=/usr/local/opt/python/libexec/bin:${PATH}; fi
+  - if [[ "$TRAVIS_OS_NAME" != "linux" ]]; then bash .travis/travis-install.sh; fi
+
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" != "linux" ]]; then bash .travis/travis-before_script.sh; fi
+
+script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash .travis/prepare-docker.sh; else bash .travis/travis-script.sh; fi
+
+notifications:
+  email: false
