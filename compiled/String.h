@@ -25,6 +25,7 @@
 #include <iostream>
 #include <codecvt>
 #endif
+#include <utility>
 
 #include "base.h"
 #include "debug.h"
@@ -455,4 +456,11 @@ inline std::ostream& operator<<(std::ostream& os, const OwnedString& str)
   return os << static_cast<const String&>(str);
 }
 #endif
+
+DependentString TrimSpaces(const String& value);
+
+// Splits the `value` string into two `DependentString`s excluding the character staying at `separatorPos`.
+// Useful for parsing.
+std::pair<DependentString, DependentString> SplitString(const String& value, String::size_type separatorPos);
+
 ABP_NS_END

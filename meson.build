@@ -87,6 +87,7 @@ GENERATION_PARAMS = [
 
 
 shared_sources = [
+  'compiled/String.cpp',
   'compiled/bindings/runtime_utils.cpp',
   'compiled/filter/ActiveFilter.cpp',
   'compiled/filter/BlockingFilter.cpp',

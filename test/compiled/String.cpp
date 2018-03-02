@@ -48,3 +48,66 @@ TEST(TestString, constructInvalidOwnedString)
   EXPECT_FALSE(s4.is_invalid());
 }
 
+TEST(TestStringTrimSpaces, zeroLengthString)
+{
+  EXPECT_EQ(u""_str, TrimSpaces(DependentString()));
+  EXPECT_EQ(u""_str, TrimSpaces(OwnedString()));
+  EXPECT_EQ(u""_str, TrimSpaces(u""_str));
+}
+
+TEST(TestStringTrimSpaces, spacesAreRemoved)
+{
+  for (uint16_t leftSpaces = 0; leftSpaces < 5; ++leftSpaces)
+  {
+    for (uint16_t rightSpaces = 0; rightSpaces < 5; ++rightSpaces)
+    {
+      for (uint16_t nonSpaces = 0; nonSpaces < 5; ++nonSpaces)
+      {
+        OwnedString str;
+        std::string leftSpacesStdString(leftSpaces, ' ');
+        str.append(leftSpacesStdString.c_str(), leftSpacesStdString.length());
+        std::string stdString(nonSpaces, 'a');
+        OwnedString trimmedString;
+        trimmedString.append(stdString.c_str(), stdString.length());
+        str.append(trimmedString);
+        std::string rightSpacesStdString(rightSpaces, ' ');
+        str.append(rightSpacesStdString.c_str(), rightSpacesStdString.length());
+        EXPECT_EQ(trimmedString, TrimSpaces(str));
+      }
+    }
+  }
+}
+
+TEST(TestStringSplitString, test)
+{
+  {
+    auto str = u"123:abc"_str;
+    auto split = SplitString(str, 3);
+    EXPECT_EQ(u"123"_str, split.first);
+    EXPECT_EQ(u"abc"_str, split.second);
+  }
+  {
+    auto str = u"123:abc"_str;
+    auto split = SplitString(str, 0);
+    EXPECT_EQ(u""_str, split.first);
+    EXPECT_EQ(u"23:abc"_str, split.second);
+  }
+  {
+    auto str = u"123:abc"_str;
+    auto split = SplitString(str, 6);
+    EXPECT_EQ(u"123:ab"_str, split.first);
+    EXPECT_EQ(u""_str, split.second);
+  }
+  {
+    auto str = u"123:abc"_str;
+    auto split = SplitString(str, 7);
+    EXPECT_EQ(u"123:abc"_str, split.first);
+    EXPECT_EQ(u""_str, split.second);
+  }
+  {
+    auto str = u"123:abc"_str;
+    auto split = SplitString(str, 10);
+    EXPECT_EQ(u"123:abc"_str, split.first);
+    EXPECT_EQ(u""_str, split.second);
+  }
+}
