@@ -64,10 +64,10 @@ private:
   int mRefCount;
 };
 
-template<typename T,
-    class = typename std::enable_if<std::is_base_of<ref_counted,T>::value>::type>
+template<typename T>
 class intrusive_ptr
 {
+  static_assert(std::is_base_of<ref_counted, T>::value, "The class T should inherit ref_counted");
 public:
   explicit intrusive_ptr()
       : mPointer(nullptr)
