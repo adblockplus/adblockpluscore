@@ -352,7 +352,7 @@ void RegExpFilter::GenerateCustomBindings()
   for (const auto& item : typeMap)
   {
     std::string type(item.first.length(), '\0');
-    for (int i = 0; i < item.first.length(); i++)
+    for (String::size_type i = 0; i < item.first.length(); i++)
       type[i] = (item.first[i] == '-' ? '_' : toupper(item.first[i]));
     printf("  %s: %i,\n", type.c_str(), item.second);
   }

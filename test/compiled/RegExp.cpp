@@ -23,7 +23,7 @@ ABP_NS_USING
 TEST(TestRegexp, RegExp)
 {
   auto id = GenerateRegExp(u"[0-9]*"_str, false);
-  EXPECT_EQ(id, 0);
+  EXPECT_EQ(0u, id);
   EXPECT_FALSE(TestRegExp(id, u"abcd"_str));
   EXPECT_TRUE(TestRegExp(id, u"1234"_str));
 

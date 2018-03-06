@@ -46,14 +46,13 @@ struct console_type
   }
 };
 
-static console_type console;
 ABP_NS_END
 
 #if defined(DEBUG)
 inline void assert2(bool condition, const String& str)
 {
   if (!condition)
-    ABP_NS::console.error(str);
+    ABP_NS::console_type::error(str);
 }
 #else
 #define assert2(condition, str)

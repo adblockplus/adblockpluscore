@@ -30,7 +30,7 @@ class Subscription;
 
 namespace FilterNotifier
 {
-  enum class Topic
+  enum class Topic : int32_t
   {
     NONE,
     FILTER_ADDED,
@@ -51,27 +51,44 @@ namespace FilterNotifier
     SUBSCRIPTION_ERRORS,
   };
 
-  inline void GenerateCustomBindings()
+  template<typename T>
+  inline T lexical_cast(Topic);
+
+  template<>
+  inline int32_t lexical_cast<int32_t>(Topic value)
   {
-    printf("var FilterNotifier = require('filterNotifier').FilterNotifier;\n");
-    printf("var notifierTopics = new Map([\n");
-    printf("  [%i, 'filter.added'],\n", Topic::FILTER_ADDED);
-    printf("  [%i, 'filter.removed'],\n", Topic::FILTER_REMOVED);
-    printf("  [%i, 'filter.disabled'],\n", Topic::FILTER_DISABLED);
-    printf("  [%i, 'filter.hitCount'],\n", Topic::FILTER_HITCOUNT);
-    printf("  [%i, 'filter.lastHit'],\n", Topic::FILTER_LASTHIT);
-    printf("  [%i, 'subscription.added'],\n", Topic::SUBSCRIPTION_ADDED);
-    printf("  [%i, 'subscription.removed'],\n", Topic::SUBSCRIPTION_REMOVED);
-    printf("  [%i, 'subscription.moved'],\n", Topic::SUBSCRIPTION_MOVED);
-    printf("  [%i, 'subscription.title'],\n", Topic::SUBSCRIPTION_TITLE);
-    printf("  [%i, 'subscription.disabled'],\n", Topic::SUBSCRIPTION_DISABLED);
-    printf("  [%i, 'subscription.fixedTitle'],\n", Topic::SUBSCRIPTION_FIXEDTITLE);
-    printf("  [%i, 'subscription.homepage'],\n", Topic::SUBSCRIPTION_HOMEPAGE);
-    printf("  [%i, 'subscription.lastCheck'],\n", Topic::SUBSCRIPTION_LASTCHECK);
-    printf("  [%i, 'subscription.lastDownload'],\n", Topic::SUBSCRIPTION_LASTDOWNLOAD);
-    printf("  [%i, 'subscription.downloadStatus'],\n", Topic::SUBSCRIPTION_DOWNLOADSTATUS);
-    printf("  [%i, 'subscription.errors'],\n", Topic::SUBSCRIPTION_ERRORS);
-    printf("]);");
+    return static_cast<int32_t>(value);
+  }
+
+  namespace GenerateCustomBindings
+  {
+    inline void printfTopic(const char* format, Topic topic)
+    {
+      ::printf(format, lexical_cast<int32_t>(topic));
+    }
+
+    inline void Generate()
+    {
+      printf("var FilterNotifier = require('filterNotifier').FilterNotifier;\n");
+      printf("var notifierTopics = new Map([\n");
+      printfTopic("  [%i, 'filter.added'],\n", Topic::FILTER_ADDED);
+      printfTopic("  [%i, 'filter.removed'],\n", Topic::FILTER_REMOVED);
+      printfTopic("  [%i, 'filter.disabled'],\n", Topic::FILTER_DISABLED);
+      printfTopic("  [%i, 'filter.hitCount'],\n", Topic::FILTER_HITCOUNT);
+      printfTopic("  [%i, 'filter.lastHit'],\n", Topic::FILTER_LASTHIT);
+      printfTopic("  [%i, 'subscription.added'],\n", Topic::SUBSCRIPTION_ADDED);
+      printfTopic("  [%i, 'subscription.removed'],\n", Topic::SUBSCRIPTION_REMOVED);
+      printfTopic("  [%i, 'subscription.moved'],\n", Topic::SUBSCRIPTION_MOVED);
+      printfTopic("  [%i, 'subscription.title'],\n", Topic::SUBSCRIPTION_TITLE);
+      printfTopic("  [%i, 'subscription.disabled'],\n", Topic::SUBSCRIPTION_DISABLED);
+      printfTopic("  [%i, 'subscription.fixedTitle'],\n", Topic::SUBSCRIPTION_FIXEDTITLE);
+      printfTopic("  [%i, 'subscription.homepage'],\n", Topic::SUBSCRIPTION_HOMEPAGE);
+      printfTopic("  [%i, 'subscription.lastCheck'],\n", Topic::SUBSCRIPTION_LASTCHECK);
+      printfTopic("  [%i, 'subscription.lastDownload'],\n", Topic::SUBSCRIPTION_LASTDOWNLOAD);
+      printfTopic("  [%i, 'subscription.downloadStatus'],\n", Topic::SUBSCRIPTION_DOWNLOADSTATUS);
+      printfTopic("  [%i, 'subscription.errors'],\n", Topic::SUBSCRIPTION_ERRORS);
+      printf("]);");
+    }
   }
 
   inline void FilterChange(Topic topic, Filter& filter,

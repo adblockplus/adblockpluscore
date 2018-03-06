@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "base.h"
 
 ABP_NS_BEGIN
@@ -24,6 +26,7 @@ ABP_NS_BEGIN
 class String;
 class Filter;
 class Subscription;
+typedef uint32_t RegExpID;
 
 namespace FilterNotifier
 {
@@ -43,7 +46,7 @@ extern "C"
       ABP_NS::Subscription* subscription, unsigned int position);
   void JSNotifySubscriptionChange(ABP_NS::FilterNotifier::Topic topic,
       ABP_NS::Subscription& subscription);
-  int GenerateRegExp(const ABP_NS::String& regexp, bool matchCase);
-  void DeleteRegExp(int id);
-  bool TestRegExp(int id, const ABP_NS::String& str);
+  RegExpID GenerateRegExp(const ABP_NS::String& regexp, bool matchCase);
+  void DeleteRegExp(RegExpID id);
+  bool TestRegExp(RegExpID id, const ABP_NS::String& str);
 }

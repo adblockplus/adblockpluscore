@@ -47,10 +47,10 @@ namespace {
   std::mutex regexPoolMutex;
 }
 
-int GenerateRegExp(const String& regexp, bool matchCase)
+RegExpID GenerateRegExp(const String& regexp, bool matchCase)
 {
   std::lock_guard<std::mutex> guard(regexPoolMutex);
-  auto index = regexPool.size();
+  RegExpID index = regexPool.size();
   auto flags = std::regex_constants::ECMAScript;
   if (!matchCase)
     flags |= std::regex_constants::icase;
@@ -58,14 +58,14 @@ int GenerateRegExp(const String& regexp, bool matchCase)
   return index;
 }
 
-void DeleteRegExp(int id)
+void DeleteRegExp(RegExpID id)
 {
   std::lock_guard<std::mutex> guard(regexPoolMutex);
   if (id < regexPool.size())
     regexPool[id].reset();
 }
 
-bool TestRegExp(int id, const String& str)
+bool TestRegExp(RegExpID id, const String& str)
 {
   std::lock_guard<std::mutex> guard(regexPoolMutex);
   if ((id < regexPool.size()) && regexPool[id])

@@ -29,15 +29,15 @@ void testStringMap()
   EXPECT_EQ(map.begin(), map.end());
 
   auto key = u"Foobar"_str;
-  EXPECT_EQ(key.length(), 6);
-  EXPECT_EQ(map.size(), 0);
+  EXPECT_EQ(6u, key.length());
+  EXPECT_EQ(0u, map.size());
 
   map[u"Foobar"_str] = "one";
-  EXPECT_EQ(map.size(), 1);
+  EXPECT_EQ(1u, map.size());
   EXPECT_NE(map.begin(), map.end());
 
   map[u""_str] = "null";
-  EXPECT_EQ(map.size(), 2);
+  EXPECT_EQ(2u, map.size());
 
   auto entry = map.find(u"Foobar"_str);
   EXPECT_TRUE(entry);
@@ -53,7 +53,7 @@ void testStringMap()
   entry = map.find(u"Foobar3"_str);
   EXPECT_TRUE(entry);
 
-  EXPECT_EQ(map.size(), 4);
+  EXPECT_EQ(4u, map.size());
 
   EXPECT_TRUE(map.erase(u"Foobar2"_str));
   // already deleted. Returns false.
@@ -61,12 +61,12 @@ void testStringMap()
   // invalid. Returns false.
   EXPECT_FALSE(map.erase(u"Foobar42"_str));
 
-  EXPECT_EQ(map.size(), 4);
+  EXPECT_EQ(4u, map.size());
 
   entry = map.find(u"Foobar2"_str);
   EXPECT_FALSE(entry);
 
-  int i = 0;
+  uint32_t i = 0;
   for (const auto& e : map)
   {
     EXPECT_FALSE(e.is_invalid());
@@ -75,7 +75,7 @@ void testStringMap()
     i++;
   }
 
-  EXPECT_EQ(i, 3);
+  EXPECT_EQ(3u, i);
   // We did not return deleted entries (there is one).
   // So size is different than actual count.
   EXPECT_NE(i, map.size());

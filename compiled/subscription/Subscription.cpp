@@ -101,7 +101,7 @@ Subscription* Subscription::FromID(const String& id)
     do
     {
       int number = gen();
-      for (int i = randomID.length() - 6; i < randomID.length(); i++)
+      for (String::size_type i = randomID.length() - 6; i < randomID.length(); i++)
       {
         randomID[i] = '0' + (number % 10);
         number /= 10;

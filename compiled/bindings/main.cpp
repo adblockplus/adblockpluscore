@@ -172,7 +172,7 @@ int main()
 
     printBindings();
     RegExpFilter::GenerateCustomBindings();
-    FilterNotifier::GenerateCustomBindings();
+    FilterNotifier::GenerateCustomBindings::Generate();
 
     return 0;
   }
