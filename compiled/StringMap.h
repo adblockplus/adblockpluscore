@@ -46,10 +46,10 @@ struct StringHash
 
 namespace StringMap_internal
 {
-  template<typename Key,
-    class = typename std::enable_if<std::is_base_of<String, Key>::value>::type>
+  template<typename Key>
   struct StringSetEntry
   {
+    static_assert(std::is_base_of<String, Key>::value, "Type of Key should be based on String");
     typedef Key key_type;
     typedef const String& key_type_cref;
     typedef size_t size_type;

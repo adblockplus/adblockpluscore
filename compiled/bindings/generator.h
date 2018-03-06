@@ -221,10 +221,10 @@ namespace bindings_internal
 }
 
 template<typename ClassType,
-    typename BaseClass = bindings_internal::NoBaseClass,
-    typename std::enable_if<std::is_base_of<ref_counted, ClassType>::value>::type* = nullptr>
+    typename BaseClass = bindings_internal::NoBaseClass>
 class class_
 {
+  static_assert(std::is_base_of<ref_counted, ClassType>::value, "ClassType should be based on ref_counted");
 public:
   class_(const char* name)
   {
