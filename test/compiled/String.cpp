@@ -111,3 +111,67 @@ TEST(TestStringSplitString, test)
     EXPECT_EQ(u""_str, split.second);
   }
 }
+
+TEST(TestStringLexicalCast, toIntegers)
+{
+  EXPECT_EQ(0, lexical_cast<int32_t>(u"0"_str));
+  EXPECT_EQ(1, lexical_cast<int32_t>(u"1"_str));
+  EXPECT_EQ(2, lexical_cast<int32_t>(u"2"_str));
+  EXPECT_EQ(10, lexical_cast<int32_t>(u"10"_str));
+  EXPECT_EQ(10, lexical_cast<int32_t>(u"010"_str));
+  EXPECT_EQ(-1, lexical_cast<int32_t>(u"-1"_str));
+  EXPECT_EQ(-2, lexical_cast<int32_t>(u"-2"_str));
+  EXPECT_EQ(-20, lexical_cast<int32_t>(u"-20"_str));
+  EXPECT_EQ(-20, lexical_cast<int32_t>(u"-020"_str));
+  EXPECT_EQ(0, lexical_cast<int32_t>(u"0-2"_str));
+  EXPECT_EQ(-2147483647, lexical_cast<int32_t>(u"-2147483647"_str));
+  EXPECT_EQ(-2147483648, lexical_cast<int32_t>(u"-2147483648"_str));
+  EXPECT_EQ(          0, lexical_cast<int32_t>(u"-2147483649"_str));
+  EXPECT_EQ(          0, lexical_cast<int32_t>(u"-2157483649"_str));
+  EXPECT_EQ(          0, lexical_cast<int32_t>(u"-3147483649"_str));
+  EXPECT_EQ(-2147483648, lexical_cast<int32_t>(u"-02147483648"_str));
+  EXPECT_EQ(-2147483648, lexical_cast<int32_t>(u"-000002147483648"_str));
+  EXPECT_EQ(          0, lexical_cast<int32_t>(u"-21474836480"_str));
+  EXPECT_EQ(2147483647, lexical_cast<int32_t>(u"2147483647"_str));
+  EXPECT_EQ(2147483647, lexical_cast<int32_t>(u"000002147483647"_str));
+  EXPECT_EQ(2147483647, lexical_cast<int32_t>(u"02147483647"_str));
+  EXPECT_EQ(         0, lexical_cast<int32_t>(u"21474836470"_str));
+  EXPECT_EQ(         0, lexical_cast<int32_t>(u"2147483648"_str));
+  EXPECT_EQ(         0, lexical_cast<int32_t>(u"2157483648"_str));
+  EXPECT_EQ(         0, lexical_cast<int32_t>(u"3147483648"_str));
+  EXPECT_EQ(0u, lexical_cast<uint32_t>(u"0"_str));
+  EXPECT_EQ(2u, lexical_cast<uint32_t>(u"2"_str));
+  EXPECT_EQ(123u, lexical_cast<uint32_t>(u"123"_str));
+  EXPECT_EQ(123u, lexical_cast<uint32_t>(u"0123"_str));
+  EXPECT_EQ(123u, lexical_cast<uint32_t>(u"0000123"_str));
+  EXPECT_EQ(4294967294u, lexical_cast<uint32_t>(u"4294967294"_str));
+  EXPECT_EQ(4294967295u, lexical_cast<uint32_t>(u"4294967295"_str));
+  EXPECT_EQ(         0u, lexical_cast<uint32_t>(u"4294967296"_str));
+  EXPECT_EQ(         0u, lexical_cast<uint32_t>(u"4594967295"_str));
+  EXPECT_EQ(         0u, lexical_cast<uint32_t>(u"5294967295"_str));
+  EXPECT_EQ(         0u, lexical_cast<uint32_t>(u"42949672950"_str));
+  EXPECT_EQ(4294967295u, lexical_cast<uint32_t>(u"04294967295"_str));
+
+  EXPECT_EQ(0, lexical_cast<int32_t>(u" 123"_str));
+  EXPECT_EQ(0u, lexical_cast<uint32_t>(u" 123"_str));
+  EXPECT_EQ(0, lexical_cast<int32_t>(u"123abc"_str));
+  EXPECT_EQ(0u, lexical_cast<uint32_t>(u"123abc"_str));
+  EXPECT_EQ(0, lexical_cast<int32_t>(u"1 23"_str));
+  EXPECT_EQ(0u, lexical_cast<uint32_t>(u"1 23"_str));
+}
+
+TEST(TestStringLexicalCast, toBoolean)
+{
+  EXPECT_TRUE(lexical_cast<bool>(u"true"_str));
+  EXPECT_FALSE(lexical_cast<bool>(u"true123"_str));
+  EXPECT_FALSE(lexical_cast<bool>(u"false"_str));
+  EXPECT_FALSE(lexical_cast<bool>(u"some-string"_str));
+  EXPECT_FALSE(lexical_cast<bool>(u""_str));
+  EXPECT_FALSE(lexical_cast<bool>(DependentString()));
+}
+
+TEST(TestStringLexicalCast, toOwnedString)
+{
+  EXPECT_EQ(u"some-string"_str, lexical_cast<OwnedString>(u"some-string"_str));
+  EXPECT_EQ(u""_str, lexical_cast<OwnedString>(u""_str));
+}

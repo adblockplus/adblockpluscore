@@ -26,6 +26,7 @@
 #include <codecvt>
 #endif
 #include <utility>
+#include <limits>
 
 #include "base.h"
 #include "debug.h"
@@ -456,6 +457,78 @@ inline std::ostream& operator<<(std::ostream& os, const OwnedString& str)
   return os << static_cast<const String&>(str);
 }
 #endif
+
+template<typename T>
+struct LexicalCastImpl;
+
+/// Performs common conversions of a text represented value.
+template<typename T>
+inline T lexical_cast(const String& value)
+{
+  return LexicalCastImpl<T>::Convert(value);
+}
+
+template<>
+struct LexicalCastImpl<bool>
+{
+  static bool Convert(const String& value)
+  {
+    return value == u"true"_str;
+  }
+};
+
+template<typename T>
+struct LexicalCastImpl
+{
+  static_assert(std::is_integral<T>::value, "T should be a number");
+  static T Convert(const String& value)
+  {
+    String::size_type len = value.length();
+    if (len == 0)
+      return 0;
+    String::size_type pos = 0;
+    bool negative = std::numeric_limits<T>::is_signed && value[0] == u'-';
+    if (negative)
+    {
+      ++pos;
+    }
+    T result = 0;
+    for (; pos < len; ++pos)
+    {
+      auto c = value[pos];
+      if (c < u'0' || c > u'9')
+        return 0;
+      // isDangerous is the optimization because there is no need for some checks
+      // when the values are far from edge cases.
+      // It targets the normal values, when a value is prefixed with several
+      // zeros additional checks start to work earlier than the actual value of
+      // result reaches an edge case, but it does not affect the result.
+      bool isDangerous = pos >= std::numeric_limits<T>::digits10;
+      // It also invalidates the parsing of too big numbers in comparison with
+      // stopping when it encounters a non numerical character.
+      // cast<uint8_t>(u"1230"_str) -> 0
+      // cast<uint8_t>(u"123E"_str) -> 123
+      if (isDangerous && std::numeric_limits<T>::max() / 10 < result)
+      {
+        return 0;
+      }
+      result *= 10;
+      uint8_t digit = c - u'0';
+      if (isDangerous && (std::numeric_limits<T>::max() - digit < result - (negative ? 1 : 0)))
+      {
+        return 0;
+      }
+      result += digit;
+    }
+    return negative ? -result : result;
+  }
+};
+
+template<>
+inline OwnedString lexical_cast<OwnedString>(const String& value)
+{
+  return OwnedString{value};
+}
 
 DependentString TrimSpaces(const String& value);
 
