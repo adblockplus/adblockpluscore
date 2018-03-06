@@ -13,6 +13,8 @@ set -x
 set -e
 
 mkdir -p third_party
+pip3 install -q --user meson
+pip3 install -q --user virtualenv
+python3 -m virtualenv -p python2 third_party/python2
 bash .travis/prepare-emscripten.sh
 bash .travis/prepare-ninja.sh
-pip3 install -q --user meson
