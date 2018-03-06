@@ -125,9 +125,9 @@ public:
     intrusive_ptr().swap(*this);
   }
 
-  void reset(T* other)
+  void reset(T* other, bool addRef = true)
   {
-    intrusive_ptr(other).swap(*this);
+    intrusive_ptr(other, addRef).swap(*this);
   }
 
   const T* get() const
