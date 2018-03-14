@@ -1,0 +1,36 @@
+version: 1.0.{build}
+pull_requests:
+  do_not_increment_build_number: true
+skip_tags: true
+image: Visual Studio 2017
+clone_depth: 20
+configuration:
+- release
+- debug
+
+environment:
+  PYTHON3: "C:\\Python34"
+  PIP3: "%PYTHON3%\\Scripts\\pip"
+  PYTHONPATH: "%APPDATA%\\python\\python34\\site-packages"
+  matrix:
+  - MSBUILD_PLATFORM: x64
+    BITNESS: 64
+  - MSBUILD_PLATFORM: Win32
+    BITNESS: 32
+
+init:
+- cmd: echo %Platform% %Configuration%
+install:
+- cmd: cmd /C %PIP3% install -q --user meson
+before_build:
+- cmd: ensure_dependencies.py
+
+build_script:
+- cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars%BITNESS%.bat"
+- cmd: py -3 %APPDATA%\python\Scripts\meson.py -Dnative=true --buildtype %Configuration% build --backend=vs2017
+- cmd: msbuild build\adblockpluscore.sln /m /p:Configuration=%Configuration% /p:Platform=%MSBUILD_PLATFORM%
+test_script:
+- cmd: build\abptest.exe --gtest_output=xml:tests.xml
+after_test:
+- ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
+deploy: off

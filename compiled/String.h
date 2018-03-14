@@ -211,8 +211,14 @@ public:
 #ifdef INSIDE_TESTS
 inline std::ostream& operator<<(std::ostream& os, const String& str)
 {
+#if _MSC_VER >= 1900
+  std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> converter;
+  auto p = reinterpret_cast<const int16_t *>(str.data());
+  os << converter.to_bytes(p, p + str.length());
+#else
   std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter;
   os << converter.to_bytes(str.data(), str.data() + str.length());
+#endif
   return os;
 }
 #endif
