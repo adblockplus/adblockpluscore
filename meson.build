@@ -215,7 +215,7 @@ if target_type == 'js'
                                     '@INPUT@'
                                   ] + compiler_args + optional_args)
 else
-  compiler_args = ADDITIONAL_PARAMS + CORE_PARAMS
+  compiler_args = ADDITIONAL_PARAMS + CORE_PARAMS + optional_args
   GTEST_DIR = join_paths('third_party', 'googletest', 'googletest')
   GTEST_PARAMS = []
   compiler = meson.get_compiler('cpp')
@@ -225,6 +225,7 @@ else
   endif
 
   test_sources = [
+    'test/compiled/library.cpp',
     'test/compiled/abptest.cpp',
     'test/compiled/String.cpp',
     'test/compiled/StringMap.cpp',

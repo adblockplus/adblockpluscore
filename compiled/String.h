@@ -23,6 +23,7 @@
 #include <type_traits>
 #ifdef INSIDE_TESTS
 #include <iostream>
+#include <locale>
 #include <codecvt>
 #endif
 #include <utility>

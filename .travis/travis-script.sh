@@ -18,3 +18,8 @@ fi
 meson -Dnative=true -Dasan=${USE_ASAN} --buildtype ${BUILDTYPE} build/native
 ninja -C build/native
 ./build/native/abptest
+
+CPPFLAGS=-DABP_USER_CONFIG='\"../test/compiled/user-config-test-namespace.h\"' \
+meson -Dnative=true -Dasan=${USE_ASAN} --buildtype ${BUILDTYPE} build/native-test-namespace
+ninja -C build/native-test-namespace
+./build/native-test-namespace/abptest

@@ -207,6 +207,9 @@ namespace Map_internal
   public:
     explicit HashContainer(size_type expectedEntries = 0)
         : mEntryCount(0)
+#if defined(DEBUG)
+        , mInsertCounter(0)
+#endif
     {
       expectedEntries = ceil(expectedEntries / LOAD_FACTOR);
       mBucketCount = MIN_BUCKETS;

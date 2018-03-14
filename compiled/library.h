@@ -46,7 +46,7 @@ extern "C"
       ABP_NS::Subscription* subscription, unsigned int position);
   void JSNotifySubscriptionChange(ABP_NS::FilterNotifier::Topic topic,
       ABP_NS::Subscription& subscription);
-  RegExpID GenerateRegExp(const ABP_NS::String& regexp, bool matchCase);
-  void DeleteRegExp(RegExpID id);
-  bool TestRegExp(RegExpID id, const ABP_NS::String& str);
+  ABP_NS::RegExpID GenerateRegExp(const ABP_NS::String& regexp, bool matchCase);
+  void DeleteRegExp(ABP_NS::RegExpID id);
+  bool TestRegExp(ABP_NS::RegExpID id, const ABP_NS::String& str);
 }

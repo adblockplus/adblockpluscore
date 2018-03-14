@@ -49,7 +49,7 @@ struct console_type
 ABP_NS_END
 
 #if defined(DEBUG)
-inline void assert2(bool condition, const String& str)
+inline void assert2(bool condition, const ABP_NS::String& str)
 {
   if (!condition)
     ABP_NS::console_type::error(str);
