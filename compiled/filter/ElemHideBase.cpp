@@ -114,7 +114,7 @@ Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data, bool
     emulation = scanner.skipOne(ABP_TEXT('?'));
 
   String::value_type next = scanner.next();
-  if (next != u'#')
+  if (next != ABP_TEXT('#'))
     return Type::UNKNOWN;
 
   // Selector part

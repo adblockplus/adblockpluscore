@@ -129,7 +129,7 @@ namespace
               !(currChar >= ABP_TEXT('0') && currChar <= ABP_TEXT('9')) &&
               currChar < 128)
           {
-            result.append(u'\\');
+            result.append(ABP_TEXT('\\'));
           }
           result.append(currChar);
       }
