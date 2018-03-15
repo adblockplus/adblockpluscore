@@ -231,9 +231,9 @@ ElemHide_SelectorList* ElemHide::GetSelectorsForDomain(const String& domain,
     if (currentDomain.empty())
       break;
 
-    auto nextDot = currentDomain.find(u'.');
+    auto nextDot = currentDomain.find(ABP_TEXT('.'));
     currentDomain = nextDot == String::npos ?
-      u""_str : DependentString(currentDomain, nextDot + 1);
+      ABP_TEXT(""_str) : DependentString(currentDomain, nextDot + 1);
   }
 
   return selectors.release();

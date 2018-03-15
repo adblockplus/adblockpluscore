@@ -43,7 +43,7 @@ namespace
         domainsEnd -= delta;
 
       // Only spaces before selectorStart position should be removed.
-      if (pos < selectorStart && text[pos] == ' ')
+      if (pos < selectorStart && text[pos] == ABP_TEXT(' '))
         delta++;
       else
         text[pos - delta] = text[pos];
@@ -53,16 +53,16 @@ namespace
     text.reset(text, 0, len - delta);
   }
 
-  static constexpr String::value_type ELEM_HIDE_DELIMITER[] = u"##";
+  static constexpr String::value_type ELEM_HIDE_DELIMITER[] = ABP_TEXT("##");
   static constexpr String::size_type ELEM_HIDE_DELIMITER_LEN = str_length_of(ELEM_HIDE_DELIMITER);
 
-  static constexpr String::value_type ELEM_HIDE_EMULATION_DELIMITER[] = u"#?#";
+  static constexpr String::value_type ELEM_HIDE_EMULATION_DELIMITER[] = ABP_TEXT("#?#");
   static constexpr String::size_type ELEM_HIDE_EMULATION_DELIMITER_LEN = str_length_of(ELEM_HIDE_EMULATION_DELIMITER);
 
-  static constexpr String::value_type OLD_PROPS_SELECTOR[] = u"[-abp-properties=";
+  static constexpr String::value_type OLD_PROPS_SELECTOR[] = ABP_TEXT("[-abp-properties=");
   static constexpr String::size_type OLD_PROPS_SELECTOR_LEN = str_length_of(OLD_PROPS_SELECTOR);
 
-  static constexpr String::value_type PROPS_SELECTOR[] = u":-abp-properties(";
+  static constexpr String::value_type PROPS_SELECTOR[] = ABP_TEXT(":-abp-properties(");
   static constexpr String::size_type PROPS_SELECTOR_LEN = str_length_of(PROPS_SELECTOR);
 }
 
@@ -70,7 +70,7 @@ ElemHideBase::ElemHideBase(Type type, const String& text, const ElemHideData& da
     : ActiveFilter(type, text, false), mData(data)
 {
   if (mData.HasDomains())
-    ParseDomains(mData.GetDomainsSource(mText), u',');
+    ParseDomains(mData.GetDomainsSource(mText), ABP_TEXT(','));
 }
 
 Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data, bool& needConversion)
@@ -84,7 +84,7 @@ Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data, bool
   while (!scanner.done())
   {
     String::value_type next = scanner.next();
-    if (next == u'#')
+    if (next == ABP_TEXT('#'))
     {
       data.mDomainsEnd = scanner.position();
       break;
@@ -92,26 +92,26 @@ Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data, bool
 
     switch (next)
     {
-      case u'/':
-      case u'*':
-      case u'|':
-      case u'@':
-      case u'"':
-      case u'!':
+      case ABP_TEXT('/'):
+      case ABP_TEXT('*'):
+      case ABP_TEXT('|'):
+      case ABP_TEXT('@'):
+      case ABP_TEXT('"'):
+      case ABP_TEXT('!'):
         return Type::UNKNOWN;
-      case u' ':
+      case ABP_TEXT(' '):
         seenSpaces = true;
         break;
     }
   }
 
-  seenSpaces |= scanner.skip(u' ');
+  seenSpaces |= scanner.skip(ABP_TEXT(' '));
   bool emulation = false;
-  bool exception = scanner.skipOne(u'@');
+  bool exception = scanner.skipOne(ABP_TEXT('@'));
   if (exception)
-    seenSpaces |= scanner.skip(u' ');
+    seenSpaces |= scanner.skip(ABP_TEXT(' '));
   else
-    emulation = scanner.skipOne(u'?');
+    emulation = scanner.skipOne(ABP_TEXT('?'));
 
   String::value_type next = scanner.next();
   if (next != u'#')
@@ -120,7 +120,7 @@ Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data, bool
   // Selector part
 
   // Selector shouldn't be empty
-  seenSpaces |= scanner.skip(u' ');
+  seenSpaces |= scanner.skip(ABP_TEXT(' '));
   if (scanner.done())
     return Type::UNKNOWN;
 
@@ -183,8 +183,8 @@ DependentString ElemHideBase::ConvertFilter(String& text, String::size_type& at)
     auto c = text[index];
     switch (c)
     {
-    case u'"':
-    case u'\'':
+    case ABP_TEXT('"'):
+    case ABP_TEXT('\''):
       if (quote == 0)
       {
         // syntax error: we already have a quoted section.
@@ -204,7 +204,7 @@ DependentString ElemHideBase::ConvertFilter(String& text, String::size_type& at)
         properties.end = index;
       }
       break;
-    case u']':
+    case ABP_TEXT(']'):
       if (quote == 0)
       {
         if (properties.end == 0)
@@ -229,7 +229,7 @@ DependentString ElemHideBase::ConvertFilter(String& text, String::size_type& at)
     at++;
   auto new_len = at + prefix.len() + PROPS_SELECTOR_LEN + properties.len() + 1 /* ) */ + suffix.len();
 
-  assert2(length == new_len + (delimiter == text.npos ? 2 : 1), u"Inconsistent length in filter conversion."_str);
+  assert2(length == new_len + (delimiter == text.npos ? 2 : 1), ABP_TEXT("Inconsistent length in filter conversion."_str));
 
   DependentString converted(text, 0, new_len);
 
@@ -249,7 +249,7 @@ DependentString ElemHideBase::ConvertFilter(String& text, String::size_type& at)
     std::memmove(converted.data() + new_len,
                  text.data() + properties.start, properties.byte_len());
   }
-  converted[parens] = u')';
+  converted[parens] = ABP_TEXT(')');
 
   new_len -= PROPS_SELECTOR_LEN;
   std::memcpy(converted.data() + new_len,
@@ -273,8 +273,8 @@ DependentString ElemHideBase::ConvertFilter(String& text, String::size_type& at)
 
 namespace
 {
-  static constexpr String::value_type OPENING_CURLY_REPLACEMENT[] = u"\\7B ";
-  static constexpr String::value_type CLOSING_CURLY_REPLACEMENT[] = u"\\7D ";
+  static constexpr String::value_type OPENING_CURLY_REPLACEMENT[] = ABP_TEXT("\\7B ");
+  static constexpr String::value_type CLOSING_CURLY_REPLACEMENT[] = ABP_TEXT("\\7D ");
   static constexpr String::size_type CURLY_REPLACEMENT_SIZE = str_length_of(OPENING_CURLY_REPLACEMENT);
 
   OwnedString EscapeCurlies(String::size_type replacementCount,
@@ -287,12 +287,12 @@ namespace
     {
       switch(str[i])
       {
-      case u'}':
+      case ABP_TEXT('}'):
         std::memcpy(current, CLOSING_CURLY_REPLACEMENT,
                     sizeof(String::value_type) * CURLY_REPLACEMENT_SIZE);
         current += CURLY_REPLACEMENT_SIZE;
         break;
-      case u'{':
+      case ABP_TEXT('{'):
         std::memcpy(current, OPENING_CURLY_REPLACEMENT,
                     sizeof(String::value_type) * CURLY_REPLACEMENT_SIZE);
         current += CURLY_REPLACEMENT_SIZE;
@@ -313,7 +313,7 @@ OwnedString ElemHideBase::GetSelector() const
   const DependentString selector = mData.GetSelector(mText);
   String::size_type replacementCount = 0;
   for (String::size_type i = 0; i < selector.length(); i++)
-    if (selector[i] == '}' || selector[i] == '{')
+    if (selector[i] == ABP_TEXT('}') || selector[i] == ABP_TEXT('{'))
       replacementCount++;
   if (replacementCount)
     return EscapeCurlies(replacementCount, selector);
@@ -332,7 +332,7 @@ OwnedString ElemHideBase::GetSelectorDomain() const
       if (item.second && !item.first.empty())
       {
         if (!result.empty())
-          result.append(u',');
+          result.append(ABP_TEXT(','));
         result.append(item.first);
       }
     }

@@ -31,7 +31,7 @@ private:
   String::value_type mTerminator;
 public:
   explicit StringScanner(const String& str, String::size_type pos = 0,
-        String::value_type terminator = u'\0')
+        String::value_type terminator = ABP_TEXT('\0'))
       : mStr(str), mPos(pos), mEnd(str.length()), mTerminator(terminator) {}
 
   bool done() const

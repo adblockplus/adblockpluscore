@@ -61,17 +61,17 @@ int Subscription::IndexOfFilter(const Filter& filter)
 
 OwnedString Subscription::Serialize() const
 {
-  OwnedString result(u"[Subscription]\nurl="_str);
+  OwnedString result(ABP_TEXT("[Subscription]\nurl="_str));
   result.append(mID);
-  result.append(u'\n');
+  result.append(ABP_TEXT('\n'));
   if (!mTitle.empty())
   {
-    result.append(u"title="_str);
+    result.append(ABP_TEXT("title="_str));
     result.append(mTitle);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mDisabled)
-    result.append(u"disabled=true\n"_str);
+    result.append(ABP_TEXT("disabled=true\n"_str));
 
   return result;
 }
@@ -81,12 +81,12 @@ OwnedString Subscription::SerializeFilters() const
   if (!mFilters.size())
     return OwnedString();
 
-  OwnedString result(u"[Subscription filters]\n"_str);
+  OwnedString result(ABP_TEXT("[Subscription filters]\n"_str));
   for (const auto& filter : mFilters)
   {
     // TODO: Escape [ characters
     result.append(filter->GetText());
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   return result;
 }
@@ -97,13 +97,13 @@ Subscription* Subscription::FromID(const String& id)
   {
     // Generate a new random ID
     std::mt19937 gen(knownSubscriptions.size());
-    OwnedString randomID(u"~user~000000"_str);
+    OwnedString randomID(ABP_TEXT("~user~000000"_str));
     do
     {
       int number = gen();
       for (String::size_type i = randomID.length() - 6; i < randomID.length(); i++)
       {
-        randomID[i] = '0' + (number % 10);
+        randomID[i] = ABP_TEXT('0') + (number % 10);
         number /= 10;
       }
     } while (knownSubscriptions.find(randomID));
@@ -118,7 +118,7 @@ Subscription* Subscription::FromID(const String& id)
   }
 
   SubscriptionPtr subscription;
-  if (!id.empty() && id[0] == '~')
+  if (!id.empty() && id[0] == ABP_TEXT('~'))
     subscription = SubscriptionPtr(new UserDefinedSubscription(id), false);
   else
     subscription = SubscriptionPtr(new DownloadableSubscription(id), false);

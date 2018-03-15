@@ -24,74 +24,74 @@ ABP_NS_USING
 
 TEST(TestFilter, testFromText)
 {
-  OwnedString t(u"www.example.com#?#:-abp-properties(foo)"_str);
+  OwnedString t(ABP_TEXT("www.example.com#?#:-abp-properties(foo)"_str));
   DependentString text(t);
 
   FilterPtr filter(Filter::FromText(text), false);
-  EXPECT_EQ(filter->GetText(), u"www.example.com#?#:-abp-properties(foo)"_str);
+  EXPECT_EQ(filter->GetText(), ABP_TEXT("www.example.com#?#:-abp-properties(foo)"_str));
 }
 
 TEST(TestFilter, testFilterConversionText)
 {
   {
-    OwnedString t(u"www.example.com##[-abp-properties='foo']"_str);
+    OwnedString t(ABP_TEXT("www.example.com##[-abp-properties='foo']"_str));
     DependentString text(t);
 
     FilterPtr filter(Filter::FromText(text), false);
-    EXPECT_EQ(filter->GetText(), u"www.example.com#?#:-abp-properties(foo)"_str);
+    EXPECT_EQ(filter->GetText(), ABP_TEXT("www.example.com#?#:-abp-properties(foo)"_str));
   }
   {
-    OwnedString t(u"example.com##foo[-abp-properties='something']bar"_str);
+    OwnedString t(ABP_TEXT("example.com##foo[-abp-properties='something']bar"_str));
     DependentString text(t);
 
     FilterPtr filter(Filter::FromText(text), false);
-    EXPECT_EQ(filter->GetText(), u"example.com#?#foo:-abp-properties(something)bar"_str);
+    EXPECT_EQ(filter->GetText(), ABP_TEXT("example.com#?#foo:-abp-properties(something)bar"_str));
   }
   {
-    OwnedString t(u"foo.com##[-abp-properties='/margin: [3-4]{2}/']"_str);
+    OwnedString t(ABP_TEXT("foo.com##[-abp-properties='/margin: [3-4]{2}/']"_str));
     DependentString text(t);
 
     FilterPtr filter(Filter::FromText(text), false);
-    EXPECT_EQ(filter->GetText(), u"foo.com#?#:-abp-properties(/margin: [3-4]{2}/)"_str);
+    EXPECT_EQ(filter->GetText(), ABP_TEXT("foo.com#?#:-abp-properties(/margin: [3-4]{2}/)"_str));
     ASSERT_TRUE(filter->As<ElemHideBase>());
-    EXPECT_EQ(filter->As<ElemHideBase>()->GetSelector(), u":-abp-properties(/margin: [3-4]\\7B 2\\7D /)"_str);
+    EXPECT_EQ(filter->As<ElemHideBase>()->GetSelector(), ABP_TEXT(":-abp-properties(/margin: [3-4]\\7B 2\\7D /)"_str));
   }
 }
 
 TEST(TestFilter, testFilterExceptionConversionText)
 {
-  OwnedString t(u"www.example.com#@#[-abp-properties='foo']"_str);
+  OwnedString t(ABP_TEXT("www.example.com#@#[-abp-properties='foo']"_str));
   DependentString text(t);
 
   FilterPtr filter(Filter::FromText(text), false);
-  EXPECT_EQ(filter->GetText(), u"www.example.com#@#:-abp-properties(foo)"_str);
+  EXPECT_EQ(filter->GetText(), ABP_TEXT("www.example.com#@#:-abp-properties(foo)"_str));
 }
 
 TEST(TestFilter, testFilterSyntaxErrorConversion)
 {
   {
-    OwnedString t(u"www.example.com#@#[-abp-properties='foo'bar'baz']"_str);
+    OwnedString t(ABP_TEXT("www.example.com#@#[-abp-properties='foo'bar'baz']"_str));
     DependentString text(t);
 
     FilterPtr filter(Filter::FromText(text), false);
     EXPECT_FALSE(filter);
   }
   {
-    OwnedString t(u"www.example.com#@#[-abp-properties='foo'bar']"_str);
+    OwnedString t(ABP_TEXT("www.example.com#@#[-abp-properties='foo'bar']"_str));
     DependentString text(t);
 
     FilterPtr filter(Filter::FromText(text), false);
     EXPECT_FALSE(filter);
   }
   {
-    OwnedString t(u"www.example.com#@#[-abp-properties='foo'bar]"_str);
+    OwnedString t(ABP_TEXT("www.example.com#@#[-abp-properties='foo'bar]"_str));
     DependentString text(t);
 
     FilterPtr filter(Filter::FromText(text), false);
     EXPECT_FALSE(filter);
   }
   {
-    OwnedString t(u"www.example.com#@#[-abp-properties=bar'foo']"_str);
+    OwnedString t(ABP_TEXT("www.example.com#@#[-abp-properties=bar'foo']"_str));
     DependentString text(t);
 
     FilterPtr filter(Filter::FromText(text), false);

@@ -25,12 +25,12 @@ DependentString TrimSpaces(const String& value)
   auto end = value.length();
   for (; start < end; ++start)
   {
-    if (value[start] > u' ')
+    if (value[start] > ABP_TEXT(' '))
       break;
   }
   for (; end > start; --end)
   {
-    if (value[end - 1] > u' ')
+    if (value[end - 1] > ABP_TEXT(' '))
       break;
   }
   return DependentString(value, start, end - start);

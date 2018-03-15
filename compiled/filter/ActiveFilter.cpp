@@ -22,7 +22,7 @@
 
 ABP_NS_USING
 
-const DependentString ActiveFilter::DEFAULT_DOMAIN(u""_str);
+const DependentString ActiveFilter::DEFAULT_DOMAIN(ABP_TEXT(""_str));
 
 ActiveFilter::ActiveFilter(Type type, const String& text, bool ignoreTrailingDot)
     : Filter(type, text), mIgnoreTrailingDot(ignoreTrailingDot),
@@ -60,7 +60,7 @@ void ActiveFilter::ParseDomains(const String& domains,
   {
     done = scanner.done();
     String::value_type currChar = scanner.next();
-    if (currChar == u'~' && scanner.position() == start)
+    if (currChar == ABP_TEXT('~') && scanner.position() == start)
     {
       start++;
       reverse = true;
@@ -68,7 +68,7 @@ void ActiveFilter::ParseDomains(const String& domains,
     else if (currChar == separator)
     {
       String::size_type len = scanner.position() - start;
-      if (len > 0 && mIgnoreTrailingDot && domains[start + len - 1] == '.')
+      if (len > 0 && mIgnoreTrailingDot && domains[start + len - 1] == ABP_TEXT('.'))
         len--;
       if (len > 0)
       {
@@ -120,7 +120,7 @@ bool ActiveFilter::IsActiveOnDomain(DependentString& docDomain, const String& si
   docDomain.toLower();
 
   String::size_type len = docDomain.length();
-  if (len > 0 && mIgnoreTrailingDot && docDomain[len - 1] == '.')
+  if (len > 0 && mIgnoreTrailingDot && docDomain[len - 1] == ABP_TEXT('.'))
     docDomain.reset(docDomain, 0, len - 1);
   while (true)
   {
@@ -128,7 +128,7 @@ bool ActiveFilter::IsActiveOnDomain(DependentString& docDomain, const String& si
     if (it)
       return it->second;
 
-    String::size_type nextDot = docDomain.find(u'.');
+    String::size_type nextDot = docDomain.find(ABP_TEXT('.'));
     if (nextDot == docDomain.npos)
       break;
     docDomain.reset(docDomain, nextDot + 1);
@@ -145,7 +145,7 @@ bool ActiveFilter::IsActiveOnlyOnDomain(DependentString& docDomain) const
   docDomain.toLower();
 
   String::size_type len = docDomain.length();
-  if (len > 0 && mIgnoreTrailingDot && docDomain[len - 1] == '.')
+  if (len > 0 && mIgnoreTrailingDot && docDomain[len - 1] == ABP_TEXT('.'))
     docDomain.reset(docDomain, 0, len - 1);
   for (const auto& item : *domains)
   {
@@ -156,7 +156,7 @@ bool ActiveFilter::IsActiveOnlyOnDomain(DependentString& docDomain) const
     size_t len2 = docDomain.length();
     if (len1 > len2 &&
         DependentString(item.first, len1 - len2).equals(docDomain) &&
-        item.first[len1 - len2 - 1] == u'.')
+        item.first[len1 - len2 - 1] == ABP_TEXT('.'))
     {
       continue;
     }
@@ -178,18 +178,18 @@ OwnedString ActiveFilter::Serialize() const
   /* TODO this is very inefficient */
   OwnedString result(Filter::Serialize());
   if (mDisabled)
-    result.append(u"disabled=true\n"_str);
+    result.append(ABP_TEXT("disabled=true\n"_str));
   if (mHitCount)
   {
-    result.append(u"hitCount="_str);
+    result.append(ABP_TEXT("hitCount="_str));
     result.append(mHitCount);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mLastHit)
   {
-    result.append(u"lastHit="_str);
+    result.append(ABP_TEXT("lastHit="_str));
     result.append(mLastHit);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   return result;
 }

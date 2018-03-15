@@ -93,14 +93,14 @@ OwnedString UserDefinedSubscription::Serialize() const
   OwnedString result(Subscription::Serialize());
   if (!IsGeneric())
   {
-    result.append(u"defaults="_str);
+    result.append(ABP_TEXT("defaults="_str));
     if (mDefaults & FilterCategory::BLOCKING)
-      result.append(u" blocking"_str);
+      result.append(ABP_TEXT(" blocking"_str));
     if (mDefaults & FilterCategory::WHITELIST)
-      result.append(u" whitelist"_str);
+      result.append(ABP_TEXT(" whitelist"_str));
     if (mDefaults & FilterCategory::ELEMHIDE)
-      result.append(u" elemhide"_str);
-    result.append(u'\n');
+      result.append(ABP_TEXT(" elemhide"_str));
+    result.append(ABP_TEXT('\n'));
   }
   return result;
 }

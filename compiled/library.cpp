@@ -71,7 +71,7 @@ bool TestRegExp(RegExpID id, const String& str)
   if ((id < regexPool.size()) && regexPool[id])
     return std::regex_match(StdWStringFromString(str), *regexPool[id]);
 
-  assert2(id < regexPool.size() && regexPool[id], u"Invalid RegExp index."_str);
+  assert2(id < regexPool.size() && regexPool[id], ABP_TEXT("Invalid RegExp index."_str));
   return false;
 }
 

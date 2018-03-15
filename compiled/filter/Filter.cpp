@@ -40,13 +40,13 @@ namespace
 
     // Remove leading spaces and special characters like line breaks
     for (; start < end; start++)
-      if (text[start] > ' ')
+      if (text[start] > ABP_TEXT(' '))
         break;
 
     // Now look for invalid characters inside the string
     String::size_type pos;
     for (pos = start; pos < end; pos++)
-      if (text[pos] < ' ')
+      if (text[pos] < ABP_TEXT(' '))
         break;
 
     if (pos < end)
@@ -56,7 +56,7 @@ namespace
       String::size_type delta = 1;
       for (pos = pos + 1; pos < end; pos++)
       {
-        if (text[pos] < ' ')
+        if (text[pos] < ABP_TEXT(' '))
           delta++;
         else
           text[pos - delta] = text[pos];
@@ -66,7 +66,7 @@ namespace
 
     // Remove trailing spaces
     for (; end > 0; end--)
-      if (text[end - 1] != ' ')
+      if (text[end - 1] != ABP_TEXT(' '))
         break;
 
     // Set new string boundaries
@@ -87,9 +87,9 @@ Filter::~Filter()
 
 OwnedString Filter::Serialize() const
 {
-  OwnedString result(u"[Filter]\ntext="_str);
+  OwnedString result(ABP_TEXT("[Filter]\ntext="_str));
   result.append(mText);
-  result.append(u'\n');
+  result.append(ABP_TEXT('\n'));
   return result;
 }
 
@@ -153,7 +153,7 @@ Filter* Filter::FromText(DependentString& text)
     case ElemHideEmulationFilter::classType:
       filter = FilterPtr(new ElemHideEmulationFilter(text, data.elemhide), false);
       if (static_cast<ElemHideEmulationFilter*>(filter.get())->IsGeneric())
-        filter = FilterPtr(new InvalidFilter(text, u"filter_elemhideemulation_nodomain"_str), false);
+        filter = FilterPtr(new InvalidFilter(text, ABP_TEXT("filter_elemhideemulation_nodomain"_str)), false);
       break;
     default:
       // This should never happen but just in case

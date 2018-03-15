@@ -290,9 +290,9 @@ namespace Map_internal
     {
 #if defined(DEBUG)
       assert2(mInsertCounter == mMap->mInsertCounter,
-          u"There should be no insert operations performed between map.find() and assign()"_str);
+          ABP_TEXT("There should be no insert operations performed between map.find() and assign()"_str));
       assert2(mHash == entry_type::hash(key),
-          u"The keys used in map.find() and assign() should be identical"_str);
+          ABP_TEXT("The keys used in map.find() and assign() should be identical"_str));
 #endif
 
       mMap->assign(this->mEntry, entry_type(key, value));

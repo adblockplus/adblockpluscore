@@ -52,28 +52,28 @@ namespace
   };
 
   const StringMap<int> typeMap {
-    {u"other"_str, TYPE_OTHER},
-    {u"script"_str, TYPE_SCRIPT},
-    {u"image"_str, TYPE_IMAGE},
-    {u"stylesheet"_str, TYPE_STYLESHEET},
-    {u"object"_str, TYPE_OBJECT},
-    {u"subdocument"_str, TYPE_SUBDOCUMENT},
-    {u"document"_str, TYPE_DOCUMENT},
-    {u"websocket"_str, TYPE_WEBSOCKET},
-    {u"webrtc"_str, TYPE_WEBRTC},
-    {u"xbl"_str, TYPE_OTHER},          // Backwards compat
-    {u"ping"_str, TYPE_PING},
-    {u"xmlhttprequest"_str, TYPE_XMLHTTPREQUEST},
-    {u"object-subrequest"_str, TYPE_OBJECT_SUBREQUEST},
-    {u"dtd"_str, TYPE_OTHER},          // Backwards compat
-    {u"media"_str, TYPE_MEDIA},
-    {u"font"_str, TYPE_FONT},
-    {u"background"_str, TYPE_IMAGE},   // Backwards compat
+    {ABP_TEXT("other"_str), TYPE_OTHER},
+    {ABP_TEXT("script"_str), TYPE_SCRIPT},
+    {ABP_TEXT("image"_str), TYPE_IMAGE},
+    {ABP_TEXT("stylesheet"_str), TYPE_STYLESHEET},
+    {ABP_TEXT("object"_str), TYPE_OBJECT},
+    {ABP_TEXT("subdocument"_str), TYPE_SUBDOCUMENT},
+    {ABP_TEXT("document"_str), TYPE_DOCUMENT},
+    {ABP_TEXT("websocket"_str), TYPE_WEBSOCKET},
+    {ABP_TEXT("webrtc"_str), TYPE_WEBRTC},
+    {ABP_TEXT("xbl"_str), TYPE_OTHER},          // Backwards compat
+    {ABP_TEXT("ping"_str), TYPE_PING},
+    {ABP_TEXT("xmlhttprequest"_str), TYPE_XMLHTTPREQUEST},
+    {ABP_TEXT("object-subrequest"_str), TYPE_OBJECT_SUBREQUEST},
+    {ABP_TEXT("dtd"_str), TYPE_OTHER},          // Backwards compat
+    {ABP_TEXT("media"_str), TYPE_MEDIA},
+    {ABP_TEXT("font"_str), TYPE_FONT},
+    {ABP_TEXT("background"_str), TYPE_IMAGE},   // Backwards compat
 
-    {u"popup"_str, TYPE_POPUP},
-    {u"genericblock"_str, TYPE_GENERICBLOCK},
-    {u"generichide"_str, TYPE_GENERICHIDE},
-    {u"elemhide"_str, TYPE_ELEMHIDE},
+    {ABP_TEXT("popup"_str), TYPE_POPUP},
+    {ABP_TEXT("genericblock"_str), TYPE_GENERICBLOCK},
+    {ABP_TEXT("generichide"_str), TYPE_GENERICHIDE},
+    {ABP_TEXT("elemhide"_str), TYPE_ELEMHIDE},
   };
 
   const int defaultTypeMask = INT_MAX & ~(TYPE_DOCUMENT | TYPE_ELEMHIDE |
@@ -86,47 +86,47 @@ namespace
     // Note: This doesn't remove trailing wildcards, otherwise the result should
     // be identical to Filter.toRegExp().
     OwnedString result;
-    String::value_type prevChar = u'*';
+    String::value_type prevChar = ABP_TEXT('*');
     for (String::size_type i = 0; i < source.length(); ++i)
     {
       String::value_type currChar = source[i];
       switch (currChar)
       {
-        case u'*':
-          if (prevChar != u'*')
-            result.append(u".*"_str);
+        case ABP_TEXT('*'):
+          if (prevChar != ABP_TEXT('*'))
+            result.append(ABP_TEXT(".*"_str));
           break;
-        case u'^':
-          result.append(u"(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)"_str);
+        case ABP_TEXT('^'):
+          result.append(ABP_TEXT("(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)"_str));
           break;
-        case u'|':
+        case ABP_TEXT('|'):
           if (i == 0)
           {
             // Anchor at expression start, maybe extended anchor?
-            if (i + 1 < source.length() && source[i + 1] == u'|')
+            if (i + 1 < source.length() && source[i + 1] == ABP_TEXT('|'))
             {
-              result.append(u"^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"_str);
+              result.append(ABP_TEXT("^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?"_str));
               ++i;
             }
             else
-              result.append(u'^');
+              result.append(ABP_TEXT('^'));
           }
           else if (i == source.length() - 1)
           {
             // Anchor at expression end, ignore if following separator placeholder
-            if (prevChar != u'^')
-              result.append(u'$');
+            if (prevChar != ABP_TEXT('^'))
+              result.append(ABP_TEXT('$'));
           }
           else
           {
             // Not actually an anchor, escape it
-            result.append(u"\\|"_str);
+            result.append(ABP_TEXT("\\|"_str));
           }
           break;
         default:
-          if (!(currChar >= u'a' && currChar <= u'z') &&
-              !(currChar >= u'A' && currChar <= u'Z') &&
-              !(currChar >= u'0' && currChar <= u'9') &&
+          if (!(currChar >= ABP_TEXT('a') && currChar <= ABP_TEXT('z')) &&
+              !(currChar >= ABP_TEXT('A') && currChar <= ABP_TEXT('Z')) &&
+              !(currChar >= ABP_TEXT('0') && currChar <= ABP_TEXT('9')) &&
               currChar < 128)
           {
             result.append(u'\\');
@@ -147,7 +147,7 @@ namespace
     String::size_type len = text.length();
     String::size_type pos;
     for (pos = 0; pos < len; pos++)
-      if (text[pos] == ' ')
+      if (text[pos] == ABP_TEXT(' '))
         break;
 
     if (pos >= len)
@@ -157,7 +157,7 @@ namespace
     String::size_type delta = 1;
     for (pos = pos + 1; pos < len; pos++)
     {
-      if (text[pos] == ' ')
+      if (text[pos] == ABP_TEXT(' '))
         delta++;
       else
         text[pos - delta] = text[pos];
@@ -172,7 +172,7 @@ namespace
       return;
 
     bool reverse = false;
-    if (text[optionStart] == u'~')
+    if (text[optionStart] == ABP_TEXT('~'))
     {
       reverse = true;
       optionStart++;
@@ -182,10 +182,10 @@ namespace
     for (size_t i = 0; i < name.length(); ++i)
     {
       char16_t currChar = name[i];
-      if (currChar >= u'A' && currChar <= u'Z')
-        name[i] = currChar + u'a' - u'A';
-      else if (currChar == u'_')
-        name[i] = u'-';
+      if (currChar >= ABP_TEXT('A') && currChar <= ABP_TEXT('Z'))
+        name[i] = currChar + ABP_TEXT('a') - ABP_TEXT('A');
+      else if (currChar == ABP_TEXT('_'))
+        name[i] = ABP_TEXT('-');
     }
 
     auto it = typeMap.find(name);
@@ -198,7 +198,7 @@ namespace
       else
         data.mContentType |= it->second;
     }
-    else if (name.equals(u"domain"_str))
+    else if (name.equals(ABP_TEXT("domain"_str)))
     {
       if (valueStart >= 0 && valueEnd > valueStart)
       {
@@ -207,7 +207,7 @@ namespace
         DependentString(text, valueStart, valueEnd - valueStart).toLower();
       }
     }
-    else if (name.equals(u"sitekey"_str))
+    else if (name.equals(ABP_TEXT("sitekey"_str)))
     {
       if (valueStart >= 0 && valueEnd > valueStart)
       {
@@ -215,14 +215,14 @@ namespace
         data.mSitekeysEnd = valueEnd;
       }
     }
-    else if (name.equals(u"match-case"_str))
+    else if (name.equals(ABP_TEXT("match-case"_str)))
       data.mMatchCase = !reverse;
-    else if (name.equals(u"third-party"_str))
+    else if (name.equals(ABP_TEXT("third-party"_str)))
       data.mThirdParty = reverse ? TrippleState::NO : TrippleState::YES;
-    else if (name.equals(u"collapse"_str))
+    else if (name.equals(ABP_TEXT("collapse"_str)))
       data.mCollapse = !reverse;
     else
-      error.reset(u"filter_unknown_option"_str);
+      error.reset(ABP_TEXT("filter_unknown_option"_str));
   }
 
   void ParseOptions(String& text, DependentString& error, RegExpFilterData& data,
@@ -245,21 +245,21 @@ namespace
     int optionEnd = -1;
     int valueStart = -1;
 
-    StringScanner scanner(text, optionStart, u',');
+    StringScanner scanner(text, optionStart, ABP_TEXT(','));
     bool done = false;
     while (!done)
     {
       done = scanner.done();
       switch (scanner.next())
       {
-        case u'=':
+        case ABP_TEXT('='):
           if (optionEnd < 0)
           {
             optionEnd = scanner.position();
             valueStart = optionEnd + 1;
           }
           break;
-        case u',':
+        case ABP_TEXT(','):
           if (optionEnd < 0)
             optionEnd = scanner.position();
           ParseOption(text, error, data, optionStart, optionEnd, valueStart,
@@ -298,13 +298,13 @@ Filter::Type RegExpFilter::Parse(DependentString& text, DependentString& error,
   Filter::Type type = Type::BLOCKING;
 
   data.mPatternStart = 0;
-  if (text.length() >= 2 && text[0] == u'@' && text[1] == u'@')
+  if (text.length() >= 2 && text[0] == ABP_TEXT('@') && text[1] == ABP_TEXT('@'))
   {
     type = Type::WHITELIST;
     data.mPatternStart = 2;
   }
 
-  data.mPatternEnd = text.find(u'$', data.mPatternStart);
+  data.mPatternEnd = text.find(ABP_TEXT('$'), data.mPatternStart);
   if (data.mPatternEnd == text.npos)
     data.mPatternEnd = text.length();
 
@@ -313,14 +313,14 @@ Filter::Type RegExpFilter::Parse(DependentString& text, DependentString& error,
     return Type::INVALID;
 
   if (data.mPatternEnd - data.mPatternStart >= 2 &&
-      text[data.mPatternStart] == u'/' &&
-      text[data.mPatternEnd - 1] == u'/')
+      text[data.mPatternStart] == ABP_TEXT('/') &&
+      text[data.mPatternEnd - 1] == ABP_TEXT('/'))
   {
     data.SetRegExp(GenerateRegExp(DependentString(text, data.mPatternStart + 1,
         data.mPatternEnd - data.mPatternStart - 2), data.mMatchCase));
     if (data.mRegexpId == -1)
     {
-      error.reset(u"filter_invalid_regexp"_str);
+      error.reset(ABP_TEXT("filter_invalid_regexp"_str));
       return Type::INVALID;
     }
   }
@@ -330,13 +330,13 @@ Filter::Type RegExpFilter::Parse(DependentString& text, DependentString& error,
 
 void RegExpFilter::ParseSitekeys(const String& sitekeys) const
 {
-  StringScanner scanner(sitekeys, 0, u'|');
+  StringScanner scanner(sitekeys, 0, ABP_TEXT('|'));
   size_t start = 0;
   bool done = false;
   while (!done)
   {
     done = scanner.done();
-    if (scanner.next() == u'|')
+    if (scanner.next() == ABP_TEXT('|'))
     {
       if (scanner.position() > start)
         AddSitekey(DependentString(sitekeys, start, scanner.position() - start));
@@ -353,7 +353,7 @@ void RegExpFilter::GenerateCustomBindings()
   {
     std::string type(item.first.length(), '\0');
     for (String::size_type i = 0; i < item.first.length(); i++)
-      type[i] = (item.first[i] == '-' ? '_' : toupper(item.first[i]));
+      type[i] = item.first[i] == ABP_TEXT('-') ? '_' : toupper(item.first[i]);
     printf("  %s: %i,\n", type.c_str(), item.second);
   }
   printf("};\n");
@@ -363,7 +363,7 @@ RegExpFilter::DomainMap* RegExpFilter::GetDomains() const
 {
   if (!mData.DomainsParsingDone())
   {
-    ParseDomains(mData.GetDomainsSource(mText), u'|');
+    ParseDomains(mData.GetDomainsSource(mText), ABP_TEXT('|'));
     mData.SetDomainsParsingDone();
   }
   return ActiveFilter::GetDomains();

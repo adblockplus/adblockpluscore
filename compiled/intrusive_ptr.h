@@ -44,7 +44,7 @@ public:
 
   void ReleaseRef()
   {
-    assert2(mRefCount > 0, u"Unexpected zero or negative reference count"_str);
+    assert2(mRefCount > 0, ABP_TEXT("Unexpected zero or negative reference count"_str));
     if (--mRefCount == 0)
       delete this;
   }
@@ -57,7 +57,7 @@ protected:
 
   virtual ~ref_counted()
   {
-    assert2(mRefCount == 0, u"Destroying a ref-counted object with a non-zero reference count"_str);
+    assert2(mRefCount == 0, ABP_TEXT("Destroying a ref-counted object with a non-zero reference count"_str));
   }
 
 private:

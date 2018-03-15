@@ -26,7 +26,7 @@ CommentFilter::CommentFilter(const String& text)
 
 Filter::Type CommentFilter::Parse(const String& text)
 {
-  if (text.length() && text[0] == u'!')
+  if (text.length() && text[0] == ABP_TEXT('!'))
     return Type::COMMENT;
   else
     return Type::UNKNOWN;

@@ -12,23 +12,15 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Adblock Plus. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gtest/gtest.h>
-#include "compiled/String.h"
+#pragma once
 
-ABP_NS_USING
+#define ABP_UTF8_STRING
 
-TEST(TestRegexp, RegExp)
-{
-  auto id = GenerateRegExp(ABP_TEXT("[0-9]*"_str), false);
-  EXPECT_EQ(0u, id);
-  EXPECT_FALSE(TestRegExp(id, ABP_TEXT("abcd"_str)));
-  EXPECT_TRUE(TestRegExp(id, ABP_TEXT("1234"_str)));
+#define ABP_NS abp_core
+#define ABP_NS_BEGIN namespace ABP_NS {
+#define ABP_NS_END }
+#define ABP_NS_USING using namespace ABP_NS;
 
-  DeleteRegExp(id);
-  // RegExp has been delete: all is false
-  EXPECT_FALSE(TestRegExp(id, ABP_TEXT("abcd"_str)));
-  EXPECT_FALSE(TestRegExp(id, ABP_TEXT("1234"_str)));
-}

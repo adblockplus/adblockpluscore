@@ -28,42 +28,42 @@ void testStringMap()
 
   EXPECT_EQ(map.begin(), map.end());
 
-  auto key = u"Foobar"_str;
+  auto key = ABP_TEXT("Foobar"_str);
   EXPECT_EQ(6u, key.length());
   EXPECT_EQ(0u, map.size());
 
-  map[u"Foobar"_str] = "one";
+  map[ABP_TEXT("Foobar"_str)] = "one";
   EXPECT_EQ(1u, map.size());
   EXPECT_NE(map.begin(), map.end());
 
-  map[u""_str] = "null";
+  map[ABP_TEXT(""_str)] = "null";
   EXPECT_EQ(2u, map.size());
 
-  auto entry = map.find(u"Foobar"_str);
+  auto entry = map.find(ABP_TEXT("Foobar"_str));
   EXPECT_TRUE(entry);
 
-  entry = map.find(u"Foobar2"_str);
+  entry = map.find(ABP_TEXT("Foobar2"_str));
   EXPECT_FALSE(entry);
 
-  map[u"Foobar2"_str] = "two";
-  entry = map.find(u"Foobar2"_str);
+  map[ABP_TEXT("Foobar2"_str)] = "two";
+  entry = map.find(ABP_TEXT("Foobar2"_str));
   EXPECT_TRUE(entry);
 
-  map[u"Foobar3"_str] = "three";
-  entry = map.find(u"Foobar3"_str);
+  map[ABP_TEXT("Foobar3"_str)] = "three";
+  entry = map.find(ABP_TEXT("Foobar3"_str));
   EXPECT_TRUE(entry);
 
   EXPECT_EQ(4u, map.size());
 
-  EXPECT_TRUE(map.erase(u"Foobar2"_str));
+  EXPECT_TRUE(map.erase(ABP_TEXT("Foobar2"_str)));
   // already deleted. Returns false.
-  EXPECT_FALSE(map.erase(u"Foobar2"_str));
+  EXPECT_FALSE(map.erase(ABP_TEXT("Foobar2"_str)));
   // invalid. Returns false.
-  EXPECT_FALSE(map.erase(u"Foobar42"_str));
+  EXPECT_FALSE(map.erase(ABP_TEXT("Foobar42"_str)));
 
   EXPECT_EQ(4u, map.size());
 
-  entry = map.find(u"Foobar2"_str);
+  entry = map.find(ABP_TEXT("Foobar2"_str));
   EXPECT_FALSE(entry);
 
   uint32_t i = 0;

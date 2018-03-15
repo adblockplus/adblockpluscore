@@ -37,13 +37,28 @@ ABP_NS_BEGIN
 
 inline void String_assert_writable(bool isWritable);
 
+// hacky because without templates
+#ifdef ABP_UTF8_STRING
+#define ABP_TEXT(val) val
+struct StringTraits
+{
+  typedef char char_type;
+};
+#else
+#define ABP_TEXT(val) u##val
+struct StringTraits
+{
+  typedef char16_t char_type;
+};
+#endif
+
 class String
 {
   friend class DependentString;
   friend class OwnedString;
 
 public:
-  typedef char16_t value_type;
+  typedef StringTraits::char_type value_type;
   typedef size_t size_type;
 
   // Type flags, stored in the top 2 bits of the mLen member
@@ -198,8 +213,8 @@ public:
 
       // This should be more efficient with a lookup table but I couldn't measure
       // any performance difference.
-      if (currChar >= u'A' && currChar <= u'Z')
-        mBuf[i] = currChar + u'a' - u'A';
+      if (currChar >= ABP_TEXT('A') && currChar <= ABP_TEXT('Z'))
+        mBuf[i] = currChar + ABP_TEXT('a') - ABP_TEXT('A');
       else if (currChar >= 128)
       {
         mBuf[i] = CharToLower(currChar);
@@ -211,6 +226,9 @@ public:
 #ifdef INSIDE_TESTS
 inline std::ostream& operator<<(std::ostream& os, const String& str)
 {
+#ifdef ABP_UTF8_STRING
+  os.write(str.data(), str.length());
+#else
 #if _MSC_VER >= 1900
   std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> converter;
   auto p = reinterpret_cast<const int16_t *>(str.data());
@@ -218,10 +236,11 @@ inline std::ostream& operator<<(std::ostream& os, const String& str)
 #else
   std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter;
   os << converter.to_bytes(str.data(), str.data() + str.length());
-#endif
+#endif // _MSC_VER >= 1900
+#endif // ABP_UTF8_STRING
   return os;
 }
-#endif
+#endif // INSIDE_TESTS
 
 class DependentString : public String
 {
@@ -302,7 +321,7 @@ inline DependentString operator "" _str(const String::value_type* str,
 
 inline void String_assert_writable(bool isWritable)
 {
-  assert2(isWritable, u"Writing access to a read-only string"_str);
+  assert2(isWritable, ABP_TEXT("Writing access to a read-only string"_str));
 }
 
 class OwnedString : public String
@@ -400,23 +419,25 @@ public:
     if (!sourceLen)
       return;
 
-    assert2(source, u"Null buffer passed to OwnedString.append()"_str);
+    assert2(source, ABP_TEXT("Null buffer passed to OwnedString.append()"_str));
     size_t oldLength = length();
     grow(sourceLen);
     std::memcpy(mBuf + oldLength, source, sizeof(value_type) * sourceLen);
   }
 
+#ifndef ABP_UTF8_STRING
   void append(const char* source, size_type sourceLen)
   {
     if (!sourceLen)
       return;
 
-    assert2(source, u"Null buffer passed to OwnedString.append()"_str);
+    assert2(source, ABP_TEXT("Null buffer passed to OwnedString.append()"_str));
     size_t oldLength = length();
     grow(sourceLen);
     for (size_t i = 0; i < sourceLen; i++)
       mBuf[oldLength + i] = source[i];
   }
+#endif // !ABP_UTF8_STRING
 
   void append(const String& str)
   {
@@ -448,11 +469,11 @@ public:
     grow((negative ? 1 : 0) + size);
 
     if (negative)
-      mBuf[pos++] = '-';
+      mBuf[pos++] = ABP_TEXT('-');
 
     for (int i = size - 1; i >= 0; i--)
     {
-      mBuf[pos + i] = '0' + (num % 10);
+      mBuf[pos + i] = ABP_TEXT('0') + (num % 10);
       num /= 10;
     }
   }
@@ -480,7 +501,7 @@ struct LexicalCastImpl<bool>
 {
   static bool Convert(const String& value)
   {
-    return value == u"true"_str;
+    return value == ABP_TEXT("true"_str);
   }
 };
 
@@ -494,7 +515,7 @@ struct LexicalCastImpl
     if (len == 0)
       return 0;
     String::size_type pos = 0;
-    bool negative = std::numeric_limits<T>::is_signed && value[0] == u'-';
+    bool negative = std::numeric_limits<T>::is_signed && value[0] == ABP_TEXT('-');
     if (negative)
     {
       ++pos;
@@ -503,7 +524,7 @@ struct LexicalCastImpl
     for (; pos < len; ++pos)
     {
       auto c = value[pos];
-      if (c < u'0' || c > u'9')
+      if (c < ABP_TEXT('0') || c > ABP_TEXT('9'))
         return 0;
       // isDangerous is the optimization because there is no need for some checks
       // when the values are far from edge cases.
@@ -520,7 +541,7 @@ struct LexicalCastImpl
         return 0;
       }
       result *= 10;
-      uint8_t digit = c - u'0';
+      uint8_t digit = c - ABP_TEXT('0');
       if (isDangerous && (std::numeric_limits<T>::max() - digit < result - (negative ? 1 : 0)))
       {
         return 0;

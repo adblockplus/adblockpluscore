@@ -31,72 +31,72 @@ OwnedString DownloadableSubscription::Serialize() const
 {
   OwnedString result(Subscription::Serialize());
   if (mFixedTitle)
-    result.append(u"fixedTitle=true\n"_str);
+    result.append(ABP_TEXT("fixedTitle=true\n"_str));
   if (!mHomepage.empty())
   {
-    result.append(u"homepage="_str);
+    result.append(ABP_TEXT("homepage="_str));
     result.append(mHomepage);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mLastCheck)
   {
-    result.append(u"lastCheck="_str);
+    result.append(ABP_TEXT("lastCheck="_str));
     result.append(mLastCheck);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mHardExpiration)
   {
-    result.append(u"expires="_str);
+    result.append(ABP_TEXT("expires="_str));
     result.append(mHardExpiration);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mSoftExpiration)
   {
-    result.append(u"softExpiration="_str);
+    result.append(ABP_TEXT("softExpiration="_str));
     result.append(mSoftExpiration);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mLastDownload)
   {
-    result.append(u"lastDownload="_str);
+    result.append(ABP_TEXT("lastDownload="_str));
     result.append(mLastDownload);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (!mDownloadStatus.empty())
   {
-    result.append(u"downloadStatus="_str);
+    result.append(ABP_TEXT("downloadStatus="_str));
     result.append(mDownloadStatus);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mLastSuccess)
   {
-    result.append(u"lastSuccess="_str);
+    result.append(ABP_TEXT("lastSuccess="_str));
     result.append(mLastSuccess);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mErrorCount)
   {
-    result.append(u"errors="_str);
+    result.append(ABP_TEXT("errors="_str));
     result.append(mErrorCount);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mDataRevision)
   {
-    result.append(u"version="_str);
+    result.append(ABP_TEXT("version="_str));
     result.append(mDataRevision);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (!mRequiredVersion.empty())
   {
-    result.append(u"requiredVersion="_str);
+    result.append(ABP_TEXT("requiredVersion="_str));
     result.append(mRequiredVersion);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   if (mDownloadCount)
   {
-    result.append(u"downloadCount="_str);
+    result.append(ABP_TEXT("downloadCount="_str));
     result.append(mDownloadCount);
-    result.append(u'\n');
+    result.append(ABP_TEXT('\n'));
   }
   return result;
 }

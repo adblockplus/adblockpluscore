@@ -23,3 +23,8 @@ CPPFLAGS=-DABP_USER_CONFIG='\"../test/compiled/user-config-test-namespace.h\"' \
 meson -Dnative=true -Dasan=${USE_ASAN} --buildtype ${BUILDTYPE} build/native-test-namespace
 ninja -C build/native-test-namespace
 ./build/native-test-namespace/abptest
+
+CPPFLAGS=-DABP_USER_CONFIG='\"../test/compiled/user-config-test-abp-utf8-string.h\"' \
+meson -Dnative=true -Dasan=${USE_ASAN} --buildtype ${BUILDTYPE} build/native-test-utf8-string
+ninja -C build/native-test-utf8-string
+./build/native-test-utf8-string/abptest
