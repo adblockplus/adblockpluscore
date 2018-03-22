@@ -55,16 +55,26 @@ function unexpectedError(error)
   this.ok(false, "Unexpected error: " + error);
 }
 
-function expectHidden(test, element)
+function expectHidden(test, element, id)
 {
-  test.equal(window.getComputedStyle(element).display, "none",
-             "The element's display property should be set to 'none'");
+  let withId = "";
+  if (typeof id != "undefined")
+    withId = ` with ID '${id}'`;
+
+  test.equal(
+    window.getComputedStyle(element).display, "none",
+    `The element${withId}'s display property should be set to 'none'`);
 }
 
-function expectVisible(test, element)
+function expectVisible(test, element, id)
 {
-  test.notEqual(window.getComputedStyle(element).display, "none",
-                "The element's display property should not be set to 'none'");
+  let withId = "";
+  if (typeof id != "undefined")
+    withId = ` with ID '${id}'`;
+
+  test.notEqual(
+    window.getComputedStyle(element).display, "none",
+    `The element${withId}'s display property should not be set to 'none'`);
 }
 
 function findUniqueId()
@@ -360,9 +370,9 @@ function compareExpectations(test, elems, expectations)
     if (elems[elem])
     {
       if (expectations[elem])
-        expectVisible(test, elems[elem]);
+        expectVisible(test, elems[elem], elem);
       else
-        expectHidden(test, elems[elem]);
+        expectHidden(test, elems[elem], elem);
     }
   }
 }
