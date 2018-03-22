@@ -44,7 +44,7 @@ exports.setUp = function(callback)
      ElemHideEmulationFilter} = sandboxedRequire("../lib/filterClasses")
   );
   t = RegExpFilter.typeMap;
-  defaultTypes = 0x7FFFFFFF & ~(t.ELEMHIDE | t.DOCUMENT | t.POPUP |
+  defaultTypes = 0x7FFFFFFF & ~(t.CSP | t.ELEMHIDE | t.DOCUMENT | t.POPUP |
                                 t.GENERICHIDE | t.GENERICBLOCK);
 
   callback();
@@ -93,6 +93,7 @@ function serializeFilter(filter)
       {
         result.push("type=filterlist");
         result.push("collapse=" + filter.collapse);
+        result.push("csp=" + filter.csp);
       }
       else if (filter instanceof WhitelistFilter)
         result.push("type=whitelist");
@@ -141,9 +142,7 @@ function addDefaults(expected)
   if (type == "whitelist" || type == "filterlist")
   {
     addProperty("contentType", 0x7FFFFFFF & ~(
-      RegExpFilter.typeMap.DOCUMENT | RegExpFilter.typeMap.ELEMHIDE |
-      RegExpFilter.typeMap.POPUP | RegExpFilter.typeMap.GENERICHIDE |
-      RegExpFilter.typeMap.GENERICBLOCK
+      t.CSP | t.DOCUMENT | t.ELEMHIDE | t.POPUP | t.GENERICHIDE | t.GENERICBLOCK
     ));
     addProperty("matchCase", "false");
     addProperty("thirdParty", "null");
@@ -151,7 +150,10 @@ function addDefaults(expected)
     addProperty("sitekeys", "");
   }
   if (type == "filterlist")
+  {
     addProperty("collapse", "null");
+    addProperty("csp", "null");
+  }
   if (type == "elemhide" || type == "elemhideexception" ||
       type == "elemhideemulation")
   {
@@ -284,8 +286,9 @@ exports.testSpecialCharacters = function(test)
 
 exports.testFilterOptions = function(test)
 {
-  compareFilter(test, "bla$match-case,script,other,third-party,domain=foo.com,sitekey=foo", ["type=filterlist", "text=bla$match-case,script,other,third-party,domain=foo.com,sitekey=foo", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=FOO.COM", "sitekeys=FOO"]);
-  compareFilter(test, "bla$~match-case,~script,~other,~third-party,domain=~bar.com", ["type=filterlist", "text=bla$~match-case,~script,~other,~third-party,domain=~bar.com", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~BAR.COM"]);
+  compareFilter(test, "bla$match-case,csp=first csp,script,other,third-party,domain=foo.com,sitekey=foo", ["type=filterlist", "text=bla$match-case,csp=first csp,script,other,third-party,domain=foo.com,sitekey=foo", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=FOO.COM", "sitekeys=FOO", "csp=first csp"]);
+  compareFilter(test, "bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bar.com", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bar.com", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~BAR.COM"]);
+  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,csp=c s p,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=BAR.COM|FOO.COM|~BAR.FOO.COM|~FOO.BAR.COM", "sitekeys=BAR|FOO"]);
   compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=BAR.COM|FOO.COM|~BAR.FOO.COM|~FOO.BAR.COM", "sitekeys=BAR|FOO"]);
 
   // background and image should be the same for backwards compatibility
@@ -310,6 +313,13 @@ exports.testFilterOptions = function(test)
   compareFilter(test, "@@bla$foobar", ["type=invalid", "text=@@bla$foobar", "reason=filter_unknown_option"]);
   compareFilter(test, "@@bla$image,foobar", ["type=invalid", "text=@@bla$image,foobar", "reason=filter_unknown_option"]);
   compareFilter(test, "@@bla$foobar,image", ["type=invalid", "text=@@bla$foobar,image", "reason=filter_unknown_option"]);
+
+  compareFilter(test, "bla$csp=report-uri", ["type=invalid", "text=bla$csp=report-uri", "reason=filter_invalid_csp"]);
+  compareFilter(test, "bla$csp=foo,csp=report-to", ["type=invalid", "text=bla$csp=foo,csp=report-to", "reason=filter_invalid_csp"]);
+  compareFilter(test, "bla$csp=foo,csp=referrer foo", ["type=invalid", "text=bla$csp=foo,csp=referrer foo", "reason=filter_invalid_csp"]);
+  compareFilter(test, "bla$csp=foo,csp=base-uri", ["type=invalid", "text=bla$csp=foo,csp=base-uri", "reason=filter_invalid_csp"]);
+  compareFilter(test, "bla$csp=foo,csp=upgrade-insecure-requests", ["type=invalid", "text=bla$csp=foo,csp=upgrade-insecure-requests", "reason=filter_invalid_csp"]);
+  compareFilter(test, "bla$csp=foo,csp=ReFeRReR", ["type=invalid", "text=bla$csp=foo,csp=ReFeRReR", "reason=filter_invalid_csp"]);
 
   test.done();
 };
@@ -404,5 +414,64 @@ exports.testElemHideRulesWithBraces = function(test)
       "domains=FOO.COM"
     ]
   );
+  test.done();
+};
+
+exports.testFilterNormalization = function(test)
+{
+  // Line breaks etc
+  test.equal(Filter.normalize("\n\t\nad\ns"),
+             "ads");
+
+  // Comment filters
+  test.equal(Filter.normalize("   !  fo  o##  bar   "),
+             "!  fo  o##  bar");
+
+  // Element hiding filters
+  test.equal(Filter.normalize("   domain.c  om## # sele ctor   "),
+             "domain.com### sele ctor");
+
+  // Regular filters
+  let normalized = Filter.normalize(
+    "    b$l 	 a$sitekey=  foo  ,domain= do main.com |foo   .com,c sp= c   s p  "
+  );
+  test.equal(
+    normalized,
+    "b$la$sitekey=foo,domain=domain.com|foo.com,csp=c s p"
+  );
+  compareFilter(
+    test, normalized, [
+      "type=filterlist",
+      "text=" + normalized,
+      "csp=c s p",
+      "domains=DOMAIN.COM|FOO.COM",
+      "sitekeys=FOO",
+      "regexp=b\\$la",
+      "contentType=" + t.CSP
+    ]
+  );
+
+  // Some $csp edge cases
+  test.equal(Filter.normalize("$csp= c s p"),
+             "$csp=c s p");
+  test.equal(Filter.normalize("$$csp= c s p"),
+             "$$csp=c s p");
+  test.equal(Filter.normalize("$$$csp= c s p"),
+             "$$$csp=c s p");
+  test.equal(Filter.normalize("foo?csp=b a r$csp=script-src  'self'"),
+             "foo?csp=bar$csp=script-src 'self'");
+  test.equal(Filter.normalize("foo$bar=c s p = ba z,cs p = script-src  'self'"),
+             "foo$bar=csp=baz,csp=script-src 'self'");
+  test.equal(Filter.normalize("foo$csp=c s p csp= ba z,cs p  = script-src  'self'"),
+             "foo$csp=c s p csp= ba z,csp=script-src 'self'");
+  test.equal(Filter.normalize("foo$csp=bar,$c sp=c s p"),
+             "foo$csp=bar,$csp=c s p");
+  test.equal(Filter.normalize(" f o   o   $      bar   $csp=ba r"),
+             "foo$bar$csp=ba r");
+  test.equal(Filter.normalize("f    $    o    $    o    $    csp=f o o "),
+             "f$o$o$csp=f o o");
+  test.equal(Filter.normalize("/foo$/$ csp = script-src  http://example.com/?$1=1&$2=2&$3=3"),
+             "/foo$/$csp=script-src http://example.com/?$1=1&$2=2&$3=3");
+
   test.done();
 };
