@@ -83,16 +83,15 @@ function checkKnownFilters(test, text, expected)
     result.elemhide.push(elemHide.filterByKey[key].text);
 
   result.elemhideexception = [];
-  for (let selector in elemHide.exceptions)
+  for (let [, list] of elemHide.exceptions)
   {
-    let list = elemHide.exceptions[selector];
     for (let exception of list)
       result.elemhideexception.push(exception.text);
   }
 
   let elemHideEmulation = sandboxedRequire("../lib/elemHideEmulation");
   result.elemhideemulation = [];
-  for (let filterText in elemHideEmulation.filters)
+  for (let filterText of elemHideEmulation.filters)
     result.elemhideemulation.push(filterText);
 
   let types = ["blacklist", "whitelist", "elemhide", "elemhideexception",
