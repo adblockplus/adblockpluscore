@@ -431,6 +431,31 @@ exports.testFilterNormalization = function(test)
   test.equal(Filter.normalize("   domain.c  om## # sele ctor   "),
              "domain.com### sele ctor");
 
+  // Element hiding emulation filters
+  test.equal(Filter.normalize("   domain.c  om#?# # sele ctor   "),
+             "domain.com#?## sele ctor");
+
+  // Incorrect syntax: the separator "#?#" cannot contain spaces; treated as a
+  // regular filter instead
+  test.equal(Filter.normalize("   domain.c  om# ?#. sele ctor   "),
+             "domain.com#?#.selector");
+  // Incorrect syntax: the separator "#?#" cannot contain spaces; treated as an
+  // element hiding filter instead, because the "##" following the "?" is taken
+  // to be the separator instead
+  test.equal(Filter.normalize("   domain.c  om# ?##sele ctor   "),
+             "domain.com#?##sele ctor");
+
+  // Element hiding exception filters
+  test.equal(Filter.normalize("   domain.c  om#@# # sele ctor   "),
+             "domain.com#@## sele ctor");
+
+  // Incorrect syntax: the separator "#@#" cannot contain spaces; treated as a
+  // regular filter instead (not an element hiding filter either!), because
+  // unlike the case with "# ?##" the "##" following the "@" is not considered
+  // to be a separator
+  test.equal(Filter.normalize("   domain.c  om# @## sele ctor   "),
+             "domain.com#@##selector");
+
   // Regular filters
   let normalized = Filter.normalize(
     "    b$l 	 a$sitekey=  foo  ,domain= do main.com |foo   .com,c sp= c   s p  "
