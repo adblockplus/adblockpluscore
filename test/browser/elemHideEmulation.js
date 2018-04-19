@@ -516,7 +516,7 @@ exports.testPseudoClassContainsText = function(test)
     inside: true,
     sibling: false,
     sibling2: true,
-    toHide: false
+    toHide: true
   };
   runTestPseudoClassContains(
     test, "#parent div:-abp-contains(to hide)", expectations);
@@ -530,7 +530,7 @@ exports.testPseudoClassContainsRegexp = function(test)
     inside: true,
     sibling: false,
     sibling2: true,
-    toHide: false
+    toHide: true
   };
   runTestPseudoClassContains(
     test, "#parent div:-abp-contains(/to\\shide/)", expectations);
@@ -544,7 +544,7 @@ exports.testPseudoClassContainsRegexpIFlag = function(test)
     inside: true,
     sibling: false,
     sibling2: true,
-    toHide: false
+    toHide: true
   };
   runTestPseudoClassContains(
     test, "#parent div:-abp-contains(/to\\sHide/i)", expectations);
