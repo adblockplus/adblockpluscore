@@ -47,18 +47,10 @@ function testResult(test, domain, expectedSelectors, criteria)
 {
   let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
 
-  // Test without filter keys
   test.deepEqual(
     normalizeSelectors(ElemHide.getSelectorsForDomain(domain, criteria)),
     normalizedExpectedSelectors
   );
-
-  // With filter keys
-  let [selectors, filterKeys] = ElemHide.getSelectorsForDomain(domain, criteria,
-                                                               true);
-  test.deepEqual(filterKeys.map(k => ElemHide.getFilterByKey(k).selector),
-                 selectors);
-  test.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
 }
 
 exports.testGetSelectorsForDomain = function(test)
