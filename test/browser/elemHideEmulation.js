@@ -99,9 +99,7 @@ function insertStyleRule(rule)
   styleElement.sheet.insertRule(rule, styleElement.sheet.cssRules.length);
 }
 
-// Insert a <div> with a unique id and a CSS rule
-// for the the selector matching the id.
-function createElementWithStyle(styleBlock, parent)
+function createElement(parent)
 {
   let element = testDocument.createElement("div");
   element.id = findUniqueId();
@@ -109,6 +107,14 @@ function createElementWithStyle(styleBlock, parent)
     testDocument.body.appendChild(element);
   else
     parent.appendChild(element);
+  return element;
+}
+
+// Insert a <div> with a unique id and a CSS rule
+// for the the selector matching the id.
+function createElementWithStyle(styleBlock, parent)
+{
+  let element = createElement(parent);
   insertStyleRule("#" + element.id + " " + styleBlock);
   return element;
 }
@@ -135,7 +141,9 @@ function applyElemHideEmulation(selectors)
 
     elemHideEmulation.document = testDocument;
     elemHideEmulation.MIN_INVOCATION_INTERVAL = REFRESH_INTERVAL / 2;
-    elemHideEmulation.apply(selectors.map(selector => ({selector})));
+    elemHideEmulation.apply(selectors.map(
+      selector => ({selector, text: selector})
+    ));
     return elemHideEmulation;
   });
 }
@@ -697,5 +705,182 @@ exports.testDomUpdatesNewElement = function(test)
     expectVisible(test, child);
     expectHidden(test, sibling);
     expectVisible(test, child2);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testPseudoClassPropertiesOnStyleSheetLoad = function(test)
+{
+  let parent = createElement();
+  let child = createElement(parent);
+  applyElemHideEmulation(
+    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
+     "div:-abp-contains(hide me)",
+     "div:-abp-has(> div.hideMe)"]
+  ).then(() => timeout(REFRESH_INTERVAL)
+  ).then(() =>
+  {
+    expectVisible(test, parent);
+    expectVisible(test, child);
+
+    // Load a style sheet that targets the parent element. This should run only
+    // the "div:-abp-properties(background-color: rgb(0, 0, 0))" pattern.
+    insertStyleRule("#" + parent.id + " {background-color: #000}");
+
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectHidden(test, parent);
+    expectVisible(test, child);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testPlainAttributeOnDomMutation = function(test)
+{
+  let parent = createElement();
+  let child = createElement(parent);
+  applyElemHideEmulation(
+    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
+     "div[data-hide-me]",
+     "div:-abp-contains(hide me)",
+     "div:-abp-has(> div.hideMe)"]
+  ).then(() => timeout(REFRESH_INTERVAL)
+  ).then(() =>
+  {
+    expectVisible(test, parent);
+    expectVisible(test, child);
+
+    // Set the "data-hide-me" attribute on the child element.
+    //
+    // Note: Since the "div[data-hide-me]" pattern has already been processed
+    // and the selector added to the document's style sheet, this will in fact
+    // not do anything at our end, but the browser will just match the selector
+    // and hide the element.
+    child.setAttribute("data-hide-me", "");
+
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectVisible(test, parent);
+    expectHidden(test, child);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testPseudoClassContainsOnDomMutation = function(test)
+{
+  let parent = createElement();
+  let child = createElement(parent);
+
+  child.innerText = "do nothing";
+
+  applyElemHideEmulation(
+    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
+     "div[data-hide-me]",
+     "div:-abp-contains(hide me)",
+     "div:-abp-has(> div.hideMe)"]
+  ).then(() => timeout(REFRESH_INTERVAL)
+  ).then(() =>
+  {
+    expectVisible(test, parent);
+    expectVisible(test, child);
+
+    // Set the child element's text to "hide me". This should run only the
+    // "div:-abp-contains(hide me)" pattern.
+    //
+    // Note: We need to set Node.innerText here in order to trigger the
+    // "characterData" DOM mutation on Chromium. If we set Node.textContent
+    // instead, it triggers the "childList" DOM mutation instead.
+    child.innerText = "hide me";
+
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectHidden(test, parent);
+    expectVisible(test, child);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testPseudoClassHasOnDomMutation = function(test)
+{
+  let parent = createElement();
+  let child = null;
+  applyElemHideEmulation(
+    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
+     "div[data-hide-me]",
+     "div:-abp-contains(hide me)",
+     "div:-abp-has(> div)"]
+  ).then(() => timeout(REFRESH_INTERVAL)
+  ).then(() =>
+  {
+    expectVisible(test, parent);
+
+    // Add the child element. This should run all the DOM-dependent patterns
+    // ("div:-abp-contains(hide me)" and "div:-abp-has(> div)").
+    child = createElement(parent);
+
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectHidden(test, parent);
+    expectVisible(test, child);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testPseudoClassHasWithClassOnDomMutation = function(test)
+{
+  let parent = createElement();
+  let child = createElement(parent);
+  applyElemHideEmulation(
+    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
+     "div[data-hide-me]",
+     "div:-abp-contains(hide me)",
+     "div:-abp-has(> div.hideMe)"]
+  ).then(() => timeout(REFRESH_INTERVAL)
+  ).then(() =>
+  {
+    expectVisible(test, parent);
+    expectVisible(test, child);
+
+    // Set the child element's class to "hideMe". This should run only the
+    // "div:-abp-has(> div.hideMe)" pattern.
+    child.className = "hideMe";
+
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectHidden(test, parent);
+    expectVisible(test, child);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testPseudoClassHasWithPseudoClassContainsOnDomMutation = function(test)
+{
+  let parent = createElement();
+  let child = createElement(parent);
+
+  child.innerText = "do nothing";
+
+  applyElemHideEmulation(
+    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
+     "div[data-hide-me]",
+     "div:-abp-contains(hide me)",
+     "div:-abp-has(> div:-abp-contains(hide me))"]
+  ).then(() => timeout(REFRESH_INTERVAL)
+  ).then(() =>
+  {
+    expectVisible(test, parent);
+    expectVisible(test, child);
+
+    // Set the child element's text to "hide me". This should run only the
+    // "div:-abp-contains(hide me)" and
+    // "div:-abp-has(> div:-abp-contains(hide me))" patterns.
+    child.innerText = "hide me";
+
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    // Note: Even though it runs both the :-abp-contains() patterns, it only
+    // hides the parent element because of revision d7d51d29aa34.
+    expectHidden(test, parent);
+    expectVisible(test, child);
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
