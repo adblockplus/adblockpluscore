@@ -25,12 +25,13 @@ let Subscription = null;
 let Filter = null;
 let defaultMatcher = null;
 let SpecialSubscription = null;
+let ElemHideException = null;
 
 exports.setUp = function(callback)
 {
   sandboxedRequire = createSandbox({
     extraExports: {
-      elemHide: ["filterByKey", "exceptions"],
+      elemHide: ["knownFilters"],
       elemHideEmulation: ["filters"]
     }
   });
@@ -42,7 +43,7 @@ exports.setUp = function(callback)
   (
     {FilterStorage} = sandboxedRequire("../lib/filterStorage"),
     {Subscription, SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
-    {Filter} = sandboxedRequire("../lib/filterClasses"),
+    {Filter, ElemHideException} = sandboxedRequire("../lib/filterClasses"),
     {defaultMatcher} = sandboxedRequire("../lib/matcher")
   );
 
@@ -79,14 +80,13 @@ function checkKnownFilters(test, text, expected)
 
   let elemHide = sandboxedRequire("../lib/elemHide");
   result.elemhide = [];
-  for (let key in elemHide.filterByKey)
-    result.elemhide.push(elemHide.filterByKey[key].text);
-
   result.elemhideexception = [];
-  for (let [, list] of elemHide.exceptions)
+  for (let filter of elemHide.knownFilters)
   {
-    for (let exception of list)
-      result.elemhideexception.push(exception.text);
+    if (filter instanceof ElemHideException)
+      result.elemhideexception.push(filter.text);
+    else
+      result.elemhide.push(filter.text);
   }
 
   let elemHideEmulation = sandboxedRequire("../lib/elemHideEmulation");
