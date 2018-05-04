@@ -107,7 +107,7 @@ function serializeFilter(filter)
       else if (filter instanceof ElemHideEmulationFilter)
         result.push("type=elemhideemulation");
 
-      result.push("selectorDomain=" + (filter.selectorDomain || ""));
+      result.push("selectorDomains=" + (filter.selectorDomains || ""));
       result.push("selector=" + filter.selector);
     }
   }
@@ -157,7 +157,7 @@ function addDefaults(expected)
   if (type == "elemhide" || type == "elemhideexception" ||
       type == "elemhideemulation")
   {
-    addProperty("selectorDomain", "");
+    addProperty("selectorDomains", "");
     addProperty("domains", "");
   }
 }
@@ -328,10 +328,10 @@ exports.testElementHidingRules = function(test)
 {
   compareFilter(test, "##ddd", ["type=elemhide", "text=##ddd", "selector=ddd"]);
   compareFilter(test, "##body > div:first-child", ["type=elemhide", "text=##body > div:first-child", "selector=body > div:first-child"]);
-  compareFilter(test, "foo##ddd", ["type=elemhide", "text=foo##ddd", "selectorDomain=foo", "selector=ddd", "domains=FOO"]);
-  compareFilter(test, "foo,bar##ddd", ["type=elemhide", "text=foo,bar##ddd", "selectorDomain=foo,bar", "selector=ddd", "domains=BAR|FOO"]);
-  compareFilter(test, "foo,~bar##ddd", ["type=elemhide", "text=foo,~bar##ddd", "selectorDomain=foo", "selector=ddd", "domains=FOO|~BAR"]);
-  compareFilter(test, "foo,~baz,bar##ddd", ["type=elemhide", "text=foo,~baz,bar##ddd", "selectorDomain=foo,bar", "selector=ddd", "domains=BAR|FOO|~BAZ"]);
+  compareFilter(test, "foo##ddd", ["type=elemhide", "text=foo##ddd", "selectorDomains=foo", "selector=ddd", "domains=FOO"]);
+  compareFilter(test, "foo,bar##ddd", ["type=elemhide", "text=foo,bar##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=BAR|FOO"]);
+  compareFilter(test, "foo,~bar##ddd", ["type=elemhide", "text=foo,~bar##ddd", "selectorDomains=foo", "selector=ddd", "domains=FOO|~BAR"]);
+  compareFilter(test, "foo,~baz,bar##ddd", ["type=elemhide", "text=foo,~baz,bar##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=BAR|FOO|~BAZ"]);
 
   test.done();
 };
@@ -340,10 +340,10 @@ exports.testElementHidingExceptions = function(test)
 {
   compareFilter(test, "#@#ddd", ["type=elemhideexception", "text=#@#ddd", "selector=ddd"]);
   compareFilter(test, "#@#body > div:first-child", ["type=elemhideexception", "text=#@#body > div:first-child", "selector=body > div:first-child"]);
-  compareFilter(test, "foo#@#ddd", ["type=elemhideexception", "text=foo#@#ddd", "selectorDomain=foo", "selector=ddd", "domains=FOO"]);
-  compareFilter(test, "foo,bar#@#ddd", ["type=elemhideexception", "text=foo,bar#@#ddd", "selectorDomain=foo,bar", "selector=ddd", "domains=BAR|FOO"]);
-  compareFilter(test, "foo,~bar#@#ddd", ["type=elemhideexception", "text=foo,~bar#@#ddd", "selectorDomain=foo", "selector=ddd", "domains=FOO|~BAR"]);
-  compareFilter(test, "foo,~baz,bar#@#ddd", ["type=elemhideexception", "text=foo,~baz,bar#@#ddd", "selectorDomain=foo,bar", "selector=ddd", "domains=BAR|FOO|~BAZ"]);
+  compareFilter(test, "foo#@#ddd", ["type=elemhideexception", "text=foo#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=FOO"]);
+  compareFilter(test, "foo,bar#@#ddd", ["type=elemhideexception", "text=foo,bar#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=BAR|FOO"]);
+  compareFilter(test, "foo,~bar#@#ddd", ["type=elemhideexception", "text=foo,~bar#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=FOO|~BAR"]);
+  compareFilter(test, "foo,~baz,bar#@#ddd", ["type=elemhideexception", "text=foo,~baz,bar#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=BAR|FOO|~BAZ"]);
 
   test.done();
 };
@@ -351,27 +351,27 @@ exports.testElementHidingExceptions = function(test)
 exports.testElemHideEmulationFilters = function(test)
 {
   // Check valid domain combinations
-  compareFilter(test, "foo.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(abc)", "selectorDomain=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com,~bar.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com,~bar.com#?#:-abp-properties(abc)", "selectorDomain=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM|~BAR.COM"]);
-  compareFilter(test, "foo.com,~bar#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com,~bar#?#:-abp-properties(abc)", "selectorDomain=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM|~BAR"]);
-  compareFilter(test, "~foo.com,bar.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=~foo.com,bar.com#?#:-abp-properties(abc)", "selectorDomain=bar.com", "selector=:-abp-properties(abc)", "domains=BAR.COM|~FOO.COM"]);
+  compareFilter(test, "foo.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com,~bar.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com,~bar.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM|~BAR.COM"]);
+  compareFilter(test, "foo.com,~bar#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com,~bar#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM|~BAR"]);
+  compareFilter(test, "~foo.com,bar.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=~foo.com,bar.com#?#:-abp-properties(abc)", "selectorDomains=bar.com", "selector=:-abp-properties(abc)", "domains=BAR.COM|~FOO.COM"]);
 
   // Check some special cases
   compareFilter(test, "#?#:-abp-properties(abc)", ["type=invalid", "text=#?#:-abp-properties(abc)", "reason=filter_elemhideemulation_nodomain"]);
-  compareFilter(test, "foo.com#?#abc", ["type=elemhideemulation", "text=foo.com#?#abc", "selectorDomain=foo.com", "selector=abc", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com#?#:-abp-foobar(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-foobar(abc)", "selectorDomain=foo.com", "selector=:-abp-foobar(abc)", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com#?#aaa :-abp-properties(abc) bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomain=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com#?#:-abp-properties(|background-image: url(data:*))", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(|background-image: url(data:*))", "selectorDomain=foo.com", "selector=:-abp-properties(|background-image: url(data:*))", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com#?#abc", ["type=elemhideemulation", "text=foo.com#?#abc", "selectorDomains=foo.com", "selector=abc", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com#?#:-abp-foobar(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-foobar(abc)", "selectorDomains=foo.com", "selector=:-abp-foobar(abc)", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com#?#aaa :-abp-properties(abc) bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com#?#:-abp-properties(|background-image: url(data:*))", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(|background-image: url(data:*))", "selectorDomains=foo.com", "selector=:-abp-properties(|background-image: url(data:*))", "domains=FOO.COM"]);
 
   // Check conversion of legacy filters
-  compareFilter(test, "foo.com##[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(abc)", "selectorDomain=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com##[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM"]);
   test.equal(Filter.fromText("foo.com##[-abp-properties='abc']"), Filter.fromText("foo.com#?#:-abp-properties(abc)"));
-  compareFilter(test, "foo.com#@#[-abp-properties='abc']", ["type=elemhideexception", "text=foo.com#@#[-abp-properties='abc']", "selectorDomain=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com#?#[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#[-abp-properties='abc']", "selectorDomain=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com##aaa [-abp-properties='abc'] bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomain=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com#@#[-abp-properties='abc']", ["type=elemhideexception", "text=foo.com#@#[-abp-properties='abc']", "selectorDomains=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com#?#[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#[-abp-properties='abc']", "selectorDomains=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com##aaa [-abp-properties='abc'] bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=FOO.COM"]);
 
   // test matching -abp-properties= (https://issues.adblockplus.org/ticket/5037).
-  compareFilter(test, "foo.com##[-abp-properties-bogus='abc']", ["type=elemhide", "text=foo.com##[-abp-properties-bogus='abc']", "selectorDomain=foo.com", "selector=[-abp-properties-bogus='abc']", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com##[-abp-properties-bogus='abc']", ["type=elemhide", "text=foo.com##[-abp-properties-bogus='abc']", "selectorDomains=foo.com", "selector=[-abp-properties-bogus='abc']", "domains=FOO.COM"]);
 
   test.done();
 };
@@ -400,7 +400,7 @@ exports.testElemHideRulesWithBraces = function(test)
     test, "###foo{color: red}", [
       "type=elemhide",
       "text=###foo{color: red}",
-      "selectorDomain=",
+      "selectorDomains=",
       "selector=#foo\\7B color: red\\7D ",
       "domains="
     ]
@@ -409,7 +409,7 @@ exports.testElemHideRulesWithBraces = function(test)
     test, "foo.com#?#:-abp-properties(/margin: [3-4]{2}/)", [
       "type=elemhideemulation",
       "text=foo.com#?#:-abp-properties(/margin: [3-4]{2}/)",
-      "selectorDomain=foo.com",
+      "selectorDomains=foo.com",
       "selector=:-abp-properties(/margin: [3-4]\\7B 2\\7D /)",
       "domains=FOO.COM"
     ]
