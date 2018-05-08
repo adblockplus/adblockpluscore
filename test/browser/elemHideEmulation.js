@@ -494,7 +494,7 @@ function runTestPseudoClassContains(test, selector, expectations)
         <div id="middle1"><div id="inside" class="inside"></div></div>
       </div>
       <div id="sibling">
-        <div id="tohide">to hide</div>
+        <div id="tohide">to hide \ud83d\ude42!</div>
       </div>
       <div id="sibling2">
         <div id="sibling21"><div id="sibling211" class="inside">Ad*</div></div>
@@ -556,6 +556,20 @@ exports.testPseudoClassContainsRegexpIFlag = function(test)
   };
   runTestPseudoClassContains(
     test, "#parent div:-abp-contains(/to\\sHide/i)", expectations);
+};
+
+exports.testPseudoClassContainsRegexpUFlag = function(test)
+{
+  let expectations = {
+    parent: true,
+    middle: true,
+    inside: true,
+    sibling: false,
+    sibling2: true,
+    toHide: true
+  };
+  runTestPseudoClassContains(
+    test, "#parent div:-abp-contains(/to\\shide\\s.!/u)", expectations);
 };
 
 exports.testPseudoClassContainsWildcardNoMatch = function(test)
