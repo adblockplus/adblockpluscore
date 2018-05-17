@@ -94,6 +94,7 @@ function serializeFilter(filter)
         result.push("type=filterlist");
         result.push("collapse=" + filter.collapse);
         result.push("csp=" + filter.csp);
+        result.push("rewrite=" + filter.rewrite);
       }
       else if (filter instanceof WhitelistFilter)
         result.push("type=whitelist");
@@ -153,6 +154,7 @@ function addDefaults(expected)
   {
     addProperty("collapse", "null");
     addProperty("csp", "null");
+    addProperty("rewrite", "null");
   }
   if (type == "elemhide" || type == "elemhideexception" ||
       type == "elemhideemulation")
@@ -290,6 +292,7 @@ exports.testFilterOptions = function(test)
   compareFilter(test, "bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bar.com", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bar.com", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~BAR.COM"]);
   compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,csp=c s p,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=BAR.COM|FOO.COM|~BAR.FOO.COM|~FOO.BAR.COM", "sitekeys=BAR|FOO"]);
   compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=BAR.COM|FOO.COM|~BAR.FOO.COM|~FOO.BAR.COM", "sitekeys=BAR|FOO"]);
+  compareFilter(test, "||content.server.com/files/*.php$rewrite=$1", ["type=filterlist", "text=||content.server.com/files/*.php$rewrite=$1", "regexp=^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?content\\.server\\.com\\/files\\/.*\\.php", "matchCase=false", "rewrite=$1"]);
 
   // background and image should be the same for backwards compatibility
   compareFilter(test, "bla$image", ["type=filterlist", "text=bla$image", "regexp=bla", "contentType=" + (t.IMAGE)]);
@@ -497,6 +500,48 @@ exports.testFilterNormalization = function(test)
              "f$o$o$csp=f o o");
   test.equal(Filter.normalize("/foo$/$ csp = script-src  http://example.com/?$1=1&$2=2&$3=3"),
              "/foo$/$csp=script-src http://example.com/?$1=1&$2=2&$3=3");
+  test.equal(Filter.normalize("||content.server.com/files/*.php$rewrite= $1"),
+             "||content.server.com/files/*.php$rewrite=$1");
+  test.done();
+};
+
+
+exports.testFilterRewriteOption = function(test)
+{
+  let text = "/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=$1";
+
+  let filter = Filter.fromText(text);
+
+  test.equal(filter.rewrite, "$1");
+  // no rewrite occured: didn't match.
+  test.equal(filter.rewriteUrl("foo"), "foo");
+  // rewrite occured: matched.
+  test.equal(filter.rewriteUrl("http://content.server/file/foo.txt?bar"),
+             "http://content.server/file/foo.txt");
+
+  // checking for same origin.
+  let rewriteDiffOrigin =
+      "/content\\.server(\\/file\\/.*\\.txt)\\?.*$/$rewrite=foo.com$1";
+  let filterDiffOrigin = Filter.fromText(rewriteDiffOrigin);
+
+  // no rewrite occured because of a different origin.
+  test.equal(
+    filterDiffOrigin.rewriteUrl("http://content.server/file/foo.txt?bar"),
+    "http://content.server/file/foo.txt?bar"
+  );
+
+  // relative path.
+  let rewriteRelative = "/(\\/file\\/.*\\.txt)\\?.*$/$rewrite=$1/disable";
+  let filterRelative = Filter.fromText(rewriteRelative);
+
+  test.equal(
+    filterRelative.rewriteUrl("http://content.server/file/foo.txt?bar"),
+    "http://content.server/file/foo.txt/disable"
+  );
+  test.equal(
+    filterRelative.rewriteUrl("http://example.com/file/foo.txt?bar"),
+    "http://example.com/file/foo.txt/disable"
+  );
 
   test.done();
 };

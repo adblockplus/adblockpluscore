@@ -2,6 +2,9 @@
   "env": {
     "node": true
   },
+  "globals": {
+    "URL": true
+  },
   "rules": {
     "max-len": "off",
     "no-console": "off"

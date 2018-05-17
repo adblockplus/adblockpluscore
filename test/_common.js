@@ -31,11 +31,6 @@ const MILLIS_IN_SECOND = exports.MILLIS_IN_SECOND = 1000;
 const MILLIS_IN_MINUTE = exports.MILLIS_IN_MINUTE = 60 * MILLIS_IN_SECOND;
 const MILLIS_IN_HOUR = exports.MILLIS_IN_HOUR = 60 * MILLIS_IN_MINUTE;
 
-function URL(urlString)
-{
-  return require("url").parse(urlString);
-}
-
 let Services = {
   obs: {
     addObserver() {}
@@ -75,7 +70,8 @@ let globals = {
   onShutdown: {
     add() {}
   },
-  URL
+  // URL is global in Node 10. In Node 7+ it must be imported.
+  URL: typeof URL == "undefined" ? require("url").URL : URL
 };
 
 let knownModules = new Map();
