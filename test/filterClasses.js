@@ -546,5 +546,15 @@ exports.testFilterRewriteOption = function(test)
     "http://example.com/file/foo.txt/disable"
   );
 
+  // Example from https://github.com/uBlockOrigin/uBlock-issues/issues/46#issuecomment-391190533
+  // The rewrite shouldn't happen.
+  let rewriteEvil = "/(^https?:\\/\\/[^/])/$script,rewrite=$1.evil.com";
+  let filterEvil = Filter.fromText(rewriteEvil);
+
+  test.equal(
+    filterEvil.rewriteUrl("https://www.adblockplus.org/script.js"),
+    "https://www.adblockplus.org/script.js"
+  );
+
   test.done();
 };
