@@ -108,7 +108,10 @@ function serializeFilter(filter)
       else if (filter instanceof ElemHideEmulationFilter)
         result.push("type=elemhideemulation");
 
-      result.push("selectorDomains=" + (filter.selectorDomains || ""));
+      result.push("selectorDomains=" +
+                  [...filter.domains || []]
+                  .filter(([domain, isIncluded]) => isIncluded)
+                  .map(([domain]) => domain.toLowerCase()));
       result.push("selector=" + filter.selector);
     }
   }
