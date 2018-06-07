@@ -180,6 +180,7 @@ exports.testGetSelectorsForDomain = function(test)
   testResult(test, "foo.com", ["hello", "specific", "world"], false);
   testResult(test, "foo.com", ["hello", "specific", "world"]);
   testResult(test, "foo.com.", ["hello", "specific", "world"]);
+  testResult(test, "example.com", [], true);
   removeFilter("foo.com##specific");
   removeFilter("~example.com##world");
   removeFilter("##hello");
