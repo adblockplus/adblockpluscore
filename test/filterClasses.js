@@ -291,10 +291,10 @@ exports.testSpecialCharacters = function(test)
 
 exports.testFilterOptions = function(test)
 {
-  compareFilter(test, "bla$match-case,csp=first csp,script,other,third-party,domain=foo.com,sitekey=foo", ["type=filterlist", "text=bla$match-case,csp=first csp,script,other,third-party,domain=foo.com,sitekey=foo", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=FOO.COM", "sitekeys=FOO", "csp=first csp"]);
-  compareFilter(test, "bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bar.com", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bar.com", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~BAR.COM"]);
-  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,csp=c s p,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=BAR.COM|FOO.COM|~BAR.FOO.COM|~FOO.BAR.COM", "sitekeys=BAR|FOO"]);
-  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=BAR.COM|FOO.COM|~BAR.FOO.COM|~FOO.BAR.COM", "sitekeys=BAR|FOO"]);
+  compareFilter(test, "bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", ["type=filterlist", "text=bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=foo.com", "sitekeys=FOO", "csp=first csp"]);
+  compareFilter(test, "bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~bar.com"]);
+  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
+  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
   compareFilter(test, "||content.server.com/files/*.php$rewrite=$1", ["type=filterlist", "text=||content.server.com/files/*.php$rewrite=$1", "regexp=^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?content\\.server\\.com\\/files\\/.*\\.php", "matchCase=false", "rewrite=$1", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.SUBDOCUMENT | t.OBJECT | t.OBJECT_SUBREQUEST))]);
 
   // background and image should be the same for backwards compatibility
@@ -334,10 +334,10 @@ exports.testElementHidingRules = function(test)
 {
   compareFilter(test, "##ddd", ["type=elemhide", "text=##ddd", "selector=ddd"]);
   compareFilter(test, "##body > div:first-child", ["type=elemhide", "text=##body > div:first-child", "selector=body > div:first-child"]);
-  compareFilter(test, "foo##ddd", ["type=elemhide", "text=foo##ddd", "selectorDomains=foo", "selector=ddd", "domains=FOO"]);
-  compareFilter(test, "foo,bar##ddd", ["type=elemhide", "text=foo,bar##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=BAR|FOO"]);
-  compareFilter(test, "foo,~bar##ddd", ["type=elemhide", "text=foo,~bar##ddd", "selectorDomains=foo", "selector=ddd", "domains=FOO|~BAR"]);
-  compareFilter(test, "foo,~baz,bar##ddd", ["type=elemhide", "text=foo,~baz,bar##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=BAR|FOO|~BAZ"]);
+  compareFilter(test, "fOO##ddd", ["type=elemhide", "text=fOO##ddd", "selectorDomains=foo", "selector=ddd", "domains=foo"]);
+  compareFilter(test, "Foo,bAr##ddd", ["type=elemhide", "text=Foo,bAr##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo"]);
+  compareFilter(test, "foo,~baR##ddd", ["type=elemhide", "text=foo,~baR##ddd", "selectorDomains=foo", "selector=ddd", "domains=foo|~bar"]);
+  compareFilter(test, "foo,~baz,bar##ddd", ["type=elemhide", "text=foo,~baz,bar##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo|~baz"]);
 
   test.done();
 };
@@ -346,10 +346,10 @@ exports.testElementHidingExceptions = function(test)
 {
   compareFilter(test, "#@#ddd", ["type=elemhideexception", "text=#@#ddd", "selector=ddd"]);
   compareFilter(test, "#@#body > div:first-child", ["type=elemhideexception", "text=#@#body > div:first-child", "selector=body > div:first-child"]);
-  compareFilter(test, "foo#@#ddd", ["type=elemhideexception", "text=foo#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=FOO"]);
-  compareFilter(test, "foo,bar#@#ddd", ["type=elemhideexception", "text=foo,bar#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=BAR|FOO"]);
-  compareFilter(test, "foo,~bar#@#ddd", ["type=elemhideexception", "text=foo,~bar#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=FOO|~BAR"]);
-  compareFilter(test, "foo,~baz,bar#@#ddd", ["type=elemhideexception", "text=foo,~baz,bar#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=BAR|FOO|~BAZ"]);
+  compareFilter(test, "fOO#@#ddd", ["type=elemhideexception", "text=fOO#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=foo"]);
+  compareFilter(test, "Foo,bAr#@#ddd", ["type=elemhideexception", "text=Foo,bAr#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo"]);
+  compareFilter(test, "foo,~baR#@#ddd", ["type=elemhideexception", "text=foo,~baR#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=foo|~bar"]);
+  compareFilter(test, "foo,~baz,bar#@#ddd", ["type=elemhideexception", "text=foo,~baz,bar#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo|~baz"]);
 
   test.done();
 };
@@ -357,27 +357,27 @@ exports.testElementHidingExceptions = function(test)
 exports.testElemHideEmulationFilters = function(test)
 {
   // Check valid domain combinations
-  compareFilter(test, "foo.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com,~bar.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com,~bar.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM|~BAR.COM"]);
-  compareFilter(test, "foo.com,~bar#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com,~bar#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM|~BAR"]);
-  compareFilter(test, "~foo.com,bar.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=~foo.com,bar.com#?#:-abp-properties(abc)", "selectorDomains=bar.com", "selector=:-abp-properties(abc)", "domains=BAR.COM|~FOO.COM"]);
+  compareFilter(test, "fOO.cOm#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=fOO.cOm#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com"]);
+  compareFilter(test, "Foo.com,~bAr.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=Foo.com,~bAr.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com|~bar.com"]);
+  compareFilter(test, "foo.com,~baR#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com,~baR#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com|~bar"]);
+  compareFilter(test, "~foo.com,bar.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=~foo.com,bar.com#?#:-abp-properties(abc)", "selectorDomains=bar.com", "selector=:-abp-properties(abc)", "domains=bar.com|~foo.com"]);
 
   // Check some special cases
   compareFilter(test, "#?#:-abp-properties(abc)", ["type=invalid", "text=#?#:-abp-properties(abc)", "reason=filter_elemhideemulation_nodomain"]);
-  compareFilter(test, "foo.com#?#abc", ["type=elemhideemulation", "text=foo.com#?#abc", "selectorDomains=foo.com", "selector=abc", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com#?#:-abp-foobar(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-foobar(abc)", "selectorDomains=foo.com", "selector=:-abp-foobar(abc)", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com#?#aaa :-abp-properties(abc) bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com#?#:-abp-properties(|background-image: url(data:*))", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(|background-image: url(data:*))", "selectorDomains=foo.com", "selector=:-abp-properties(|background-image: url(data:*))", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com#?#abc", ["type=elemhideemulation", "text=foo.com#?#abc", "selectorDomains=foo.com", "selector=abc", "domains=foo.com"]);
+  compareFilter(test, "foo.com#?#:-abp-foobar(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-foobar(abc)", "selectorDomains=foo.com", "selector=:-abp-foobar(abc)", "domains=foo.com"]);
+  compareFilter(test, "foo.com#?#aaa :-abp-properties(abc) bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=foo.com"]);
+  compareFilter(test, "foo.com#?#:-abp-properties(|background-image: url(data:*))", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(|background-image: url(data:*))", "selectorDomains=foo.com", "selector=:-abp-properties(|background-image: url(data:*))", "domains=foo.com"]);
 
   // Check conversion of legacy filters
-  compareFilter(test, "foo.com##[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com##[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com"]);
   test.equal(Filter.fromText("foo.com##[-abp-properties='abc']"), Filter.fromText("foo.com#?#:-abp-properties(abc)"));
-  compareFilter(test, "foo.com#@#[-abp-properties='abc']", ["type=elemhideexception", "text=foo.com#@#[-abp-properties='abc']", "selectorDomains=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com#?#[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#[-abp-properties='abc']", "selectorDomains=foo.com", "selector=[-abp-properties='abc']", "domains=FOO.COM"]);
-  compareFilter(test, "foo.com##aaa [-abp-properties='abc'] bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com#@#[-abp-properties='abc']", ["type=elemhideexception", "text=foo.com#@#[-abp-properties='abc']", "selectorDomains=foo.com", "selector=[-abp-properties='abc']", "domains=foo.com"]);
+  compareFilter(test, "foo.com#?#[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#[-abp-properties='abc']", "selectorDomains=foo.com", "selector=[-abp-properties='abc']", "domains=foo.com"]);
+  compareFilter(test, "foo.com##aaa [-abp-properties='abc'] bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=foo.com"]);
 
   // test matching -abp-properties= (https://issues.adblockplus.org/ticket/5037).
-  compareFilter(test, "foo.com##[-abp-properties-bogus='abc']", ["type=elemhide", "text=foo.com##[-abp-properties-bogus='abc']", "selectorDomains=foo.com", "selector=[-abp-properties-bogus='abc']", "domains=FOO.COM"]);
+  compareFilter(test, "foo.com##[-abp-properties-bogus='abc']", ["type=elemhide", "text=foo.com##[-abp-properties-bogus='abc']", "selectorDomains=foo.com", "selector=[-abp-properties-bogus='abc']", "domains=foo.com"]);
 
   test.done();
 };
@@ -417,7 +417,7 @@ exports.testElemHideRulesWithBraces = function(test)
       "text=foo.com#?#:-abp-properties(/margin: [3-4]{2}/)",
       "selectorDomains=foo.com",
       "selector=:-abp-properties(/margin: [3-4]\\7B 2\\7D /)",
-      "domains=FOO.COM"
+      "domains=foo.com"
     ]
   );
   test.done();
@@ -475,7 +475,7 @@ exports.testFilterNormalization = function(test)
       "type=filterlist",
       "text=" + normalized,
       "csp=c s p",
-      "domains=DOMAIN.COM|FOO.COM",
+      "domains=domain.com|foo.com",
       "sitekeys=FOO",
       "regexp=b\\$la",
       "contentType=" + t.CSP
