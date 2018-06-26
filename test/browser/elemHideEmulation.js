@@ -17,7 +17,8 @@
 
 "use strict";
 
-const {ElemHideEmulation} = require("../../lib/content/elemHideEmulation");
+const {ElemHideEmulation, setTestMode,
+       getTestInfo} = require("../../lib/content/elemHideEmulation");
 
 const REFRESH_INTERVAL = 200;
 
@@ -25,6 +26,8 @@ let testDocument = null;
 
 exports.setUp = function(callback)
 {
+  setTestMode();
+
   let iframe = document.createElement("iframe");
   document.body.appendChild(iframe);
   testDocument = iframe.contentDocument;
@@ -77,6 +80,28 @@ function expectVisible(test, element, id)
     `The element${withId}'s display property should not be set to 'none'`);
 }
 
+function expectProcessed(test, element, id = null)
+{
+  let withId = "";
+  if (id)
+    withId = ` with ID '${id}'`;
+
+  test.ok(
+    getTestInfo().lastProcessedElements.has(element),
+    `The element${withId} should have been processed`);
+}
+
+function expectNotProcessed(test, element, id = null)
+{
+  let withId = "";
+  if (id)
+    withId = ` with ID '${id}'`;
+
+  test.ok(
+    !getTestInfo().lastProcessedElements.has(element),
+    `The element${withId} should not have been processed`);
+}
+
 function findUniqueId()
 {
   let id = "elemHideEmulationTest-" + Math.floor(Math.random() * 10000);
@@ -99,14 +124,17 @@ function insertStyleRule(rule)
   styleElement.sheet.insertRule(rule, styleElement.sheet.cssRules.length);
 }
 
-function createElement(parent)
+function createElement(parent, type = "div", id = findUniqueId(),
+                       innerText = null)
 {
-  let element = testDocument.createElement("div");
-  element.id = findUniqueId();
+  let element = testDocument.createElement(type);
+  element.id = id;
   if (!parent)
     testDocument.body.appendChild(element);
   else
     parent.appendChild(element);
+  if (innerText)
+    element.innerText = innerText;
   return element;
 }
 
@@ -896,5 +924,101 @@ exports.testPseudoClassHasWithPseudoClassContainsOnDomMutation = function(test)
     // hides the parent element because of revision d7d51d29aa34.
     expectHidden(test, parent);
     expectVisible(test, child);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testOnlyRelevantElementsProcessed = function(test)
+{
+  // <body>
+  //   <div id="n1">
+  //     <p id="n1_1"></p>
+  //     <p id="n1_2"></p>
+  //     <p id="n1_4">Hello</p>
+  //   </div>
+  //   <div id="n2">
+  //     <p id="n2_1"></p>
+  //     <p id="n2_2"></p>
+  //     <p id="n2_4">Hello</p>
+  //   </div>
+  //   <div id="n3">
+  //     <p id="n3_1"></p>
+  //     <p id="n3_2"></p>
+  //     <p id="n3_4">Hello</p>
+  //   </div>
+  //   <div id="n4">
+  //     <p id="n4_1"></p>
+  //     <p id="n4_2"></p>
+  //     <p id="n4_4">Hello</p>
+  //   </div>
+  // </body>
+  for (let i of [1, 2, 3, 4])
+  {
+    let n = createElement(null, "div", `n${i}`);
+    for (let [j, text] of [[1], [2], [4, "Hello"]])
+      createElement(n, "p", `n${i}_${j}`, text);
+  }
+
+  applyElemHideEmulation(
+    ["p:-abp-contains(Hello)",
+     "div:-abp-contains(Try me!)",
+     "div:-abp-has(p:-abp-contains(This is good))"]
+  ).then(() => timeout(REFRESH_INTERVAL)
+  ).then(() =>
+  {
+    // This is only a sanity check to make sure everything else is working
+    // before we do the actual test.
+    for (let i of [1, 2, 3, 4])
+    {
+      for (let j of [1, 2, 4])
+      {
+        let id = `n${i}_${j}`;
+        if (j == 4)
+          expectHidden(test, testDocument.getElementById(id), id);
+        else
+          expectVisible(test, testDocument.getElementById(id), id);
+      }
+    }
+
+    // All <div> and <p> elements should be processed initially.
+    for (let element of [...testDocument.getElementsByTagName("div"),
+                         ...testDocument.getElementsByTagName("p")])
+    {
+      expectProcessed(test, element, element.id);
+    }
+
+    // Modify the text in <p id="n4_1">
+    testDocument.getElementById("n4_1").innerText = "Try me!";
+
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    // When an element's text is modified, only the element or one of its
+    // ancestors matching any selector is processed for :-abp-has() and
+    // :-abp-contains()
+    for (let element of [...testDocument.getElementsByTagName("div"),
+                         ...testDocument.getElementsByTagName("p")])
+    {
+      if (element.id == "n4" || element.id == "n4_1")
+        expectProcessed(test, element, element.id);
+      else
+        expectNotProcessed(test, element, element.id);
+    }
+
+    // Create a new <p id="n2_3"> element with no text.
+    createElement(testDocument.getElementById("n2"), "p", "n2_3");
+
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    // When a new element is added, only the element or one of its ancestors
+    // matching any selector is processed for :-abp-has() and :-abp-contains()
+    for (let element of [...testDocument.getElementsByTagName("div"),
+                         ...testDocument.getElementsByTagName("p")])
+    {
+      if (element.id == "n2" || element.id == "n2_3")
+        expectProcessed(test, element, element.id);
+      else
+        expectNotProcessed(test, element, element.id);
+    }
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
