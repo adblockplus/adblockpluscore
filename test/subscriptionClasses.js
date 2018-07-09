@@ -82,13 +82,14 @@ exports.testSubscriptionsWithState = function(test)
   compareSubscription(
     test, "http://test/non_default",
     [
-      "url=http://test/non_default", "title=test", "disabled=true",
+      "url=http://test/non_default", "type=ads", "title=test", "disabled=true",
       "lastSuccess=8", "lastDownload=12", "lastCheck=16", "softExpiration=18",
       "expires=20", "downloadStatus=foo", "errors=3", "version=24",
       "requiredVersion=0.6"
     ],
     subscription =>
     {
+      subscription.type = "ads";
       subscription.title = "test";
       subscription.disabled = true;
       subscription.lastSuccess = 8;
