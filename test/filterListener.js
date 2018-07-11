@@ -32,7 +32,8 @@ exports.setUp = function(callback)
   sandboxedRequire = createSandbox({
     extraExports: {
       elemHide: ["knownFilters"],
-      elemHideEmulation: ["filters"]
+      elemHideEmulation: ["filters"],
+      snippets: ["filters"]
     }
   });
 
@@ -94,8 +95,13 @@ function checkKnownFilters(test, text, expected)
   for (let filterText of elemHideEmulation.filters)
     result.elemhideemulation.push(filterText);
 
+  let snippets = sandboxedRequire("../lib/snippets");
+  result.snippets = [];
+  for (let filterText of snippets.filters)
+    result.snippets.push(filterText);
+
   let types = ["blacklist", "whitelist", "elemhide", "elemhideexception",
-               "elemhideemulation"];
+               "elemhideemulation", "snippets"];
   for (let type of types)
   {
     if (!(type in expected))
@@ -322,6 +328,33 @@ exports.testFilterGroupOperations = function(test)
 
   subscription3.disabled = false;
   checkKnownFilters(test, "enable exception rules", {blacklist: [filter1.text], whitelist: [filter2.text]});
+
+  test.done();
+};
+
+exports.testSnippetFilters = function(test)
+{
+  let filter1 = Filter.fromText("example.com#$#filter1");
+  let filter2 = Filter.fromText("example.com#$#filter2");
+
+  let subscription1 = Subscription.fromURL("http://test1/");
+  subscription1.filters = [filter1, filter2];
+
+  FilterStorage.addSubscription(subscription1);
+  checkKnownFilters(test, "add subscription with filter1 and filter2", {});
+
+  let subscription2 = Subscription.fromURL("http://test2/");
+  subscription2.type = "circumvention";
+  subscription2.filters = [filter1];
+
+  FilterStorage.addSubscription(subscription2);
+  checkKnownFilters(test, "add subscription of type circumvention with filter1", {snippets: [filter1.text]});
+
+  let subscription3 = Subscription.fromURL("~foo");
+  subscription3.filters = [filter2];
+
+  FilterStorage.addSubscription(subscription3);
+  checkKnownFilters(test, "add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
 
   test.done();
 };
