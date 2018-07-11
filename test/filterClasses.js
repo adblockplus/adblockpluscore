@@ -25,11 +25,13 @@ let CommentFilter = null;
 let ActiveFilter = null;
 let RegExpFilter = null;
 let BlockingFilter = null;
+let ContentFilter = null;
 let WhitelistFilter = null;
 let ElemHideBase = null;
 let ElemHideFilter = null;
 let ElemHideException = null;
 let ElemHideEmulationFilter = null;
+let SnippetFilter = null;
 
 let t = null;
 let defaultTypes = null;
@@ -39,9 +41,9 @@ exports.setUp = function(callback)
   let sandboxedRequire = createSandbox();
   (
     {Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
-     BlockingFilter, WhitelistFilter, ElemHideBase, ElemHideFilter,
-     ElemHideException,
-     ElemHideEmulationFilter} = sandboxedRequire("../lib/filterClasses")
+     BlockingFilter, WhitelistFilter, ContentFilter, ElemHideBase,
+     ElemHideFilter, ElemHideException, ElemHideEmulationFilter,
+     SnippetFilter} = sandboxedRequire("../lib/filterClasses")
   );
   t = RegExpFilter.typeMap;
   defaultTypes = 0x7FFFFFFF & ~(t.CSP | t.ELEMHIDE | t.DOCUMENT | t.POPUP |
@@ -114,6 +116,15 @@ function serializeFilter(filter)
                   .map(([domain]) => domain.toLowerCase()));
       result.push("selector=" + filter.selector);
     }
+    else if (filter instanceof SnippetFilter)
+    {
+      result.push("type=snippet");
+      result.push("scriptDomains=" +
+                  [...filter.domains || []]
+                  .filter(([domain, isIncluded]) => isIncluded)
+                  .map(([domain]) => domain.toLowerCase()));
+      result.push("script=" + filter.script);
+    }
   }
   return result;
 }
@@ -137,7 +148,8 @@ function addDefaults(expected)
   }
 
   if (type == "whitelist" || type == "filterlist" || type == "elemhide" ||
-      type == "elemhideexception" || type == "elemhideemulation")
+      type == "elemhideexception" || type == "elemhideemulation" ||
+      type == "snippet")
   {
     addProperty("disabled", "false");
     addProperty("lastHit", "0");
@@ -163,6 +175,11 @@ function addDefaults(expected)
       type == "elemhideemulation")
   {
     addProperty("selectorDomains", "");
+    addProperty("domains", "");
+  }
+  if (type == "snippet")
+  {
+    addProperty("scriptDomains", "");
     addProperty("domains", "");
   }
 }
@@ -205,12 +222,14 @@ exports.testFilterClassDefinitions = function(test)
   test.equal(typeof ActiveFilter, "function", "typeof ActiveFilter");
   test.equal(typeof RegExpFilter, "function", "typeof RegExpFilter");
   test.equal(typeof BlockingFilter, "function", "typeof BlockingFilter");
+  test.equal(typeof ContentFilter, "function", "typeof ContentFilter");
   test.equal(typeof WhitelistFilter, "function", "typeof WhitelistFilter");
   test.equal(typeof ElemHideBase, "function", "typeof ElemHideBase");
   test.equal(typeof ElemHideFilter, "function", "typeof ElemHideFilter");
   test.equal(typeof ElemHideException, "function", "typeof ElemHideException");
   test.equal(typeof ElemHideEmulationFilter, "function",
              "typeof ElemHideEmulationFilter");
+  test.equal(typeof SnippetFilter, "function", "typeof SnippetFilter");
 
   test.done();
 };
@@ -423,6 +442,16 @@ exports.testElemHideRulesWithBraces = function(test)
   test.done();
 };
 
+exports.testSnippetFilters = function(test)
+{
+  compareFilter(test, "foo.com#$#abc", ["type=snippet", "text=foo.com#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com"]);
+  compareFilter(test, "foo.com,~bar.com#$#abc", ["type=snippet", "text=foo.com,~bar.com#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com|~bar.com"]);
+  compareFilter(test, "foo.com,~bar#$#abc", ["type=snippet", "text=foo.com,~bar#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com|~bar"]);
+  compareFilter(test, "~foo.com,bar.com#$#abc", ["type=snippet", "text=~foo.com,bar.com#$#abc", "scriptDomains=bar.com", "script=abc", "domains=bar.com|~foo.com"]);
+
+  test.done();
+};
+
 exports.testFilterNormalization = function(test)
 {
   // Line breaks etc
@@ -461,6 +490,10 @@ exports.testFilterNormalization = function(test)
   // to be a separator
   test.equal(Filter.normalize("   domain.c  om# @## sele ctor   "),
              "domain.com#@##selector");
+
+  // Snippet filters
+  test.equal(Filter.normalize("   domain.c  om#$#  sni pp  et   "),
+             "domain.com#$#sni pp  et");
 
   // Regular filters
   let normalized = Filter.normalize(
