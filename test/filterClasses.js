@@ -516,6 +516,8 @@ exports.testFilterNormalization = function(test)
   );
 
   // Some $csp edge cases
+  test.equal(Filter.normalize("$csp=  "),
+             "$csp=");
   test.equal(Filter.normalize("$csp= c s p"),
              "$csp=c s p");
   test.equal(Filter.normalize("$$csp= c s p"),
@@ -587,6 +589,16 @@ exports.testFilterRewriteOption = function(test)
   test.equal(
     filterEvil.rewriteUrl("https://www.adblockplus.org/script.js"),
     "https://www.adblockplus.org/script.js"
+  );
+
+  // Strip.
+  let rewriteStrip = "tag$rewrite=";
+  let filterStrip = Filter.fromText(rewriteStrip);
+
+  test.equal(filterStrip.rewrite, "");
+  test.equal(
+    filterStrip.rewriteUrl("http://example.com/?tag"),
+    "http://example.com/?"
   );
 
   test.done();
