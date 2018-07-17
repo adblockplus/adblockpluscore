@@ -20,6 +20,7 @@
 const {createSandbox} = require("./_common");
 
 let Snippets = null;
+let parseScript = null;
 let Filter = null;
 
 exports.setUp = function(callback)
@@ -27,7 +28,7 @@ exports.setUp = function(callback)
   let sandboxedRequire = createSandbox();
   (
     {Filter} = sandboxedRequire("../lib/filterClasses"),
-    {Snippets} = sandboxedRequire("../lib/snippets")
+    {Snippets, parseScript} = sandboxedRequire("../lib/snippets")
   );
 
   callback();
@@ -102,6 +103,68 @@ exports.testSnippetFiltersContainer = function(test)
     "www.example.com",
     []
   );
+
+  test.done();
+};
+
+exports.testScriptParsing = function(test)
+{
+  function checkParsedScript(description, script, expectedTree)
+  {
+    let tree = parseScript(script);
+    test.deepEqual(tree, expectedTree, description);
+  }
+
+  checkParsedScript("Script with no arguments", "foo", [["foo"]]);
+  checkParsedScript("Script with one argument", "foo 1", [["foo", "1"]]);
+  checkParsedScript("Script with two arguments", "foo 1 Hello",
+                    [["foo", "1", "Hello"]]);
+  checkParsedScript("Script with argument containing an escaped space",
+                    "foo Hello\\ world",
+                    [["foo", "Hello world"]]);
+  checkParsedScript("Script with argument containing a quoted space",
+                    "foo 'Hello world'",
+                    [["foo", "Hello world"]]);
+  checkParsedScript("Script with argument containing a quoted escaped quote",
+                    "foo 'Hello \\'world\\''",
+                    [["foo", "Hello 'world'"]]);
+  checkParsedScript("Script with argument containing an escaped semicolon",
+                    "foo TL\\;DR",
+                    [["foo", "TL;DR"]]);
+  checkParsedScript("Script with argument containing a quoted semicolon",
+                    "foo 'TL;DR'",
+                    [["foo", "TL;DR"]]);
+  checkParsedScript("Script with argument containing single character " +
+                    "escape sequences",
+                    "foo yin\\tyang\\n",
+                    [["foo", "yin\tyang\n"]]);
+  checkParsedScript("Script with argument containing Unicode escape sequences",
+                    "foo \\u0062\\ud83d\\ude42r " +
+                    "'l\\ud83d\\ude02mbd\\ud83d\\ude02'", [
+                      ["foo", "b\ud83d\ude42r", "l\ud83d\ude02mbd\ud83d\ude02"]
+                    ]);
+  checkParsedScript("Script with multiple commands", "foo; bar",
+                    [["foo"], ["bar"]]);
+  checkParsedScript("Script with multiple commands and multiple arguments each",
+                    "foo 1 Hello; bar world! #",
+                    [["foo", "1", "Hello"], ["bar", "world!", "#"]]);
+  checkParsedScript("Script with multiple commands and multiple " +
+                    "escaped and quoted arguments each",
+                    "foo 1 'Hello, \\'Tommy\\'!' ;" +
+                    "bar Hi!\\ How\\ are\\ you? http://example.com", [
+                      ["foo", "1", "Hello, 'Tommy'!"],
+                      ["bar", "Hi! How are you?", "http://example.com"]
+                    ]);
+  checkParsedScript("Script with command names containing " +
+                    "whitespace (spaces, tabs, newlines, etc.), " +
+                    "quotes, and semicolons",
+                    "fo\\'\\ \\ \\\t\\\n\\;o 1 2 3; 'b a  r' 1 2",
+                    [["fo'  \t\n;o", "1", "2", "3"], ["b a  r", "1", "2"]]);
+  checkParsedScript("Script containing Unicode composite characters",
+                    "f\ud83d\ude42\ud83d\ude42 b\ud83d\ude02r",
+                    [["f\ud83d\ude42\ud83d\ude42", "b\ud83d\ude02r"]]);
+  checkParsedScript("Script with no-op commands", "foo; ;;; ;  ; bar 1",
+                    [["foo"], ["bar", "1"]]);
 
   test.done();
 };
