@@ -15,12 +15,15 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* eslint no-new-func: "off" */
+
 "use strict";
 
 const {createSandbox} = require("./_common");
 
 let Snippets = null;
 let parseScript = null;
+let compileScript = null;
 let Filter = null;
 
 exports.setUp = function(callback)
@@ -28,7 +31,7 @@ exports.setUp = function(callback)
   let sandboxedRequire = createSandbox();
   (
     {Filter} = sandboxedRequire("../lib/filterClasses"),
-    {Snippets, parseScript} = sandboxedRequire("../lib/snippets")
+    {Snippets, parseScript, compileScript} = sandboxedRequire("../lib/snippets")
   );
 
   callback();
@@ -165,6 +168,76 @@ exports.testScriptParsing = function(test)
                     [["f\ud83d\ude42\ud83d\ude42", "b\ud83d\ude02r"]]);
   checkParsedScript("Script with no-op commands", "foo; ;;; ;  ; bar 1",
                     [["foo"], ["bar", "1"]]);
+
+  test.done();
+};
+
+exports.testScriptCompilation = function(test)
+{
+  let libraries = [
+    `
+      let foo = 0;
+
+      exports.setFoo = function(value)
+      {
+        foo = value;
+      };
+
+      exports.assertFoo = function(expected)
+      {
+        if (foo != expected)
+          throw new Error("Value mismatch");
+      };
+    `
+  ];
+
+  let template = `
+    "use strict";
+    {
+      const libraries = ${JSON.stringify(libraries)};
+
+      const script = {{{script}}};
+
+      let imports = Object.create(null);
+      for (let library of libraries)
+        new Function("exports", library)(imports);
+
+      for (let [name, ...args] of script)
+      {
+        if (Object.prototype.hasOwnProperty.call(imports, name))
+        {
+          let value = imports[name];
+          if (typeof value == "function")
+            value(...args);
+        }
+      }
+    }
+  `;
+
+  function verifyExecutable(script)
+  {
+    let actual = compileScript(script, libraries);
+    let expected = template.replace("{{{script}}}",
+                                    JSON.stringify(parseScript(script)));
+
+    test.equal(expected, actual);
+  }
+
+  verifyExecutable("hello 'How are you?'");
+
+  // Test script execution.
+  new Function(compileScript("setFoo 123; assertFoo 123", libraries))();
+
+  // Override setFoo in a second library, without overriding assertFoo. A
+  // couple of things to note here: (1) each library has its own variables;
+  // (2) script execution is stateless, i.e. the values are not retained
+  // between executions. In the example below, assertFoo does not find 456 but
+  // it doesn't find 123 either. It's the initial value 0.
+  new Function(
+    compileScript("setFoo 456; assertFoo 0", [
+      ...libraries, "let foo = 1; exports.setFoo = value => { foo = value; };"
+    ])
+  )();
 
   test.done();
 };
