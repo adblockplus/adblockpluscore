@@ -241,6 +241,32 @@ exports.testVerbatimPropertyPseudoSelectorWithPrefixAndSuffix = function(test)
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
+// Add the style. Then add the element for that style.
+// This should retrigger the filtering and hide it.
+exports.testPropertyPseudoSelectorAddStyleAndElement = function(test)
+{
+  let styleElement;
+  let toHide;
+  applyElemHideEmulation(
+    [":-abp-properties(background-color: rgb(0, 0, 0))"]
+  ).then(() =>
+  {
+    styleElement = testDocument.createElement("style");
+    testDocument.head.appendChild(styleElement);
+    styleElement.sheet.insertRule("#toHide {background-color: #000}");
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    toHide = createElement();
+    toHide.id = "toHide";
+    expectVisible(test, toHide);
+    return timeout(REFRESH_INTERVAL);
+  }).then(() =>
+  {
+    expectHidden(test, toHide);
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
 exports.testPropertySelectorWithWildcard = function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
