@@ -543,7 +543,6 @@ exports.testFilterNormalization = function(test)
   test.done();
 };
 
-
 exports.testFilterRewriteOption = function(test)
 {
   let text = "/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=$1";
@@ -600,6 +599,22 @@ exports.testFilterRewriteOption = function(test)
     filterStrip.rewriteUrl("http://example.com/?tag"),
     "http://example.com/?"
   );
+
+  test.done();
+};
+
+exports.testDomainMapDeduplication = function(test)
+{
+  let filter1 = Filter.fromText("example.com##.foo");
+  let filter2 = Filter.fromText("example.com##.bar");
+
+  // This compares the references to make sure that both refer to the same
+  // object (#6815).
+  test.equal(filter1.domains, filter2.domains);
+
+  let filter3 = Filter.fromText("www.example.com##.bar");
+
+  test.notEqual(filter2.domains, filter3.domains);
 
   test.done();
 };
