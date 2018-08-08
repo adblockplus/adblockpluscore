@@ -25,12 +25,13 @@ let Snippets = null;
 let parseScript = null;
 let compileScript = null;
 let Filter = null;
+let SnippetFilter = null;
 
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox();
   (
-    {Filter} = sandboxedRequire("../lib/filterClasses"),
+    {Filter, SnippetFilter} = sandboxedRequire("../lib/filterClasses"),
     {Snippets, parseScript, compileScript} = sandboxedRequire("../lib/snippets")
   );
 
@@ -41,8 +42,11 @@ exports.testDomainRestrictions = function(test)
 {
   function testScriptMatches(description, filters, domain, expectedMatches)
   {
-    for (let filter of filters)
-      Snippets.add(Filter.fromText(filter));
+    for (let filter of filters.map(Filter.fromText))
+    {
+      if (filter instanceof SnippetFilter)
+        Snippets.add(filter);
+    }
 
     let matches = Snippets.getScriptsForDomain(domain);
     test.deepEqual(matches.sort(), expectedMatches.sort(), description);
@@ -50,6 +54,15 @@ exports.testDomainRestrictions = function(test)
     Snippets.clear();
   }
 
+  testScriptMatches(
+    "Ignore generic filters",
+    [
+      "#$#foo-1", "example.com#$#foo-2",
+      "~example.com#$#foo-3"
+    ],
+    "example.com",
+    ["foo-2"]
+  );
   testScriptMatches(
     "Ignore filters that include parent domain but exclude subdomain",
     [
@@ -61,11 +74,11 @@ exports.testDomainRestrictions = function(test)
   testScriptMatches(
     "Ignore filters for other subdomain",
     [
-      "www.example.com#$#foo",
-      "other.example.com#$#foo"
+      "www.example.com#$#foo-1",
+      "other.example.com#$#foo-2"
     ],
     "other.example.com",
-    ["foo"]
+    ["foo-2"]
   );
 
   test.done();
