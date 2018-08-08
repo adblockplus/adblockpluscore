@@ -26,10 +26,33 @@ const MemoryFS = require("memory-fs");
 const nodeunit = require("nodeunit");
 const webpack = require("webpack");
 
-const chromiumProcess = require("./chromium_process");
+const chromiumRemoteProcess = require("./test/runners/chromium_remote_process");
+const chromiumProcess = require("./test/runners/chromium_process");
+const firefoxProcess = require("./test/runners/firefox_process");
 
 let unitFiles = [];
 let browserFiles = [];
+
+let runnerDefinitions = {
+  // Chromium with chrome-remote-interface
+  chromium_remote: chromiumRemoteProcess,
+  // Chromium with WebDriver (requires Chromium >= 63.0.3239)
+  chromium: chromiumProcess,
+  firefox: firefoxProcess
+};
+
+function configureRunners()
+{
+  let runners = "BROWSER_TEST_RUNNERS" in process.env ?
+      process.env.BROWSER_TEST_RUNNERS.split(",") : [];
+
+  if (runners.length == 0)
+    return ["chromium_remote", "firefox"];
+
+  return runners.filter(runner => runnerDefinitions.hasOwnProperty(runner));
+}
+
+let runnerProcesses = configureRunners();
 
 function addTestPaths(testPaths, recurse)
 {
@@ -93,7 +116,7 @@ function webpackInMemory(bundleFilename, options)
   });
 }
 
-function runBrowserTests()
+function runBrowserTests(processes)
 {
   if (!browserFiles.length)
     return;
@@ -122,15 +145,18 @@ function runBrowserTests()
       modules: [path.resolve(__dirname, "lib")]
     }
   }).then(bundle =>
-  {
-    return chromiumProcess(
-      bundle, bundleFilename,
-      browserFiles.map(
-        file => path.relative(path.join(__dirname, "test", "browser"),
-                              file).replace(/\.js$/, "")
+    Promise.all(
+      processes.map(currentProcess =>
+        runnerDefinitions[currentProcess](
+          bundle, bundleFilename,
+          browserFiles.map(
+            file => path.relative(path.join(__dirname, "test", "browser"),
+                                  file).replace(/\.js$/, "")
+          )
+        )
       )
-    );
-  });
+    )
+  );
 }
 
 if (process.argv.length > 2)
@@ -143,7 +169,7 @@ else
   );
 }
 
-Promise.resolve(runBrowserTests()).catch(error =>
+Promise.resolve(runBrowserTests(runnerProcesses)).catch(error =>
 {
   console.error("Failed running browser tests");
   console.error(error);
