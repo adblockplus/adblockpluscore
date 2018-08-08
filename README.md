@@ -33,7 +33,7 @@ run these in a headless browser, with each module being loaded in a new frame.
 The default is to run in both Chromium (using the remote interface)
 and Firefox. You can select which runners to use by setting the
 BROWSER_TEST_RUNNERS environment, the default is
-"chromium_remote,firefox". Possible values (separated by a ',') are:
+"chromium_remote". Possible values (separated by a ',') are:
 
 - "chromium_remote": Chromium 60 (using the remote interface)
 - "chromium": Chrome 63 (using WebDriver)
