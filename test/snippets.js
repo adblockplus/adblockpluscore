@@ -181,6 +181,12 @@ exports.testScriptParsing = function(test)
                     [["f\ud83d\ude42\ud83d\ude42", "b\ud83d\ude02r"]]);
   checkParsedScript("Script with no-op commands", "foo; ;;; ;  ; bar 1",
                     [["foo"], ["bar", "1"]]);
+  checkParsedScript("Script with blank argument in the middle", "foo '' Hello",
+                    [["foo", "", "Hello"]]);
+  checkParsedScript("Script with blank argument at the end", "foo Hello ''",
+                    [["foo", "Hello", ""]]);
+  checkParsedScript("Script with consecutive blank arguments", "foo '' ''",
+                    [["foo", "", ""]]);
 
   test.done();
 };
