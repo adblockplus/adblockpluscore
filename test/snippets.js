@@ -188,6 +188,34 @@ exports.testScriptParsing = function(test)
   checkParsedScript("Script with consecutive blank arguments", "foo '' ''",
                     [["foo", "", ""]]);
 
+  // Undocumented quirks (#6853).
+  checkParsedScript("Script with quotes within an argument", "foo Hello''world",
+                    [["foo", "Helloworld"]]);
+  checkParsedScript("Script with quotes within an argument containing whitespace",
+                    "foo Hello' 'world",
+                    [["foo", "Hello world"]]);
+  checkParsedScript("Script with quotes within an argument containing non-whitespace",
+                    "foo Hello','world",
+                    [["foo", "Hello,world"]]);
+  checkParsedScript("Script with quotes within an argument containing whitespace and non-whitespace",
+                    "foo Hello', 'world",
+                    [["foo", "Hello, world"]]);
+  checkParsedScript("Script with opening quote at the beginning of an argument",
+                    "foo 'Hello, 'world",
+                    [["foo", "Hello, world"]]);
+  checkParsedScript("Script with closing quote at the end of an argument",
+                    "foo Hello,' world'",
+                    [["foo", "Hello, world"]]);
+
+  checkParsedScript("Script with closing quote missing", "foo 'Hello, world",
+                    []);
+  checkParsedScript("Script with closing quote missing in last command",
+                    "foo Hello; bar 'How are you?",
+                    [["foo", "Hello"]]);
+  checkParsedScript("Script ending with a backslash",
+                    "foo Hello; bar 'How are you?' \\",
+                    [["foo", "Hello"]]);
+
   test.done();
 };
 
