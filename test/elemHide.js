@@ -20,6 +20,7 @@
 const {createSandbox} = require("./_common");
 
 let ElemHide = null;
+let ElemHideExceptions = null;
 let Filter = null;
 
 exports.setUp = function(callback)
@@ -27,6 +28,7 @@ exports.setUp = function(callback)
   let sandboxedRequire = createSandbox();
   (
     {ElemHide} = sandboxedRequire("../lib/elemHide"),
+    {ElemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions"),
     {Filter} = sandboxedRequire("../lib/filterClasses")
   );
 
@@ -57,6 +59,10 @@ exports.testGetSelectorsForDomain = function(test)
 {
   let addFilter = filterText => ElemHide.add(Filter.fromText(filterText));
   let removeFilter = filterText => ElemHide.remove(Filter.fromText(filterText));
+  let addException =
+    filterText => ElemHideExceptions.add(Filter.fromText(filterText));
+  let removeException =
+    filterText => ElemHideExceptions.remove(Filter.fromText(filterText));
 
   testResult(test, "", []);
 
@@ -74,7 +80,7 @@ exports.testGetSelectorsForDomain = function(test)
   testResult(test, "com", []);
   testResult(test, "", []);
 
-  addFilter("example.com#@#foo");
+  addException("example.com#@#foo");
   testResult(test, "foo.example.com", ["turnip"]);
   testResult(test, "example.com", []);
   testResult(test, "com", []);
@@ -86,19 +92,19 @@ exports.testGetSelectorsForDomain = function(test)
   testResult(test, "com", ["bar"]);
   testResult(test, "", []);
 
-  addFilter("example.com#@#bar");
+  addException("example.com#@#bar");
   testResult(test, "foo.example.com", ["turnip"]);
   testResult(test, "example.com", []);
   testResult(test, "com", ["bar"]);
   testResult(test, "", []);
 
-  removeFilter("example.com#@#foo");
+  removeException("example.com#@#foo");
   testResult(test, "foo.example.com", ["turnip"]);
   testResult(test, "example.com", ["foo"]);
   testResult(test, "com", ["bar"]);
   testResult(test, "", []);
 
-  removeFilter("example.com#@#bar");
+  removeException("example.com#@#bar");
   testResult(test, "foo.example.com", ["turnip", "bar"]);
   testResult(test, "example.com", ["foo", "bar"]);
   testResult(test, "com", ["bar"]);
@@ -193,14 +199,14 @@ exports.testGetSelectorsForDomain = function(test)
   testResult(test, "bar.com", [], true);
   testResult(test, "bar.com", ["hello"], false);
   testResult(test, "bar.com", ["hello"]);
-  addFilter("foo.com#@#hello");
+  addException("foo.com#@#hello");
   testResult(test, "foo.com", [], true);
   testResult(test, "foo.com", [], false);
   testResult(test, "foo.com", []);
   testResult(test, "bar.com", [], true);
   testResult(test, "bar.com", ["hello"], false);
   testResult(test, "bar.com", ["hello"]);
-  removeFilter("foo.com#@#hello");
+  removeException("foo.com#@#hello");
   testResult(test, "foo.com", [], true);
   // Note: We don't take care to track conditional selectors which became
   //       unconditional when a filter was removed. This was too expensive.
@@ -235,7 +241,7 @@ exports.testGetSelectorsForDomain = function(test)
 exports.testZeroFilterKey = function(test)
 {
   ElemHide.add(Filter.fromText("##test"));
-  ElemHide.add(Filter.fromText("foo.com#@#test"));
+  ElemHideExceptions.add(Filter.fromText("foo.com#@#test"));
   testResult(test, "foo.com", []);
   testResult(test, "bar.com", ["test"]);
   test.done();

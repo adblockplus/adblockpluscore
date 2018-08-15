@@ -21,7 +21,7 @@ const {createSandbox} = require("./_common");
 
 let ElemHideEmulationFilter = null;
 let ElemHideEmulation = null;
-let ElemHide = null;
+let ElemHideExceptions = null;
 let Filter = null;
 
 exports.setUp = function(callback)
@@ -31,7 +31,7 @@ exports.setUp = function(callback)
     {Filter,
      ElemHideEmulationFilter} = sandboxedRequire("../lib/filterClasses"),
     {ElemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation"),
-    {ElemHide} = sandboxedRequire("../lib/elemHide")
+    {ElemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions")
   );
 
   callback();
@@ -47,7 +47,7 @@ exports.testDomainRestrictions = function(test)
       if (filter instanceof ElemHideEmulationFilter)
         ElemHideEmulation.add(filter);
       else
-        ElemHide.add(filter);
+        ElemHideExceptions.add(filter);
     }
 
     let matches = ElemHideEmulation.getRulesForDomain(domain)
@@ -55,7 +55,7 @@ exports.testDomainRestrictions = function(test)
     test.deepEqual(matches.sort(), expectedMatches.sort(), description);
 
     ElemHideEmulation.clear();
-    ElemHide.clear();
+    ElemHideExceptions.clear();
   }
 
   testSelectorMatches(
