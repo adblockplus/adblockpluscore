@@ -22,12 +22,17 @@ const {createSandbox} = require("./_common");
 let ElemHide = null;
 let ElemHideExceptions = null;
 let Filter = null;
+let filtersByDomain = null;
 
 exports.setUp = function(callback)
 {
-  let sandboxedRequire = createSandbox();
+  let sandboxedRequire = createSandbox({
+    extraExports: {
+      elemHide: ["filtersByDomain"]
+    }
+  });
   (
-    {ElemHide} = sandboxedRequire("../lib/elemHide"),
+    {ElemHide, filtersByDomain} = sandboxedRequire("../lib/elemHide"),
     {ElemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions"),
     {Filter} = sandboxedRequire("../lib/filterClasses")
   );
@@ -244,5 +249,27 @@ exports.testZeroFilterKey = function(test)
   ElemHideExceptions.add(Filter.fromText("foo.com#@#test"));
   testResult(test, "foo.com", []);
   testResult(test, "bar.com", ["test"]);
+  test.done();
+};
+
+exports.testFiltersByDomain = function(test)
+{
+  test.equal(filtersByDomain.size, 0);
+
+  ElemHide.add(Filter.fromText("##test"));
+  test.equal(filtersByDomain.size, 0);
+
+  ElemHide.add(Filter.fromText("example.com##test"));
+  test.equal(filtersByDomain.size, 1);
+
+  ElemHide.add(Filter.fromText("example.com,~www.example.com##test"));
+  test.equal(filtersByDomain.size, 2);
+
+  ElemHide.remove(Filter.fromText("example.com##test"));
+  test.equal(filtersByDomain.size, 2);
+
+  ElemHide.remove(Filter.fromText("example.com,~www.example.com##test"));
+  test.equal(filtersByDomain.size, 0);
+
   test.done();
 };
