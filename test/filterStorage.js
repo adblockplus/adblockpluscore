@@ -39,11 +39,18 @@ exports.setUp = function(callback)
   callback();
 };
 
-function compareSubscriptionList(test, testMessage, list)
+function compareSubscriptionList(test, testMessage, list,
+                                 knownSubscriptions = null)
 {
   let result = FilterStorage.subscriptions.map(subscription => subscription.url);
   let expected = list.map(subscription => subscription.url);
   test.deepEqual(result, expected, testMessage);
+
+  if (knownSubscriptions)
+  {
+    test.deepEqual([...Subscription.knownSubscriptions.values()],
+                   knownSubscriptions, testMessage);
+  }
 }
 
 function compareFiltersList(test, testMessage, list)
@@ -107,6 +114,10 @@ exports.testRemovingSubscriptions = function(test)
 {
   let subscription1 = Subscription.fromURL("http://test1/");
   let subscription2 = Subscription.fromURL("http://test2/");
+
+  test.equal(Subscription.fromURL(subscription1.url), subscription1,
+             "Subscription known before addition");
+
   FilterStorage.addSubscription(subscription1);
   FilterStorage.addSubscription(subscription2);
 
@@ -118,30 +129,42 @@ exports.testRemovingSubscriptions = function(test)
   }
   FilterNotifier.addListener(listener);
 
-  compareSubscriptionList(test, "Initial state", [subscription1, subscription2]);
+  compareSubscriptionList(test, "Initial state", [subscription1, subscription2],
+                          [subscription1, subscription2]);
   test.deepEqual(changes, [], "Received changes");
 
-  changes = [];
-  FilterStorage.removeSubscription(subscription1);
-  compareSubscriptionList(test, "Removing first subscription", [subscription2]);
-  test.deepEqual(changes, ["subscription.removed http://test1/"], "Received changes");
+  test.equal(Subscription.fromURL(subscription1.url), subscription1,
+             "Subscription known after addition");
 
   changes = [];
   FilterStorage.removeSubscription(subscription1);
-  compareSubscriptionList(test, "Removing already removed subscription", [subscription2]);
+  compareSubscriptionList(test, "Removing first subscription", [subscription2],
+                          [subscription2]);
+  test.deepEqual(changes, ["subscription.removed http://test1/"], "Received changes");
+
+  // Once a subscription has been removed, it is forgotten; a new object is
+  // created for the previously known subscription URL.
+  test.notEqual(Subscription.fromURL(subscription1.url), subscription1,
+                "Subscription forgotten upon removal");
+  Subscription.knownSubscriptions.delete(subscription1.url);
+
+  changes = [];
+  FilterStorage.removeSubscription(subscription1);
+  compareSubscriptionList(test, "Removing already removed subscription", [subscription2],
+                          [subscription2]);
   test.deepEqual(changes, [], "Received changes");
 
   changes = [];
   FilterStorage.removeSubscription(subscription2);
-  compareSubscriptionList(test, "Removing remaining subscription", []);
+  compareSubscriptionList(test, "Removing remaining subscription", [], []);
   test.deepEqual(changes, ["subscription.removed http://test2/"], "Received changes");
 
   FilterStorage.addSubscription(subscription1);
-  compareSubscriptionList(test, "Add", [subscription1]);
+  compareSubscriptionList(test, "Add", [subscription1], []);
 
   changes = [];
   FilterStorage.removeSubscription(subscription1);
-  compareSubscriptionList(test, "Re-removing previously added subscription", []);
+  compareSubscriptionList(test, "Re-removing previously added subscription", [], []);
   test.deepEqual(changes, ["subscription.removed http://test1/"], "Received changes");
 
   test.done();
