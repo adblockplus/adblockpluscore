@@ -24,7 +24,9 @@ require("geckodriver");
 const {executeScript} = require("./webdriver");
 const {ensureFirefox} = require("./firefox_download");
 
-const FIREFOX_VERSION = "56.0";
+// Firefox 57 seems to be the minimum to reliably run with WebDriver
+// on certain system configurations like Debian 9, TravisCI.
+const FIREFOX_VERSION = "57.0";
 
 function runScript(firefoxPath, script, scriptName, scriptArgs)
 {

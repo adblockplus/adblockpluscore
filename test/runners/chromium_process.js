@@ -35,6 +35,9 @@ function runScript(chromiumPath, script, scriptName, scriptArgs)
 {
   const options = new chrome.Options()
         .headless()
+        // Disabling sandboxing is needed on some system configurations
+        // like Debian 9.
+        .addArguments("--no-sandbox")
         .setChromeBinaryPath(chromiumPath);
 
   const driver = new Builder()

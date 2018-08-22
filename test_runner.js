@@ -47,7 +47,7 @@ function configureRunners()
       process.env.BROWSER_TEST_RUNNERS.split(",") : [];
 
   if (runners.length == 0)
-    return ["chromium_remote"];
+    return ["chromium_remote", "firefox"];
 
   return runners.filter(runner => runnerDefinitions.hasOwnProperty(runner));
 }
