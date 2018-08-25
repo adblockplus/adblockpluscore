@@ -390,16 +390,6 @@ exports.testElemHideEmulationFilters = function(test)
   compareFilter(test, "foo.com#?#aaa :-abp-properties(abc) bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=foo.com"]);
   compareFilter(test, "foo.com#?#:-abp-properties(|background-image: url(data:*))", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(|background-image: url(data:*))", "selectorDomains=foo.com", "selector=:-abp-properties(|background-image: url(data:*))", "domains=foo.com"]);
 
-  // Check conversion of legacy filters
-  compareFilter(test, "foo.com##[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com"]);
-  test.equal(Filter.fromText("foo.com##[-abp-properties='abc']"), Filter.fromText("foo.com#?#:-abp-properties(abc)"));
-  compareFilter(test, "foo.com#@#[-abp-properties='abc']", ["type=elemhideexception", "text=foo.com#@#[-abp-properties='abc']", "selectorDomains=foo.com", "selector=[-abp-properties='abc']", "domains=foo.com"]);
-  compareFilter(test, "foo.com#?#[-abp-properties='abc']", ["type=elemhideemulation", "text=foo.com#?#[-abp-properties='abc']", "selectorDomains=foo.com", "selector=[-abp-properties='abc']", "domains=foo.com"]);
-  compareFilter(test, "foo.com##aaa [-abp-properties='abc'] bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=foo.com"]);
-
-  // test matching -abp-properties= (https://issues.adblockplus.org/ticket/5037).
-  compareFilter(test, "foo.com##[-abp-properties-bogus='abc']", ["type=elemhide", "text=foo.com##[-abp-properties-bogus='abc']", "selectorDomains=foo.com", "selector=[-abp-properties-bogus='abc']", "domains=foo.com"]);
-
   test.done();
 };
 
