@@ -48,7 +48,9 @@ exports.testDomainRestrictions = function(test)
         Snippets.add(filter);
     }
 
-    let matches = Snippets.getScriptsForDomain(domain);
+    let matches = Snippets.getFiltersForDomain(domain).map(
+      filter => filter.script
+    );
     test.deepEqual(matches.sort(), expectedMatches.sort(), description);
 
     Snippets.clear();
@@ -88,8 +90,7 @@ exports.testSnippetFiltersContainer = function(test)
 {
   function compareRules(description, domain, expectedMatches)
   {
-    let result = Snippets.getScriptsForDomain(domain);
-    expectedMatches = expectedMatches.map(filter => filter.script);
+    let result = Snippets.getFiltersForDomain(domain);
     test.deepEqual(result.sort(), expectedMatches.sort(), description);
   }
 
