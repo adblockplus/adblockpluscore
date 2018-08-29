@@ -39,6 +39,23 @@ exports.setUp = function(callback)
   callback();
 };
 
+function addListener(listener)
+{
+  let makeWrapper = name => (...args) => listener(name, ...args);
+
+  FilterNotifier.on("subscription.added", makeWrapper("subscription.added"));
+  FilterNotifier.on("subscription.removed",
+                    makeWrapper("subscription.removed"));
+  FilterNotifier.on("subscription.moved", makeWrapper("subscription.moved"));
+
+  FilterNotifier.on("filter.added", makeWrapper("filter.added"));
+  FilterNotifier.on("filter.removed", makeWrapper("filter.removed"));
+  FilterNotifier.on("filter.moved", makeWrapper("filter.moved"));
+
+  FilterNotifier.on("filter.hitCount", makeWrapper("filter.hitCount"));
+  FilterNotifier.on("filter.lastHit", makeWrapper("filter.lastHit"));
+}
+
 function compareSubscriptionList(test, testMessage, list,
                                  knownSubscriptions = null)
 {
@@ -79,7 +96,7 @@ exports.testAddingSubscriptions = function(test)
     if (action.indexOf("subscription.") == 0)
       changes.push(action + " " + subscription.url);
   }
-  FilterNotifier.addListener(listener);
+  addListener(listener);
 
   compareSubscriptionList(test, "Initial state", []);
   test.deepEqual(changes, [], "Received changes");
@@ -127,7 +144,7 @@ exports.testRemovingSubscriptions = function(test)
     if (action.indexOf("subscription.") == 0)
       changes.push(action + " " + subscription.url);
   }
-  FilterNotifier.addListener(listener);
+  addListener(listener);
 
   compareSubscriptionList(test, "Initial state", [subscription1, subscription2],
                           [subscription1, subscription2]);
@@ -186,7 +203,7 @@ exports.testMovingSubscriptions = function(test)
     if (action.indexOf("subscription.") == 0)
       changes.push(action + " " + subscription.url);
   }
-  FilterNotifier.addListener(listener);
+  addListener(listener);
 
   compareSubscriptionList(test, "Initial state", [subscription1, subscription2, subscription3]);
   test.deepEqual(changes, [], "Received changes");
@@ -247,7 +264,7 @@ exports.testAddingFilters = function(test)
     if (action.indexOf("filter.") == 0)
       changes.push(action + " " + filter.text);
   }
-  FilterNotifier.addListener(listener);
+  addListener(listener);
 
   compareFiltersList(test, "Initial state", [[], [], []]);
   test.deepEqual(changes, [], "Received changes");
@@ -323,7 +340,7 @@ exports.testRemovingFilters = function(test)
     if (action.indexOf("filter.") == 0)
       changes.push(action + " " + filter.text);
   }
-  FilterNotifier.addListener(listener);
+  addListener(listener);
 
   compareFiltersList(test, "Initial state", [["foo", "foo", "bar"], ["foo", "bar", "foo"], ["foo", "bar"]]);
   test.deepEqual(changes, [], "Received changes");
@@ -378,7 +395,7 @@ exports.testMovingFilters = function(test)
     if (action.indexOf("filter.") == 0)
       changes.push(action + " " + filter.text);
   }
-  FilterNotifier.addListener(listener);
+  addListener(listener);
 
   compareFiltersList(test, "Initial state", [["foo", "bar", "bas", "foo"], ["foo", "bar"]]);
   test.deepEqual(changes, [], "Received changes");
@@ -419,7 +436,7 @@ exports.testHitCounts = function(test)
     if (action.indexOf("filter.") == 0)
       changes.push(action + " " + filter.text);
   }
-  FilterNotifier.addListener(listener);
+  addListener(listener);
 
   let filter1 = Filter.fromText("filter1");
   let filter2 = Filter.fromText("filter2");

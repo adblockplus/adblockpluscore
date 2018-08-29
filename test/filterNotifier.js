@@ -33,19 +33,29 @@ exports.setUp = function(callback)
 
 let triggeredListeners = [];
 let listeners = [
-  (action, item) => triggeredListeners.push(["listener1", action, item]),
-  (action, item) => triggeredListeners.push(["listener2", action, item]),
-  (action, item) => triggeredListeners.push(["listener3", action, item])
+  (...args) => triggeredListeners.push(["listener1", ...args]),
+  (...args) => triggeredListeners.push(["listener2", ...args]),
+  (...args) => triggeredListeners.push(["listener3", ...args])
 ];
+
+function addListener(listener)
+{
+  FilterNotifier.on("foo", listener);
+}
+
+function removeListener(listener)
+{
+  FilterNotifier.off("foo", listener);
+}
 
 function compareListeners(test, testDescription, list)
 {
   let result1 = triggeredListeners = [];
-  FilterNotifier.triggerListeners("foo", {bar: true});
+  FilterNotifier.emit("foo", {bar: true});
 
   let result2 = triggeredListeners = [];
   for (let observer of list)
-    observer("foo", {bar: true});
+    observer({bar: true});
 
   test.deepEqual(result1, result2, testDescription);
 }
@@ -56,34 +66,34 @@ exports.testAddingRemovingListeners = function(test)
 
   compareListeners(test, "No listeners", []);
 
-  FilterNotifier.addListener(listener1);
+  addListener(listener1);
   compareListeners(test, "addListener(listener1)", [listener1]);
 
-  FilterNotifier.addListener(listener1);
-  compareListeners(test, "addListener(listener1) again", [listener1]);
+  addListener(listener1);
+  compareListeners(test, "addListener(listener1) again", [listener1, listener1]);
 
-  FilterNotifier.addListener(listener2);
-  compareListeners(test, "addListener(listener2)", [listener1, listener2]);
+  addListener(listener2);
+  compareListeners(test, "addListener(listener2)", [listener1, listener1, listener2]);
 
-  FilterNotifier.removeListener(listener1);
-  compareListeners(test, "removeListener(listener1)", [listener2]);
+  removeListener(listener1);
+  compareListeners(test, "removeListener(listener1)", [listener1, listener2]);
 
-  FilterNotifier.removeListener(listener1);
+  removeListener(listener1);
   compareListeners(test, "removeListener(listener1) again", [listener2]);
 
-  FilterNotifier.addListener(listener3);
+  addListener(listener3);
   compareListeners(test, "addListener(listener3)", [listener2, listener3]);
 
-  FilterNotifier.addListener(listener1);
+  addListener(listener1);
   compareListeners(test, "addListener(listener1)", [listener2, listener3, listener1]);
 
-  FilterNotifier.removeListener(listener3);
+  removeListener(listener3);
   compareListeners(test, "removeListener(listener3)", [listener2, listener1]);
 
-  FilterNotifier.removeListener(listener1);
+  removeListener(listener1);
   compareListeners(test, "removeListener(listener1)", [listener2]);
 
-  FilterNotifier.removeListener(listener2);
+  removeListener(listener2);
   compareListeners(test, "removeListener(listener2)", []);
 
   test.done();
@@ -94,11 +104,11 @@ exports.testRemovingListenersWhileBeingCalled = function(test)
   let listener1 = function(...args)
   {
     listeners[0](...args);
-    FilterNotifier.removeListener(listener1);
+    removeListener(listener1);
   };
   let listener2 = listeners[1];
-  FilterNotifier.addListener(listener1);
-  FilterNotifier.addListener(listener2);
+  addListener(listener1);
+  addListener(listener2);
 
   compareListeners(test, "Initial call", [listener1, listener2]);
   compareListeners(test, "Subsequent calls", [listener2]);
