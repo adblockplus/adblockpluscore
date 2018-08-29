@@ -20,7 +20,7 @@
 const {createSandbox} = require("./_common");
 
 let Filter = null;
-let FilterNotifier = null;
+let filterNotifier = null;
 let FilterStorage = null;
 let Subscription = null;
 
@@ -31,7 +31,7 @@ exports.setUp = function(callback)
   sandboxedRequire("../lib/filterListener");
   (
     {Filter} = sandboxedRequire("../lib/filterClasses"),
-    {FilterNotifier} = sandboxedRequire("../lib/filterNotifier"),
+    {filterNotifier} = sandboxedRequire("../lib/filterNotifier"),
     {FilterStorage} = sandboxedRequire("../lib/filterStorage"),
     {Subscription} = sandboxedRequire("../lib/subscriptionClasses")
   );
@@ -43,17 +43,17 @@ function addListener(listener)
 {
   let makeWrapper = name => (...args) => listener(name, ...args);
 
-  FilterNotifier.on("subscription.added", makeWrapper("subscription.added"));
-  FilterNotifier.on("subscription.removed",
+  filterNotifier.on("subscription.added", makeWrapper("subscription.added"));
+  filterNotifier.on("subscription.removed",
                     makeWrapper("subscription.removed"));
-  FilterNotifier.on("subscription.moved", makeWrapper("subscription.moved"));
+  filterNotifier.on("subscription.moved", makeWrapper("subscription.moved"));
 
-  FilterNotifier.on("filter.added", makeWrapper("filter.added"));
-  FilterNotifier.on("filter.removed", makeWrapper("filter.removed"));
-  FilterNotifier.on("filter.moved", makeWrapper("filter.moved"));
+  filterNotifier.on("filter.added", makeWrapper("filter.added"));
+  filterNotifier.on("filter.removed", makeWrapper("filter.removed"));
+  filterNotifier.on("filter.moved", makeWrapper("filter.moved"));
 
-  FilterNotifier.on("filter.hitCount", makeWrapper("filter.hitCount"));
-  FilterNotifier.on("filter.lastHit", makeWrapper("filter.lastHit"));
+  filterNotifier.on("filter.hitCount", makeWrapper("filter.hitCount"));
+  filterNotifier.on("filter.lastHit", makeWrapper("filter.lastHit"));
 }
 
 function compareSubscriptionList(test, testMessage, list,

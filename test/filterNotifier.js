@@ -19,13 +19,13 @@
 
 const {createSandbox} = require("./_common");
 
-let FilterNotifier = null;
+let filterNotifier = null;
 
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox();
   (
-    {FilterNotifier} = sandboxedRequire("../lib/filterNotifier")
+    {filterNotifier} = sandboxedRequire("../lib/filterNotifier")
   );
 
   callback();
@@ -40,18 +40,18 @@ let listeners = [
 
 function addListener(listener)
 {
-  FilterNotifier.on("foo", listener);
+  filterNotifier.on("foo", listener);
 }
 
 function removeListener(listener)
 {
-  FilterNotifier.off("foo", listener);
+  filterNotifier.off("foo", listener);
 }
 
 function compareListeners(test, testDescription, list)
 {
   let result1 = triggeredListeners = [];
-  FilterNotifier.emit("foo", {bar: true});
+  filterNotifier.emit("foo", {bar: true});
 
   let result2 = triggeredListeners = [];
   for (let observer of list)
