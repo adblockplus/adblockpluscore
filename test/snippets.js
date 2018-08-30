@@ -88,11 +88,25 @@ exports.testDomainRestrictions = function(test)
 
 exports.testSnippetFiltersContainer = function(test)
 {
+  let events = [];
+
+  function eventHandler(...args)
+  {
+    events.push([...args]);
+  }
+
   function compareRules(description, domain, expectedMatches)
   {
     let result = Snippets.getFiltersForDomain(domain);
     test.deepEqual(result.sort(), expectedMatches.sort(), description);
   }
+
+  Snippets.on("snippets.filterAdded",
+              eventHandler.bind(null, "snippets.filterAdded"));
+  Snippets.on("snippets.filterRemoved",
+              eventHandler.bind(null, "snippets.filterRemoved"));
+  Snippets.on("snippets.filtersCleared",
+              eventHandler.bind(null, "snippets.filtersCleared"));
 
   let domainFilter = Filter.fromText("example.com#$#filter1");
   let subdomainFilter = Filter.fromText("www.example.com#$#filter2");
@@ -120,6 +134,15 @@ exports.testSnippetFiltersContainer = function(test)
     "www.example.com",
     []
   );
+
+  test.deepEqual(events, [
+    ["snippets.filterAdded", domainFilter],
+    ["snippets.filterAdded", subdomainFilter],
+    ["snippets.filterAdded", otherDomainFilter],
+    ["snippets.filterRemoved", domainFilter],
+    ["snippets.filtersCleared"]
+  ],
+  "Event log");
 
   test.done();
 };
