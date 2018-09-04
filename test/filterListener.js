@@ -296,9 +296,9 @@ exports.testFilterGroupOperations = function(test)
 
   FilterStorage.addFilter(filter2);
   checkKnownFilters(test, "add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
-  test.equal(filter2.subscriptions.size, 1, "@@filter2.subscription.length");
-  test.ok([...filter2.subscriptions][0] instanceof SpecialSubscription, "@@filter2 added to a new filter group");
-  test.ok([...filter2.subscriptions][0] != subscription3, "@@filter2 filter group is not the disabled exceptions group");
+  test.equal(filter2.subscriptionCount, 1, "@@filter2.subscriptionCount");
+  test.ok([...filter2.subscriptions()][0] instanceof SpecialSubscription, "@@filter2 added to a new filter group");
+  test.ok([...filter2.subscriptions()][0] != subscription3, "@@filter2 filter group is not the disabled exceptions group");
 
   subscription3.disabled = false;
   checkKnownFilters(test, "enable exception rules", {blacklist: [filter1.text], whitelist: [filter2.text]});
@@ -306,8 +306,8 @@ exports.testFilterGroupOperations = function(test)
   FilterStorage.removeFilter(filter2);
   FilterStorage.addFilter(filter2);
   checkKnownFilters(test, "re-add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
-  test.equal(filter2.subscriptions.size, 1, "@@filter2.subscription.length");
-  test.ok([...filter2.subscriptions][0] == subscription3, "@@filter2 added to the default exceptions group");
+  test.equal(filter2.subscriptionCount, 1, "@@filter2.subscriptionCount");
+  test.ok([...filter2.subscriptions()][0] == subscription3, "@@filter2 added to the default exceptions group");
 
   let subscription4 = Subscription.fromURL("http://test/");
   FilterStorage.updateSubscriptionFilters(subscription4, [filter3, filter4, filter5]);
