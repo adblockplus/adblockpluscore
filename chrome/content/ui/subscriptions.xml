@@ -102,6 +102,13 @@
                 prefixes="pl"
                 author="krzysiek-gala"
                 type="ads"/>
+  <subscription title="EasyList Portuguese+EasyList"
+                specialization="português"
+                url="https://easylist-downloads.adblockplus.org/easylistportuguese+easylist.txt"
+                homepage="https://easylist.to/"
+                prefixes="pt"
+                author="diaux"
+                type="ads"/>
   <subscription title="EasyList Spanish+EasyList"
                 specialization="español"
                 url="https://easylist-downloads.adblockplus.org/easylistspanish+easylist.txt"
