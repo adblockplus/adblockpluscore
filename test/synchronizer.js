@@ -259,7 +259,7 @@ for (let currentTest of [
     this.registerHandler("/subscription", metadata =>
     {
       requests.push(this.getTimeOffset());
-      return [Cr.NS_OK, 200, "[Adblock]\n!foo\n!Expires: " + currentTest.expiration + "\nbar"];
+      return [Cr.NS_OK, 200, "[Adblock]\n!Expires: " + currentTest.expiration + "\nbar"];
     });
 
     this.randomResult = currentTest.randomResult;
@@ -319,7 +319,7 @@ exports.testRedirects = function(test)
 
   this.registerHandler("/subscription", metadata =>
   {
-    return [Cr.NS_OK, 200, "[Adblock]\n!foo\n!Redirect: http://example.com/redirected\nbar"];
+    return [Cr.NS_OK, 200, "[Adblock]\n!Redirect: http://example.com/redirected\nbar"];
   });
 
   let requests;
@@ -335,7 +335,7 @@ exports.testRedirects = function(test)
     this.registerHandler("/redirected", metadata =>
     {
       requests.push(this.getTimeOffset());
-      return [Cr.NS_OK, 200, "[Adblock]\n!foo\n! Expires: 8 hours\nbar"];
+      return [Cr.NS_OK, 200, "[Adblock]\n! Expires: 8 hours\nbar"];
     });
 
     resetSubscription(subscription);
@@ -347,7 +347,7 @@ exports.testRedirects = function(test)
 
     this.registerHandler("/redirected", metadata =>
     {
-      return [Cr.NS_OK, 200, "[Adblock]\n!foo\n!Redirect: http://example.com/subscription\nbar"];
+      return [Cr.NS_OK, 200, "[Adblock]\n!Redirect: http://example.com/subscription\nbar"];
     });
 
     subscription = Subscription.fromURL("http://example.com/subscription");
