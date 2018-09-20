@@ -20,19 +20,22 @@
 const {createSandbox} = require("./_common");
 
 let ElemHide = null;
+let createStyleSheet = null;
 let ElemHideExceptions = null;
 let Filter = null;
 let filtersByDomain = null;
+let selectorGroupSize = null;
 
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox({
     extraExports: {
-      elemHide: ["filtersByDomain"]
+      elemHide: ["filtersByDomain", "selectorGroupSize"]
     }
   });
   (
-    {ElemHide, filtersByDomain} = sandboxedRequire("../lib/elemHide"),
+    {ElemHide, createStyleSheet, filtersByDomain, selectorGroupSize} =
+      sandboxedRequire("../lib/elemHide"),
     {ElemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions"),
     {Filter} = sandboxedRequire("../lib/filterClasses")
   );
@@ -270,6 +273,28 @@ exports.testFiltersByDomain = function(test)
 
   ElemHide.remove(Filter.fromText("example.com,~www.example.com##test"));
   test.equal(filtersByDomain.size, 0);
+
+  test.done();
+};
+
+exports.testCreateStyleSheet = function(test)
+{
+  test.equal(
+    createStyleSheet([
+      "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
+      "#foo[data-bar='bar']"
+    ]),
+    "html, #foo, .bar, #foo .bar, #foo > .bar, #foo[data-bar='bar'] " +
+    "{display: none !important;}\n",
+    "Style sheet creation should work"
+  );
+
+  let selectors = new Array(50000).map((element, index) => ".s" + index);
+
+  test.equal((createStyleSheet(selectors).match(/\n/g) || []).length,
+             Math.ceil(50000 / selectorGroupSize),
+             "Style sheet should be split up into rules with at most " +
+             selectorGroupSize + " selectors each");
 
   test.done();
 };
