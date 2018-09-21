@@ -43,8 +43,8 @@ let FileUtils = {};
 let resources = {Services, XPCOMUtils, FileUtils};
 
 let globals = {
-  atob: data => new Buffer(data, "base64").toString("binary"),
-  btoa: data => new Buffer(data, "binary").toString("base64"),
+  atob: data => Buffer.from(data, "base64").toString("binary"),
+  btoa: data => Buffer.from(data, "binary").toString("base64"),
   Ci: {
   },
   Cu: {
