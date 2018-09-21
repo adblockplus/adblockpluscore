@@ -154,8 +154,15 @@ function runBrowserTests(processes)
                                   file).replace(/\.js$/, "")
           )
         )
-      )
-    )
+        // We need to convert rejected promise to a resolved one
+        // or the test will not let close the webdriver.
+        .catch(e => e)
+    )).then(results =>
+    {
+      let errors = results.filter(e => typeof e != "undefined");
+      if (errors.length)
+        throw `Browser unit test failed: ${errors.join(", ")}`;
+    })
   );
 }
 
@@ -169,12 +176,12 @@ else
   );
 }
 
-Promise.resolve(runBrowserTests(runnerProcesses)).catch(error =>
-{
-  console.error("Failed running browser tests");
-  console.error(error);
-}).then(() =>
+runBrowserTests(runnerProcesses).then(() =>
 {
   if (unitFiles.length)
     nodeunit.reporters.default.run(unitFiles);
+}).catch(error =>
+{
+  console.error(error);
+  process.exit(1);
 });

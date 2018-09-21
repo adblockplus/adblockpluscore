@@ -179,6 +179,15 @@ function runScript(script, scriptName, scriptArgs)
       });
       if (promiseResult.exceptionDetails)
         throwException(promiseResult.exceptionDetails, scriptName);
+
+      return Runtime.evaluate({
+        expression: "window._consoleLogs",
+        returnByValue: true
+      }).then(result =>
+      {
+        if (result.result.value.failures != 0)
+          throw "Chromium (Remote Interface)";
+      });
     }
     finally
     {

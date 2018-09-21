@@ -51,13 +51,6 @@ function runScript(chromiumPath, script, scriptName, scriptArgs)
 
 module.exports = function(script, scriptName, ...scriptArgs)
 {
-  return ensureChromium(CHROMIUM_REVISION).then(chromiumPath =>
-  {
-    return runScript(chromiumPath, script, scriptName, scriptArgs)
-      .then(result => result)
-      .catch(error =>
-      {
-        throw error;
-      });
-  });
+  return ensureChromium(CHROMIUM_REVISION)
+    .then(chromiumPath => runScript(chromiumPath, script, scriptName, scriptArgs));
 };

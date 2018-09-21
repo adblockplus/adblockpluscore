@@ -46,13 +46,7 @@ function runScript(firefoxPath, script, scriptName, scriptArgs)
 
 module.exports = function(script, scriptName, ...scriptArgs)
 {
-  return ensureFirefox(FIREFOX_VERSION).then(firefoxPath =>
-  {
-    return runScript(firefoxPath, script, scriptName, scriptArgs)
-      .then(result => result)
-      .catch(error =>
-      {
-        throw error;
-      });
-  });
+  return ensureFirefox(FIREFOX_VERSION)
+    .then(firefoxPath =>
+          runScript(firefoxPath, script, scriptName, scriptArgs));
 };
