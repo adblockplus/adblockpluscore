@@ -46,6 +46,8 @@ function runTests(moduleNames)
     nodeunit.runModules(tests, {
       moduleStart(name)
       {
+        if (typeof window._consoleLogs == "undefined")
+          window._consoleLogs = {failures: 0, log: []};
         console.log(bold(name));
       },
       testDone(name, assertions)
@@ -73,6 +75,7 @@ function runTests(moduleNames)
         let failures = assertions.filter(assertion => assertion.failed());
         if (failures.length)
         {
+          window._consoleLogs.failures += failures.length;
           console.log(
             "\n" +
             bold(error("FAILURES: ")) +
@@ -82,8 +85,7 @@ function runTests(moduleNames)
         else
         {
           console.log(
-            "\n" + bold(ok("OK: ")) +
-            assertions.length + " assertions"
+            `\n ${bold(ok("OK: "))}${assertions.length} assertions (${assertions.duration}ms)`
           );
         }
 

@@ -24,21 +24,32 @@ function executeScript(driver, name, script, scriptName, scriptArgs)
                     return Promise.resolve()
                       .then(() => f(...arguments))
                       .then(() => callback());`;
-  return driver.executeScript(`window.consoleLogs = [];
-                               let oldLog = console.log;
+  return driver.executeScript(`let oldLog = console.log;
                                console.log = msg => {
-                                 window.consoleLogs.push(msg);
+                                 window._consoleLogs.log.push(msg);
                                  oldLog.call(this, msg);
                                };`)
     .then(() => driver.executeAsyncScript(realScript, scriptArgs))
-    .then(() => driver.executeScript("return window.consoleLogs;"))
+    .then(() => driver.executeScript("return window._consoleLogs;"))
     .then(result =>
     {
       console.log(`\nBrowser tests in ${name}\n`);
-      result.forEach(item => console.log(item));
-    })
-    .then(() => driver.quit())
-  ;
+      for (let item of result.log)
+        console.log(item);
+      return driver.quit().then(() =>
+      {
+        if (result.failures != 0)
+          throw name;
+      });
+    }, error =>
+    {
+      // This could be replaced by Promise.finally()
+      // once we require NodeJS >= 10
+      return driver.quit().then(() =>
+      {
+        throw error;
+      });
+    });
 }
 
 module.exports.executeScript = executeScript;
