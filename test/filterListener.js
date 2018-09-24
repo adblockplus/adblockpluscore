@@ -335,6 +335,7 @@ exports.testSnippetFilters = function(test)
 {
   let filter1 = Filter.fromText("example.com#$#filter1");
   let filter2 = Filter.fromText("example.com#$#filter2");
+  let filter3 = Filter.fromText("example.com#$#filter3");
 
   let subscription1 = Subscription.fromURL("http://test1/");
   subscription1.filters = [filter1, filter2];
@@ -354,6 +355,12 @@ exports.testSnippetFilters = function(test)
 
   FilterStorage.addSubscription(subscription3);
   checkKnownFilters(test, "add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
+
+  let subscription4 = Subscription.fromURL("https://easylist-downloads.adblockplus.org/abp-filters-anti-cv.txt");
+  subscription4.filters = [filter3];
+
+  FilterStorage.addSubscription(subscription4);
+  checkKnownFilters(test, "add ABP anti-circumvention subscription with filter3", {snippets: [filter1.text, filter2.text, filter3.text]});
 
   test.done();
 };
