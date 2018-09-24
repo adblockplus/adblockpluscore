@@ -87,7 +87,7 @@ function runWinInstaller(archive, browserDir)
   // Also uninstaller will need to be run.
   return new Promise((resolve, reject) =>
   {
-    exec([archive, `/extractdir=${browserDir}`].join(" "),
+    exec(`"${archive}" /extractdir=${browserDir}`,
          err =>
          {
            if (err)
