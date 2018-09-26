@@ -119,7 +119,7 @@ function webpackInMemory(bundleFilename, options)
 function runBrowserTests(processes)
 {
   if (!browserFiles.length)
-    return;
+    return Promise.resolve();
 
   let nodeunitPath = path.join(__dirname, "node_modules", "nodeunit",
                                "examples", "browser", "nodeunit.js");
