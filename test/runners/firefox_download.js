@@ -118,7 +118,7 @@ function getFirefoxExecutable(browserDir)
   switch (platform)
   {
     case "win32":
-      return path.join(browserDir, "firefox.exe");
+      return path.join(browserDir, "core", "firefox.exe");
     case "linux":
       return path.join(browserDir, "firefox", "firefox");
     case "darwin":
