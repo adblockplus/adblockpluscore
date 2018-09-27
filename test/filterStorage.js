@@ -46,7 +46,6 @@ function addListener(listener)
   filterNotifier.on("subscription.added", makeWrapper("subscription.added"));
   filterNotifier.on("subscription.removed",
                     makeWrapper("subscription.removed"));
-  filterNotifier.on("subscription.moved", makeWrapper("subscription.moved"));
 
   filterNotifier.on("filter.added", makeWrapper("filter.added"));
   filterNotifier.on("filter.removed", makeWrapper("filter.removed"));
@@ -59,7 +58,7 @@ function addListener(listener)
 function compareSubscriptionList(test, testMessage, list,
                                  knownSubscriptions = null)
 {
-  let result = FilterStorage.subscriptions.map(subscription => subscription.url);
+  let result = [...FilterStorage.knownSubscriptions.keys()];
   let expected = list.map(subscription => subscription.url);
   test.deepEqual(result, expected, testMessage);
 
@@ -72,7 +71,7 @@ function compareSubscriptionList(test, testMessage, list,
 
 function compareFiltersList(test, testMessage, list)
 {
-  let result = FilterStorage.subscriptions.map(
+  let result = [...FilterStorage.subscriptions()].map(
     subscription => subscription.filters.map(
       filter => filter.text));
   test.deepEqual(result, list, testMessage);
@@ -208,38 +207,8 @@ exports.testMovingSubscriptions = function(test)
   compareSubscriptionList(test, "Initial state", [subscription1, subscription2, subscription3]);
   test.deepEqual(changes, [], "Received changes");
 
-  changes = [];
-  FilterStorage.moveSubscription(subscription1);
-  compareSubscriptionList(test, "Move without explicit position", [subscription2, subscription3, subscription1]);
-  test.deepEqual(changes, ["subscription.moved http://test1/"], "Received changes");
-
-  changes = [];
-  FilterStorage.moveSubscription(subscription1);
-  compareSubscriptionList(test, "Move without explicit position (subscription already last)", [subscription2, subscription3, subscription1]);
-  test.deepEqual(changes, [], "Received changes");
-
-  changes = [];
-  FilterStorage.moveSubscription(subscription2, subscription1);
-  compareSubscriptionList(test, "Move with explicit position", [subscription3, subscription2, subscription1]);
-  test.deepEqual(changes, ["subscription.moved http://test2/"], "Received changes");
-
-  changes = [];
-  FilterStorage.moveSubscription(subscription3, subscription2);
-  compareSubscriptionList(test, "Move without explicit position (subscription already at position)", [subscription3, subscription2, subscription1]);
-  test.deepEqual(changes, [], "Received changes");
-
   FilterStorage.removeSubscription(subscription2);
-  compareSubscriptionList(test, "Remove", [subscription3, subscription1]);
-
-  changes = [];
-  FilterStorage.moveSubscription(subscription3, subscription2);
-  compareSubscriptionList(test, "Move before removed subscription", [subscription1, subscription3]);
-  test.deepEqual(changes, ["subscription.moved http://test3/"], "Received changes");
-
-  changes = [];
-  FilterStorage.moveSubscription(subscription2);
-  compareSubscriptionList(test, "Move of removed subscription", [subscription1, subscription3]);
-  test.deepEqual(changes, [], "Received changes");
+  compareSubscriptionList(test, "Remove", [subscription1, subscription3]);
 
   test.done();
 };

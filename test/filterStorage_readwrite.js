@@ -111,7 +111,7 @@ function testReadWrite(test, withExternal)
         FilterStorage.addSubscription(subscription);
       }
 
-      let externalSubscriptions = FilterStorage.subscriptions.filter(subscription => subscription instanceof ExternalSubscription);
+      let externalSubscriptions = [...FilterStorage.subscriptions()].filter(subscription => subscription instanceof ExternalSubscription);
       test.equal(externalSubscriptions.length, 1, "Number of external subscriptions after updateExternalSubscription");
 
       test.equal(externalSubscriptions[0].url, "~external~external subscription ID", "ID of external subscription");
@@ -230,23 +230,23 @@ exports.testRestoringBackup = function(test)
 
   FilterStorage.saveToDisk().then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0].filters.length, 1, "Initial filter count");
+    test.equal([...FilterStorage.subscriptions()][0].filters.length, 1, "Initial filter count");
     FilterStorage.addFilter(Filter.fromText("barfoo"));
-    test.equal(FilterStorage.subscriptions[0].filters.length, 2, "Filter count after adding a filter");
+    test.equal([...FilterStorage.subscriptions()][0].filters.length, 2, "Filter count after adding a filter");
     return FilterStorage.saveToDisk();
   }).then(() =>
   {
     return FilterStorage.loadFromDisk();
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0].filters.length, 2, "Filter count after adding filter and reloading");
+    test.equal([...FilterStorage.subscriptions()][0].filters.length, 2, "Filter count after adding filter and reloading");
     return FilterStorage.restoreBackup(1);
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0].filters.length, 1, "Filter count after restoring backup");
+    test.equal([...FilterStorage.subscriptions()][0].filters.length, 1, "Filter count after restoring backup");
     return FilterStorage.loadFromDisk();
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0].filters.length, 1, "Filter count after reloading");
+    test.equal([...FilterStorage.subscriptions()][0].filters.length, 1, "Filter count after reloading");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
