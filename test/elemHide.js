@@ -45,9 +45,9 @@ exports.setUp = function(callback)
 
 function normalizeSelectors(selectors)
 {
-  // getSelectorsForDomain is currently allowed to return duplicate selectors
-  // for performance reasons, so we need to remove duplicates here.
-  return selectors.sort().filter((selector, index, sortedSelectors) =>
+  // generateStyleSheetForDomain is currently allowed to return duplicate
+  // selectors for performance reasons, so we need to remove duplicates here.
+  return selectors.slice().sort().filter((selector, index, sortedSelectors) =>
   {
     return index == 0 || selector != sortedSelectors[index - 1];
   });
@@ -57,13 +57,20 @@ function testResult(test, domain, expectedSelectors, specificOnly)
 {
   let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
 
-  test.deepEqual(
-    normalizeSelectors(ElemHide.getSelectorsForDomain(domain, specificOnly)),
-    normalizedExpectedSelectors
-  );
+  let {code, selectors} =
+    ElemHide.generateStyleSheetForDomain(domain, specificOnly);
+
+  test.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
+
+  // Make sure each expected selector is in the actual CSS code.
+  for (let selector of normalizedExpectedSelectors)
+  {
+    test.ok(code.includes(selector + ", ") ||
+            code.includes(selector + " {display: none !important;}\n"));
+  }
 }
 
-exports.testGetSelectorsForDomain = function(test)
+exports.testGenerateStyleSheetForDomain = function(test)
 {
   let addFilter = filterText => ElemHide.add(Filter.fromText(filterText));
   let removeFilter = filterText => ElemHide.remove(Filter.fromText(filterText));
