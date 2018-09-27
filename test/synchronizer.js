@@ -326,7 +326,7 @@ exports.testRedirects = function(test)
 
   this.runScheduledTasks(30).then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0], subscription, "Invalid redirect ignored");
+    test.equal([...FilterStorage.subscriptions()][0], subscription, "Invalid redirect ignored");
     test.equal(subscription.downloadStatus, "synchronize_connection_error", "Connection error recorded");
     test.equal(subscription.errors, 2, "Number of download errors");
 
@@ -342,7 +342,7 @@ exports.testRedirects = function(test)
     return this.runScheduledTasks(15);
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0].url, "http://example.com/redirected", "Redirect followed");
+    test.equal([...FilterStorage.subscriptions()][0].url, "http://example.com/redirected", "Redirect followed");
     test.deepEqual(requests, [0 + initialDelay, 8 + initialDelay], "Resulting requests");
 
     this.registerHandler("/redirected", metadata =>
@@ -352,13 +352,13 @@ exports.testRedirects = function(test)
 
     subscription = Subscription.fromURL("http://example.com/subscription");
     resetSubscription(subscription);
-    FilterStorage.removeSubscription(FilterStorage.subscriptions[0]);
+    FilterStorage.removeSubscription([...FilterStorage.subscriptions()][0]);
     FilterStorage.addSubscription(subscription);
 
     return this.runScheduledTasks(2);
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0], subscription, "Redirect not followed on redirect loop");
+    test.equal([...FilterStorage.subscriptions()][0], subscription, "Redirect not followed on redirect loop");
     test.equal(subscription.downloadStatus, "synchronize_connection_error", "Download status after redirect loop");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
@@ -407,7 +407,7 @@ exports.testFallback = function(test)
 
     subscription = Subscription.fromURL("http://example.com/subscription");
     resetSubscription(subscription);
-    FilterStorage.removeSubscription(FilterStorage.subscriptions[0]);
+    FilterStorage.removeSubscription([...FilterStorage.subscriptions()][0]);
     FilterStorage.addSubscription(subscription);
     requests = [];
 
@@ -418,7 +418,7 @@ exports.testFallback = function(test)
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0].url, "http://example.com/subscription", "Ignore invalid redirect from fallback");
+    test.equal([...FilterStorage.subscriptions()][0].url, "http://example.com/subscription", "Ignore invalid redirect from fallback");
     test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Requests not affected by invalid redirect");
 
     // Fallback redirecting to an existing file
@@ -435,7 +435,7 @@ exports.testFallback = function(test)
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0].url, "http://example.com/redirected", "Valid redirect from fallback is followed");
+    test.equal([...FilterStorage.subscriptions()][0].url, "http://example.com/redirected", "Valid redirect from fallback is followed");
     test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay], "Stop polling original URL after a valid redirect from fallback");
     test.deepEqual(redirectedRequests, [48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Request new URL after a valid redirect from fallback");
 
@@ -452,13 +452,13 @@ exports.testFallback = function(test)
 
     subscription = Subscription.fromURL("http://example.com/subscription");
     resetSubscription(subscription);
-    FilterStorage.removeSubscription(FilterStorage.subscriptions[0]);
+    FilterStorage.removeSubscription([...FilterStorage.subscriptions()][0]);
     FilterStorage.addSubscription(subscription);
 
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.equal(FilterStorage.subscriptions[0].url, "http://example.com/redirected", "Fallback can still redirect even after a redirect loop");
+    test.equal([...FilterStorage.subscriptions()][0].url, "http://example.com/redirected", "Fallback can still redirect even after a redirect loop");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
