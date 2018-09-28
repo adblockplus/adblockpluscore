@@ -58,7 +58,7 @@ function testResult(test, domain, expectedSelectors, specificOnly)
   let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
 
   let {code, selectors} =
-    ElemHide.generateStyleSheetForDomain(domain, specificOnly);
+    ElemHide.generateStyleSheetForDomain(domain, specificOnly, true);
 
   test.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
 
