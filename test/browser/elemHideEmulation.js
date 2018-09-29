@@ -153,13 +153,6 @@ function applyElemHideEmulation(selectors)
   return Promise.resolve().then(() =>
   {
     let elemHideEmulation = new ElemHideEmulation(
-      newSelectors =>
-      {
-        if (!newSelectors.length)
-          return;
-        let selector = newSelectors.join(", ");
-        insertStyleRule(selector + "{display: none !important;}");
-      },
       elems =>
       {
         for (let elem of elems)
