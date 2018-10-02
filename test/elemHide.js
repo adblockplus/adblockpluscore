@@ -21,6 +21,7 @@ const {createSandbox} = require("./_common");
 
 let ElemHide = null;
 let createStyleSheet = null;
+let rulesFromStyleSheet = null;
 let ElemHideExceptions = null;
 let Filter = null;
 let filtersByDomain = null;
@@ -34,8 +35,8 @@ exports.setUp = function(callback)
     }
   });
   (
-    {ElemHide, createStyleSheet, filtersByDomain, selectorGroupSize} =
-      sandboxedRequire("../lib/elemHide"),
+    {ElemHide, createStyleSheet, rulesFromStyleSheet,
+     filtersByDomain, selectorGroupSize} = sandboxedRequire("../lib/elemHide"),
     {ElemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions"),
     {Filter} = sandboxedRequire("../lib/filterClasses")
   );
@@ -302,6 +303,21 @@ exports.testCreateStyleSheet = function(test)
              Math.ceil(50000 / selectorGroupSize),
              "Style sheet should be split up into rules with at most " +
              selectorGroupSize + " selectors each");
+
+  test.done();
+};
+
+exports.testRulesFromStyleSheet = function(test)
+{
+  // Note: The rulesFromStyleSheet function assumes that each rule will be
+  // terminated with a newline character, including the last rule. If this is
+  // not the case, the function goes into an infinite loop. It should only be
+  // used with the return value of the createStyleSheet function.
+
+  test.deepEqual([...rulesFromStyleSheet("")], []);
+  test.deepEqual([...rulesFromStyleSheet("#foo {}\n")], ["#foo {}"]);
+  test.deepEqual([...rulesFromStyleSheet("#foo {}\n#bar {}\n")],
+                 ["#foo {}", "#bar {}"]);
 
   test.done();
 };
