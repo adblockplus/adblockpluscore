@@ -116,6 +116,13 @@
                 prefixes="es"
                 author="diaux"
                 type="ads"/>
+  <subscription title="IndianList+EasyList"
+                specialization="বাংলা (ভারত), ગુજરાતી (ભારત), भारतीय, ਪੰਜਾਬੀ (ਭਾਰਤ)"
+                url="https://easylist-downloads.adblockplus.org/indianlist+easylist.txt"
+                homepage="https://easylist.to/"
+                prefixes="bn,gu,hi,pa"
+                author="mediumkreation"
+                type="ads"/>
   <subscription title="Latvian List+EasyList"
                 specialization="latviešu valoda"
                 url="https://easylist-downloads.adblockplus.org/latvianlist+easylist.txt"
