@@ -66,12 +66,11 @@ function checkKnownFilters(test, text, expected)
   {
     let matcher = defaultMatcher[type];
     let filters = [];
-    for (let [keyword, list] of matcher.filterByKeyword)
+    for (let [keyword, set] of matcher.filterByKeyword)
     {
-      for (let i = 0; i < list.length; i++)
+      for (let filter of set)
       {
-        let filter = list[i];
-        test.equal(matcher.getKeywordForFilter(filter), keyword,
+        test.equal(matcher.findKeyword(filter), keyword,
                    "Keyword of filter " + filter.text);
         filters.push(filter.text);
       }
