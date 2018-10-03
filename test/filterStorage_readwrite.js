@@ -24,6 +24,7 @@ let FilterStorage = null;
 let IO = null;
 let Prefs = null;
 let ExternalSubscription = null;
+let SpecialSubscription = null;
 
 exports.setUp = function(callback)
 {
@@ -33,7 +34,7 @@ exports.setUp = function(callback)
     {FilterStorage} = sandboxedRequire("../lib/filterStorage"),
     {IO} = sandboxedRequire("./stub-modules/io"),
     {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-    {ExternalSubscription} = sandboxedRequire("../lib/subscriptionClasses")
+    {ExternalSubscription, SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses")
   );
 
   FilterStorage.addFilter(Filter.fromText("foobar"));
@@ -90,7 +91,7 @@ function canonize(data)
   return sections;
 }
 
-function testReadWrite(test, withExternal)
+function testReadWrite(test, withExternal, withEmptySpecial)
 {
   test.ok(!FilterStorage.initialized, "Uninitialized before the first load");
 
@@ -118,6 +119,20 @@ function testReadWrite(test, withExternal)
       test.equal(externalSubscriptions[0].filters.length, 2, "Number of filters in external subscription");
     }
 
+    if (withEmptySpecial)
+    {
+      let specialSubscription =
+        SpecialSubscription.createForFilter(Filter.fromText("!foo"));
+      FilterStorage.addSubscription(specialSubscription);
+
+      FilterStorage.removeFilter(Filter.fromText("!foo"), specialSubscription);
+
+      test.equal(specialSubscription.filters.length, 0,
+                 "No filters in special subscription");
+      test.ok(new Set(FilterStorage.subscriptions()).has(specialSubscription),
+              "Empty special subscription still in storage");
+    }
+
     return FilterStorage.saveToDisk();
   }).then(() => testData).then(expected =>
   {
@@ -134,6 +149,11 @@ exports.testReadAndSaveToFile = function(test)
 exports.testReadAndSaveToFileWithExternalSubscription = function(test)
 {
   testReadWrite(test, true);
+};
+
+exports.testReadAndSaveToFileWithEmptySpecial = function(test)
+{
+  testReadWrite(test, false, true);
 };
 
 exports.testImportExport = function(test)
