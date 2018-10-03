@@ -197,8 +197,7 @@ function compareFilter(test, text, expected, postInit)
 
   // Test round-trip
   let filter2;
-  let buffer = [];
-  filter.serialize(buffer);
+  let buffer = [...filter.serialize()];
   if (buffer.length)
   {
     let map = Object.create(null);

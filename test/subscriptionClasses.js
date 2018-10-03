@@ -43,8 +43,7 @@ function compareSubscription(test, url, expected, postInit)
   let subscription = Subscription.fromURL(url);
   if (postInit)
     postInit(subscription);
-  let result = [];
-  subscription.serialize(result);
+  let result = [...subscription.serialize()];
   test.equal(result.sort().join("\n"), expected.sort().join("\n"), url);
 
   let map = Object.create(null);
