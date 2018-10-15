@@ -344,6 +344,11 @@ exports.testFilterOptions = function(test)
 
   compareFilter(test, "bla$csp", ["type=invalid", "text=bla$csp", "reason=filter_invalid_csp"]);
   compareFilter(test, "bla$csp=", ["type=invalid", "text=bla$csp=", "reason=filter_invalid_csp"]);
+
+  // Blank CSP values are allowed for whitelist filters.
+  compareFilter(test, "@@bla$csp", ["type=whitelist", "text=@@bla$csp", "regexp=bla", "contentType=" + t.CSP]);
+  compareFilter(test, "@@bla$csp=", ["type=whitelist", "text=@@bla$csp=", "regexp=bla", "contentType=" + t.CSP]);
+
   compareFilter(test, "bla$csp=report-uri", ["type=invalid", "text=bla$csp=report-uri", "reason=filter_invalid_csp"]);
   compareFilter(test, "bla$csp=foo,csp=report-to", ["type=invalid", "text=bla$csp=foo,csp=report-to", "reason=filter_invalid_csp"]);
   compareFilter(test, "bla$csp=foo,csp=referrer foo", ["type=invalid", "text=bla$csp=foo,csp=referrer foo", "reason=filter_invalid_csp"]);
