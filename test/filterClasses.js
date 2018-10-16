@@ -610,16 +610,29 @@ exports.testFilterRewriteOption = function(test)
 
 exports.testDomainMapDeduplication = function(test)
 {
-  let filter1 = Filter.fromText("example.com##.foo");
-  let filter2 = Filter.fromText("example.com##.bar");
+  let filter1 = Filter.fromText("foo$domain=blocking.example.com");
+  let filter2 = Filter.fromText("bar$domain=blocking.example.com");
+  let filter3 = Filter.fromText("elemhide.example.com##.foo");
+  let filter4 = Filter.fromText("elemhide.example.com##.bar");
 
   // This compares the references to make sure that both refer to the same
   // object (#6815).
   test.equal(filter1.domains, filter2.domains);
 
-  let filter3 = Filter.fromText("www.example.com##.bar");
+  // For element hiding filters, the value of the property is cached internally
+  // only on second access.
+  test.notEqual(filter3.domains, filter4.domains);
+  test.equal(filter3.domains, filter4.domains);
 
-  test.notEqual(filter2.domains, filter3.domains);
+  let filter5 = Filter.fromText("bar$domain=www.example.com");
+  let filter6 = Filter.fromText("www.example.com##.bar");
+
+  test.notEqual(filter2.domains, filter5.domains);
+
+  // Check twice for element hiding filters to make sure the internal cached
+  // values are also not equal.
+  test.notEqual(filter4.domains, filter6.domains);
+  test.notEqual(filter4.domains, filter6.domains);
 
   test.done();
 };
