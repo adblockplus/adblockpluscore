@@ -83,7 +83,7 @@ function serializeFilter(filter)
 
     if (filter instanceof RegExpFilter)
     {
-      result.push("regexp=" + filter.regexp.source);
+      result.push("regexp=" + (filter.regexp ? filter.regexp.source : null));
       result.push("contentType=" + filter.contentType);
       result.push("matchCase=" + filter.matchCase);
 
@@ -160,6 +160,7 @@ function addDefaults(expected)
     addProperty("contentType", 0x7FFFFFFF & ~(
       t.CSP | t.DOCUMENT | t.ELEMHIDE | t.POPUP | t.GENERICHIDE | t.GENERICBLOCK
     ));
+    addProperty("regexp", "null");
     addProperty("matchCase", "false");
     addProperty("thirdParty", "null");
     addProperty("domains", "");
@@ -269,9 +270,9 @@ exports.testInvalidFilters = function(test)
 
 exports.testFiltersWithState = function(test)
 {
-  compareFilter(test, "blabla", ["type=filterlist", "text=blabla", "regexp=blabla"]);
+  compareFilter(test, "blabla", ["type=filterlist", "text=blabla"]);
   compareFilter(
-    test, "blabla_default", ["type=filterlist", "text=blabla_default", "regexp=blabla_default"],
+    test, "blabla_default", ["type=filterlist", "text=blabla_default"],
     filter =>
     {
       filter.disabled = false;
@@ -281,7 +282,7 @@ exports.testFiltersWithState = function(test)
   );
   compareFilter(
     test, "blabla_non_default",
-    ["type=filterlist", "text=blabla_non_default", "regexp=blabla_non_default", "disabled=true", "hitCount=12", "lastHit=20"],
+    ["type=filterlist", "text=blabla_non_default", "disabled=true", "hitCount=12", "lastHit=20"],
     filter =>
     {
       filter.disabled = true;
@@ -298,7 +299,7 @@ exports.testSpecialCharacters = function(test)
   compareFilter(test, "/ddd|f?a[s]d/", ["type=filterlist", "text=/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d"]);
   compareFilter(test, "*asdf*d**dd*", ["type=filterlist", "text=*asdf*d**dd*", "regexp=asdf.*d.*dd"]);
   compareFilter(test, "|*asd|f*d**dd*|", ["type=filterlist", "text=|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$"]);
-  compareFilter(test, "dd[]{}$%<>&()d", ["type=filterlist", "text=dd[]{}$%<>&()d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\)d"]);
+  compareFilter(test, "dd[]{}$%<>&()*d", ["type=filterlist", "text=dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d"]);
 
   // Leading and trailing wildcards should be left in for rewrite filters (#6868).
   compareFilter(test, "*asdf*d**dd*$rewrite=", ["type=filterlist", "text=*asdf*d**dd*$rewrite=", "regexp=.*asdf.*d.*dd.*", "rewrite=", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.SUBDOCUMENT | t.OBJECT | t.OBJECT_SUBREQUEST))]);
@@ -306,34 +307,34 @@ exports.testSpecialCharacters = function(test)
   compareFilter(test, "@@/ddd|f?a[s]d/", ["type=whitelist", "text=@@/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d", "contentType=" + defaultTypes]);
   compareFilter(test, "@@*asdf*d**dd*", ["type=whitelist", "text=@@*asdf*d**dd*", "regexp=asdf.*d.*dd", "contentType=" + defaultTypes]);
   compareFilter(test, "@@|*asd|f*d**dd*|", ["type=whitelist", "text=@@|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$", "contentType=" + defaultTypes]);
-  compareFilter(test, "@@dd[]{}$%<>&()d", ["type=whitelist", "text=@@dd[]{}$%<>&()d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\)d", "contentType=" + defaultTypes]);
+  compareFilter(test, "@@dd[]{}$%<>&()*d", ["type=whitelist", "text=@@dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d", "contentType=" + defaultTypes]);
 
   test.done();
 };
 
 exports.testFilterOptions = function(test)
 {
-  compareFilter(test, "bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", ["type=filterlist", "text=bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=foo.com", "sitekeys=FOO", "csp=first csp"]);
-  compareFilter(test, "bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~bar.com"]);
-  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
-  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "regexp=bla", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
+  compareFilter(test, "bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", ["type=filterlist", "text=bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=foo.com", "sitekeys=FOO", "csp=first csp"]);
+  compareFilter(test, "bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~bar.com"]);
+  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
+  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
   compareFilter(test, "||content.server.com/files/*.php$rewrite=$1", ["type=filterlist", "text=||content.server.com/files/*.php$rewrite=$1", "regexp=^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?content\\.server\\.com\\/files\\/.*\\.php", "matchCase=false", "rewrite=$1", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.SUBDOCUMENT | t.OBJECT | t.OBJECT_SUBREQUEST))]);
 
   // background and image should be the same for backwards compatibility
-  compareFilter(test, "bla$image", ["type=filterlist", "text=bla$image", "regexp=bla", "contentType=" + (t.IMAGE)]);
-  compareFilter(test, "bla$background", ["type=filterlist", "text=bla$background", "regexp=bla", "contentType=" + (t.IMAGE)]);
-  compareFilter(test, "bla$~image", ["type=filterlist", "text=bla$~image", "regexp=bla", "contentType=" + (defaultTypes & ~t.IMAGE)]);
-  compareFilter(test, "bla$~background", ["type=filterlist", "text=bla$~background", "regexp=bla", "contentType=" + (defaultTypes & ~t.IMAGE)]);
+  compareFilter(test, "bla$image", ["type=filterlist", "text=bla$image", "contentType=" + (t.IMAGE)]);
+  compareFilter(test, "bla$background", ["type=filterlist", "text=bla$background", "contentType=" + (t.IMAGE)]);
+  compareFilter(test, "bla$~image", ["type=filterlist", "text=bla$~image", "contentType=" + (defaultTypes & ~t.IMAGE)]);
+  compareFilter(test, "bla$~background", ["type=filterlist", "text=bla$~background", "contentType=" + (defaultTypes & ~t.IMAGE)]);
 
-  compareFilter(test, "@@bla$~script,~other", ["type=whitelist", "text=@@bla$~script,~other", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@http://bla$~script,~other", ["type=whitelist", "text=@@http://bla$~script,~other", "regexp=http\\:\\/\\/bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter(test, "@@bla$~script,~other", ["type=whitelist", "text=@@bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter(test, "@@http://bla$~script,~other", ["type=whitelist", "text=@@http://bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
   compareFilter(test, "@@|ftp://bla$~script,~other", ["type=whitelist", "text=@@|ftp://bla$~script,~other", "regexp=^ftp\\:\\/\\/bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.DOCUMENT)]);
-  compareFilter(test, "@@bla$~script,~other,~document", ["type=whitelist", "text=@@bla$~script,~other,~document", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$document", ["type=whitelist", "text=@@bla$document", "regexp=bla", "contentType=" + t.DOCUMENT]);
-  compareFilter(test, "@@bla$~script,~other,elemhide", ["type=whitelist", "text=@@bla$~script,~other,elemhide", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.ELEMHIDE)]);
-  compareFilter(test, "@@bla$~script,~other,~elemhide", ["type=whitelist", "text=@@bla$~script,~other,~elemhide", "regexp=bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$elemhide", ["type=whitelist", "text=@@bla$elemhide", "regexp=bla", "contentType=" + t.ELEMHIDE]);
+  compareFilter(test, "@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.DOCUMENT)]);
+  compareFilter(test, "@@bla$~script,~other,~document", ["type=whitelist", "text=@@bla$~script,~other,~document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter(test, "@@bla$document", ["type=whitelist", "text=@@bla$document", "contentType=" + t.DOCUMENT]);
+  compareFilter(test, "@@bla$~script,~other,elemhide", ["type=whitelist", "text=@@bla$~script,~other,elemhide", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.ELEMHIDE)]);
+  compareFilter(test, "@@bla$~script,~other,~elemhide", ["type=whitelist", "text=@@bla$~script,~other,~elemhide", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter(test, "@@bla$elemhide", ["type=whitelist", "text=@@bla$elemhide", "contentType=" + t.ELEMHIDE]);
 
   compareFilter(test, "@@bla$~script,~other,donottrack", ["type=invalid", "text=@@bla$~script,~other,donottrack", "reason=filter_unknown_option"]);
   compareFilter(test, "@@bla$~script,~other,~donottrack", ["type=invalid", "text=@@bla$~script,~other,~donottrack", "reason=filter_unknown_option"]);
@@ -346,8 +347,8 @@ exports.testFilterOptions = function(test)
   compareFilter(test, "bla$csp=", ["type=invalid", "text=bla$csp=", "reason=filter_invalid_csp"]);
 
   // Blank CSP values are allowed for whitelist filters.
-  compareFilter(test, "@@bla$csp", ["type=whitelist", "text=@@bla$csp", "regexp=bla", "contentType=" + t.CSP]);
-  compareFilter(test, "@@bla$csp=", ["type=whitelist", "text=@@bla$csp=", "regexp=bla", "contentType=" + t.CSP]);
+  compareFilter(test, "@@bla$csp", ["type=whitelist", "text=@@bla$csp", "contentType=" + t.CSP]);
+  compareFilter(test, "@@bla$csp=", ["type=whitelist", "text=@@bla$csp=", "contentType=" + t.CSP]);
 
   compareFilter(test, "bla$csp=report-uri", ["type=invalid", "text=bla$csp=report-uri", "reason=filter_invalid_csp"]);
   compareFilter(test, "bla$csp=foo,csp=report-to", ["type=invalid", "text=bla$csp=foo,csp=report-to", "reason=filter_invalid_csp"]);
@@ -515,7 +516,6 @@ exports.testFilterNormalization = function(test)
       "csp=c s p",
       "domains=domain.com|foo.com",
       "sitekeys=FOO",
-      "regexp=b\\$la",
       "contentType=" + t.CSP
     ]
   );
