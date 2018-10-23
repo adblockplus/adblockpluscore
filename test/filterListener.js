@@ -64,9 +64,9 @@ function checkKnownFilters(test, text, expected)
   let result = {};
   for (let type of ["blacklist", "whitelist"])
   {
-    let matcher = defaultMatcher[type];
+    let matcher = defaultMatcher["_" + type];
     let filters = [];
-    for (let [keyword, set] of matcher.filterByKeyword)
+    for (let [keyword, set] of matcher._filterByKeyword)
     {
       for (let filter of set)
       {
