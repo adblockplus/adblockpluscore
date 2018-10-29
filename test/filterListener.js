@@ -90,13 +90,13 @@ function checkKnownFilters(test, text, expected)
 
   let elemHideEmulation = sandboxedRequire("../lib/elemHideEmulation");
   result.elemhideemulation = [];
-  for (let filterText of elemHideEmulation.filters)
-    result.elemhideemulation.push(filterText);
+  for (let filter of elemHideEmulation.filters)
+    result.elemhideemulation.push(filter.text);
 
   let snippets = sandboxedRequire("../lib/snippets");
   result.snippets = [];
-  for (let filterText of snippets.filters)
-    result.snippets.push(filterText);
+  for (let filter of snippets.filters)
+    result.snippets.push(filter.text);
 
   let types = ["blacklist", "whitelist", "elemhide", "elemhideexception",
                "elemhideemulation", "snippets"];
