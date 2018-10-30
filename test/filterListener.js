@@ -66,13 +66,17 @@ function checkKnownFilters(test, text, expected)
   {
     let matcher = defaultMatcher["_" + type];
     let filters = [];
-    for (let [keyword, set] of matcher._filterByKeyword)
+    for (let map of [matcher._simpleFiltersByKeyword,
+                     matcher._complexFiltersByKeyword])
     {
-      for (let filter of set)
+      for (let [keyword, set] of map)
       {
-        test.equal(matcher.findKeyword(filter), keyword,
-                   "Keyword of filter " + filter.text);
-        filters.push(filter.text);
+        for (let filter of set)
+        {
+          test.equal(matcher.findKeyword(filter), keyword,
+                     "Keyword of filter " + filter.text);
+          filters.push(filter.text);
+        }
       }
     }
     result[type] = filters;
