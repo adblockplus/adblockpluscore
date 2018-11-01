@@ -58,7 +58,7 @@ function compareKeywords(test, text, expected)
   }
 }
 
-function checkMatch(test, filters, location, contentType, docDomain, thirdParty, sitekey, specificOnly, expected)
+function checkMatch(test, filters, location, contentType, docDomain, thirdParty, sitekey, specificOnly, expected, expectedFirstMatch = expected)
 {
   let matcher = new Matcher();
   for (let filter of filters)
@@ -68,7 +68,7 @@ function checkMatch(test, filters, location, contentType, docDomain, thirdParty,
   if (result)
     result = result.text;
 
-  test.equal(result, expected, "match(" + location + ", " + contentType + ", " + docDomain + ", " + (thirdParty ? "third-party" : "first-party") + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
+  test.equal(result, expectedFirstMatch, "match(" + location + ", " + contentType + ", " + docDomain + ", " + (thirdParty ? "third-party" : "first-party") + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
 
   let combinedMatcher = new CombinedMatcher();
   for (let i = 0; i < 2; i++)
@@ -209,6 +209,9 @@ exports.testFilterMatching = function(test)
   checkMatch(test, ["@@bar.com$genericblock"], "http://foo.com/bar", "GENERICBLOCK", "foo.com", false, null, false, null);
   checkMatch(test, ["/bar"], "http://foo.com/bar", "IMAGE", "foo.com", false, null, true, null);
   checkMatch(test, ["/bar$domain=foo.com"], "http://foo.com/bar", "IMAGE", "foo.com", false, null, true, "/bar$domain=foo.com");
+  checkMatch(test, ["@@||foo.com^"], "http://foo.com/bar", "IMAGE", "foo.com", false, null, false, null, "@@||foo.com^");
+  checkMatch(test, ["/bar", "@@||foo.com^"], "http://foo.com/bar", "IMAGE", "foo.com", false, null, false, "@@||foo.com^");
+  checkMatch(test, ["/bar", "@@||foo.com^"], "http://foo.com/foo", "IMAGE", "foo.com", false, null, false, null, "@@||foo.com^");
 
   test.done();
 };
