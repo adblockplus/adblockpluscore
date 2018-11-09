@@ -34,11 +34,13 @@ const CHROMIUM_REVISION = 508578;
 function runScript(chromiumPath, script, scriptName, scriptArgs)
 {
   const options = new chrome.Options()
-        .headless()
         // Disabling sandboxing is needed on some system configurations
         // like Debian 9.
         .addArguments("--no-sandbox")
         .setChromeBinaryPath(chromiumPath);
+  // Headless doesn't seem to work on Windows.
+  if (process.platform != "win32")
+    options.headless();
 
   const driver = new Builder()
         .forBrowser("chrome")

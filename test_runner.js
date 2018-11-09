@@ -47,7 +47,13 @@ function configureRunners()
       process.env.BROWSER_TEST_RUNNERS.split(",") : [];
 
   if (runners.length == 0)
+  {
+    // We default to not using the Chromium remote interface on Windows,
+    // as it fails.
+    if (process.platform == "win32")
+      return ["chromium", "firefox"];
     return ["chromium_remote", "firefox"];
+  }
 
   return runners.filter(runner => runnerDefinitions.hasOwnProperty(runner));
 }
