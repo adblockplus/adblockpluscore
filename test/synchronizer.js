@@ -514,7 +514,7 @@ exports.testStateFields = function(test)
 exports.testSpecialCommentOrdering = function(test)
 {
   let subscription = Subscription.fromURL("http://example.com/subscription");
-  FilterStorage.addSubscription(subscription);
+  filterStorage.addSubscription(subscription);
 
   this.registerHandler("/subscription", metadata =>
   {
@@ -530,7 +530,7 @@ exports.testSpecialCommentOrdering = function(test)
 exports.testUnknownSpecialComments = function(test)
 {
   let subscription = Subscription.fromURL("http://example.com/subscription");
-  FilterStorage.addSubscription(subscription);
+  filterStorage.addSubscription(subscription);
 
   this.registerHandler("/subscription", metadata =>
   {
