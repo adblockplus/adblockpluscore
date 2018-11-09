@@ -510,3 +510,36 @@ exports.testStateFields = function(test)
     test.equal(subscription.errors, 2, "errors after download error");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
+
+exports.testSpecialCommentOrdering = function(test)
+{
+  let subscription = Subscription.fromURL("http://example.com/subscription");
+  FilterStorage.addSubscription(subscription);
+
+  this.registerHandler("/subscription", metadata =>
+  {
+    return [Cr.NS_OK, 200, "[Adblock]\n! Special Comment: x\n!foo\n! Title: foobar\nfoo\nbar"];
+  });
+
+  this.runScheduledTasks(1).then(() =>
+  {
+    test.equal(subscription.title, "http://example.com/subscription", "make sure title was not found");
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
+
+exports.testUnknownSpecialComments = function(test)
+{
+  let subscription = Subscription.fromURL("http://example.com/subscription");
+  FilterStorage.addSubscription(subscription);
+
+  this.registerHandler("/subscription", metadata =>
+  {
+    // To test allowing unknown special comments like `! :`, `!!@#$%^&*() : `, and `! Some Unknown Comment : `
+    return [Cr.NS_OK, 200, "[Adblock]\n! :\n! !@#$%^&*() :\n! Some Unknown Comment :\n! Title: foobar\nfoo\nbar"];
+  });
+
+  this.runScheduledTasks(1).then(() =>
+  {
+    test.equal(subscription.title, "foobar", "make sure title was found");
+  }).catch(unexpectedError.bind(test)).then(() => test.done());
+};
