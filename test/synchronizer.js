@@ -22,7 +22,6 @@ let {
   MILLIS_IN_SECOND, MILLIS_IN_HOUR
 } = require("./_common");
 
-let Filter = null;
 let filterStorage = null;
 let Prefs = null;
 let Subscription = null;
@@ -34,7 +33,6 @@ exports.setUp = function(callback)
 
   let sandboxedRequire = createSandbox({globals});
   (
-    {Filter} = sandboxedRequire("../lib/filterClasses"),
     {filterStorage} = sandboxedRequire("../lib/filterStorage"),
     {Prefs} = sandboxedRequire("./stub-modules/prefs"),
     {Subscription} = sandboxedRequire("../lib/subscriptionClasses"),
@@ -143,16 +141,11 @@ for (let currentTest of [
 
       if (currentTest.downloadStatus == "synchronize_ok")
       {
-        test.deepEqual(subscription.filters, [
-          Filter.fromText("foo"),
-          Filter.fromText("!bar"),
-          Filter.fromText("@@bas"),
-          Filter.fromText("#bam")
-        ], "Resulting subscription filters");
+        test.deepEqual([...subscription.filterText()], ["foo", "!bar", "@@bas", "#bam"], "Resulting subscription filters");
       }
       else
       {
-        test.deepEqual(subscription.filters, [
+        test.deepEqual([...subscription.filterText()], [
         ], "Resulting subscription filters");
       }
     }).catch(unexpectedError.bind(test)).then(() => test.done());
@@ -307,7 +300,7 @@ for (let [comment, check] of [
     this.runScheduledTasks(2).then(() =>
     {
       check(test, subscription);
-      test.deepEqual(subscription.filters, [Filter.fromText("foo"), Filter.fromText("bar")], "Special comment not added to filters");
+      test.deepEqual([...subscription.filterText()], ["foo", "bar"], "Special comment not added to filters");
     }).catch(unexpectedError.bind(test)).then(() => test.done());
   };
 }

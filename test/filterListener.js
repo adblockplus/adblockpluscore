@@ -207,7 +207,13 @@ exports.testFilterSubscriptionOperations = function(test)
   let filter7 = Filter.fromText("example.com#@#[-abp-properties='filter7']");
 
   let subscription = Subscription.fromURL("http://test1/");
-  subscription.filters = [filter1, filter2, filter3, filter4, filter5, filter6, filter7];
+  subscription.addFilter(filter1);
+  subscription.addFilter(filter2);
+  subscription.addFilter(filter3);
+  subscription.addFilter(filter4);
+  subscription.addFilter(filter5);
+  subscription.addFilter(filter6);
+  subscription.addFilter(filter7);
 
   filterStorage.addSubscription(subscription);
   checkKnownFilters(test, "add subscription with filter1, @@filter2, ##filter3, !filter4, #@#filter5, example.com#?#:-abp-properties(filter6), example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
@@ -277,7 +283,8 @@ exports.testFilterGroupOperations = function(test)
   let filter5 = Filter.fromText("!filter5");
 
   let subscription = Subscription.fromURL("http://test1/");
-  subscription.filters = [filter1, filter2];
+  subscription.addFilter(filter1);
+  subscription.addFilter(filter2);
 
   filterStorage.addSubscription(subscription);
   filterStorage.addFilter(filter1);
@@ -341,26 +348,27 @@ exports.testSnippetFilters = function(test)
   let filter3 = Filter.fromText("example.com#$#filter3");
 
   let subscription1 = Subscription.fromURL("http://test1/");
-  subscription1.filters = [filter1, filter2];
+  subscription1.addFilter(filter1);
+  subscription1.addFilter(filter2);
 
   filterStorage.addSubscription(subscription1);
   checkKnownFilters(test, "add subscription with filter1 and filter2", {});
 
   let subscription2 = Subscription.fromURL("http://test2/");
   subscription2.type = "circumvention";
-  subscription2.filters = [filter1];
+  subscription2.addFilter(filter1);
 
   filterStorage.addSubscription(subscription2);
   checkKnownFilters(test, "add subscription of type circumvention with filter1", {snippets: [filter1.text]});
 
   let subscription3 = Subscription.fromURL("~foo");
-  subscription3.filters = [filter2];
+  subscription3.addFilter(filter2);
 
   filterStorage.addSubscription(subscription3);
   checkKnownFilters(test, "add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
 
   let subscription4 = Subscription.fromURL("https://easylist-downloads.adblockplus.org/abp-filters-anti-cv.txt");
-  subscription4.filters = [filter3];
+  subscription4.addFilter(filter3);
 
   filterStorage.addSubscription(subscription4);
   checkKnownFilters(test, "add ABP anti-circumvention subscription with filter3", {snippets: [filter1.text, filter2.text, filter3.text]});

@@ -108,7 +108,8 @@ function testReadWrite(test, withExternal, withEmptySpecial)
     {
       {
         let subscription = new ExternalSubscription("~external~external subscription ID", "External subscription");
-        subscription.filters = [Filter.fromText("foo"), Filter.fromText("bar")];
+        subscription.addFilter(Filter.fromText("foo"));
+        subscription.addFilter(Filter.fromText("bar"));
         filterStorage.addSubscription(subscription);
       }
 
@@ -116,7 +117,7 @@ function testReadWrite(test, withExternal, withEmptySpecial)
       test.equal(externalSubscriptions.length, 1, "Number of external subscriptions after updateExternalSubscription");
 
       test.equal(externalSubscriptions[0].url, "~external~external subscription ID", "ID of external subscription");
-      test.equal(externalSubscriptions[0].filters.length, 2, "Number of filters in external subscription");
+      test.equal(externalSubscriptions[0].filterCount, 2, "Number of filters in external subscription");
     }
 
     if (withEmptySpecial)
@@ -127,7 +128,7 @@ function testReadWrite(test, withExternal, withEmptySpecial)
 
       filterStorage.removeFilter(Filter.fromText("!foo"), specialSubscription);
 
-      test.equal(specialSubscription.filters.length, 0,
+      test.equal(specialSubscription.filterCount, 0,
                  "No filters in special subscription");
       test.ok(new Set(filterStorage.subscriptions()).has(specialSubscription),
               "Empty special subscription still in storage");
@@ -250,23 +251,23 @@ exports.testRestoringBackup = function(test)
 
   filterStorage.saveToDisk().then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].filters.length, 1, "Initial filter count");
+    test.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Initial filter count");
     filterStorage.addFilter(Filter.fromText("barfoo"));
-    test.equal([...filterStorage.subscriptions()][0].filters.length, 2, "Filter count after adding a filter");
+    test.equal([...filterStorage.subscriptions()][0].filterCount, 2, "Filter count after adding a filter");
     return filterStorage.saveToDisk();
   }).then(() =>
   {
     return filterStorage.loadFromDisk();
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].filters.length, 2, "Filter count after adding filter and reloading");
+    test.equal([...filterStorage.subscriptions()][0].filterCount, 2, "Filter count after adding filter and reloading");
     return filterStorage.restoreBackup(1);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].filters.length, 1, "Filter count after restoring backup");
+    test.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after restoring backup");
     return filterStorage.loadFromDisk();
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].filters.length, 1, "Filter count after reloading");
+    test.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after reloading");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
