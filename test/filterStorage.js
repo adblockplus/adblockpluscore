@@ -72,8 +72,7 @@ function compareSubscriptionList(test, testMessage, list,
 function compareFiltersList(test, testMessage, list)
 {
   let result = [...filterStorage.subscriptions()].map(
-    subscription => subscription.filters.map(
-      filter => filter.text));
+    subscription => [...subscription.filterText()]);
   test.deepEqual(result, list, testMessage);
 }
 
@@ -291,13 +290,18 @@ exports.testAddingFilters = function(test)
 exports.testRemovingFilters = function(test)
 {
   let subscription1 = Subscription.fromURL("~foo");
-  subscription1.filters = [Filter.fromText("foo"), Filter.fromText("foo"), Filter.fromText("bar")];
+  subscription1.addFilter(Filter.fromText("foo"));
+  subscription1.addFilter(Filter.fromText("foo"));
+  subscription1.addFilter(Filter.fromText("bar"));
 
   let subscription2 = Subscription.fromURL("~bar");
-  subscription2.filters = [Filter.fromText("foo"), Filter.fromText("bar"), Filter.fromText("foo")];
+  subscription2.addFilter(Filter.fromText("foo"));
+  subscription2.addFilter(Filter.fromText("bar"));
+  subscription2.addFilter(Filter.fromText("foo"));
 
   let subscription3 = Subscription.fromURL("http://test/");
-  subscription3.filters = [Filter.fromText("foo"), Filter.fromText("bar")];
+  subscription3.addFilter(Filter.fromText("foo"));
+  subscription3.addFilter(Filter.fromText("bar"));
 
   filterStorage.addSubscription(subscription1);
   filterStorage.addSubscription(subscription2);
@@ -350,10 +354,14 @@ exports.testRemovingFilters = function(test)
 exports.testMovingFilters = function(test)
 {
   let subscription1 = Subscription.fromURL("~foo");
-  subscription1.filters = [Filter.fromText("foo"), Filter.fromText("bar"), Filter.fromText("bas"), Filter.fromText("foo")];
+  subscription1.addFilter(Filter.fromText("foo"));
+  subscription1.addFilter(Filter.fromText("bar"));
+  subscription1.addFilter(Filter.fromText("bas"));
+  subscription1.addFilter(Filter.fromText("foo"));
 
   let subscription2 = Subscription.fromURL("http://test/");
-  subscription2.filters = [Filter.fromText("foo"), Filter.fromText("bar")];
+  subscription2.addFilter(Filter.fromText("foo"));
+  subscription2.addFilter(Filter.fromText("bar"));
 
   filterStorage.addSubscription(subscription1);
   filterStorage.addSubscription(subscription2);
@@ -451,13 +459,17 @@ exports.testFilterSubscriptionRelationship = function(test)
   let filter3 = Filter.fromText("filter3");
 
   let subscription1 = Subscription.fromURL("http://test1/");
-  subscription1.filters = [filter1, filter2];
+  subscription1.addFilter(filter1);
+  subscription1.addFilter(filter2);
 
   let subscription2 = Subscription.fromURL("http://test2/");
-  subscription2.filters = [filter2, filter3];
+  subscription2.addFilter(filter2);
+  subscription2.addFilter(filter3);
 
   let subscription3 = Subscription.fromURL("http://test3/");
-  subscription3.filters = [filter1, filter2, filter3];
+  subscription3.addFilter(filter1);
+  subscription3.addFilter(filter2);
+  subscription3.addFilter(filter3);
 
   compareFilterSubscriptions(test, "Initial filter1 subscriptions", filter1, []);
   compareFilterSubscriptions(test, "Initial filter2 subscriptions", filter2, []);
