@@ -26,10 +26,10 @@
                 author="fanboy, MonztA, Famlam, Khrin"
                 type="ads"/>
   <subscription title="ABPindo+EasyList"
-                specialization="Bahasa Indonesia"
+                specialization="Bahasa Indonesia, Melayu"
                 url="https://easylist-downloads.adblockplus.org/abpindo+easylist.txt"
                 homepage="http://abpindo.blogspot.com/"
-                prefixes="id"
+                prefixes="id,ms"
                 author="heradhis"
                 type="ads"/>
   <subscription title="ABPVN List+EasyList"
