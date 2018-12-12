@@ -16,7 +16,7 @@
     "nodeunit": "0.9.1",
     "sandboxed-module": "2.0.3",
     "script-loader": "0.7.0",
-    "selenium-webdriver": "^3.6.0",
+    "selenium-webdriver": "^4.0.0-alpha",
     "webpack": "3.5.4"
   },
   "scripts": {

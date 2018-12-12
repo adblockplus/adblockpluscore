@@ -30,12 +30,7 @@ const FIREFOX_VERSION = "57.0";
 
 function runScript(firefoxPath, script, scriptName, scriptArgs)
 {
-  let binary = new firefox.Binary(firefoxPath);
-  binary.addArguments("-headless");
-
-  const options = new firefox.Options()
-        .setBinary(binary);
-
+  const options = new firefox.Options().setBinary(firefoxPath).headless();
   const driver = new Builder()
         .forBrowser("firefox")
         .setFirefoxOptions(options)
