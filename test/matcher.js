@@ -259,3 +259,35 @@ exports.testResultCacheChecks = function(test)
 
   test.done();
 };
+
+exports.testWhitelisted = function(test)
+{
+  let matcher = new CombinedMatcher();
+
+  test.ok(!matcher.isWhitelisted("https://example.com/foo",
+                                 RegExpFilter.typeMap.IMAGE));
+  test.ok(!matcher.isWhitelisted("https://example.com/bar",
+                                 RegExpFilter.typeMap.IMAGE));
+  test.ok(!matcher.isWhitelisted("https://example.com/foo",
+                                 RegExpFilter.typeMap.SUBDOCUMENT));
+
+  matcher.add(Filter.fromText("@@/foo^$image"));
+
+  test.ok(matcher.isWhitelisted("https://example.com/foo",
+                                RegExpFilter.typeMap.IMAGE));
+  test.ok(!matcher.isWhitelisted("https://example.com/bar",
+                                 RegExpFilter.typeMap.IMAGE));
+  test.ok(!matcher.isWhitelisted("https://example.com/foo",
+                                 RegExpFilter.typeMap.SUBDOCUMENT));
+
+  matcher.remove(Filter.fromText("@@/foo^$image"));
+
+  test.ok(!matcher.isWhitelisted("https://example.com/foo",
+                                 RegExpFilter.typeMap.IMAGE));
+  test.ok(!matcher.isWhitelisted("https://example.com/bar",
+                                 RegExpFilter.typeMap.IMAGE));
+  test.ok(!matcher.isWhitelisted("https://example.com/foo",
+                                 RegExpFilter.typeMap.SUBDOCUMENT));
+
+  test.done();
+};
