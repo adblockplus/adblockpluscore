@@ -203,8 +203,12 @@ exports.testFilterMatching = function(test)
   checkMatch(test, ["abc$sitekey=foo-publickey,domain=foo.com", "abc$sitekey=bar-publickey,domain=bar.com"], "http://abc/def", "IMAGE", "foo.com", false, "bar-publickey", false, null);
   checkMatch(test, ["abc$sitekey=foo-publickey,domain=foo.com", "abc$sitekey=bar-publickey,domain=bar.com"], "http://abc/def", "IMAGE", "bar.com", false, "foo-publickey", false, null);
   checkMatch(test, ["abc$sitekey=foo-publickey,domain=foo.com", "abc$sitekey=bar-publickey,domain=bar.com"], "http://abc/def", "IMAGE", "bar.com", false, "bar-publickey", false, "abc$sitekey=bar-publickey,domain=bar.com");
+  checkMatch(test, ["@@foo.com$document"], "http://foo.com/bar", "DOCUMENT", "foo.com", false, null, false, "@@foo.com$document");
+  checkMatch(test, ["@@foo.com$elemhide"], "http://foo.com/bar", "ELEMHIDE", "foo.com", false, null, false, "@@foo.com$elemhide");
   checkMatch(test, ["@@foo.com$generichide"], "http://foo.com/bar", "GENERICHIDE", "foo.com", false, null, false, "@@foo.com$generichide");
   checkMatch(test, ["@@foo.com$genericblock"], "http://foo.com/bar", "GENERICBLOCK", "foo.com", false, null, false, "@@foo.com$genericblock");
+  checkMatch(test, ["@@bar.com$document"], "http://foo.com/bar", "DOCUMENT", "foo.com", false, null, false, null);
+  checkMatch(test, ["@@bar.com$elemhide"], "http://foo.com/bar", "ELEMHIDE", "foo.com", false, null, false, null);
   checkMatch(test, ["@@bar.com$generichide"], "http://foo.com/bar", "GENERICHIDE", "foo.com", false, null, false, null);
   checkMatch(test, ["@@bar.com$genericblock"], "http://foo.com/bar", "GENERICBLOCK", "foo.com", false, null, false, null);
   checkMatch(test, ["/bar"], "http://foo.com/bar", "IMAGE", "foo.com", false, null, true, null);
@@ -212,6 +216,12 @@ exports.testFilterMatching = function(test)
   checkMatch(test, ["@@||foo.com^"], "http://foo.com/bar", "IMAGE", "foo.com", false, null, false, null, "@@||foo.com^");
   checkMatch(test, ["/bar", "@@||foo.com^"], "http://foo.com/bar", "IMAGE", "foo.com", false, null, false, "@@||foo.com^");
   checkMatch(test, ["/bar", "@@||foo.com^"], "http://foo.com/foo", "IMAGE", "foo.com", false, null, false, null, "@@||foo.com^");
+  checkMatch(test, ["||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", false, null, false, "||foo.com^$popup");
+  checkMatch(test, ["@@||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", false, null, false, null, "@@||foo.com^$popup");
+  checkMatch(test, ["||foo.com^$popup", "@@||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", false, null, false, "@@||foo.com^$popup", "||foo.com^$popup");
+  checkMatch(test, ["||foo.com^$csp=script-src 'none'"], "http://foo.com/bar", "CSP", "foo.com", false, null, false, "||foo.com^$csp=script-src 'none'");
+  checkMatch(test, ["@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", false, null, false, null, "@@||foo.com^$csp");
+  checkMatch(test, ["||foo.com^$csp=script-src 'none'", "@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", false, null, false, "@@||foo.com^$csp", "||foo.com^$csp=script-src 'none'");
 
   test.done();
 };
