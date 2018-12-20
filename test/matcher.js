@@ -291,3 +291,25 @@ exports.testWhitelisted = function(test)
 
   test.done();
 };
+
+exports.testAddRemoveByKeyword = function(test)
+{
+  let matcher = new CombinedMatcher();
+
+  matcher.add(Filter.fromText("||example.com/foo/bar/image.jpg"));
+
+  // Add the same filter a second time to make sure it doesn't get added again
+  // by a different keyword.
+  matcher.add(Filter.fromText("||example.com/foo/bar/image.jpg"));
+
+  test.ok(!!matcher.matchesAny("https://example.com/foo/bar/image.jpg",
+                               RegExpFilter.typeMap.IMAGE));
+
+  matcher.remove(Filter.fromText("||example.com/foo/bar/image.jpg"));
+
+  // Make sure the filter got removed so there is no match.
+  test.ok(!matcher.matchesAny("https://example.com/foo/bar/image.jpg",
+                              RegExpFilter.typeMap.IMAGE));
+
+  test.done();
+};
