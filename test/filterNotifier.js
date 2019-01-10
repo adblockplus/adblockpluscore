@@ -50,6 +50,12 @@ function removeListener(listener)
 
 function compareListeners(test, testDescription, list)
 {
+  test.equal(filterNotifier.hasListeners(), list.length > 0, testDescription);
+  test.equal(filterNotifier.hasListeners("foo"), list.length > 0,
+             testDescription);
+
+  test.equal(filterNotifier.hasListeners("bar"), false, testDescription);
+
   let result1 = triggeredListeners = [];
   filterNotifier.emit("foo", {bar: true});
 
