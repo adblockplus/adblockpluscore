@@ -30,69 +30,57 @@ exports.IO = {
   },
 
   // Public API
-  writeToFile(fileName, generator)
+  async writeToFile(fileName, generator)
   {
-    return Promise.resolve().then(() =>
-    {
-      data.set(fileName, {
-        lastModified: Date.now(),
-        contents: Array.from(generator)
-      });
+    data.set(fileName, {
+      lastModified: Date.now(),
+      contents: Array.from(generator)
     });
   },
-  readFromFile(fileName, listener)
+  async readFromFile(fileName, listener)
   {
-    return Promise.resolve().then(() =>
-    {
-      if (!data.has(fileName))
-        throw new Error("File doesn't exist");
+    if (!data.has(fileName))
+      throw new Error("File doesn't exist");
 
-      let lines = data.get(fileName).contents;
-      for (let line of lines)
-        listener(line);
-    });
+    let lines = data.get(fileName).contents;
+    for (let line of lines)
+      listener(line);
   },
-  copyFile(fromName, toName)
+  async copyFile(fromName, toName)
   {
-    return Promise.resolve().then(() =>
-    {
-      if (!data.has(fromName))
-        throw new Error("File doesn't exist");
-      if (fromName == toName)
-        throw new Error("Cannot copy file to itself");
+    if (!data.has(fromName))
+      throw new Error("File doesn't exist");
 
-      data.set(toName, data.get(fromName));
-    });
-  },
-  renameFile(fromName, toName)
-  {
-    return this.copyFile(fromName, toName).then(() => this.removeFile(fromName));
-  },
-  removeFile(fileName)
-  {
-    return Promise.resolve().then(() =>
-    {
-      if (!data.has(fileName))
-        throw new Error("File doesn't exist");
+    if (fromName == toName)
+      throw new Error("Cannot copy file to itself");
 
-      data.delete(fileName);
-    });
+    data.set(toName, data.get(fromName));
   },
-  statFile(fileName)
+  async renameFile(fromName, toName)
   {
-    return Promise.resolve().then(() =>
+    await this.copyFile(fromName, toName);
+    await this.removeFile(fromName);
+  },
+  async removeFile(fileName)
+  {
+    if (!data.has(fileName))
+      throw new Error("File doesn't exist");
+
+    data.delete(fileName);
+  },
+  async statFile(fileName)
+  {
+    if (data.has(fileName))
     {
-      if (data.has(fileName))
-      {
-        return {
-          exists: true,
-          lastModified: data.get(fileName).lastModified
-        };
-      }
       return {
-        exists: false,
-        lastModified: 0
+        exists: true,
+        lastModified: data.get(fileName).lastModified
       };
-    });
+    }
+
+    return {
+      exists: false,
+      lastModified: 0
+    };
   }
 };
