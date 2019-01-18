@@ -52,10 +52,10 @@ function timeout(delay)
   });
 }
 
-function unexpectedError(error)
+function unexpectedError(test, error)
 {
   console.error(error);
-  this.ok(false, "Unexpected error: " + error);
+  test.ok(false, "Unexpected error: " + error);
 }
 
 function expectHidden(test, element, id)
@@ -148,9 +148,11 @@ function createElementWithStyle(styleBlock, parent)
 }
 
 // Create a new ElemHideEmulation instance with @selectors.
-function applyElemHideEmulation(selectors)
+async function applyElemHideEmulation(test, selectors)
 {
-  return Promise.resolve().then(() =>
+  await Promise.resolve();
+
+  try
   {
     let elemHideEmulation = new ElemHideEmulation(
       elems =>
@@ -165,237 +167,260 @@ function applyElemHideEmulation(selectors)
     elemHideEmulation.apply(selectors.map(
       selector => ({selector, text: selector})
     ));
+
     return elemHideEmulation;
-  });
+  }
+  catch (error)
+  {
+    unexpectedError(test, error);
+  }
 }
 
-exports.testVerbatimPropertySelector = function(test)
+exports.testVerbatimPropertySelector = async function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
-  applyElemHideEmulation(
-    [":-abp-properties(background-color: rgb(0, 0, 0))"]
-  ).then(() =>
-  {
+  let selectors = [":-abp-properties(background-color: rgb(0, 0, 0))"];
+
+  if (await applyElemHideEmulation(test, selectors))
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+
+  test.done();
 };
 
-exports.testVerbatimPropertySelectorWithPrefix = function(test)
+exports.testVerbatimPropertySelectorWithPrefix = async function(test)
 {
   let parent = createElementWithStyle("{background-color: #000}");
   let toHide = createElementWithStyle("{background-color: #000}", parent);
-  applyElemHideEmulation(
-    ["div > :-abp-properties(background-color: rgb(0, 0, 0))"]
-  ).then(() =>
+
+  let selectors = ["div > :-abp-properties(background-color: rgb(0, 0, 0))"];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectVisible(test, parent);
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testVerbatimPropertySelectorWithPrefixNoMatch = function(test)
+exports.testVerbatimPropertySelectorWithPrefixNoMatch = async function(test)
 {
   let parent = createElementWithStyle("{background-color: #000}");
   let toHide = createElementWithStyle("{background-color: #fff}", parent);
-  applyElemHideEmulation(
-    ["div > :-abp-properties(background-color: rgb(0, 0, 0))"]
-  ).then(() =>
+
+  let selectors = ["div > :-abp-properties(background-color: rgb(0, 0, 0))"];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectVisible(test, parent);
     expectVisible(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testVerbatimPropertySelectorWithSuffix = function(test)
+exports.testVerbatimPropertySelectorWithSuffix = async function(test)
 {
   let parent = createElementWithStyle("{background-color: #000}");
   let toHide = createElementWithStyle("{background-color: #000}", parent);
-  applyElemHideEmulation(
-    [":-abp-properties(background-color: rgb(0, 0, 0)) > div"]
-  ).then(() =>
+
+  let selectors = [":-abp-properties(background-color: rgb(0, 0, 0)) > div"];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectVisible(test, parent);
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testVerbatimPropertyPseudoSelectorWithPrefixAndSuffix = function(test)
+exports.testVerbatimPropertyPseudoSelectorWithPrefixAndSuffix = async function(test)
 {
   let parent = createElementWithStyle("{background-color: #000}");
   let middle = createElementWithStyle("{background-color: #000}", parent);
   let toHide = createElementWithStyle("{background-color: #000}", middle);
-  applyElemHideEmulation(
-    ["div > :-abp-properties(background-color: rgb(0, 0, 0)) > div"]
-  ).then(() =>
+
+  let selectors = ["div > :-abp-properties(background-color: rgb(0, 0, 0)) > div"];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectVisible(test, parent);
     expectVisible(test, middle);
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
 // Add the style. Then add the element for that style.
 // This should retrigger the filtering and hide it.
-exports.testPropertyPseudoSelectorAddStyleAndElement = function(test)
+exports.testPropertyPseudoSelectorAddStyleAndElement = async function(test)
 {
   let styleElement;
   let toHide;
-  applyElemHideEmulation(
-    [":-abp-properties(background-color: rgb(0, 0, 0))"]
-  ).then(() =>
+
+  let selectors = [":-abp-properties(background-color: rgb(0, 0, 0))"];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     styleElement = testDocument.createElement("style");
     testDocument.head.appendChild(styleElement);
     styleElement.sheet.insertRule("#toHide {background-color: #000}");
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     toHide = createElement();
     toHide.id = "toHide";
     expectVisible(test, toHide);
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPropertySelectorWithWildcard = function(test)
+exports.testPropertySelectorWithWildcard = async function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
-  applyElemHideEmulation(
-    [":-abp-properties(*color: rgb(0, 0, 0))"]
-  ).then(() =>
-  {
+  let selectors = [":-abp-properties(*color: rgb(0, 0, 0))"];
+
+  if (await applyElemHideEmulation(test, selectors))
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+
+  test.done();
 };
 
-exports.testPropertySelectorWithRegularExpression = function(test)
+exports.testPropertySelectorWithRegularExpression = async function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
-  applyElemHideEmulation(
-    [":-abp-properties(/.*color: rgb\\(0, 0, 0\\)/)"]
-  ).then(() =>
-  {
+  let selectors = [":-abp-properties(/.*color: rgb\\(0, 0, 0\\)/)"];
+
+  if (await applyElemHideEmulation(test, selectors))
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+
+  test.done();
 };
 
-exports.testPropertySelectorWithEscapedBrace = function(test)
+exports.testPropertySelectorWithEscapedBrace = async function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
-  applyElemHideEmulation(
-    [":-abp-properties(/background.\\7B 0,6\\7D : rgb\\(0, 0, 0\\)/)"]
-  ).then(() =>
-  {
+  let selectors = [":-abp-properties(/background.\\7B 0,6\\7D : rgb\\(0, 0, 0\\)/)"];
+
+  if (await applyElemHideEmulation(test, selectors))
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+
+  test.done();
 };
 
-exports.testPropertySelectorWithImproperlyEscapedBrace = function(test)
+exports.testPropertySelectorWithImproperlyEscapedBrace = async function(test)
 {
   let toHide = createElementWithStyle("{background-color: #000}");
-  applyElemHideEmulation(
-    [":-abp-properties(/background.\\7B0,6\\7D: rgb\\(0, 0, 0\\)/)"]
-  ).then(() =>
-  {
+  let selectors = [":-abp-properties(/background.\\7B0,6\\7D: rgb\\(0, 0, 0\\)/)"];
+
+  if (await applyElemHideEmulation(test, selectors))
     expectVisible(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+
+  test.done();
 };
 
-exports.testDynamicallyChangedProperty = function(test)
+exports.testDynamicallyChangedProperty = async function(test)
 {
   let toHide = createElementWithStyle("{}");
-  applyElemHideEmulation(
-    [":-abp-properties(background-color: rgb(0, 0, 0))"]
-  ).then(() =>
+  let selectors = [":-abp-properties(background-color: rgb(0, 0, 0))"];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectVisible(test, toHide);
     insertStyleRule("#" + toHide.id + " {background-color: #000}");
 
-    return timeout(0);
-  }).then(() =>
-  {
+    await timeout(0);
+
     // Re-evaluation will only happen after a delay
     expectVisible(test, toHide);
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassWithPropBeforeSelector = function(test)
+exports.testPseudoClassWithPropBeforeSelector = async function(test)
 {
   let parent = createElementWithStyle("{}");
   let child = createElementWithStyle("{background-color: #000}", parent);
+
+  let selectors = ["div:-abp-properties(content: \"publicite\")"];
+
   insertStyleRule(`#${child.id}::before {content: "publicite"}`);
 
-  applyElemHideEmulation(
-    ["div:-abp-properties(content: \"publicite\")"]
-  ).then(() =>
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectHidden(test, child);
     expectVisible(test, parent);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassHasSelector = function(test)
+exports.testPseudoClassHasSelector = async function(test)
 {
   let toHide = createElementWithStyle("{}");
-  applyElemHideEmulation(
-    ["div:-abp-has(div)"]
-  ).then(() =>
-  {
+
+  if (await applyElemHideEmulation(test, ["div:-abp-has(div)"]))
     expectVisible(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+
+  test.done();
 };
 
-exports.testPseudoClassHasSelectorWithPrefix = function(test)
+exports.testPseudoClassHasSelectorWithPrefix = async function(test)
 {
   let parent = createElementWithStyle("{}");
   let child = createElementWithStyle("{}", parent);
-  applyElemHideEmulation(
-    ["div:-abp-has(div)"]
-  ).then(() =>
+
+  if (await applyElemHideEmulation(test, ["div:-abp-has(div)"]))
   {
     expectHidden(test, parent);
     expectVisible(test, child);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassHasSelectorWithSuffix = function(test)
+exports.testPseudoClassHasSelectorWithSuffix = async function(test)
 {
   let parent = createElementWithStyle("{}");
   let middle = createElementWithStyle("{}", parent);
   let child = createElementWithStyle("{}", middle);
-  applyElemHideEmulation(
-    ["div:-abp-has(div) > div"]
-  ).then(() =>
+
+  if (await applyElemHideEmulation(test, ["div:-abp-has(div) > div"]))
   {
     expectVisible(test, parent);
     expectHidden(test, middle);
     expectHidden(test, child);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassHasSelectorWithSuffixSibling = function(test)
+exports.testPseudoClassHasSelectorWithSuffixSibling = async function(test)
 {
   let parent = createElementWithStyle("{}");
   let middle = createElementWithStyle("{}", parent);
   let toHide = createElementWithStyle("{}");
-  applyElemHideEmulation(
-    ["div:-abp-has(div) + div"]
-  ).then(() =>
+
+  if (await applyElemHideEmulation(test, ["div:-abp-has(div) + div"]))
   {
     expectVisible(test, parent);
     expectVisible(test, middle);
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassHasSelectorWithSuffixSiblingChild = function(test)
+exports.testPseudoClassHasSelectorWithSuffixSiblingChild = async function(test)
 {
   //  <div>
   //    <div></div>
@@ -407,15 +432,16 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingChild = function(test)
   let middle = createElementWithStyle("{}", parent);
   let sibling = createElementWithStyle("{}");
   let toHide = createElementWithStyle("{}", sibling);
-  applyElemHideEmulation(
-    ["div:-abp-has(div) + div > div"]
-  ).then(() =>
+
+  if (await applyElemHideEmulation(test, ["div:-abp-has(div) + div > div"]))
   {
     expectVisible(test, parent);
     expectVisible(test, middle);
     expectVisible(test, sibling);
     expectHidden(test, toHide);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
 function compareExpectations(test, elems, expectations)
@@ -432,7 +458,7 @@ function compareExpectations(test, elems, expectations)
   }
 }
 
-function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector, expectations)
+async function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector, expectations)
 {
   testDocument.body.innerHTML = `<div id="parent">
       <div id="middle">
@@ -456,12 +482,10 @@ function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(test, selector
 
   insertStyleRule(".inside {}");
 
-  applyElemHideEmulation(
-    [selector]
-  ).then(() =>
-  {
+  if (await applyElemHideEmulation(test, [selector]))
     compareExpectations(test, elems, expectations);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+
+  test.done();
 }
 
 exports.testPseudoClassHasSelectorWithHasAndWithSuffixSibling = function(test)
@@ -534,7 +558,7 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingContains = function(test)
     test, "div:-abp-has(> span:-abp-contains(Advertisment))", expectations);
 };
 
-function runTestPseudoClassContains(test, selector, expectations)
+async function runTestPseudoClassContains(test, selector, expectations)
 {
   testDocument.body.innerHTML = `<div id="parent">
       <div id="middle">
@@ -556,11 +580,10 @@ function runTestPseudoClassContains(test, selector, expectations)
     toHide: testDocument.getElementById("tohide")
   };
 
-  applyElemHideEmulation(
-    [selector]
-  ).then(
-    () => compareExpectations(test, elems, expectations)
-  ).catch(unexpectedError.bind(test)).then(() => test.done());
+  if (await applyElemHideEmulation(test, [selector]))
+    compareExpectations(test, elems, expectations);
+
+  test.done();
 }
 
 exports.testPseudoClassContainsText = function(test)
@@ -648,138 +671,148 @@ exports.testPseudoClassContainsWildcardMatch = function(test)
     test, "#parent div:-abp-contains(Ad*)", expectations);
 };
 
-exports.testPseudoClassHasSelectorWithPropSelector = function(test)
+exports.testPseudoClassHasSelectorWithPropSelector = async function(test)
 {
   let parent = createElementWithStyle("{}");
   let child = createElementWithStyle("{background-color: #000}", parent);
-  applyElemHideEmulation(
-    ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"]
-  ).then(() =>
+
+  let selectors = ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectVisible(test, child);
     expectHidden(test, parent);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassHasSelectorWithPropSelector2 = function(test)
+exports.testPseudoClassHasSelectorWithPropSelector2 = async function(test)
 {
   let parent = createElementWithStyle("{}");
   let child = createElementWithStyle("{}", parent);
+
+  let selectors = ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"];
+
   insertStyleRule("body #" + parent.id + " > div { background-color: #000}");
-  applyElemHideEmulation(
-    ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"]
-  ).then(() =>
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectVisible(test, child);
     expectHidden(test, parent);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testDomUpdatesStyle = function(test)
+exports.testDomUpdatesStyle = async function(test)
 {
   let parent = createElementWithStyle("{}");
   let child = createElementWithStyle("{}", parent);
-  applyElemHideEmulation(
-    ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"]
-  ).then(() =>
+
+  let selectors = ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectVisible(test, child);
     expectVisible(test, parent);
 
     insertStyleRule("body #" + parent.id + " > div { background-color: #000}");
-    return timeout(0);
-  }).then(() =>
-  {
+    await timeout(0);
+
     expectVisible(test, child);
     expectVisible(test, parent);
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectVisible(test, child);
     expectHidden(test, parent);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testDomUpdatesContent = function(test)
+exports.testDomUpdatesContent = async function(test)
 {
   let parent = createElementWithStyle("{}");
   let child = createElementWithStyle("{}", parent);
-  applyElemHideEmulation(
-    ["div > div:-abp-contains(hide me)"]
-  ).then(() =>
+
+  if (await applyElemHideEmulation(test, ["div > div:-abp-contains(hide me)"]))
   {
     expectVisible(test, parent);
     expectVisible(test, child);
 
     child.textContent = "hide me";
-    return timeout(0);
-  }).then(() =>
-  {
+    await timeout(0);
+
     expectVisible(test, parent);
     expectVisible(test, child);
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectVisible(test, parent);
     expectHidden(test, child);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testDomUpdatesNewElement = function(test)
+exports.testDomUpdatesNewElement = async function(test)
 {
   let parent = createElementWithStyle("{}");
   let child = createElementWithStyle("{ background-color: #000}", parent);
   let sibling;
   let child2;
-  applyElemHideEmulation(
-    ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"]
-  ).then(() =>
+
+  let selectors = ["div:-abp-has(:-abp-properties(background-color: rgb(0, 0, 0)))"];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
     expectHidden(test, parent);
     expectVisible(test, child);
 
     sibling = createElementWithStyle("{}");
-    return timeout(0);
-  }).then(() =>
-  {
+    await timeout(0);
+
     expectHidden(test, parent);
     expectVisible(test, child);
     expectVisible(test, sibling);
 
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectHidden(test, parent);
     expectVisible(test, child);
     expectVisible(test, sibling);
 
     child2 = createElementWithStyle("{ background-color: #000}",
                                     sibling);
-    return timeout(0);
-  }).then(() =>
-  {
+    await timeout(0);
+
     expectVisible(test, child2);
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectHidden(test, parent);
     expectVisible(test, child);
     expectHidden(test, sibling);
     expectVisible(test, child2);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassPropertiesOnStyleSheetLoad = function(test)
+exports.testPseudoClassPropertiesOnStyleSheetLoad = async function(test)
 {
   let parent = createElement();
   let child = createElement(parent);
-  applyElemHideEmulation(
-    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
-     "div:-abp-contains(hide me)",
-     "div:-abp-has(> div.hideMe)"]
-  ).then(() => timeout(REFRESH_INTERVAL)
-  ).then(() =>
+
+  let selectors = [
+    "div:-abp-properties(background-color: rgb(0, 0, 0))",
+    "div:-abp-contains(hide me)",
+    "div:-abp-has(> div.hideMe)"
+  ];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
+    await timeout(REFRESH_INTERVAL);
+
     expectVisible(test, parent);
     expectVisible(test, child);
 
@@ -787,26 +820,31 @@ exports.testPseudoClassPropertiesOnStyleSheetLoad = function(test)
     // the "div:-abp-properties(background-color: rgb(0, 0, 0))" pattern.
     insertStyleRule("#" + parent.id + " {background-color: #000}");
 
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectHidden(test, parent);
     expectVisible(test, child);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPlainAttributeOnDomMutation = function(test)
+exports.testPlainAttributeOnDomMutation = async function(test)
 {
   let parent = createElement();
   let child = createElement(parent);
-  applyElemHideEmulation(
-    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
-     "div[data-hide-me]",
-     "div:-abp-contains(hide me)",
-     "div:-abp-has(> div.hideMe)"]
-  ).then(() => timeout(REFRESH_INTERVAL)
-  ).then(() =>
+
+  let selectors = [
+    "div:-abp-properties(background-color: rgb(0, 0, 0))",
+    "div[data-hide-me]",
+    "div:-abp-contains(hide me)",
+    "div:-abp-has(> div.hideMe)"
+  ];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
+    await timeout(REFRESH_INTERVAL);
+
     expectVisible(test, parent);
     expectVisible(test, child);
 
@@ -818,29 +856,33 @@ exports.testPlainAttributeOnDomMutation = function(test)
     // and hide the element.
     child.setAttribute("data-hide-me", "");
 
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectVisible(test, parent);
     expectHidden(test, child);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassContainsOnDomMutation = function(test)
+exports.testPseudoClassContainsOnDomMutation = async function(test)
 {
   let parent = createElement();
   let child = createElement(parent);
 
+  let selectors = [
+    "div:-abp-properties(background-color: rgb(0, 0, 0))",
+    "div[data-hide-me]",
+    "div:-abp-contains(hide me)",
+    "div:-abp-has(> div.hideMe)"
+  ];
+
   child.innerText = "do nothing";
 
-  applyElemHideEmulation(
-    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
-     "div[data-hide-me]",
-     "div:-abp-contains(hide me)",
-     "div:-abp-has(> div.hideMe)"]
-  ).then(() => timeout(REFRESH_INTERVAL)
-  ).then(() =>
+  if (await applyElemHideEmulation(test, selectors))
   {
+    await timeout(REFRESH_INTERVAL);
+
     expectVisible(test, parent);
     expectVisible(test, child);
 
@@ -852,52 +894,62 @@ exports.testPseudoClassContainsOnDomMutation = function(test)
     // instead, it triggers the "childList" DOM mutation instead.
     child.innerText = "hide me";
 
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectHidden(test, parent);
     expectVisible(test, child);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassHasOnDomMutation = function(test)
+exports.testPseudoClassHasOnDomMutation = async function(test)
 {
   let parent = createElement();
   let child = null;
-  applyElemHideEmulation(
-    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
-     "div[data-hide-me]",
-     "div:-abp-contains(hide me)",
-     "div:-abp-has(> div)"]
-  ).then(() => timeout(REFRESH_INTERVAL)
-  ).then(() =>
+
+  let selectors = [
+    "div:-abp-properties(background-color: rgb(0, 0, 0))",
+    "div[data-hide-me]",
+    "div:-abp-contains(hide me)",
+    "div:-abp-has(> div)"
+  ];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
+    await timeout(REFRESH_INTERVAL);
+
     expectVisible(test, parent);
 
     // Add the child element. This should run all the DOM-dependent patterns
     // ("div:-abp-contains(hide me)" and "div:-abp-has(> div)").
     child = createElement(parent);
 
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectHidden(test, parent);
     expectVisible(test, child);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassHasWithClassOnDomMutation = function(test)
+exports.testPseudoClassHasWithClassOnDomMutation = async function(test)
 {
   let parent = createElement();
   let child = createElement(parent);
-  applyElemHideEmulation(
-    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
-     "div[data-hide-me]",
-     "div:-abp-contains(hide me)",
-     "div:-abp-has(> div.hideMe)"]
-  ).then(() => timeout(REFRESH_INTERVAL)
-  ).then(() =>
+
+  let selectors = [
+    "div:-abp-properties(background-color: rgb(0, 0, 0))",
+    "div[data-hide-me]",
+    "div:-abp-contains(hide me)",
+    "div:-abp-has(> div.hideMe)"
+  ];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
+    await timeout(REFRESH_INTERVAL);
+
     expectVisible(test, parent);
     expectVisible(test, child);
 
@@ -905,29 +957,33 @@ exports.testPseudoClassHasWithClassOnDomMutation = function(test)
     // "div:-abp-has(> div.hideMe)" pattern.
     child.className = "hideMe";
 
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     expectHidden(test, parent);
     expectVisible(test, child);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testPseudoClassHasWithPseudoClassContainsOnDomMutation = function(test)
+exports.testPseudoClassHasWithPseudoClassContainsOnDomMutation = async function(test)
 {
   let parent = createElement();
   let child = createElement(parent);
 
+  let selectors = [
+    "div:-abp-properties(background-color: rgb(0, 0, 0))",
+    "div[data-hide-me]",
+    "div:-abp-contains(hide me)",
+    "div:-abp-has(> div:-abp-contains(hide me))"
+  ];
+
   child.innerText = "do nothing";
 
-  applyElemHideEmulation(
-    ["div:-abp-properties(background-color: rgb(0, 0, 0))",
-     "div[data-hide-me]",
-     "div:-abp-contains(hide me)",
-     "div:-abp-has(> div:-abp-contains(hide me))"]
-  ).then(() => timeout(REFRESH_INTERVAL)
-  ).then(() =>
+  if (await applyElemHideEmulation(test, selectors))
   {
+    await timeout(REFRESH_INTERVAL);
+
     expectVisible(test, parent);
     expectVisible(test, child);
 
@@ -936,17 +992,18 @@ exports.testPseudoClassHasWithPseudoClassContainsOnDomMutation = function(test)
     // "div:-abp-has(> div:-abp-contains(hide me))" patterns.
     child.innerText = "hide me";
 
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     // Note: Even though it runs both the :-abp-contains() patterns, it only
     // hides the parent element because of revision d7d51d29aa34.
     expectHidden(test, parent);
     expectVisible(test, child);
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
 
-exports.testOnlyRelevantElementsProcessed = function(test)
+exports.testOnlyRelevantElementsProcessed = async function(test)
 {
   // <body>
   //   <div id="n1">
@@ -977,13 +1034,16 @@ exports.testOnlyRelevantElementsProcessed = function(test)
       createElement(n, "p", `n${i}_${j}`, text);
   }
 
-  applyElemHideEmulation(
-    ["p:-abp-contains(Hello)",
-     "div:-abp-contains(Try me!)",
-     "div:-abp-has(p:-abp-contains(This is good))"]
-  ).then(() => timeout(REFRESH_INTERVAL)
-  ).then(() =>
+  let selectors = [
+    "p:-abp-contains(Hello)",
+    "div:-abp-contains(Try me!)",
+    "div:-abp-has(p:-abp-contains(This is good))"
+  ];
+
+  if (await applyElemHideEmulation(test, selectors))
   {
+    await timeout(REFRESH_INTERVAL);
+
     // This is only a sanity check to make sure everything else is working
     // before we do the actual test.
     for (let i of [1, 2, 3, 4])
@@ -1008,9 +1068,8 @@ exports.testOnlyRelevantElementsProcessed = function(test)
     // Modify the text in <p id="n4_1">
     testDocument.getElementById("n4_1").innerText = "Try me!";
 
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     // When an element's text is modified, only the element or one of its
     // ancestors matching any selector is processed for :-abp-has() and
     // :-abp-contains()
@@ -1026,9 +1085,8 @@ exports.testOnlyRelevantElementsProcessed = function(test)
     // Create a new <p id="n2_3"> element with no text.
     createElement(testDocument.getElementById("n2"), "p", "n2_3");
 
-    return timeout(REFRESH_INTERVAL);
-  }).then(() =>
-  {
+    await timeout(REFRESH_INTERVAL);
+
     // When a new element is added, only the element or one of its ancestors
     // matching any selector is processed for :-abp-has() and :-abp-contains()
     for (let element of [...testDocument.getElementsByTagName("div"),
@@ -1039,5 +1097,7 @@ exports.testOnlyRelevantElementsProcessed = function(test)
       else
         expectNotProcessed(test, element, element.id);
     }
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+
+  test.done();
 };
