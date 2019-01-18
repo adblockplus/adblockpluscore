@@ -91,16 +91,17 @@ function canonize(data)
   return sections;
 }
 
-function testReadWrite(test, withExternal, withEmptySpecial)
+async function testReadWrite(test, withExternal, withEmptySpecial)
 {
   test.ok(!filterStorage.initialized, "Uninitialized before the first load");
 
-  return testData.then(data =>
+  try
   {
+    let data = await testData;
+
     IO._setFileContents(filterStorage.sourceFile, data);
-    return filterStorage.loadFromDisk();
-  }).then(() =>
-  {
+    await filterStorage.loadFromDisk();
+
     test.ok(filterStorage.initialized, "Initialize after the first load");
     test.equal(filterStorage.fileProperties.version, filterStorage.formatVersion, "File format version");
 
@@ -134,12 +135,19 @@ function testReadWrite(test, withExternal, withEmptySpecial)
               "Empty special subscription still in storage");
     }
 
-    return filterStorage.saveToDisk();
-  }).then(() => testData).then(expected =>
-  {
+    await filterStorage.saveToDisk();
+
+    let expected = await testData;
+
     test.deepEqual(canonize(IO._getFileContents(filterStorage.sourceFile)),
-               canonize(expected), "Read/write result");
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+                   canonize(expected), "Read/write result");
+  }
+  catch (error)
+  {
+    unexpectedError.call(test, error);
+  }
+
+  test.done();
 }
 
 exports.testReadAndSaveToFile = function(test)
@@ -157,10 +165,12 @@ exports.testReadAndSaveToFileWithEmptySpecial = function(test)
   testReadWrite(test, false, true);
 };
 
-exports.testImportExport = function(test)
+exports.testImportExport = async function(test)
 {
-  testData.then(lines =>
+  try
   {
+    let lines = await testData;
+
     if (lines.length && lines[lines.length - 1] == "")
       lines.pop();
 
@@ -173,25 +183,37 @@ exports.testImportExport = function(test)
 
     let exported = Array.from(filterStorage.exportData());
     test.deepEqual(canonize(exported), canonize(lines), "Import/export result");
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+  catch (error)
+  {
+    unexpectedError.call(test, error);
+  }
+
+  test.done();
 };
 
-exports.testSavingWithoutBackups = function(test)
+exports.testSavingWithoutBackups = async function(test)
 {
   Prefs.patternsbackups = 0;
   Prefs.patternsbackupinterval = 24;
 
-  filterStorage.saveToDisk().then(() =>
+  try
   {
-    return filterStorage.saveToDisk();
-  }).then(() =>
-  {
+    await filterStorage.saveToDisk();
+    await filterStorage.saveToDisk();
+
     test.ok(!IO._getFileContents(filterStorage.getBackupName(1)),
             "Backup shouldn't be created");
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+  catch (error)
+  {
+    unexpectedError.call(test, error);
+  }
+
+  test.done();
 };
 
-exports.testSavingWithBackups = function(test)
+exports.testSavingWithBackups = async function(test)
 {
   Prefs.patternsbackups = 2;
   Prefs.patternsbackupinterval = 24;
@@ -202,72 +224,79 @@ exports.testSavingWithBackups = function(test)
 
   let oldModifiedTime;
 
-  filterStorage.saveToDisk().then(() =>
+  try
   {
+    await filterStorage.saveToDisk();
+
     // Save again immediately
-    return filterStorage.saveToDisk();
-  }).then(() =>
-  {
+    await filterStorage.saveToDisk();
+
     test.ok(IO._getFileContents(backupFile), "First backup created");
 
     oldModifiedTime = IO._getModifiedTime(backupFile) - 10000;
     IO._setModifiedTime(backupFile, oldModifiedTime);
-    return filterStorage.saveToDisk();
-  }).then(() =>
-  {
+    await filterStorage.saveToDisk();
+
     test.equal(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup not overwritten if it is only 10 seconds old");
 
     oldModifiedTime -= 40 * 60 * 60 * 1000;
     IO._setModifiedTime(backupFile, oldModifiedTime);
-    return filterStorage.saveToDisk();
-  }).then(() =>
-  {
+    await filterStorage.saveToDisk();
+
     test.notEqual(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup overwritten if it is 40 hours old");
 
     test.ok(IO._getFileContents(backupFile2), "Second backup created when first backup is overwritten");
 
     IO._setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 20000);
     oldModifiedTime = IO._getModifiedTime(backupFile2);
-    return filterStorage.saveToDisk();
-  }).then(() =>
-  {
+    await filterStorage.saveToDisk();
+
     test.equal(IO._getModifiedTime(backupFile2), oldModifiedTime, "Second backup not overwritten if first one is only 20 seconds old");
 
     IO._setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 25 * 60 * 60 * 1000);
     oldModifiedTime = IO._getModifiedTime(backupFile2);
-    return filterStorage.saveToDisk();
-  }).then(() =>
-  {
+    await filterStorage.saveToDisk();
+
     test.notEqual(IO._getModifiedTime(backupFile2), oldModifiedTime, "Second backup overwritten if first one is 25 hours old");
 
     test.ok(!IO._getFileContents(backupFile3), "Third backup not created with patternsbackups = 2");
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+  catch (error)
+  {
+    unexpectedError.call(test, error);
+  }
+
+  test.done();
 };
 
-exports.testRestoringBackup = function(test)
+exports.testRestoringBackup = async function(test)
 {
   Prefs.patternsbackups = 2;
   Prefs.patternsbackupinterval = 24;
 
-  filterStorage.saveToDisk().then(() =>
+  try
   {
+    await filterStorage.saveToDisk();
+
     test.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Initial filter count");
     filterStorage.addFilter(Filter.fromText("barfoo"));
     test.equal([...filterStorage.subscriptions()][0].filterCount, 2, "Filter count after adding a filter");
-    return filterStorage.saveToDisk();
-  }).then(() =>
-  {
-    return filterStorage.loadFromDisk();
-  }).then(() =>
-  {
+    await filterStorage.saveToDisk();
+
+    await filterStorage.loadFromDisk();
+
     test.equal([...filterStorage.subscriptions()][0].filterCount, 2, "Filter count after adding filter and reloading");
-    return filterStorage.restoreBackup(1);
-  }).then(() =>
-  {
+    await filterStorage.restoreBackup(1);
+
     test.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after restoring backup");
-    return filterStorage.loadFromDisk();
-  }).then(() =>
-  {
+    await filterStorage.loadFromDisk();
+
     test.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after reloading");
-  }).catch(unexpectedError.bind(test)).then(() => test.done());
+  }
+  catch (error)
+  {
+    unexpectedError.call(test, error);
+  }
+
+  test.done();
 };
