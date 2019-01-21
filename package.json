@@ -14,14 +14,16 @@
     "memory-fs": "0.4.1",
     "ncp": "2.0.0",
     "nodeunit": "0.9.1",
+    "request": "^2.88.0",
     "sandboxed-module": "2.0.3",
     "script-loader": "0.7.0",
     "selenium-webdriver": "^4.0.0-alpha",
     "webpack": "3.5.4"
   },
   "scripts": {
-    "eslint": "eslint *.js lib test chrome",
+    "eslint": "eslint *.js lib test chrome build",
     "test": "node test_runner.js",
-    "posttest": "npm run eslint"
+    "posttest": "npm run eslint",
+    "updatepsl": "node build/updatepsl.js"
   }
 }
