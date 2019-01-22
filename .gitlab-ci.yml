@@ -48,3 +48,6 @@ tests:
     - npm install
   script:
     - npm test
+  retry:
+    max: 2
+    when: stuck_or_timeout_failure
