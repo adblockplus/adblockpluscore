@@ -123,6 +123,13 @@
                 prefixes="bn,gu,hi,pa"
                 author="mediumkreation"
                 type="ads"/>
+  <subscription title="KoreanList+EasyList"
+                specialization="한국어"
+                url="https://easylist-downloads.adblockplus.org/koreanlist+easylist.txt"
+                homepage="https://easylist.to/"
+                prefixes="ko"
+                author="Mark Choi"
+                type="ads"/>
   <subscription title="Latvian List+EasyList"
                 specialization="latviešu valoda"
                 url="https://easylist-downloads.adblockplus.org/latvianlist+easylist.txt"
