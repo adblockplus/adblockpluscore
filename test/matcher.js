@@ -94,6 +94,28 @@ function checkMatch(test, filters, location, contentType, docDomain, thirdParty,
   }
 }
 
+function checkSearch(test, filters, location, contentType, docDomain,
+                     thirdParty, sitekey, specificOnly, filterType,
+                     expected)
+{
+  let matcher = new CombinedMatcher();
+  for (let filter of filters)
+    matcher.add(Filter.fromText(filter));
+
+  let result = matcher.search(location, RegExpFilter.typeMap[contentType],
+                              docDomain, thirdParty, sitekey, specificOnly,
+                              filterType);
+  for (let key in result)
+    result[key] = result[key].map(filter => filter.text);
+
+  test.deepEqual(result, expected, "search(" + location + ", " +
+                 contentType + ", " + docDomain + ", " +
+                 (thirdParty ? "third-party" : "first-party") + ", " +
+                 (sitekey || "no-sitekey") + ", " +
+                 (specificOnly ? "specificOnly" : "not-specificOnly") + ", " +
+                 filterType + ") with:\n" + filters.join("\n"));
+}
+
 function cacheCheck(test, matcher, location, contentType, docDomain, thirdParty, expected)
 {
   let result = matcher.matchesAny(location, RegExpFilter.typeMap[contentType], docDomain, thirdParty);
@@ -222,6 +244,41 @@ exports.testFilterMatching = function(test)
   checkMatch(test, ["||foo.com^$csp=script-src 'none'"], "http://foo.com/bar", "CSP", "foo.com", false, null, false, "||foo.com^$csp=script-src 'none'");
   checkMatch(test, ["@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", false, null, false, null, "@@||foo.com^$csp");
   checkMatch(test, ["||foo.com^$csp=script-src 'none'", "@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", false, null, false, "@@||foo.com^$csp", "||foo.com^$csp=script-src 'none'");
+
+  test.done();
+};
+
+exports.testFilterSearch = function(test)
+{
+  // Start with three filters: foo, bar, and @@foo
+  let filters = ["foo", "bar", "@@foo"];
+
+  checkSearch(test, filters, "http://example.com/foo", "IMAGE", "example.com",
+              false, null, false, "all",
+              {blocking: ["foo"], whitelist: ["@@foo"]});
+
+  // Blocking only.
+  checkSearch(test, filters, "http://example.com/foo", "IMAGE", "example.com",
+              false, null, false, "blocking", {blocking: ["foo"]});
+
+  // Whitelist only.
+  checkSearch(test, filters, "http://example.com/foo", "IMAGE", "example.com",
+              false, null, false, "whitelist", {whitelist: ["@@foo"]});
+
+  // Different URLs.
+  checkSearch(test, filters, "http://example.com/bar", "IMAGE", "example.com",
+              false, null, false, "all", {blocking: ["bar"], whitelist: []});
+  checkSearch(test, filters, "http://example.com/foo/bar", "IMAGE",
+              "example.com", false, null, false, "all",
+              {blocking: ["foo", "bar"], whitelist: ["@@foo"]});
+
+  // Non-matching content type.
+  checkSearch(test, filters, "http://example.com/foo", "CSP", "example.com",
+              false, null, false, "all", {blocking: [], whitelist: []});
+
+  // Non-matching specificity.
+  checkSearch(test, filters, "http://example.com/foo", "IMAGE", "example.com",
+              false, null, true, "all", {blocking: [], whitelist: ["@@foo"]});
 
   test.done();
 };
