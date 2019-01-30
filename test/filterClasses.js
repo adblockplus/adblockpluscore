@@ -248,6 +248,16 @@ exports.testInvalidFilters = function(test)
   compareFilter(test, "/??/", ["type=invalid", "text=/??/", "reason=filter_invalid_regexp"]);
   compareFilter(test, "asd$foobar", ["type=invalid", "text=asd$foobar", "reason=filter_unknown_option"]);
 
+  // No $domain or $~third-party
+  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs", ["type=invalid", "text=||example.com/ad.js$rewrite=abp-resource:noopjs", "reason=filter_invalid_rewrite"]);
+  compareFilter(test, "*example.com/ad.js$rewrite=abp-resource:noopjs", ["type=invalid", "text=*example.com/ad.js$rewrite=abp-resource:noopjs", "reason=filter_invalid_rewrite"]);
+  compareFilter(test, "example.com/ad.js$rewrite=abp-resource:noopjs", ["type=invalid", "text=example.com/ad.js$rewrite=abp-resource:noopjs", "reason=filter_invalid_rewrite"]);
+  // Patterns not starting with || or *
+  compareFilter(test, "example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com", ["type=invalid", "text=example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com", "reason=filter_invalid_rewrite"]);
+  compareFilter(test, "example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=invalid", "text=example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "reason=filter_invalid_rewrite"]);
+  // $~third-party requires ||
+  compareFilter(test, "*example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=invalid", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "reason=filter_invalid_rewrite"]);
+
   function checkElemHideEmulationFilterInvalid(domains)
   {
     let filterText = domains + "#?#:-abp-properties(abc)";
@@ -318,6 +328,10 @@ exports.testFilterOptions = function(test)
   compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
   compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
   compareFilter(test, "||content.server.com/files/*.php$rewrite=$1", ["type=filterlist", "text=||content.server.com/files/*.php$rewrite=$1", "regexp=^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?content\\.server\\.com\\/files\\/.*\\.php", "matchCase=false", "rewrite=$1", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.SUBDOCUMENT | t.OBJECT | t.OBJECT_SUBREQUEST))]);
+
+  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=abp-resource:noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
+  compareFilter(test, "*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=abp-resource:noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
+  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "regexp=null", "matchCase=false", "rewrite=abp-resource:noopjs", "thirdParty=false", "contentType=" + (defaultTypes)]);
 
   // background and image should be the same for backwards compatibility
   compareFilter(test, "bla$image", ["type=filterlist", "text=bla$image", "contentType=" + (t.IMAGE)]);
