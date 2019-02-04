@@ -21,13 +21,20 @@
 const {URL} = require("url");
 const {createSandbox} = require("./_common");
 
+const publicSuffixes = require("../data/publicSuffixList.json");
+
 let isThirdParty = null;
+let getDomain = null;
 
 exports.setUp = function(callback)
 {
-  let sandboxedRequire = createSandbox();
+  let sandboxedRequire = createSandbox({
+    extraExports: {
+      domain: ["getDomain"]
+    }
+  });
   (
-    {isThirdParty} = sandboxedRequire("../lib/domain")
+    {isThirdParty, getDomain} = sandboxedRequire("../lib/domain")
   );
 
   callback();
@@ -119,6 +126,95 @@ exports.testIsThirdParty = function(test)
                  "same IDN isn't third-party");
   testThirdParty(test, "example.com..", "example.com....", false,
                  "traling dots are ignored");
+
+  test.done();
+};
+
+exports.testGetDomain = function(test)
+{
+  let parts = ["aaa", "bbb", "ccc", "ddd", "eee"];
+  let levels = 3;
+
+  for (let suffix in publicSuffixes)
+  {
+    let offset = publicSuffixes[suffix];
+
+    // If this fails, add more parts.
+    test.ok(offset <= parts.length - levels,
+            "Not enough domain parts for testing");
+
+    for (let i = 0; i < offset + levels; i++)
+    {
+      let hostname = parts.slice(0, i).join(".");
+      hostname += (hostname ? "." : "") + suffix;
+
+      let expected = parts.slice(Math.max(0, i - offset), i).join(".");
+      expected += (expected ? "." : "") + suffix;
+
+      test.equal(getDomain(hostname), expected,
+                 `getDomain("${hostname}") == "${expected}"` +
+                 ` with {suffix: "${suffix}", offset: ${offset}}`);
+    }
+  }
+
+  // Unknown suffixes.
+  test.equal(typeof publicSuffixes["localhost"], "undefined");
+  test.equal(typeof publicSuffixes["localhost.localdomain"], "undefined");
+
+  test.equal(getDomain("localhost"), "localhost");
+  test.equal(getDomain("localhost.localdomain"), "localhost.localdomain");
+  test.equal(getDomain("mail.localhost.localdomain"), "localhost.localdomain");
+  test.equal(getDomain("www.example.localhost.localdomain"),
+             "localhost.localdomain");
+
+  // Unknown suffixes that overlap partly with known suffixes.
+  test.equal(typeof publicSuffixes["example.com"], "undefined");
+  test.equal(typeof publicSuffixes["africa.com"], "number");
+  test.equal(typeof publicSuffixes["compute.amazonaws.com"], "number");
+
+  test.equal(getDomain("example.com"), "example.com");
+  test.equal(getDomain("mail.example.com"), "example.com");
+  test.equal(getDomain("secure.mail.example.com"), "example.com");
+
+  // Cascading offsets.
+
+  // If these sanity checks fail, look for other examles of cascading offsets
+  // from the public suffix list.
+  test.equal(
+    typeof publicSuffixes[
+      "images.example.s3.dualstack.us-east-1.amazonaws.com"
+    ],
+    "undefined"
+  );
+  test.equal(
+    typeof publicSuffixes["example.s3.dualstack.us-east-1.amazonaws.com"],
+    "undefined"
+  );
+  test.equal(publicSuffixes["s3.dualstack.us-east-1.amazonaws.com"], 1);
+  test.equal(typeof publicSuffixes["dualstack.us-east-1.amazonaws.com"],
+             "undefined");
+  test.equal(typeof publicSuffixes["example.us-east-1.amazonaws.com"],
+             "undefined");
+  test.equal(publicSuffixes["us-east-1.amazonaws.com"], 1);
+  test.equal(typeof publicSuffixes["example.amazonaws.com"], "undefined");
+  test.equal(typeof publicSuffixes["amazonaws.com"], "undefined");
+
+  test.equal(getDomain("images.example.s3.dualstack.us-east-1.amazonaws.com"),
+            "example.s3.dualstack.us-east-1.amazonaws.com");
+  test.equal(getDomain("example.s3.dualstack.us-east-1.amazonaws.com"),
+            "example.s3.dualstack.us-east-1.amazonaws.com");
+  test.equal(getDomain("s3.dualstack.us-east-1.amazonaws.com"),
+            "s3.dualstack.us-east-1.amazonaws.com");
+  test.equal(getDomain("dualstack.us-east-1.amazonaws.com"),
+            "dualstack.us-east-1.amazonaws.com");
+  test.equal(getDomain("example.us-east-1.amazonaws.com"),
+            "example.us-east-1.amazonaws.com");
+  test.equal(getDomain("us-east-1.amazonaws.com"), "us-east-1.amazonaws.com");
+  test.equal(getDomain("example.amazonaws.com"), "amazonaws.com");
+  test.equal(getDomain("amazonaws.com"), "amazonaws.com");
+
+  // Edge case.
+  test.equal(getDomain(""), "");
 
   test.done();
 };
