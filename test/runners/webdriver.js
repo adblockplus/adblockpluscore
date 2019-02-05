@@ -29,7 +29,7 @@ function executeScript(driver, name, script, scriptName, scriptArgs)
                                  window._consoleLogs.log.push(msg);
                                  oldLog.call(this, msg);
                                };`)
-    .then(() => driver.executeAsyncScript(realScript, scriptArgs))
+    .then(() => driver.executeAsyncScript(realScript, ...scriptArgs))
     .then(() => driver.executeScript("return window._consoleLogs;"))
     .then(result =>
     {
