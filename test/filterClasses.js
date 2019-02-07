@@ -630,10 +630,11 @@ exports.testDomainMapDeduplication = function(test)
 
   // This compares the references to make sure that both refer to the same
   // object (#6815).
-  test.equal(filter1.domains, filter2.domains);
 
-  // For element hiding filters, the value of the property is cached internally
-  // only on second access.
+  // For both request blocking and element hiding filters, the value of the
+  // property is cached internally only on second access.
+  test.notEqual(filter1.domains, filter2.domains);
+  test.equal(filter1.domains, filter2.domains);
   test.notEqual(filter3.domains, filter4.domains);
   test.equal(filter3.domains, filter4.domains);
 
