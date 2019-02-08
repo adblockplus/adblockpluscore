@@ -353,20 +353,91 @@ exports.testAddRemoveByKeyword = function(test)
 {
   let matcher = new CombinedMatcher();
 
-  matcher.add(Filter.fromText("||example.com/foo/bar/image.jpg"));
+  matcher.add(Filter.fromText("||example.com/foo/bar/image.jpg^"));
 
   // Add the same filter a second time to make sure it doesn't get added again
   // by a different keyword.
-  matcher.add(Filter.fromText("||example.com/foo/bar/image.jpg"));
+  matcher.add(Filter.fromText("||example.com/foo/bar/image.jpg^"));
 
   test.ok(!!matcher.matchesAny("https://example.com/foo/bar/image.jpg",
                                RegExpFilter.typeMap.IMAGE));
 
-  matcher.remove(Filter.fromText("||example.com/foo/bar/image.jpg"));
+  matcher.remove(Filter.fromText("||example.com/foo/bar/image.jpg^"));
 
   // Make sure the filter got removed so there is no match.
   test.ok(!matcher.matchesAny("https://example.com/foo/bar/image.jpg",
                               RegExpFilter.typeMap.IMAGE));
+
+
+  // Map { "example" => { text: "||example.com^$~third-party" } }
+  matcher.add(Filter.fromText("||example.com^$~third-party"));
+
+  test.equal(matcher._blacklist._filterDomainMapsByKeyword.size, 1);
+
+  for (let [key, value] of matcher._blacklist._filterDomainMapsByKeyword)
+  {
+    test.equal(key, "example");
+    test.deepEqual(value, Filter.fromText("||example.com^$~third-party"));
+    break;
+  }
+
+  test.ok(!!matcher.matchesAny("https://example.com/example/image.jpg",
+                               RegExpFilter.typeMap.IMAGE, "example.com",
+                               false));
+
+  // Map {
+  //   "example" => Map {
+  //     "" => Map {
+  //       { text: "||example.com^$~third-party" } => true,
+  //       { text: "/example/*$~third-party" } => true
+  //     }
+  //   }
+  // }
+  matcher.add(Filter.fromText("/example/*$~third-party"));
+
+  test.equal(matcher._blacklist._filterDomainMapsByKeyword.size, 1);
+
+  for (let [key, value] of matcher._blacklist._filterDomainMapsByKeyword)
+  {
+    test.equal(key, "example");
+    test.equal(value.size, 1);
+
+    let map = value.get("");
+    test.equal(map.size, 2);
+    test.equal(map.get(Filter.fromText("||example.com^$~third-party")), true);
+    test.equal(map.get(Filter.fromText("/example/*$~third-party")), true);
+
+    break;
+  }
+
+  test.ok(!!matcher.matchesAny("https://example.com/example/image.jpg",
+                               RegExpFilter.typeMap.IMAGE, "example.com",
+                               false));
+
+  // Map { "example" => { text: "/example/*$~third-party" } }
+  matcher.remove(Filter.fromText("||example.com^$~third-party"));
+
+  test.equal(matcher._blacklist._filterDomainMapsByKeyword.size, 1);
+
+  for (let [key, value] of matcher._blacklist._filterDomainMapsByKeyword)
+  {
+    test.equal(key, "example");
+    test.deepEqual(value, Filter.fromText("/example/*$~third-party"));
+    break;
+  }
+
+  test.ok(!!matcher.matchesAny("https://example.com/example/image.jpg",
+                               RegExpFilter.typeMap.IMAGE, "example.com",
+                               false));
+
+  // Map {}
+  matcher.remove(Filter.fromText("/example/*$~third-party"));
+
+  test.equal(matcher._blacklist._filterDomainMapsByKeyword.size, 0);
+
+  test.ok(!matcher.matchesAny("https://example.com/example/image.jpg",
+                              RegExpFilter.typeMap.IMAGE, "example.com",
+                              false));
 
   test.done();
 };
