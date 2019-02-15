@@ -22,6 +22,8 @@ const path = require("path");
 
 const {download, unzipArchive} = require("./download");
 
+const MAX_VERSION_DECREMENTS = 20;
+
 function getChromiumExecutable(chromiumDir)
 {
   switch (process.platform)
@@ -38,8 +40,10 @@ function getChromiumExecutable(chromiumDir)
   }
 }
 
-function ensureChromium(chromiumRevision)
+async function ensureChromium(chromiumRevision)
 {
+  let revisionInt = parseInt(chromiumRevision, 10);
+  let startingRevision = revisionInt;
   let {platform} = process;
   if (platform == "win32")
     platform += "-" + process.arch;
@@ -51,41 +55,55 @@ function ensureChromium(chromiumRevision)
   };
 
   if (!buildTypes.hasOwnProperty(platform))
-  {
-    let err = new Error(`Cannot run browser tests, ${platform} is unsupported`);
-    return Promise.reject(err);
-  }
+    throw new Error(`Cannot run browser tests, ${platform} is unsupported`);
 
-  return Promise.resolve().then(() =>
+  let [dir, fileName] = buildTypes[platform];
+  let archive = null;
+  let chromiumDir = null;
+  let snapshotsDir = path.join(__dirname, "..", "..", "chromium-snapshots");
+
+  while (true)
   {
-    let snapshotsDir = path.join(__dirname, "..", "..", "chromium-snapshots");
-    let chromiumDir = path.join(snapshotsDir,
-                                `chromium-${platform}-${chromiumRevision}`);
+    chromiumDir = path.join(snapshotsDir,
+                            `chromium-${platform}-${revisionInt}`);
     if (fs.existsSync(chromiumDir))
-      return chromiumDir;
+    {
+      console.info(`Reusing cached executable in ${chromiumDir}`);
+      return getChromiumExecutable(chromiumDir);
+    }
 
     if (!fs.existsSync(path.dirname(chromiumDir)))
       fs.mkdirSync(path.dirname(chromiumDir));
 
-    let [dir, fileName] = buildTypes[platform];
-    let archive = path.join(snapshotsDir, "download-cache",
-                            `${chromiumRevision}-${fileName}`);
+    archive = path.join(snapshotsDir, "download-cache",
+                            `${revisionInt}-${fileName}`);
 
-    return Promise.resolve()
-      .then(() =>
+    try
+    {
+      if (!fs.existsSync(archive))
       {
-        if (!fs.existsSync(archive))
-        {
-          console.info("Downloading Chromium...");
-          return download(
-            `https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/${dir}%2F${chromiumRevision}%2F${fileName}?alt=media`,
-            archive);
-        }
+        console.info("Downloading Chromium...");
+        await download(
+          `https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/${dir}%2F${revisionInt}%2F${fileName}?alt=media`,
+          archive);
+      }
+      else
         console.info(`Reusing cached archive ${archive}`);
-      })
-      .then(() => unzipArchive(archive, chromiumDir))
-      .then(() => chromiumDir);
-  }).then(dir => getChromiumExecutable(dir));
+      break;
+    }
+    catch (e)
+    {
+      // The Chromium authors advise us to try decrementing
+      // the branch_base_position when no matching build was found. See
+      // https://www.chromium.org/getting-involved/download-chromium
+      console.info(`Base ${revisionInt} not found, trying ${--revisionInt}`);
+      if (revisionInt <= startingRevision - MAX_VERSION_DECREMENTS)
+        throw new Error(`No Chromium packagefound for ${startingRevision}`);
+    }
+  }
+
+  await unzipArchive(archive, chromiumDir);
+  return getChromiumExecutable(chromiumDir);
 }
 
 module.exports.ensureChromium = ensureChromium;
