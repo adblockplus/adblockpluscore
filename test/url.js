@@ -24,19 +24,20 @@ const {createSandbox} = require("./_common");
 const publicSuffixes = require("../data/publicSuffixList.json");
 
 let normalizeHostname = null;
+let domainSuffixes = null;
 let isThirdParty = null;
-let getDomain = null;
+let getBaseDomain = null;
 
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox({
     extraExports: {
-      domain: ["getDomain"]
+      domain: ["getBaseDomain"]
     }
   });
   (
-    {normalizeHostname, isThirdParty,
-     getDomain} = sandboxedRequire("../lib/domain")
+    {normalizeHostname, domainSuffixes, isThirdParty,
+     getBaseDomain} = sandboxedRequire("../lib/url")
   );
 
   callback();
@@ -83,6 +84,48 @@ exports.testNormalizeHostname = function(test)
              "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
   test.equal(normalizeHostname("2001:0DB8:85A3:0000:0000:8A2E:0370:7334"),
              "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
+
+  test.done();
+};
+
+exports.testDomainSuffixes = function(test)
+{
+  test.deepEqual([...domainSuffixes("localhost")], ["localhost"]);
+  test.deepEqual([...domainSuffixes("example.com")], ["example.com", "com"]);
+  test.deepEqual([...domainSuffixes("www.example.com")],
+                 ["www.example.com", "example.com", "com"]);
+  test.deepEqual([...domainSuffixes("www.example.co.in")],
+                 ["www.example.co.in", "example.co.in", "co.in", "in"]);
+
+  // With blank.
+  test.deepEqual([...domainSuffixes("localhost", true)], ["localhost", ""]);
+  test.deepEqual([...domainSuffixes("example.com", true)],
+                 ["example.com", "com", ""]);
+  test.deepEqual([...domainSuffixes("www.example.com", true)],
+                 ["www.example.com", "example.com", "com", ""]);
+  test.deepEqual([...domainSuffixes("www.example.co.in", true)],
+                 ["www.example.co.in", "example.co.in", "co.in", "in", ""]);
+
+  // Quirks and edge cases.
+  test.deepEqual([...domainSuffixes("")], []);
+  test.deepEqual([...domainSuffixes(".")], ["."]);
+  test.deepEqual([...domainSuffixes(".localhost")],
+                 [".localhost", "localhost"]);
+  test.deepEqual([...domainSuffixes(".example.com")],
+                 [".example.com", "example.com", "com"]);
+  test.deepEqual([...domainSuffixes("localhost.")],
+                 ["localhost."]);
+  test.deepEqual([...domainSuffixes("example.com.")],
+                 ["example.com.", "com."]);
+  test.deepEqual([...domainSuffixes("..localhost")],
+                 ["..localhost", ".localhost", "localhost"]);
+  test.deepEqual(
+    [...domainSuffixes("..example..com")],
+    ["..example..com", ".example..com", "example..com", ".com", "com"]
+  );
+  test.deepEqual([...domainSuffixes("localhost..")], ["localhost..", "."]);
+  test.deepEqual([...domainSuffixes("example..com..")],
+                 ["example..com..", ".com..", "com..", "."]);
 
   test.done();
 };
@@ -156,7 +199,7 @@ exports.testIsThirdParty = function(test)
   test.done();
 };
 
-exports.testGetDomain = function(test)
+exports.testGetBaseDomain = function(test)
 {
   let parts = ["aaa", "bbb", "ccc", "ddd", "eee"];
   let levels = 3;
@@ -177,8 +220,8 @@ exports.testGetDomain = function(test)
       let expected = parts.slice(Math.max(0, i - offset), i).join(".");
       expected += (expected ? "." : "") + suffix;
 
-      test.equal(getDomain(hostname), expected,
-                 `getDomain("${hostname}") == "${expected}"` +
+      test.equal(getBaseDomain(hostname), expected,
+                 `getBaseDomain("${hostname}") == "${expected}"` +
                  ` with {suffix: "${suffix}", offset: ${offset}}`);
     }
   }
@@ -187,10 +230,13 @@ exports.testGetDomain = function(test)
   test.equal(typeof publicSuffixes["localhost"], "undefined");
   test.equal(typeof publicSuffixes["localhost.localdomain"], "undefined");
 
-  test.equal(getDomain("localhost"), "localhost");
-  test.equal(getDomain("localhost.localdomain"), "localhost.localdomain");
-  test.equal(getDomain("mail.localhost.localdomain"), "localhost.localdomain");
-  test.equal(getDomain("www.example.localhost.localdomain"),
+  test.equal(getBaseDomain("localhost"), "localhost");
+  test.equal(getBaseDomain("localhost.localdomain"), "localhost.localdomain");
+  test.equal(
+    getBaseDomain("mail.localhost.localdomain"),
+    "localhost.localdomain"
+  );
+  test.equal(getBaseDomain("www.example.localhost.localdomain"),
              "localhost.localdomain");
 
   // Unknown suffixes that overlap partly with known suffixes.
@@ -198,9 +244,9 @@ exports.testGetDomain = function(test)
   test.equal(typeof publicSuffixes["africa.com"], "number");
   test.equal(typeof publicSuffixes["compute.amazonaws.com"], "number");
 
-  test.equal(getDomain("example.com"), "example.com");
-  test.equal(getDomain("mail.example.com"), "example.com");
-  test.equal(getDomain("secure.mail.example.com"), "example.com");
+  test.equal(getBaseDomain("example.com"), "example.com");
+  test.equal(getBaseDomain("mail.example.com"), "example.com");
+  test.equal(getBaseDomain("secure.mail.example.com"), "example.com");
 
   // Cascading offsets.
 
@@ -225,22 +271,27 @@ exports.testGetDomain = function(test)
   test.equal(typeof publicSuffixes["example.amazonaws.com"], "undefined");
   test.equal(typeof publicSuffixes["amazonaws.com"], "undefined");
 
-  test.equal(getDomain("images.example.s3.dualstack.us-east-1.amazonaws.com"),
+  test.equal(
+    getBaseDomain("images.example.s3.dualstack.us-east-1.amazonaws.com"),
+    "example.s3.dualstack.us-east-1.amazonaws.com"
+  );
+  test.equal(getBaseDomain("example.s3.dualstack.us-east-1.amazonaws.com"),
             "example.s3.dualstack.us-east-1.amazonaws.com");
-  test.equal(getDomain("example.s3.dualstack.us-east-1.amazonaws.com"),
-            "example.s3.dualstack.us-east-1.amazonaws.com");
-  test.equal(getDomain("s3.dualstack.us-east-1.amazonaws.com"),
+  test.equal(getBaseDomain("s3.dualstack.us-east-1.amazonaws.com"),
             "s3.dualstack.us-east-1.amazonaws.com");
-  test.equal(getDomain("dualstack.us-east-1.amazonaws.com"),
+  test.equal(getBaseDomain("dualstack.us-east-1.amazonaws.com"),
             "dualstack.us-east-1.amazonaws.com");
-  test.equal(getDomain("example.us-east-1.amazonaws.com"),
+  test.equal(getBaseDomain("example.us-east-1.amazonaws.com"),
             "example.us-east-1.amazonaws.com");
-  test.equal(getDomain("us-east-1.amazonaws.com"), "us-east-1.amazonaws.com");
-  test.equal(getDomain("example.amazonaws.com"), "amazonaws.com");
-  test.equal(getDomain("amazonaws.com"), "amazonaws.com");
+  test.equal(
+    getBaseDomain("us-east-1.amazonaws.com"),
+    "us-east-1.amazonaws.com"
+  );
+  test.equal(getBaseDomain("example.amazonaws.com"), "amazonaws.com");
+  test.equal(getBaseDomain("amazonaws.com"), "amazonaws.com");
 
   // Edge case.
-  test.equal(getDomain(""), "");
+  test.equal(getBaseDomain(""), "");
 
   test.done();
 };
