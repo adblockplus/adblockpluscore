@@ -302,28 +302,6 @@ exports.testPropertySelectorWithRegularExpression = async function(test)
   test.done();
 };
 
-exports.testPropertySelectorWithEscapedBrace = async function(test)
-{
-  let toHide = createElementWithStyle("{background-color: #000}");
-  let selectors = [":-abp-properties(/background.\\7B 0,6\\7D : rgb\\(0, 0, 0\\)/)"];
-
-  if (await applyElemHideEmulation(test, selectors))
-    expectHidden(test, toHide);
-
-  test.done();
-};
-
-exports.testPropertySelectorWithImproperlyEscapedBrace = async function(test)
-{
-  let toHide = createElementWithStyle("{background-color: #000}");
-  let selectors = [":-abp-properties(/background.\\7B0,6\\7D: rgb\\(0, 0, 0\\)/)"];
-
-  if (await applyElemHideEmulation(test, selectors))
-    expectVisible(test, toHide);
-
-  test.done();
-};
-
 exports.testDynamicallyChangedProperty = async function(test)
 {
   let toHide = createElementWithStyle("{}");

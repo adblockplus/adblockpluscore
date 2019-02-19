@@ -445,7 +445,7 @@ exports.testElemHideRulesWithBraces = function(test)
       "type=elemhide",
       "text=###foo{color: red}",
       "selectorDomains=",
-      "selector=#foo\\7B color: red\\7D ",
+      "selector=#foo{color: red}",
       "domains="
     ]
   );
@@ -454,7 +454,7 @@ exports.testElemHideRulesWithBraces = function(test)
       "type=elemhideemulation",
       "text=foo.com#?#:-abp-properties(/margin: [3-4]{2}/)",
       "selectorDomains=foo.com",
-      "selector=:-abp-properties(/margin: [3-4]\\7B 2\\7D /)",
+      "selector=:-abp-properties(/margin: [3-4]{2}/)",
       "domains=foo.com"
     ]
   );

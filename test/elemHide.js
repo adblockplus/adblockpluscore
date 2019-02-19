@@ -297,12 +297,22 @@ exports.testCreateStyleSheet = function(test)
     "Style sheet creation should work"
   );
 
-  let selectors = new Array(50000).map((element, index) => ".s" + index);
+  let selectors = new Array(50000).fill().map((element, index) => ".s" + index);
 
   test.equal((createStyleSheet(selectors).match(/\n/g) || []).length,
              Math.ceil(50000 / selectorGroupSize),
              "Style sheet should be split up into rules with at most " +
              selectorGroupSize + " selectors each");
+
+  test.equal(
+    createStyleSheet([
+      "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
+      "#foo[data-bar='{foo: 1}']"
+    ]),
+    "html, #foo, .bar, #foo .bar, #foo > .bar, " +
+    "#foo[data-bar='\\7B foo: 1\\7D '] {display: none !important;}\n",
+    "Braces should be escaped"
+  );
 
   test.done();
 };
