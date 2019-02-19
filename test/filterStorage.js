@@ -258,31 +258,36 @@ exports.testAddingFilters = function(test)
   test.deepEqual(changes, ["filter.added foo#@#bar"], "Received changes");
 
   changes = [];
+  filterStorage.addFilter(Filter.fromText("example.com#$#foobar"));
+  compareFiltersList(test, "Adding snippet filter", [["foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar"]]);
+  test.deepEqual(changes, ["filter.added example.com#$#foobar"], "Received changes");
+
+  changes = [];
   filterStorage.addFilter(Filter.fromText("!foobar"));
-  compareFiltersList(test, "Adding comment", [["foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["!foobar"]]);
+  compareFiltersList(test, "Adding comment", [["foo", "!foobar"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar"]]);
   test.deepEqual(changes, ["filter.added !foobar"], "Received changes");
 
   changes = [];
   filterStorage.addFilter(Filter.fromText("foo"));
-  compareFiltersList(test, "Adding already added filter", [["foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["!foobar"]]);
+  compareFiltersList(test, "Adding already added filter", [["foo", "!foobar"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar"]]);
   test.deepEqual(changes, [], "Received changes");
 
   subscription1.disabled = true;
 
   changes = [];
   filterStorage.addFilter(Filter.fromText("foo"));
-  compareFiltersList(test, "Adding filter already in a disabled subscription", [["foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["!foobar", "foo"]]);
+  compareFiltersList(test, "Adding filter already in a disabled subscription", [["foo", "!foobar"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foo"]]);
   test.deepEqual(changes, ["filter.added foo"], "Received changes");
 
   changes = [];
   filterStorage.addFilter(Filter.fromText("foo"), subscription1);
-  compareFiltersList(test, "Adding filter to an explicit subscription", [["foo", "foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["!foobar", "foo"]]);
+  compareFiltersList(test, "Adding filter to an explicit subscription", [["foo", "!foobar", "foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foo"]]);
   test.deepEqual(changes, ["filter.added foo"], "Received changes");
 
   changes = [];
-  filterStorage.addFilter(Filter.fromText("!foobar"), subscription2, 0);
-  compareFiltersList(test, "Adding filter to an explicit subscription with position", [["foo", "foo"], ["!foobar", "@@bar", "foo##bar", "foo#@#bar"], ["!foobar", "foo"]]);
-  test.deepEqual(changes, ["filter.added !foobar"], "Received changes");
+  filterStorage.addFilter(Filter.fromText("example.com#$#foobar"), subscription2, 0);
+  compareFiltersList(test, "Adding filter to an explicit subscription with position", [["foo", "!foobar", "foo"], ["example.com#$#foobar", "@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foo"]]);
+  test.deepEqual(changes, ["filter.added example.com#$#foobar"], "Received changes");
 
   test.done();
 };
