@@ -498,7 +498,7 @@ exports.testFilterSubscriptionRelationship = function(test)
   compareFilterSubscriptions(test, "filter2 subscriptions after removing http://test1/", filter2, [subscription2]);
   compareFilterSubscriptions(test, "filter3 subscriptions after removing http://test1/", filter3, [subscription2]);
 
-  filterStorage.updateSubscriptionFilters(subscription3, [filter3]);
+  filterStorage.updateSubscriptionFilters(subscription3, [filter3.text]);
 
   compareFilterSubscriptions(test, "filter1 subscriptions after updating http://test3/ filters", filter1, []);
   compareFilterSubscriptions(test, "filter2 subscriptions after updating http://test3/ filters", filter2, [subscription2]);
@@ -510,7 +510,7 @@ exports.testFilterSubscriptionRelationship = function(test)
   compareFilterSubscriptions(test, "filter2 subscriptions after adding http://test3/", filter2, [subscription2]);
   compareFilterSubscriptions(test, "filter3 subscriptions after adding http://test3/", filter3, [subscription2, subscription3]);
 
-  filterStorage.updateSubscriptionFilters(subscription3, [filter1, filter2]);
+  filterStorage.updateSubscriptionFilters(subscription3, [filter1.text, filter2.text]);
 
   compareFilterSubscriptions(test, "filter1 subscriptions after updating http://test3/ filters", filter1, [subscription3]);
   compareFilterSubscriptions(test, "filter2 subscriptions after updating http://test3/ filters", filter2, [subscription2, subscription3]);

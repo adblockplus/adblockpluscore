@@ -65,15 +65,14 @@ function compareSubscription(test, url, expected, postInit)
 function compareSubscriptionFilters(test, subscription, expected)
 {
   test.deepEqual([...subscription.filterText()], expected);
-  test.deepEqual([...subscription.filters()], expected.map(f$));
 
   test.equal(subscription.filterCount, expected.length);
 
   for (let i = 0; i < subscription.filterCount; i++)
-    test.equal(subscription.filterAt(i).text, expected[i]);
+    test.equal(subscription.filterTextAt(i), expected[i]);
 
-  test.ok(!subscription.filterAt(subscription.filterCount));
-  test.ok(!subscription.filterAt(-1));
+  test.ok(!subscription.filterTextAt(subscription.filterCount));
+  test.ok(!subscription.filterTextAt(-1));
 }
 
 exports.testSubscriptionClassDefinitions = function(test)

@@ -224,13 +224,13 @@ exports.testFilterSubscriptionOperations = function(test)
   filterStorage.addFilter(filter1);
   checkKnownFilters(test, "add filter1", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
-  filterStorage.updateSubscriptionFilters(subscription, [filter4]);
+  filterStorage.updateSubscriptionFilters(subscription, [filter4.text]);
   checkKnownFilters(test, "change subscription filters to filter4", {blacklist: [filter1.text]});
 
   filterStorage.removeFilter(filter1);
   checkKnownFilters(test, "remove filter1", {});
 
-  filterStorage.updateSubscriptionFilters(subscription, [filter1, filter2]);
+  filterStorage.updateSubscriptionFilters(subscription, [filter1.text, filter2.text]);
   checkKnownFilters(test, "change subscription filters to filter1, filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filter1.disabled = true;
@@ -320,13 +320,13 @@ exports.testFilterGroupOperations = function(test)
   test.ok([...filter2.subscriptions()][0] == subscription3, "@@filter2 added to the default exceptions group");
 
   let subscription4 = Subscription.fromURL("http://test/");
-  filterStorage.updateSubscriptionFilters(subscription4, [filter3, filter4, filter5]);
+  filterStorage.updateSubscriptionFilters(subscription4, [filter3.text, filter4.text, filter5.text]);
   checkKnownFilters(test, "update subscription not in the list yet", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filterStorage.addSubscription(subscription4);
   checkKnownFilters(test, "add subscription to the list", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text, filter4.text]});
 
-  filterStorage.updateSubscriptionFilters(subscription4, [filter3, filter2, filter5]);
+  filterStorage.updateSubscriptionFilters(subscription4, [filter3.text, filter2.text, filter5.text]);
   checkKnownFilters(test, "update subscription while in the list", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text]});
 
   subscription3.disabled = true;
