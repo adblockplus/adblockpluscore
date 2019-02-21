@@ -236,21 +236,21 @@ exports.setupTimerAndXMLHttp = function()
       let match = /^data:[^,]+,/.exec(url);
       if (match)
       {
-        this._data = decodeURIComponent(url.substr(match[0].length));
+        this._data = decodeURIComponent(url.substring(match[0].length));
         return;
       }
 
-      if (url.substr(0, this._host.length + 1) != this._host + "/")
+      if (url.substring(0, this._host.length + 1) != this._host + "/")
         throw new Error("Unexpected URL: " + url + " (URL starting with " + this._host + "expected)");
 
-      this._path = url.substr(this._host.length);
+      this._path = url.substring(this._host.length);
 
       let queryIndex = this._path.indexOf("?");
       this._queryString = "";
       if (queryIndex >= 0)
       {
-        this._queryString = this._path.substr(queryIndex + 1);
-        this._path = this._path.substr(0, queryIndex);
+        this._queryString = this._path.substring(queryIndex + 1);
+        this._path = this._path.substring(0, queryIndex);
       }
     },
 

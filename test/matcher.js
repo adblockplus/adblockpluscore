@@ -88,8 +88,8 @@ function checkMatch(test, filters, location, contentType, docDomain, thirdParty,
       continue;
 
     // For next run: add whitelisting filters for filters that aren't already
-    filters = filters.map(text => text.substr(0, 2) == "@@" ? text : "@@" + text);
-    if (expected && expected.substr(0, 2) != "@@")
+    filters = filters.map(text => text.substring(0, 2) == "@@" ? text : "@@" + text);
+    if (expected && expected.substring(0, 2) != "@@")
       expected = "@@" + expected;
   }
 }
