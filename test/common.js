@@ -56,6 +56,8 @@ exports.testQualifySelector = function(test)
   test.equal(qualifySelector("div *", ".foo"), "div .foo");
   test.equal(qualifySelector("div#bar *", ".foo"), "div#bar .foo");
   test.equal(qualifySelector("div.bar *", "#foo"), "div.bar #foo");
+  test.equal(qualifySelector("body *#foo", "div"), "body div#foo");
+  test.equal(qualifySelector("body *.foo", "div"), "body div.foo");
 
   // Compound selectors with pseudo-class with parentheses.
   test.equal(qualifySelector("body #foo:nth-child(1)", "div"),
