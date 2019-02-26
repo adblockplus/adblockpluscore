@@ -23,6 +23,7 @@ const {createSandbox} = require("./_common");
 
 const publicSuffixes = require("../data/publicSuffixList.json");
 
+let parseURL = null;
 let normalizeHostname = null;
 let domainSuffixes = null;
 let isThirdParty = null;
@@ -36,7 +37,7 @@ exports.setUp = function(callback)
     }
   });
   (
-    {normalizeHostname, domainSuffixes, isThirdParty,
+    {parseURL, normalizeHostname, domainSuffixes, isThirdParty,
      getBaseDomain} = sandboxedRequire("../lib/url")
   );
 
@@ -46,6 +47,26 @@ exports.setUp = function(callback)
 function hostnameToURL(hostname)
 {
   return new URL("http://" + hostname);
+}
+
+function testURLParsing(test, url)
+{
+  // Note: The function expects a normalized URL.
+  // e.g. "http:example.com:80?foo" should already be normalized to
+  // "http://example.com/?foo". If not, the tests will fail.
+  let urlInfo = parseURL(url);
+
+  // We need to ensure only that our implementation matches that of the URL
+  // object.
+  let urlObject = new URL(url);
+
+  test.equal(urlInfo.href, urlObject.href);
+  test.equal(urlInfo.protocol, urlObject.protocol);
+  test.equal(urlInfo.hostname, urlObject.hostname);
+
+  test.equal(urlInfo.toString(), urlObject.toString());
+  test.equal(String(urlInfo), String(urlObject));
+  test.equal(urlInfo + "", urlObject + "");
 }
 
 function testThirdParty(test, requestHostname, documentHostname, expected,
@@ -63,6 +84,211 @@ function testThirdParty(test, requestHostname, documentHostname, expected,
     message
   );
 }
+
+exports.testParseURL = function(test)
+{
+  testURLParsing(test, "https://example.com/");
+  testURLParsing(test, "https://example.com/foo");
+  testURLParsing(test, "https://example.com/foo/bar");
+  testURLParsing(
+    test,
+    "https://example.com/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "https://example.com:8080/");
+  testURLParsing(test, "https://example.com:8080/foo");
+  testURLParsing(test, "https://example.com:8080/foo/bar");
+  testURLParsing(
+    test,
+    "https://example.com:8080/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "http://localhost/");
+  testURLParsing(test, "http://localhost/foo");
+  testURLParsing(test, "http://localhost/foo/bar");
+  testURLParsing(
+    test,
+    "http://localhost/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "https://user@example.com/");
+  testURLParsing(test, "https://user@example.com/foo");
+  testURLParsing(test, "https://user@example.com/foo/bar");
+  testURLParsing(
+    test,
+    "https://user@example.com/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "https://user@example.com:8080/");
+  testURLParsing(test, "https://user@example.com:8080/foo");
+  testURLParsing(test, "https://user@example.com:8080/foo/bar");
+  testURLParsing(
+    test,
+    "https://user@example.com:8080/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "https://user:pass@example.com/");
+  testURLParsing(test, "https://user:pass@example.com/foo");
+  testURLParsing(test, "https://user:pass@example.com/foo/bar");
+  testURLParsing(
+    test,
+    "https://user:pass@example.com/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "https://user:pass@example.com:8080/");
+  testURLParsing(test, "https://user:pass@example.com:8080/foo");
+  testURLParsing(test, "https://user:pass@example.com:8080/foo/bar");
+  testURLParsing(
+    test,
+    "https://user:pass@example.com:8080/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "https://us%40er:pa%40ss@example.com/");
+  testURLParsing(test, "https://us%40er:pa%40ss@example.com/foo");
+  testURLParsing(test, "https://us%40er:pa%40ss@example.com/foo/bar");
+  testURLParsing(
+    test,
+    "https://us%40er:pa%40ss@example.com/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "https://us%40er:pa%40ss@example.com:8080/");
+  testURLParsing(test, "https://us%40er:pa%40ss@example.com:8080/foo");
+  testURLParsing(test, "https://us%40er:pa%40ss@example.com:8080/foo/bar");
+  testURLParsing(
+    test,
+    "https://us%40er:pa%40ss@example.com:8080/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "http://192.168.1.1/");
+  testURLParsing(test, "http://192.168.1.1/foo");
+  testURLParsing(test, "http://192.168.1.1/foo/bar");
+  testURLParsing(
+    test,
+    "http://192.168.1.1/foo/bar?https://random/foo/bar"
+  );
+  testURLParsing(
+    test,
+    "http://192.168.1.1:8080/foo/bar?https://random/foo/bar"
+  );
+  testURLParsing(
+    test,
+    "http://user@192.168.1.1:8080/foo/bar?https://random/foo/bar"
+  );
+  testURLParsing(
+    test,
+    "http://user:pass@192.168.1.1:8080/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "http://[2001:db8:0:42:0:8a2e:370:7334]/");
+  testURLParsing(test, "http://[2001:db8:0:42:0:8a2e:370:7334]/foo");
+  testURLParsing(
+    test,
+    "http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar"
+  );
+  testURLParsing(
+    test,
+    "http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar?https://random/foo/bar"
+  );
+  testURLParsing(
+    test,
+    "http://[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar"
+  );
+  testURLParsing(
+    test,
+    "http://user@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar"
+  );
+  testURLParsing(
+    test,
+    "http://user:pass@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar"
+  );
+
+  testURLParsing(test, "ftp://user:pass@example.com:8021/");
+  testURLParsing(test, "ftp://user:pass@example.com:8021/foo");
+  testURLParsing(test, "ftp://user:pass@example.com:8021/foo/bar");
+
+  testURLParsing(test, "about:blank");
+  testURLParsing(test, "chrome://extensions");
+  testURLParsing(
+    test,
+    "chrome-extension://bhignfpcigccnlfapldlodmhlidjaion/options.html"
+  );
+  testURLParsing(test, "mailto:john.doe@mail.example.com");
+
+  testURLParsing(test, "news:newsgroup");
+  testURLParsing(test, "news:message-id");
+  testURLParsing(test, "nntp://example.com:8119/newsgroup");
+  testURLParsing(test, "nntp://example.com:8119/message-id");
+
+  testURLParsing(test, "data:,");
+  testURLParsing(
+    test,
+    "data:text/vnd-example+xyz;foo=bar;base64,R0lGODdh"
+  );
+  testURLParsing(
+    test,
+    "data:text/plain;charset=UTF-8;page=21,the%20data:1234,5678"
+  );
+
+  testURLParsing(test, "javascript:");
+  testURLParsing(test, "javascript:alert();");
+  testURLParsing(test, "javascript:foo/bar/");
+  testURLParsing(test, "javascript://foo/bar/");
+
+  testURLParsing(test, "file:///dev/random");
+
+  testURLParsing(test, "wss://example.com/");
+  testURLParsing(test, "wss://example.com:8080/");
+  testURLParsing(test, "wss://user@example.com:8080/");
+  testURLParsing(test, "wss://user:pass@example.com:8080/");
+
+  testURLParsing(test, "stuns:stuns.example.com/");
+  testURLParsing(test, "stuns:stuns.example.com:8080/");
+  testURLParsing(test, "stuns:user@stuns.example.com:8080/");
+  testURLParsing(test, "stuns:user:pass@stuns.example.com:8080/");
+
+  // The following tests are based on
+  // https://cs.chromium.org/chromium/src/url/gurl_unittest.cc?rcl=9ec7bc85e0f6a0bf28eff6b2eca678067da547e9
+  // Note: We do not check for "canonicalization" (normalization). parseURL()
+  // should be used with normalized URLs only.
+
+  testURLParsing(test, "something:///example.com/");
+  testURLParsing(test, "something://example.com/");
+
+  testURLParsing(test, "file:///C:/foo.txt");
+  testURLParsing(test, "file://server/foo.txt");
+
+  testURLParsing(test, "http://user:pass@example.com:99/foo;bar?q=a#ref");
+
+  testURLParsing(test, "http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/");
+
+  testURLParsing(test, "filesystem:http://example.com/temporary/");
+  testURLParsing(
+    test,
+    "filesystem:http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/"
+  );
+
+  testURLParsing(test, "javascript:window.alert('hello, world');");
+  testURLParsing(test, "javascript:#");
+
+  testURLParsing(
+    test,
+    "blob:https://example.com/7ce70a1e-9681-4148-87a8-43cb9171b994"
+  );
+
+  testURLParsing(test, "http://[2001:db8::1]/");
+  testURLParsing(test, "http://[2001:db8::1]:8080/");
+  testURLParsing(test, "http://[::]:8080/");
+
+  testURLParsing(test, "not-a-standard-scheme:this is arbitrary content");
+  testURLParsing(test, "view-source:http://example.com/path");
+
+  testURLParsing(
+    test,
+    "data:text/html,Question?%3Cdiv%20style=%22color:%20#bad%22%3Eidea%3C/div%3E"
+  );
+
+  test.done();
+};
 
 exports.testNormalizeHostname = function(test)
 {
