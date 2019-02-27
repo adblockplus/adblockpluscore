@@ -245,6 +245,13 @@ exports.testFilterMatching = function(test)
   checkMatch(test, ["@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", false, null, false, null, "@@||foo.com^$csp");
   checkMatch(test, ["||foo.com^$csp=script-src 'none'", "@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", false, null, false, "@@||foo.com^$csp", "||foo.com^$csp=script-src 'none'");
 
+  // See #7312.
+  checkMatch(test, ["^foo/bar/$script"], "http://foo/bar/", "SCRIPT", "example.com", true, null, true, null);
+  checkMatch(test, ["^foo/bar/$script"], "http://foo/bar/", "SCRIPT", "example.com", true, null, false, "^foo/bar/$script");
+  checkMatch(test, ["^foo/bar/$script,domain=example.com", "@@^foo/bar/$script"], "http://foo/bar/", "SCRIPT", "example.com", true, null, true, "@@^foo/bar/$script", "^foo/bar/$script,domain=example.com");
+  checkMatch(test, ["@@^foo/bar/$script", "^foo/bar/$script,domain=example.com"], "http://foo/bar/", "SCRIPT", "example.com", true, null, true, "@@^foo/bar/$script", "^foo/bar/$script,domain=example.com");
+  checkMatch(test, ["@@^foo/bar/$script", "^foo/bar/$script,domain=example.com"], "http://foo/bar/", "SCRIPT", "example.com", true, null, false, "@@^foo/bar/$script");
+
   test.done();
 };
 
