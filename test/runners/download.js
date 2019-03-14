@@ -18,10 +18,19 @@
 "use strict";
 
 const fs = require("fs");
+const os = require("os");
 const https = require("https");
 const path = require("path");
 
 const extractZip = require("extract-zip");
+
+function snapshotsRootDir()
+{
+  let rootDir = process.env.BROWSER_SNAPSHOT_DIR ||
+                path.join(__dirname, "..", "..");
+
+  return rootDir.replace("~", os.homedir);
+}
 
 function download(url, destFile)
 {
@@ -76,5 +85,6 @@ function unzipArchive(archive, destDir)
 
 module.exports = {
   download,
-  unzipArchive
+  unzipArchive,
+  snapshotsRootDir
 };
