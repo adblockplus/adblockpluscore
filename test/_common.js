@@ -75,7 +75,7 @@ for (let dir of [path.join(__dirname, "stub-modules"),
   for (let file of fs.readdirSync(path.resolve(dir)))
   {
     if (path.extname(file) == ".js")
-      knownModules[path.basename(file, ".js")] = path.resolve(dir, file);
+      knownModules.set(path.basename(file, ".js"), path.resolve(dir, file));
   }
 }
 
@@ -105,8 +105,8 @@ function rewriteRequires(source)
 
   return source.replace(/(\brequire\(["'])([^"']+)/g, (match, prefix, request) =>
   {
-    if (request in knownModules)
-      return prefix + escapeString(knownModules[request]);
+    if (knownModules.has(request))
+      return prefix + escapeString(knownModules.get(request));
     return match;
   });
 }
