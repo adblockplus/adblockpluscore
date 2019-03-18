@@ -21,12 +21,6 @@ const fs = require("fs");
 const path = require("path");
 const SandboxedModule = require("sandboxed-module");
 
-const Cr = exports.Cr = {
-  NS_OK: 0,
-  NS_BINDING_ABORTED: 0x804B0002,
-  NS_ERROR_FAILURE: 0x80004005
-};
-
 const MILLIS_IN_SECOND = exports.MILLIS_IN_SECOND = 1000;
 const MILLIS_IN_MINUTE = exports.MILLIS_IN_MINUTE = 60 * MILLIS_IN_SECOND;
 const MILLIS_IN_HOUR = exports.MILLIS_IN_HOUR = 60 * MILLIS_IN_MINUTE;
@@ -263,9 +257,9 @@ exports.setupTimerAndXMLHttp = function()
 
       requests.push(Promise.resolve().then(() =>
       {
-        let result = [Cr.NS_OK, 404, ""];
+        let result = [404, ""];
         if (this._data)
-          result = [Cr.NS_OK, 0, this._data];
+          result = [200, this._data];
         else if (this._path in XMLHttpRequest.requestHandlers)
         {
           result = XMLHttpRequest.requestHandlers[this._path]({
@@ -275,10 +269,9 @@ exports.setupTimerAndXMLHttp = function()
           });
         }
 
-        [this.channel.status, this.channel.responseStatus, this.responseText] = result;
-        this.status = this.channel.responseStatus;
+        [this.status, this.responseText] = result;
 
-        let eventName = (this.channel.status == Cr.NS_OK ? "load" : "error");
+        let eventName = (this.status > 0 ? "load" : "error");
         let event = {type: eventName};
         for (let handler of this["_" + eventName + "Handlers"])
           handler.call(this, event);
@@ -287,16 +280,6 @@ exports.setupTimerAndXMLHttp = function()
 
     overrideMimeType(mime)
     {
-    },
-
-    channel:
-    {
-      status: -1,
-      responseStatus: 0,
-      loadFlags: 0,
-      INHIBIT_CACHING: 0,
-      VALIDATE_ALWAYS: 0,
-      QueryInterface: () => this
     }
   };
 
@@ -377,10 +360,8 @@ exports.setupTimerAndXMLHttp = function()
         TYPE_ONE_SHOT: 0,
         TYPE_REPEATING_SLACK: 1,
         TYPE_REPEATING_PRECISE: 2
-      },
-      nsIHttpChannel: () => null
+      }
     },
-    Cr,
     XMLHttpRequest,
     Date: {
       now: () => currentTime

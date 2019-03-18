@@ -18,7 +18,7 @@
 "use strict";
 
 let {
-  createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError, Cr
+  createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError
 } = require("./_common");
 
 let Prefs = null;
@@ -80,7 +80,7 @@ function registerHandler(notifications, checkCallback)
       notifications
     };
 
-    return [Cr.NS_OK, 200, JSON.stringify(notification)];
+    return [200, JSON.stringify(notification)];
   });
 }
 

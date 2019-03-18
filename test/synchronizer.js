@@ -18,7 +18,7 @@
 "use strict";
 
 let {
-  createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError, Cr,
+  createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError,
   MILLIS_IN_SECOND, MILLIS_IN_HOUR
 } = require("./_common");
 
@@ -66,7 +66,7 @@ exports.testOneSubscriptionDownloads = function(test)
   this.registerHandler("/subscription", metadata =>
   {
     requests.push([this.getTimeOffset(), metadata.method, metadata.path]);
-    return [Cr.NS_OK, 200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
+    return [200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
   });
 
   this.runScheduledTasks(50).then(() =>
@@ -94,7 +94,7 @@ exports.testTwoSubscriptionsDownloads = function(test)
   let handler = metadata =>
   {
     requests.push([this.getTimeOffset(), metadata.method, metadata.path]);
-    return [Cr.NS_OK, 200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
+    return [200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
   };
 
   this.registerHandler("/subscription1", handler);
@@ -131,7 +131,7 @@ for (let currentTest of [
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_OK, 200, currentTest.header + "\n!Expires: 8 hours\nfoo\n!bar\n\n@@bas\n#bam"];
+      return [200, currentTest.header + "\n!Expires: 8 hours\nfoo\n!bar\n\n@@bas\n#bam"];
     });
 
     this.runScheduledTasks(2).then(() =>
@@ -252,7 +252,7 @@ for (let currentTest of [
     this.registerHandler("/subscription", metadata =>
     {
       requests.push(this.getTimeOffset());
-      return [Cr.NS_OK, 200, "[Adblock]\n!Expires: " + currentTest.expiration + "\nbar"];
+      return [200, "[Adblock]\n!Expires: " + currentTest.expiration + "\nbar"];
     });
 
     this.randomResult = currentTest.randomResult;
@@ -294,7 +294,7 @@ for (let [comment, check] of [
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_OK, 200, "[Adblock]\n" + comment + "\nfoo\nbar"];
+      return [200, "[Adblock]\n" + comment + "\nfoo\nbar"];
     });
 
     this.runScheduledTasks(2).then(() =>
@@ -312,7 +312,7 @@ exports.testRedirects = function(test)
 
   this.registerHandler("/subscription", metadata =>
   {
-    return [Cr.NS_OK, 200, "[Adblock]\n!Redirect: http://example.com/redirected\nbar"];
+    return [200, "[Adblock]\n!Redirect: http://example.com/redirected\nbar"];
   });
 
   let requests;
@@ -328,7 +328,7 @@ exports.testRedirects = function(test)
     this.registerHandler("/redirected", metadata =>
     {
       requests.push(this.getTimeOffset());
-      return [Cr.NS_OK, 200, "[Adblock]\n! Expires: 8 hours\nbar"];
+      return [200, "[Adblock]\n! Expires: 8 hours\nbar"];
     });
 
     resetSubscription(subscription);
@@ -340,7 +340,7 @@ exports.testRedirects = function(test)
 
     this.registerHandler("/redirected", metadata =>
     {
-      return [Cr.NS_OK, 200, "[Adblock]\n!Redirect: http://example.com/subscription\nbar"];
+      return [200, "[Adblock]\n!Redirect: http://example.com/subscription\nbar"];
     });
 
     subscription = Subscription.fromURL("http://example.com/subscription");
@@ -359,7 +359,7 @@ exports.testRedirects = function(test)
 exports.testFallback = function(test)
 {
   Prefs.subscriptions_fallbackerrors = 3;
-  Prefs.subscriptions_fallbackurl = "http://example.com/fallback?%SUBSCRIPTION%&%CHANNELSTATUS%&%RESPONSESTATUS%";
+  Prefs.subscriptions_fallbackurl = "http://example.com/fallback?%SUBSCRIPTION%&%RESPONSESTATUS%";
 
   let subscription = Subscription.fromURL("http://example.com/subscription");
   filterStorage.addSubscription(subscription);
@@ -372,7 +372,7 @@ exports.testFallback = function(test)
   this.registerHandler("/subscription", metadata =>
   {
     requests.push(this.getTimeOffset());
-    return [Cr.NS_OK, 404, ""];
+    return [404, ""];
   });
 
   this.runScheduledTasks(100).then(() =>
@@ -387,14 +387,14 @@ exports.testFallback = function(test)
     this.registerHandler("/fallback", metadata =>
     {
       fallbackParams = decodeURIComponent(metadata.queryString);
-      return [Cr.NS_OK, 200, "410 Gone"];
+      return [200, "410 Gone"];
     });
 
     return this.runScheduledTasks(100);
   }).then(() =>
   {
     test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay], "Stop trying if the fallback responds with Gone");
-    test.equal(fallbackParams, "http://example.com/subscription&0&404", "Fallback arguments");
+    test.equal(fallbackParams, "http://example.com/subscription&404", "Fallback arguments");
 
     // Fallback redirecting to a missing file
 
@@ -406,7 +406,7 @@ exports.testFallback = function(test)
 
     this.registerHandler("/fallback", metadata =>
     {
-      return [Cr.NS_OK, 200, "301 http://example.com/redirected"];
+      return [200, "301 http://example.com/redirected"];
     });
     return this.runScheduledTasks(100);
   }).then(() =>
@@ -422,7 +422,7 @@ exports.testFallback = function(test)
     this.registerHandler("/redirected", metadata =>
     {
       redirectedRequests.push(this.getTimeOffset());
-      return [Cr.NS_OK, 200, "[Adblock]\n!Expires: 1day\nfoo\nbar"];
+      return [200, "[Adblock]\n!Expires: 1day\nfoo\nbar"];
     });
 
     return this.runScheduledTasks(100);
@@ -436,11 +436,11 @@ exports.testFallback = function(test)
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_OK, 200, "[Adblock]\n! Redirect: http://example.com/subscription2"];
+      return [200, "[Adblock]\n! Redirect: http://example.com/subscription2"];
     });
     this.registerHandler("/subscription2", metadata =>
     {
-      return [Cr.NS_OK, 200, "[Adblock]\n! Redirect: http://example.com/subscription"];
+      return [200, "[Adblock]\n! Redirect: http://example.com/subscription"];
     });
 
     subscription = Subscription.fromURL("http://example.com/subscription");
@@ -462,7 +462,7 @@ exports.testStateFields = function(test)
 
   this.registerHandler("/subscription", metadata =>
   {
-    return [Cr.NS_OK, 200, "[Adblock]\n! Expires: 2 hours\nfoo\nbar"];
+    return [200, "[Adblock]\n! Expires: 2 hours\nfoo\nbar"];
   });
 
   let startTime = this.currentTime;
@@ -476,7 +476,7 @@ exports.testStateFields = function(test)
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_ERROR_FAILURE, 0, ""];
+      return [0, ""];
     });
 
     return this.runScheduledTasks(2);
@@ -490,7 +490,7 @@ exports.testStateFields = function(test)
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_OK, 404, ""];
+      return [404, ""];
     });
 
     return this.runScheduledTasks(24);
@@ -511,7 +511,7 @@ exports.testSpecialCommentOrdering = function(test)
 
   this.registerHandler("/subscription", metadata =>
   {
-    return [Cr.NS_OK, 200, "[Adblock]\n! Special Comment: x\n!foo\n! Title: foobar\nfoo\nbar"];
+    return [200, "[Adblock]\n! Special Comment: x\n!foo\n! Title: foobar\nfoo\nbar"];
   });
 
   this.runScheduledTasks(1).then(() =>
@@ -528,7 +528,7 @@ exports.testUnknownSpecialComments = function(test)
   this.registerHandler("/subscription", metadata =>
   {
     // To test allowing unknown special comments like `! :`, `!!@#$%^&*() : `, and `! Some Unknown Comment : `
-    return [Cr.NS_OK, 200, "[Adblock]\n! :\n! !@#$%^&*() :\n! Some Unknown Comment :\n! Title: foobar\nfoo\nbar"];
+    return [200, "[Adblock]\n! :\n! !@#$%^&*() :\n! Some Unknown Comment :\n! Title: foobar\nfoo\nbar"];
   });
 
   this.runScheduledTasks(1).then(() =>
