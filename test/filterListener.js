@@ -32,8 +32,7 @@ exports.setUp = function(callback)
     extraExports: {
       elemHide: ["knownFilters"],
       elemHideEmulation: ["filters"],
-      elemHideExceptions: ["knownExceptions"],
-      snippets: ["filters"]
+      elemHideExceptions: ["knownExceptions"]
     }
   });
 
@@ -97,9 +96,9 @@ function checkKnownFilters(test, text, expected)
   for (let filter of elemHideEmulation.filters)
     result.elemhideemulation.push(filter.text);
 
-  let snippets = sandboxedRequire("../lib/snippets");
+  let {snippets} = sandboxedRequire("../lib/snippets");
   result.snippets = [];
-  for (let filter of snippets.filters)
+  for (let filter of snippets._filters)
     result.snippets.push(filter.text);
 
   let types = ["blacklist", "whitelist", "elemhide", "elemhideexception",
