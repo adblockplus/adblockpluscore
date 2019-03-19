@@ -289,58 +289,62 @@ exports.setupTimerAndXMLHttp = function()
     XMLHttpRequest.requestHandlers[requestPath] = handler;
   };
 
-  function waitForRequests()
+  async function waitForRequests()
   {
-    if (requests.length)
+    if (requests.length == 0)
+      return;
+
+    let result = Promise.all(requests);
+    requests = [];
+
+    try
     {
-      let result = Promise.all(requests);
-      requests = [];
-      return result.catch(e =>
-      {
-        console.error(e);
-      }).then(() => waitForRequests());
+      await result;
     }
-    return Promise.resolve();
+    catch (error)
+    {
+      console.error(error);
+    }
+
+    await waitForRequests();
   }
 
-  function runScheduledTasks(maxMillis)
+  async function runScheduledTasks(maxMillis)
   {
     let endTime = currentTime + maxMillis;
+
     if (fakeTimer.nextExecution < 0 || fakeTimer.nextExecution > endTime)
     {
       currentTime = endTime;
-      return Promise.resolve();
+      return;
     }
+
     fakeTimer.trigger();
-    return waitForRequests().then(() => runScheduledTasks(endTime - currentTime));
+
+    await waitForRequests();
+    await runScheduledTasks(endTime - currentTime);
   }
 
-  this.runScheduledTasks = (maxHours, initial, skip) =>
+  this.runScheduledTasks = async(maxHours, initial = 0, skip = 0) =>
   {
     if (typeof maxHours != "number")
       throw new Error("Numerical parameter expected");
-    if (typeof initial != "number")
-      initial = 0;
-    if (typeof skip != "number")
-      skip = 0;
 
     startTime = currentTime;
-    return Promise.resolve().then(() =>
+
+    if (initial >= 0)
     {
-      if (initial >= 0)
-      {
-        maxHours -= initial;
-        return runScheduledTasks(initial * MILLIS_IN_HOUR);
-      }
-    }).then(() =>
+      maxHours -= initial;
+      await runScheduledTasks(initial * MILLIS_IN_HOUR);
+    }
+
+    if (skip >= 0)
     {
-      if (skip >= 0)
-      {
-        maxHours -= skip;
-        currentTime += skip * MILLIS_IN_HOUR;
-      }
-      return runScheduledTasks(maxHours * MILLIS_IN_HOUR);
-    });
+      maxHours -= skip;
+      currentTime += skip * MILLIS_IN_HOUR;
+    }
+
+    await runScheduledTasks(maxHours * MILLIS_IN_HOUR);
   };
 
   this.getTimeOffset = () => (currentTime - startTime) / MILLIS_IN_HOUR;
