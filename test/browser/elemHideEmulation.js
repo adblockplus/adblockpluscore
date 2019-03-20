@@ -19,6 +19,7 @@
 
 const {ElemHideEmulation, setTestMode,
        getTestInfo} = require("../../lib/content/elemHideEmulation");
+const {timeout} = require("./_utils");
 
 const REFRESH_INTERVAL = 200;
 
@@ -43,14 +44,6 @@ exports.tearDown = function(callback)
 
   callback();
 };
-
-function timeout(delay)
-{
-  return new Promise((resolve, reject) =>
-  {
-    window.setTimeout(resolve, delay);
-  });
-}
 
 function unexpectedError(test, error)
 {
