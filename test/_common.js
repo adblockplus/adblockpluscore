@@ -61,9 +61,6 @@ let globals = {
   },
   navigator: {
   },
-  onShutdown: {
-    add() {}
-  },
   // URL is global in Node 10. In Node 7+ it must be imported.
   URL: typeof URL == "undefined" ? require("url").URL : URL
 };
@@ -164,11 +161,6 @@ exports.setupTimerAndXMLHttp = function()
       {
         this.nextExecution = currentTime + this.delay;
       }
-    },
-
-    cancel()
-    {
-      this.nextExecution = -1;
     }
   };
 
