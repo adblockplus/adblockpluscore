@@ -42,7 +42,7 @@ exports.setUp = function(callback)
   callback();
 };
 
-function showNotifications(url)
+function showNotifications(location)
 {
   let shownNotifications = [];
   function showListener(notification)
@@ -51,7 +51,7 @@ function showNotifications(url)
     Notification.markAsShown(notification.id);
   }
   Notification.addShowListener(showListener);
-  Notification.showNext(url);
+  Notification.showNext(location && new URL(location));
   Notification.removeShowListener(showListener);
   return shownNotifications;
 }
