@@ -25,6 +25,9 @@ let Prefs = null;
 let Utils = null;
 let Notification = null;
 
+// Only starting NodeJS 10 that URL is in the global space.
+const {URL} = require("url");
+
 exports.setUp = function(callback)
 {
   // Inject our Array and JSON to make sure that instanceof checks on arrays
