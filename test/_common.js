@@ -19,6 +19,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const {URL} = require("url");
 const SandboxedModule = require("sandboxed-module");
 
 const MILLIS_IN_SECOND = exports.MILLIS_IN_SECOND = 1000;
@@ -62,7 +63,7 @@ let globals = {
   navigator: {
   },
   // URL is global in Node 10. In Node 7+ it must be imported.
-  URL: typeof URL == "undefined" ? require("url").URL : URL
+  URL
 };
 
 let knownModules = new Map();
@@ -127,7 +128,7 @@ exports.createSandbox = function(options)
 
 exports.require = require;
 
-exports.setupTimerAndXMLHttp = function()
+exports.setupTimerAndFetch = function()
 {
   let currentTime = 100000 * MILLIS_IN_HOUR;
   let startTime = currentTime;
@@ -165,120 +166,42 @@ exports.setupTimerAndXMLHttp = function()
   };
 
   let requests = [];
-  function XMLHttpRequest()
+
+  async function fetch(url)
   {
-    this._host = "http://example.com";
-    this._loadHandlers = [];
-    this._errorHandlers = [];
-  }
-  XMLHttpRequest.prototype = {
-    _path: null,
-    _data: null,
-    _queryString: null,
-    _loadHandlers: null,
-    _errorHandlers: null,
-    status: 0,
-    readyState: 0,
-    responseText: null,
+    // Add a dummy resolved promise.
+    requests.push(Promise.resolve());
 
-    addEventListener(eventName, handler, capture)
+    let urlObj = new URL(url, "https://example.com");
+
+    let result = [404, ""];
+
+    if (urlObj.protocol == "data:")
     {
-      let list;
-      if (eventName == "load")
-        list = this._loadHandlers;
-      else if (eventName == "error")
-        list = this._errorHandlers;
-      else
-        throw new Error("Event type " + eventName + " not supported");
-
-      if (list.indexOf(handler) < 0)
-        list.push(handler);
-    },
-
-    removeEventListener(eventName, handler, capture)
-    {
-      let list;
-      if (eventName == "load")
-        list = this._loadHandlers;
-      else if (eventName == "error")
-        list = this._errorHandlers;
-      else
-        throw new Error("Event type " + eventName + " not supported");
-
-      let index = list.indexOf(handler);
-      if (index >= 0)
-        list.splice(index, 1);
-    },
-
-    open(method, url, async, user, password)
-    {
-      if (method != "GET")
-        throw new Error("Only GET requests are supported");
-      if (typeof async != "undefined" && !async)
-        throw new Error("Sync requests are not supported");
-      if (typeof user != "undefined" || typeof password != "undefined")
-        throw new Error("User authentification is not supported");
-
-      let match = /^data:[^,]+,/.exec(url);
-      if (match)
-      {
-        this._data = decodeURIComponent(url.substring(match[0].length));
-        return;
-      }
-
-      if (url.substring(0, this._host.length + 1) != this._host + "/")
-        throw new Error("Unexpected URL: " + url + " (URL starting with " + this._host + "expected)");
-
-      this._path = url.substring(this._host.length);
-
-      let queryIndex = this._path.indexOf("?");
-      this._queryString = "";
-      if (queryIndex >= 0)
-      {
-        this._queryString = this._path.substring(queryIndex + 1);
-        this._path = this._path.substring(0, queryIndex);
-      }
-    },
-
-    send(data)
-    {
-      if (!this._data && !this._path)
-        throw new Error("No request path set");
-      if (typeof data != "undefined" && data)
-        throw new Error("Sending data to server is not supported");
-
-      requests.push(Promise.resolve().then(() =>
-      {
-        let result = [404, ""];
-        if (this._data)
-          result = [200, this._data];
-        else if (this._path in XMLHttpRequest.requestHandlers)
-        {
-          result = XMLHttpRequest.requestHandlers[this._path]({
-            method: "GET",
-            path: this._path,
-            queryString: this._queryString
-          });
-        }
-
-        [this.status, this.responseText] = result;
-
-        let eventName = (this.status > 0 ? "load" : "error");
-        let event = {type: eventName};
-        for (let handler of this["_" + eventName + "Handlers"])
-          handler.call(this, event);
-      }));
-    },
-
-    overrideMimeType(mime)
-    {
+      let data = decodeURIComponent(urlObj.pathname.replace(/^[^,]+,/, ""));
+      result = [200, data];
     }
-  };
+    else if (urlObj.pathname in fetch.requestHandlers)
+    {
+      result = fetch.requestHandlers[urlObj.pathname]({
+        method: "GET",
+        path: urlObj.pathname,
+        queryString: urlObj.search.substring(1)
+      });
+    }
 
-  XMLHttpRequest.requestHandlers = {};
+    let [status, text] = result;
+
+    if (status == 0)
+      throw new Error("Fetch error");
+
+    return {status, text: async() => text};
+  }
+
+  fetch.requestHandlers = {};
   this.registerHandler = (requestPath, handler) =>
   {
-    XMLHttpRequest.requestHandlers[requestPath] = handler;
+    fetch.requestHandlers[requestPath] = handler;
   };
 
   async function waitForRequests()
@@ -358,7 +281,7 @@ exports.setupTimerAndXMLHttp = function()
         TYPE_REPEATING_PRECISE: 2
       }
     },
-    XMLHttpRequest,
+    fetch,
     Date: {
       now: () => currentTime
     }

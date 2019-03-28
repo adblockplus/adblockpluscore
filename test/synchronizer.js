@@ -18,7 +18,7 @@
 "use strict";
 
 let {
-  createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError,
+  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
   MILLIS_IN_SECOND, MILLIS_IN_HOUR
 } = require("./_common");
 
@@ -28,8 +28,8 @@ let Subscription = null;
 
 exports.setUp = function(callback)
 {
-  let globals = Object.assign({}, setupTimerAndXMLHttp.call(this),
-    setupRandomResult.call(this));
+  let globals = Object.assign({}, setupTimerAndFetch.call(this),
+                              setupRandomResult.call(this));
 
   let sandboxedRequire = createSandbox({globals});
   (

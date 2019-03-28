@@ -8,6 +8,6 @@
     "Ci": true,
     "Cu": true,
     "URL": true,
-    "XMLHttpRequest": true
+    "fetch": true
   }
 }

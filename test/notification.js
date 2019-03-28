@@ -18,7 +18,7 @@
 "use strict";
 
 let {
-  createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError
+  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError
 } = require("./_common");
 
 let Prefs = null;
@@ -30,7 +30,7 @@ exports.setUp = function(callback)
   // Inject our Array and JSON to make sure that instanceof checks on arrays
   // within the sandbox succeed even with data passed in from outside.
   let globals = Object.assign({Array, JSON},
-    setupTimerAndXMLHttp.call(this), setupRandomResult.call(this));
+    setupTimerAndFetch.call(this), setupRandomResult.call(this));
 
   let sandboxedRequire = createSandbox({globals});
   (
@@ -432,7 +432,7 @@ exports.testInterval = function(test)
     test.deepEqual(showNotifications(), [], "Relentless notifications are not shown before the interval");
   }).then(() =>
   {
-    // Date always returns a fixed time (see setupTimerAndXMLHttp) so we
+    // Date always returns a fixed time (see setupTimerAndFetch) so we
     // manipulate the shown data manually.
     Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
     test.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown after the interval");
@@ -459,7 +459,7 @@ exports.testRelentlessNotification = function(test)
     test.deepEqual(showNotifications("http://foo.com"), [], "Relentless notifications are not shown before the interval");
   }).then(() =>
   {
-    // Date always returns a fixed time (see setupTimerAndXMLHttp) so we
+    // Date always returns a fixed time (see setupTimerAndFetch) so we
     // manipulate the shown data manually.
     Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
     test.deepEqual(showNotifications(), [], "Relentless notifications are not shown after the interval without URL");
