@@ -109,5 +109,53 @@ exports.testAbortOnPropertyReadSnippet = async function(test)
   window.abpTest5 = {prop4: {}};
   testProperty("abpTest5.prop4.bar");
 
+  // Check that it works on properties that are functions.
+  // https://issues.adblockplus.org/ticket/7419
+
+  // Existing function (from the API).
+  await runSnippet(test, "abort-on-property-read", "Object.keys");
+  testProperty("Object.keys");
+
+  // Function properties.
+  window.abpTest6 = function() {};
+  window.abpTest6.prop1 = function() {};
+  await runSnippet(test, "abort-on-property-read", "abpTest6.prop1");
+  testProperty("abpTest6.prop1");
+
+  // Function properties, with sub-property set afterwards.
+  window.abpTest7 = function() {};
+  await runSnippet(test, "abort-on-property-read", "abpTest7.prop1");
+  window.abpTest7.prop1 = function() {};
+  testProperty("abpTest7.prop1");
+
+  // Function properties, with base property as function set afterwards.
+  await runSnippet(test, "abort-on-property-read", "abpTest8.prop1");
+  window.abpTest8 = function() {};
+  window.abpTest8.prop1 = function() {};
+  testProperty("abpTest8.prop1");
+
+  // Arrow function properties.
+  window.abpTest9 = () => {};
+  await runSnippet(test, "abort-on-property-read", "abpTest9");
+  testProperty("abpTest9");
+
+  // Class function properties.
+  window.abpTest10 = class {};
+  await runSnippet(test, "abort-on-property-read", "abpTest10");
+  testProperty("abpTest10");
+
+  // Class function properties with prototype function properties.
+  window.abpTest11 = class {};
+  window.abpTest11.prototype.prop1 = function() {};
+  await runSnippet(test, "abort-on-property-read", "abpTest11.prototype.prop1");
+  testProperty("abpTest11.prototype.prop1");
+
+  // Class function properties with prototype function properties, with
+  // prototype property set afterwards.
+  window.abpTest12 = class {};
+  await runSnippet(test, "abort-on-property-read", "abpTest12.prototype.prop1");
+  window.abpTest12.prototype.prop1 = function() {};
+  testProperty("abpTest12.prototype.prop1");
+
   test.done();
 };
