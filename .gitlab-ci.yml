@@ -34,6 +34,7 @@ tests:
     # been available on the specific runners. Unfortunately, YAML doesn't
     # support proper mutli-inheritance, so we need to fallback to the following
     # inline shell script.
+    - mkdir -p $BROWSER_SNAPSHOT_DIR
     - |
       if [[ "$CI_RUNNER_DESCRIPTION" == *gitlab.com ]]; then
         apt-get update;
@@ -48,6 +49,8 @@ tests:
     - npm install
   script:
     - npm test
+  variables:
+    BROWSER_SNAPSHOT_DIR: "/tmp/browser-snapshots/"
   retry:
     max: 2
     when: stuck_or_timeout_failure
