@@ -334,5 +334,54 @@ exports.testQualifySelector = function(test)
   test.equal(qualifySelector("body img.\ud83d\ude42", "img"),
              "body img.\ud83d\ude42");
 
+  // Qualifiers ending in combinators.
+  for (let combinator of [" ", ">", " > ", "+", " + ", "~", " ~ "])
+  {
+    // Simple selectors and simple qualifiers.
+    test.equal(qualifySelector("#foo", "div" + combinator),
+               "div" + combinator + "#foo");
+    test.equal(qualifySelector(".foo", "div" + combinator),
+               "div" + combinator + ".foo");
+    test.equal(qualifySelector("div", "#foo" + combinator),
+               "#foo" + combinator + "div");
+    test.equal(qualifySelector("div", ".foo" + combinator),
+               ".foo" + combinator + "div");
+    test.equal(qualifySelector("div#bar", ".foo" + combinator),
+               ".foo" + combinator + "div#bar");
+    test.equal(qualifySelector("div.bar", "#foo" + combinator),
+               "#foo" + combinator + "div.bar");
+
+    // Simple selectors and compound qualifiers.
+    test.equal(qualifySelector("div", "body #foo" + combinator),
+               "body #foo" + combinator + "div");
+    test.equal(qualifySelector("div", "body .foo" + combinator),
+               "body .foo" + combinator + "div");
+    test.equal(qualifySelector("#foo", "body div" + combinator),
+               "body div" + combinator + "#foo");
+    test.equal(qualifySelector(".foo", "body div" + combinator),
+               "body div" + combinator + ".foo");
+    test.equal(qualifySelector(".foo", "body div#bar" + combinator),
+               "body div#bar" + combinator + ".foo");
+    test.equal(qualifySelector("#foo", "body div.bar" + combinator),
+               "body div.bar" + combinator + "#foo");
+
+    // Compound selectors and simple qualifiers.
+    test.equal(qualifySelector("body #foo", "div" + combinator),
+               "body div" + combinator + "#foo");
+    test.equal(qualifySelector("body .foo", "div" + combinator),
+               "body div" + combinator + ".foo");
+    test.equal(qualifySelector("body div", "#foo" + combinator),
+               "body #foo" + combinator + "div");
+    test.equal(qualifySelector("body div", ".foo" + combinator),
+               "body .foo" + combinator + "div");
+    test.equal(qualifySelector("body div#bar", ".foo" + combinator),
+               "body .foo" + combinator + "div#bar");
+    test.equal(qualifySelector("body div.bar", "#foo" + combinator),
+               "body #foo" + combinator + "div.bar");
+
+    // Note: There are some unresolved issues with compound selectors and
+    // compound qualifiers (see #7402, #7403).
+  }
+
   test.done();
 };
