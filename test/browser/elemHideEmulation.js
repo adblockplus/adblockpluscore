@@ -529,6 +529,64 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingContains = function(test)
     test, "div:-abp-has(> span:-abp-contains(Advertisment))", expectations);
 };
 
+async function runTestQualifier(test, selector)
+{
+  testDocument.body.innerHTML = `
+    <style>
+    span::before {
+      content: "any";
+    }
+    </style>
+    <div id="toHide">
+      <a>
+        <p>
+          <span></span>
+        </p>
+      </a>
+    </div>`;
+
+  if (await applyElemHideEmulation(test, [selector]))
+    expectHidden(test, testDocument.getElementById("toHide"));
+
+  test.done();
+}
+
+// See issue https://issues.adblockplus.org/ticket/7428
+exports.testPropertySelectorCombinatorQualifier = function(test)
+{
+  runTestQualifier(
+    test,
+    "div:-abp-has(> a p > :-abp-properties(content: \"any\"))"
+  );
+};
+
+// See issue https://issues.adblockplus.org/ticket/7359
+exports.testPropertySelectorCombinatorQualifierNested = function(test)
+{
+  runTestQualifier(
+    test,
+    "div:-abp-has(> a p:-abp-has(> :-abp-properties(content: \"any\")))"
+  );
+};
+
+// See issue https://issues.adblockplus.org/ticket/7400
+exports.testPropertySelectorIdenticalTypeQualifier = function(test)
+{
+  runTestQualifier(
+    test,
+    "div:-abp-has(span:-abp-properties(content: \"any\"))"
+  );
+};
+
+// See issue https://issues.adblockplus.org/ticket/7400
+exports.testPropertySelectorIdenticalTypeQualifierNested = function(test)
+{
+  runTestQualifier(
+    test,
+    "div:-abp-has(p:-abp-has(span:-abp-properties(content: \"any\")))"
+  );
+};
+
 async function runTestPseudoClassContains(test, selector, expectations)
 {
   testDocument.body.innerHTML = `<div id="parent">
