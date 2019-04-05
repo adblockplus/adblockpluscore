@@ -74,7 +74,7 @@ function testThirdParty(test, requestHostname, documentHostname, expected,
 {
   test.equal(
     isThirdParty(
-      hostnameToURL(requestHostname),
+      hostnameToURL(requestHostname).hostname,
 
       // Chrome's URL object normalizes IP addresses. So some test
       // will fail if we don't normalize the document host as well.

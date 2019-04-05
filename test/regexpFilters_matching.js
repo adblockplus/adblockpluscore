@@ -21,12 +21,14 @@ const {createSandbox} = require("./_common");
 
 let Filter = null;
 let RegExpFilter = null;
+let URLRequest = null;
 
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox();
   (
-    {Filter, RegExpFilter} = sandboxedRequire("../lib/filterClasses")
+    {Filter, RegExpFilter} = sandboxedRequire("../lib/filterClasses"),
+    {URLRequest} = sandboxedRequire("../lib/url")
   );
 
   callback();
@@ -36,10 +38,14 @@ exports.setUp = function(callback)
 
 function testMatch(test, text, location, contentType, docDomain, thirdParty, sitekey, expected)
 {
+  if (thirdParty && docDomain == null)
+    docDomain = "some-other-domain";
+
   function testMatchInternal(filterText)
   {
     let filter = Filter.fromText(filterText);
-    let result = filter.matches(location, RegExpFilter.typeMap[contentType], docDomain, thirdParty, sitekey);
+    let request = URLRequest.from(location, docDomain);
+    let result = filter.matches(request, RegExpFilter.typeMap[contentType], sitekey);
     test.equal(!!result, expected, '"' + filterText + '".matches(' + location + ", " + contentType + ", " + docDomain + ", " + (thirdParty ? "third-party" : "first-party") + ", " + (sitekey || "no-sitekey") + ")");
   }
 
