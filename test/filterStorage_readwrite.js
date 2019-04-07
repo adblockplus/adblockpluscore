@@ -183,27 +183,6 @@ exports.testImportExport = async function(test)
 
     let exported = Array.from(filterStorage.exportData());
     test.deepEqual(canonize(exported), canonize(lines), "Import/export result");
-
-    // Make sure the relationships between filters and subscriptions are set
-    // up.
-    for (let subscription of filterStorage.subscriptions())
-    {
-      for (let text of subscription.filterText())
-      {
-        let found = false;
-
-        for (let filterSubscription of Filter.fromText(text).subscriptions())
-        {
-          if (filterSubscription == subscription)
-          {
-            found = true;
-            break;
-          }
-        }
-
-        test.ok(found, `Filter ${text} should be linked to subscription ${subscription.url}`);
-      }
-    }
   }
   catch (error)
   {

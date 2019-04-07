@@ -141,11 +141,11 @@ exports.testFilterManagement = function(test)
 
   subscription.addFilter(f$("##.foo"));
   compareSubscriptionFilters(test, subscription, ["##.foo"]);
-  test.equal(subscription.searchFilter(f$("##.foo")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.foo")), 0);
 
   subscription.addFilter(f$("##.bar"));
   compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   // Repeat filter.
   subscription.addFilter(f$("##.bar"));
@@ -153,65 +153,65 @@ exports.testFilterManagement = function(test)
                                                   "##.bar"]);
 
   // The first occurrence is found.
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   subscription.deleteFilterAt(0);
   compareSubscriptionFilters(test, subscription, ["##.bar", "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 0);
 
   subscription.insertFilterAt(f$("##.foo"), 0);
   compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar",
                                                   "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   subscription.deleteFilterAt(1);
   compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   subscription.deleteFilterAt(1);
   compareSubscriptionFilters(test, subscription, ["##.foo"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), -1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), -1);
 
   subscription.addFilter(f$("##.bar"));
   compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   subscription.clearFilters();
   compareSubscriptionFilters(test, subscription, []);
-  test.equal(subscription.searchFilter(f$("##.foo")), -1);
-  test.equal(subscription.searchFilter(f$("##.bar")), -1);
+  test.equal(subscription.findFilterIndex(f$("##.foo")), -1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), -1);
 
   subscription.addFilter(f$("##.bar"));
   compareSubscriptionFilters(test, subscription, ["##.bar"]);
 
   subscription.addFilter(f$("##.foo"));
   compareSubscriptionFilters(test, subscription, ["##.bar", "##.foo"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 0);
-  test.equal(subscription.searchFilter(f$("##.foo")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.foo")), 1);
 
   // Insert outside of bounds.
   subscription.insertFilterAt(f$("##.lambda"), 1000);
   compareSubscriptionFilters(test, subscription, ["##.bar", "##.foo",
                                                   "##.lambda"]);
-  test.equal(subscription.searchFilter(f$("##.lambda")), 2);
+  test.equal(subscription.findFilterIndex(f$("##.lambda")), 2);
 
   // Delete outside of bounds.
   subscription.deleteFilterAt(1000);
   compareSubscriptionFilters(test, subscription, ["##.bar", "##.foo",
                                                   "##.lambda"]);
-  test.equal(subscription.searchFilter(f$("##.lambda")), 2);
+  test.equal(subscription.findFilterIndex(f$("##.lambda")), 2);
 
   // Insert outside of bounds (negative).
   subscription.insertFilterAt(f$("##.lambda"), -1000);
   compareSubscriptionFilters(test, subscription, ["##.lambda", "##.bar",
                                                   "##.foo", "##.lambda"]);
-  test.equal(subscription.searchFilter(f$("##.lambda")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.lambda")), 0);
 
   // Delete outside of bounds (negative).
   subscription.deleteFilterAt(-1000);
   compareSubscriptionFilters(test, subscription, ["##.lambda", "##.bar",
                                                   "##.foo", "##.lambda"]);
-  test.equal(subscription.searchFilter(f$("##.lambda")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.lambda")), 0);
 
   test.done();
 };

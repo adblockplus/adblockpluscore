@@ -78,7 +78,7 @@ function compareFiltersList(test, testMessage, list)
 
 function compareFilterSubscriptions(test, testMessage, filter, list)
 {
-  let result = [...filter.subscriptions()].map(subscription => subscription.url);
+  let result = [...filterStorage.subscriptions(filter.text)].map(subscription => subscription.url);
   let expected = list.map(subscription => subscription.url);
   test.deepEqual(result, expected, testMessage);
 }
