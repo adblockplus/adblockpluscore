@@ -54,14 +54,25 @@ function normalizeSelectors(selectors)
   });
 }
 
-function testResult(test, domain, expectedSelectors, specificOnly)
+function testResult(test, domain, expectedSelectors,
+                    {specificOnly = false, expectedExceptions = []} = {})
 {
   let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
 
-  let {code, selectors} =
-    ElemHide.generateStyleSheetForDomain(domain, specificOnly, true);
+  let {code, selectors, exceptions} =
+    ElemHide.generateStyleSheetForDomain(domain, specificOnly, true, true);
 
   test.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
+
+  // Test for consistency in exception free case.
+  test.deepEqual(ElemHide.generateStyleSheetForDomain(
+    domain, specificOnly, true, false), {
+      code,
+      selectors,
+      exceptions: null
+    });
+
+  test.deepEqual(exceptions.map(({text}) => text), expectedExceptions);
 
   // Make sure each expected selector is in the actual CSS code.
   for (let selector of normalizedExpectedSelectors)
@@ -98,25 +109,37 @@ exports.testGenerateStyleSheetForDomain = function(test)
 
   addException("example.com#@#foo");
   testResult(test, "foo.example.com", ["turnip"]);
-  testResult(test, "example.com", []);
+  testResult(test, "example.com", [], {
+    expectedExceptions: ["example.com#@#foo"]
+  });
   testResult(test, "com", []);
   testResult(test, "", []);
 
   addFilter("com##bar");
   testResult(test, "foo.example.com", ["turnip", "bar"]);
-  testResult(test, "example.com", ["bar"]);
+  testResult(test, "example.com", ["bar"], {
+    expectedExceptions: ["example.com#@#foo"]
+  });
   testResult(test, "com", ["bar"]);
   testResult(test, "", []);
 
   addException("example.com#@#bar");
-  testResult(test, "foo.example.com", ["turnip"]);
-  testResult(test, "example.com", []);
+  testResult(test, "foo.example.com", ["turnip"], {
+    expectedExceptions: ["example.com#@#bar"]
+  });
+  testResult(test, "example.com", [], {
+    expectedExceptions: ["example.com#@#foo", "example.com#@#bar"]
+  });
   testResult(test, "com", ["bar"]);
   testResult(test, "", []);
 
   removeException("example.com#@#foo");
-  testResult(test, "foo.example.com", ["turnip"]);
-  testResult(test, "example.com", ["foo"]);
+  testResult(test, "foo.example.com", ["turnip"], {
+    expectedExceptions: ["example.com#@#bar"]
+  });
+  testResult(test, "example.com", ["foo"], {
+    expectedExceptions: ["example.com#@#bar"]
+  });
   testResult(test, "com", ["bar"]);
   testResult(test, "", []);
 
@@ -131,17 +154,17 @@ exports.testGenerateStyleSheetForDomain = function(test)
   testResult(test, "example.com", ["foo", "bar", "generic"]);
   testResult(test, "com", ["bar", "generic"]);
   testResult(test, "", ["generic"]);
-  testResult(test, "foo.example.com", ["turnip", "bar"], true);
-  testResult(test, "example.com", ["foo", "bar"], true);
-  testResult(test, "com", ["bar"], true);
-  testResult(test, "", [], true);
+  testResult(test, "foo.example.com", ["turnip", "bar"], {specificOnly: true});
+  testResult(test, "example.com", ["foo", "bar"], {specificOnly: true});
+  testResult(test, "com", ["bar"], {specificOnly: true});
+  testResult(test, "", [], {specificOnly: true});
   removeFilter("##generic");
 
   addFilter("~adblockplus.org##example");
   testResult(test, "adblockplus.org", []);
   testResult(test, "", ["example"]);
   testResult(test, "foo.example.com", ["turnip", "bar", "example"]);
-  testResult(test, "foo.example.com", ["turnip", "bar"], true);
+  testResult(test, "foo.example.com", ["turnip", "bar"], {specificOnly: true});
   removeFilter("~adblockplus.org##example");
 
   removeFilter("~foo.example.com,example.com##foo");
@@ -198,38 +221,30 @@ exports.testGenerateStyleSheetForDomain = function(test)
   addFilter("##hello");
   addFilter("~example.com##world");
   addFilter("foo.com##specific");
-  testResult(test, "foo.com", ["specific"], true);
-  testResult(test, "foo.com", ["hello", "specific", "world"], false);
+  testResult(test, "foo.com", ["specific"], {specificOnly: true});
   testResult(test, "foo.com", ["hello", "specific", "world"]);
-  testResult(test, "foo.com.", ["hello", "specific", "world"]);
-  testResult(test, "example.com", [], true);
+  testResult(test, "example.com", [], {specificOnly: true});
   removeFilter("foo.com##specific");
   removeFilter("~example.com##world");
   removeFilter("##hello");
   testResult(test, "foo.com", []);
 
   addFilter("##hello");
-  testResult(test, "foo.com", [], true);
-  testResult(test, "foo.com", ["hello"], false);
+  testResult(test, "foo.com", [], {specificOnly: true});
   testResult(test, "foo.com", ["hello"]);
-  testResult(test, "bar.com", [], true);
-  testResult(test, "bar.com", ["hello"], false);
+  testResult(test, "bar.com", [], {specificOnly: true});
   testResult(test, "bar.com", ["hello"]);
   addException("foo.com#@#hello");
-  testResult(test, "foo.com", [], true);
-  testResult(test, "foo.com", [], false);
-  testResult(test, "foo.com", []);
-  testResult(test, "bar.com", [], true);
-  testResult(test, "bar.com", ["hello"], false);
+  testResult(test, "foo.com", [], {specificOnly: true});
+  testResult(test, "foo.com", [], {expectedExceptions: ["foo.com#@#hello"]});
+  testResult(test, "bar.com", [], {specificOnly: true});
   testResult(test, "bar.com", ["hello"]);
   removeException("foo.com#@#hello");
-  testResult(test, "foo.com", [], true);
+  testResult(test, "foo.com", [], {specificOnly: true});
   // Note: We don't take care to track conditional selectors which became
   //       unconditional when a filter was removed. This was too expensive.
-  testResult(test, "foo.com", ["hello"], false);
   testResult(test, "foo.com", ["hello"]);
-  testResult(test, "bar.com", [], true);
-  testResult(test, "bar.com", ["hello"], false);
+  testResult(test, "bar.com", [], {specificOnly: true});
   testResult(test, "bar.com", ["hello"]);
   removeFilter("##hello");
   testResult(test, "foo.com", []);
@@ -258,7 +273,7 @@ exports.testZeroFilterKey = function(test)
 {
   ElemHide.add(Filter.fromText("##test"));
   ElemHideExceptions.add(Filter.fromText("foo.com#@#test"));
-  testResult(test, "foo.com", []);
+  testResult(test, "foo.com", [], {expectedExceptions: ["foo.com#@#test"]});
   testResult(test, "bar.com", ["test"]);
   test.done();
 };
