@@ -159,3 +159,82 @@ exports.testAbortOnPropertyReadSnippet = async function(test)
 
   test.done();
 };
+
+exports.testAbortCurrentInlineScriptSnippet = async function(test)
+{
+  function injectInlineScript(doc, script)
+  {
+    let scriptElement = doc.createElement("script");
+    scriptElement.type = "application/javascript";
+    scriptElement.async = false;
+    scriptElement.textContent = script;
+    doc.body.appendChild(scriptElement);
+  }
+
+  await runSnippet(
+    test, "abort-current-inline-script", "document.write", "atob"
+  );
+  await runSnippet(
+    test, "abort-current-inline-script", "document.write", "btoa"
+  );
+
+  document.body.innerHTML = "<p id=\"result1\"></p><p id=\"message1\"></p><p id=\"result2\"></p><p id=\"message2\"></p>";
+
+  let script = `
+    try
+    {
+      let element = document.getElementById("result1");
+      document.write("<p>atob: " + atob("dGhpcyBpcyBhIGJ1Zw==") + "</p>");
+      element.textContent = atob("dGhpcyBpcyBhIGJ1Zw==");
+    }
+    catch (e)
+    {
+      let msg = document.getElementById("message1");
+      msg.textContent = e.name;
+    }`;
+
+  injectInlineScript(document, script);
+
+  let element = document.getElementById("result1");
+  test.ok(element, "Element 'result1' was not found");
+
+  let msg = document.getElementById("message1");
+  test.ok(msg, "Element 'message1' was not found");
+
+  if (element && msg)
+  {
+    test.equals(element.textContent, "", "Result element should be empty");
+    test.equals(msg.textContent, "ReferenceError",
+                "There should have been an error");
+  }
+
+  script = `
+    try
+    {
+      let element = document.getElementById("result2");
+      document.write("<p>btoa: " + btoa("this is a bug") + "</p>");
+      element.textContent = btoa("this is a bug");
+    }
+    catch (e)
+    {
+      let msg = document.getElementById("message2");
+      msg.textContent = e.name;
+    }`;
+
+  injectInlineScript(document, script);
+
+  element = document.getElementById("result2");
+  test.ok(element, "Element 'result2' was not found");
+
+  msg = document.getElementById("message2");
+  test.ok(msg, "Element 'message2' was not found");
+
+  if (element && msg)
+  {
+    test.equals(element.textContent, "", "Result element should be empty");
+    test.equals(msg.textContent, "ReferenceError",
+                "There should have been an error");
+  }
+
+  test.done();
+};
