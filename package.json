@@ -19,6 +19,7 @@
     "sandboxed-module": "2.0.3",
     "script-loader": "0.7.0",
     "selenium-webdriver": "^4.0.0-alpha",
+    "untar-memory": "^1.2.0",
     "webpack": "3.5.4"
   },
   "scripts": {
@@ -26,6 +27,7 @@
     "eslint": "eslint *.js lib test build",
     "test": "node test_runner.js",
     "posttest": "npm run eslint",
-    "updatepsl": "node build/updatepsl.js"
+    "updatepsl": "node build/updatepsl.js",
+    "update-subscriptions": "node build/updateSubscriptions.js"
   }
 }
