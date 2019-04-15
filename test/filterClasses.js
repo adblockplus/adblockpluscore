@@ -310,9 +310,6 @@ exports.testSpecialCharacters = function(test)
   compareFilter(test, "|*asd|f*d**dd*|", ["type=filterlist", "text=|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$"]);
   compareFilter(test, "dd[]{}$%<>&()*d", ["type=filterlist", "text=dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d"]);
 
-  // Leading and trailing wildcards should be left in for rewrite filters (#6868).
-  compareFilter(test, "*asdf*d**dd*$rewrite=", ["type=filterlist", "text=*asdf*d**dd*$rewrite=", "regexp=.*asdf.*d.*dd.*", "rewrite=", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.SUBDOCUMENT | t.OBJECT | t.OBJECT_SUBREQUEST))]);
-
   compareFilter(test, "@@/ddd|f?a[s]d/", ["type=whitelist", "text=@@/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d", "contentType=" + defaultTypes]);
   compareFilter(test, "@@*asdf*d**dd*", ["type=whitelist", "text=@@*asdf*d**dd*", "regexp=asdf.*d.*dd", "contentType=" + defaultTypes]);
   compareFilter(test, "@@|*asd|f*d**dd*|", ["type=whitelist", "text=@@|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$", "contentType=" + defaultTypes]);
@@ -327,11 +324,12 @@ exports.testFilterOptions = function(test)
   compareFilter(test, "bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~bar.com"]);
   compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
   compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
-  compareFilter(test, "||content.server.com/files/*.php$rewrite=$1", ["type=filterlist", "text=||content.server.com/files/*.php$rewrite=$1", "regexp=^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?content\\.server\\.com\\/files\\/.*\\.php", "matchCase=false", "rewrite=$1", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.SUBDOCUMENT | t.OBJECT | t.OBJECT_SUBREQUEST))]);
 
-  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=abp-resource:noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
-  compareFilter(test, "*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=abp-resource:noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
-  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "regexp=null", "matchCase=false", "rewrite=abp-resource:noopjs", "thirdParty=false", "contentType=" + (defaultTypes)]);
+  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
+  compareFilter(test, "*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
+  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "regexp=null", "matchCase=false", "rewrite=noopjs", "thirdParty=false", "contentType=" + (defaultTypes)]);
+  compareFilter(test, "||content.server.com/files/*.php$rewrite=$1", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite=$1"]);
+  compareFilter(test, "||content.server.com/files/*.php$rewrite=", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite="]);
 
   // background and image should be the same for backwards compatibility
   compareFilter(test, "bla$image", ["type=filterlist", "text=bla$image", "contentType=" + (t.IMAGE)]);
@@ -564,59 +562,23 @@ exports.testFilterNormalization = function(test)
 exports.testFilterRewriteOption = function(test)
 {
   let text = "/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=$1";
-
   let filter = Filter.fromText(text);
+  test.ok(filter instanceof InvalidFilter);
+  test.equal(filter.type, "invalid");
+  test.equal(filter.reason, "filter_invalid_rewrite");
 
-  test.equal(filter.rewrite, "$1");
-  // no rewrite occured: didn't match.
-  test.equal(filter.rewriteUrl("foo"), "foo");
-  // rewrite occured: matched.
+  text = "||/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=blank-text,domains=content.server";
+  filter = Filter.fromText(text);
+  test.ok(filter instanceof InvalidFilter);
+  test.equal(filter.type, "invalid");
+  test.equal(filter.reason, "filter_invalid_rewrite");
+
+  text = "||/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=abp-resource:blank-text,domain=content.server";
+  filter = Filter.fromText(text);
+  test.equal(filter.rewriteUrl("http://content.server/file/foo.txt"),
+             "data:text/plain,");
   test.equal(filter.rewriteUrl("http://content.server/file/foo.txt?bar"),
-             "http://content.server/file/foo.txt");
-
-  // checking for same origin.
-  let rewriteDiffOrigin =
-      "/content\\.server(\\/file\\/.*\\.txt)\\?.*$/$rewrite=foo.com$1";
-  let filterDiffOrigin = Filter.fromText(rewriteDiffOrigin);
-
-  // no rewrite occured because of a different origin.
-  test.equal(
-    filterDiffOrigin.rewriteUrl("http://content.server/file/foo.txt?bar"),
-    "http://content.server/file/foo.txt?bar"
-  );
-
-  // relative path.
-  let rewriteRelative = "/(\\/file\\/.*\\.txt)\\?.*$/$rewrite=$1/disable";
-  let filterRelative = Filter.fromText(rewriteRelative);
-
-  test.equal(
-    filterRelative.rewriteUrl("http://content.server/file/foo.txt?bar"),
-    "http://content.server/file/foo.txt/disable"
-  );
-  test.equal(
-    filterRelative.rewriteUrl("http://example.com/file/foo.txt?bar"),
-    "http://example.com/file/foo.txt/disable"
-  );
-
-  // Example from https://github.com/uBlockOrigin/uBlock-issues/issues/46#issuecomment-391190533
-  // The rewrite shouldn't happen.
-  let rewriteEvil = "/(^https?:\\/\\/[^/])/$script,rewrite=$1.evil.com";
-  let filterEvil = Filter.fromText(rewriteEvil);
-
-  test.equal(
-    filterEvil.rewriteUrl("https://www.adblockplus.org/script.js"),
-    "https://www.adblockplus.org/script.js"
-  );
-
-  // Strip.
-  let rewriteStrip = "tag$rewrite=";
-  let filterStrip = Filter.fromText(rewriteStrip);
-
-  test.equal(filterStrip.rewrite, "");
-  test.equal(
-    filterStrip.rewriteUrl("http://example.com/?tag"),
-    "http://example.com/?"
-  );
+             "data:text/plain,");
 
   test.done();
 };
