@@ -24,9 +24,9 @@
   },
   "scripts": {
     "docs": "jsdoc --configure .jsdoc.conf --destination docs lib",
-    "eslint": "eslint *.js lib test build",
+    "lint": "eslint *.js lib test build",
     "test": "node test_runner.js",
-    "posttest": "npm run eslint",
+    "posttest": "npm run lint",
     "updatepsl": "node build/updatepsl.js",
     "update-subscriptions": "node build/updateSubscriptions.js"
   }
