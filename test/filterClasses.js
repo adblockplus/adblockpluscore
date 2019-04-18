@@ -94,7 +94,6 @@ function serializeFilter(filter)
       if (filter instanceof BlockingFilter)
       {
         result.push("type=filterlist");
-        result.push("collapse=" + filter.collapse);
         result.push("csp=" + filter.csp);
         result.push("rewrite=" + filter.rewrite);
       }
@@ -168,7 +167,6 @@ function addDefaults(expected)
   }
   if (type == "filterlist")
   {
-    addProperty("collapse", "null");
     addProperty("csp", "null");
     addProperty("rewrite", "null");
   }
