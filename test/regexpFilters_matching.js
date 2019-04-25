@@ -34,8 +34,6 @@ exports.setUp = function(callback)
   callback();
 };
 
-
-
 function testMatch(test, text, location, contentType, docDomain, thirdParty, sitekey, expected)
 {
   if (thirdParty && docDomain == null)

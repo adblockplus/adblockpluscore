@@ -380,7 +380,6 @@ exports.testAddRemoveByKeyword = function(test)
   test.ok(!matcher.matchesAny(parseURL("https://example.com/foo/bar/ad.jpg"),
                               RegExpFilter.typeMap.IMAGE));
 
-
   // Map { "example" => { text: "||example.com^$~third-party" } }
   matcher.add(Filter.fromText("||example.com^$~third-party"));
 

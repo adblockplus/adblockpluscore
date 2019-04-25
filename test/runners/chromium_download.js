@@ -62,7 +62,6 @@ async function ensureChromium(chromiumRevision)
   let chromiumDir = null;
   let snapshotsDir = path.join(snapshotsRootDir(), "chromium-snapshots");
 
-
   while (true)
   {
     chromiumDir = path.join(snapshotsDir,
