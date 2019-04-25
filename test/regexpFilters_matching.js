@@ -157,9 +157,6 @@ exports.testTypeOptions = function(test)
   testMatch(test, "abc$xmlhttprequest", "http://abc/adf", "IMAGE", null, false, null, false);
   testMatch(test, "abc$xmlhttprequest", "http://abc/adf", "XMLHTTPREQUEST", null, false, null, true);
   testMatch(test, "abc$~xmlhttprequest", "http://abc/adf", "XMLHTTPREQUEST", null, false, null, false);
-  testMatch(test, "abc$object-subrequest", "http://abc/adf", "IMAGE", null, false, null, false);
-  testMatch(test, "abc$object-subrequest", "http://abc/adf", "OBJECT_SUBREQUEST", null, false, null, true);
-  testMatch(test, "abc$~object-subrequest", "http://abc/adf", "OBJECT_SUBREQUEST", null, false, null, false);
   testMatch(test, "abc$dtd", "http://abc/adf", "IMAGE", null, false, null, false);
   testMatch(test, "abc$dtd", "http://abc/adf", "DTD", null, false, null, true);
   testMatch(test, "abc$~dtd", "http://abc/adf", "DTD", null, false, null, false);
