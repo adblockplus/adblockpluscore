@@ -215,3 +215,40 @@ exports.testFilterManagement = function(test)
 
   test.done();
 };
+
+exports.testSubscriptionDelta = function(test)
+{
+  let subscription = Subscription.fromURL("https://example.com/");
+
+  subscription.addFilterText("##.foo");
+  subscription.addFilterText("##.bar");
+
+  compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar"]);
+
+  let delta = subscription.updateFilterText(["##.lambda", "##.foo"]);
+
+  // The filters should be in the same order in which they were in the argument
+  // to updateFilterText()
+  compareSubscriptionFilters(test, subscription, ["##.lambda", "##.foo"]);
+
+  test.deepEqual(delta, {added: ["##.lambda"], removed: ["##.bar"]});
+
+  // Add ##.lambda a second time.
+  subscription.addFilterText("##.lambda");
+  compareSubscriptionFilters(test, subscription, ["##.lambda", "##.foo",
+                                                  "##.lambda"]);
+
+  delta = subscription.updateFilterText(["##.bar", "##.bar"]);
+
+  // Duplicate filters should be allowed.
+  compareSubscriptionFilters(test, subscription, ["##.bar", "##.bar"]);
+
+  // If there are duplicates in the text, there should be duplicates in the
+  // delta.
+  test.deepEqual(delta, {
+    added: ["##.bar", "##.bar"],
+    removed: ["##.lambda", "##.foo", "##.lambda"]
+  });
+
+  test.done();
+};
