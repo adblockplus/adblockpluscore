@@ -190,12 +190,15 @@ exports.setupTimerAndFetch = function()
       });
     }
 
-    let [status, text] = result;
+    let [status, text = "", headers = {}] = result;
 
     if (status == 0)
       throw new Error("Fetch error");
 
-    return {status, text: async() => text};
+    if (status == 301)
+      return fetch(headers["Location"]);
+
+    return {status, url: urlObj.href, text: async() => text};
   }
 
   fetch.requestHandlers = {};
