@@ -27,6 +27,28 @@ window.browser = {
   }
 };
 
+function expectHidden(test, element, id)
+{
+  let withId = "";
+  if (typeof id != "undefined")
+    withId = ` with ID '${id}'`;
+
+  test.equal(
+    window.getComputedStyle(element).display, "none",
+    `The element${withId}'s display property should be set to 'none'`);
+}
+
+function expectVisible(test, element, id)
+{
+  let withId = "";
+  if (typeof id != "undefined")
+    withId = ` with ID '${id}'`;
+
+  test.notEqual(
+    window.getComputedStyle(element).display, "none",
+    `The element${withId}'s display property should not be set to 'none'`);
+}
+
 async function runSnippet(test, snippetName, ...args)
 {
   let snippet = library[snippetName];
@@ -235,6 +257,104 @@ exports.testAbortCurrentInlineScriptSnippet = async function(test)
     test.equals(msg.textContent, "ReferenceError",
                 "There should have been an error");
   }
+
+  test.done();
+};
+
+exports.testHideIfContainsVisibleText = async function(test)
+{
+  document.body.innerHTML = `
+    <style type="text/css">
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .transparent {
+        opacity: 0;
+        position: absolute;
+        display: block;
+      }
+      .zerosize {
+        font-size: 0;
+      }
+      div {
+        display: block;
+      }
+      .a {
+        display: inline-block;
+        white-space: pre-wrap;
+      }
+      .disp_none {
+        display: none;
+      }
+      .vis_hid {
+        visibility: hidden;
+      }
+      .vis_collapse {
+        visibility: collapse;
+      }
+      .same_colour {
+        color: rgb(255,255,255);
+        background-color: rgb(255,255,255);
+      }
+      .transparent {
+        color: transparent;
+      }
+      #label {
+        overflow-wrap: break-word;
+      }
+    </style>
+    <div id="parent">
+      <div id="middle">
+        <div id="middle1"><div id="inside" class="inside"></div></div>
+      </div>
+      <div id="sibling">
+        <div id="tohide">to hide \ud83d\ude42!</div>
+      </div>
+      <div id="sibling2">
+        <div id="sibling21"><div id="sibling211" class="inside">Ad*</div></div>
+      </div>
+      <div id="label">
+        <div id="content"><div class="a transparent">Sp</div><div class="a">Sp</div><div class="a zerosize">S</div><div class="a transparent">on</div><div class="a">on</div><div class="a zerosize">S</div></div>
+      </div>
+      <div id="label2">
+        <div class="a vis_hid">Visibility: hidden</div><div class="a">S</div><div class="a vis_collapse">Visibility: collapse</div><div class="a">p</div><div class="a disp_none">Display: none</div><div class="a">o</div><div class="a same_colour">Same colour</div><div class="a transparent">Transparent</div><div class="a">n</div>
+      </div>
+      <article id="article">
+        <div style="display: none"><a href="foo"><div>Spon</div></a>Visit us</div>
+      </article>
+      <article id="article2">
+        <div><a href="foo"><div>Spon</div></a>By this</div>
+      </article>
+      <article id="article3">
+        <div><a href="foo"><div>by Writer</div></a> about the Sponsorship.</div>
+      </article>
+    </div>`;
+
+  await runSnippet(
+    test, "hide-if-contains-visible-text", "Spon", "#parent > div"
+  );
+
+  let element = document.getElementById("label");
+  expectHidden(test, element, "label");
+  element = document.getElementById("label2");
+  expectHidden(test, element, "label2");
+
+  element = document.getElementById("article");
+  expectVisible(test, element, "article");
+  element = document.getElementById("article2");
+  expectVisible(test, element, "article2");
+
+  await runSnippet(
+    test, "hide-if-contains-visible-text", "Spon", "#parent > article", "#parent > article a"
+  );
+
+  element = document.getElementById("article");
+  expectVisible(test, element, "article");
+  element = document.getElementById("article2");
+  expectHidden(test, element, "article2");
+  element = document.getElementById("article3");
+  expectVisible(test, element, "article3");
 
   test.done();
 };
