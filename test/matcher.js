@@ -262,8 +262,8 @@ exports.testFilterMatching = function(test)
 
 exports.testFilterSearch = function(test)
 {
-  // Start with three filters: foo, bar, and @@foo
-  let filters = ["foo", "bar", "@@foo"];
+  // Start with three filters: foo, bar$domain=example.com, and @@foo
+  let filters = ["foo", "bar$domain=example.com", "@@foo"];
 
   checkSearch(test, filters, "http://example.com/foo", "IMAGE", "example.com",
               null, false, "all",
@@ -279,10 +279,13 @@ exports.testFilterSearch = function(test)
 
   // Different URLs.
   checkSearch(test, filters, "http://example.com/bar", "IMAGE", "example.com",
-              null, false, "all", {blocking: ["bar"], whitelist: []});
+              null, false, "all",
+              {blocking: ["bar$domain=example.com"], whitelist: []});
   checkSearch(test, filters, "http://example.com/foo/bar", "IMAGE",
-              "example.com", null, false, "all",
-              {blocking: ["foo", "bar"], whitelist: ["@@foo"]});
+              "example.com", null, false, "all", {
+                blocking: ["foo", "bar$domain=example.com"],
+                whitelist: ["@@foo"]
+              });
 
   // Non-matching content type.
   checkSearch(test, filters, "http://example.com/foo", "CSP", "example.com",
