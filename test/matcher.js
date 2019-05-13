@@ -451,3 +451,30 @@ exports.testAddRemoveByKeyword = function(test)
 
   test.done();
 };
+
+exports.testQuickCheck = function(test)
+{
+  let matcher = new CombinedMatcher();
+
+  // Keywords "example" and "foo".
+  matcher.add(Filter.fromText("||example/foo^"));
+  matcher.add(Filter.fromText("||example/foo."));
+  matcher.add(Filter.fromText("||example/foo/"));
+
+  // Blank keyword.
+  matcher.add(Filter.fromText("/ad."));
+  matcher.add(Filter.fromText("/\\bbar\\b/$match-case"));
+
+  test.ok(!!matcher.matchesAny(parseURL("https://example/foo/"),
+                               RegExpFilter.typeMap.IMAGE, "example"));
+
+  // The request URL contains neither "example" nor "foo", therefore it should
+  // get to the filters associated with the blank keyword.
+  // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/13
+  test.ok(!!matcher.matchesAny(parseURL("https://adblockplus/bar/"),
+                               RegExpFilter.typeMap.IMAGE, "adblockplus"));
+  test.ok(!matcher.matchesAny(parseURL("https://adblockplus/Bar/"),
+                              RegExpFilter.typeMap.IMAGE, "adblockplus"));
+
+  test.done();
+};
