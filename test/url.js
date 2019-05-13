@@ -297,18 +297,12 @@ exports.testNormalizeHostname = function(test)
   test.equal(normalizeHostname("example.com.."), "example.com");
   test.equal(normalizeHostname("example.com..."), "example.com");
 
-  test.equal(normalizeHostname("Example.com"), "example.com");
-  test.equal(normalizeHostname("ExaMple.Com"), "example.com");
-  test.equal(normalizeHostname("ExaMple.Com.."), "example.com");
-
   test.equal(normalizeHostname("192.168.1.1"), "192.168.1.1");
   test.equal(normalizeHostname("192.168.1.1."), "192.168.1.1");
 
   test.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
              "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
   test.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334."),
-             "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
-  test.equal(normalizeHostname("2001:0DB8:85A3:0000:0000:8A2E:0370:7334"),
              "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
 
   test.done();
