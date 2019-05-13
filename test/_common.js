@@ -285,9 +285,15 @@ exports.setupTimerAndFetch = function()
       }
     },
     fetch,
-    Date: {
-      now: () => currentTime
-    }
+    Date: Object.assign(
+      function(...args) // eslint-disable-line prefer-arrow-callback
+      {
+        return new Date(...args);
+      },
+      {
+        now: () => currentTime
+      }
+    )
   };
 };
 
