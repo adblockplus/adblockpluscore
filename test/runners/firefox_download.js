@@ -23,7 +23,7 @@ const path = require("path");
 
 const {ncp} = require("ncp");
 
-const {download} = require("./download");
+const {download, snapshotsRootDir} = require("./download");
 
 const {platform} = process;
 
@@ -149,11 +149,14 @@ function ensureFirefox(firefoxVersion)
 
   return Promise.resolve().then(() =>
   {
-    let snapshotsDir = path.join(__dirname, "..", "..", "firefox-snapshots");
+    let snapshotsDir = path.join(snapshotsRootDir(), "firefox-snapshots");
     let browserDir = path.join(snapshotsDir,
                                 `firefox-${targetPlatform}-${firefoxVersion}`);
     if (fs.existsSync(browserDir))
+    {
+      console.info(`Reusing cached executable from ${browserDir}`);
       return browserDir;
+    }
 
     if (!fs.existsSync(path.dirname(browserDir)))
       fs.mkdirSync(path.dirname(browserDir));

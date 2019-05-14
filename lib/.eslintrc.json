@@ -4,11 +4,10 @@
   },
   "globals": {
     "atob": true,
-    "onShutdown": true,
     "Cc": true,
     "Ci": true,
     "Cu": true,
     "URL": true,
-    "XMLHttpRequest": true
+    "fetch": true
   }
 }

@@ -18,7 +18,7 @@
 "use strict";
 
 let {
-  createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError, Cr,
+  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
   MILLIS_IN_SECOND, MILLIS_IN_HOUR
 } = require("./_common");
 
@@ -28,8 +28,8 @@ let Subscription = null;
 
 exports.setUp = function(callback)
 {
-  let globals = Object.assign({}, setupTimerAndXMLHttp.call(this),
-    setupRandomResult.call(this));
+  let globals = Object.assign({}, setupTimerAndFetch.call(this),
+                              setupRandomResult.call(this));
 
   let sandboxedRequire = createSandbox({globals});
   (
@@ -59,14 +59,14 @@ let initialDelay = 1 / 60;
 
 exports.testOneSubscriptionDownloads = function(test)
 {
-  let subscription = Subscription.fromURL("http://example.com/subscription");
+  let subscription = Subscription.fromURL("https://example.com/subscription");
   filterStorage.addSubscription(subscription);
 
   let requests = [];
   this.registerHandler("/subscription", metadata =>
   {
     requests.push([this.getTimeOffset(), metadata.method, metadata.path]);
-    return [Cr.NS_OK, 200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
+    return [200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
   });
 
   this.runScheduledTasks(50).then(() =>
@@ -81,10 +81,10 @@ exports.testOneSubscriptionDownloads = function(test)
 
 exports.testTwoSubscriptionsDownloads = function(test)
 {
-  let subscription1 = Subscription.fromURL("http://example.com/subscription1");
+  let subscription1 = Subscription.fromURL("https://example.com/subscription1");
   filterStorage.addSubscription(subscription1);
 
-  let subscription2 = Subscription.fromURL("http://example.com/subscription2");
+  let subscription2 = Subscription.fromURL("https://example.com/subscription2");
   subscription2.expires =
     subscription2.softExpiration =
     (this.currentTime + 2 * MILLIS_IN_HOUR) / MILLIS_IN_SECOND;
@@ -94,7 +94,7 @@ exports.testTwoSubscriptionsDownloads = function(test)
   let handler = metadata =>
   {
     requests.push([this.getTimeOffset(), metadata.method, metadata.path]);
-    return [Cr.NS_OK, 200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
+    return [200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
   };
 
   this.registerHandler("/subscription1", handler);
@@ -126,12 +126,12 @@ for (let currentTest of [
 {
   exports.testSubscriptionHeaders[currentTest.header] = function(test)
   {
-    let subscription = Subscription.fromURL("http://example.com/subscription");
+    let subscription = Subscription.fromURL("https://example.com/subscription");
     filterStorage.addSubscription(subscription);
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_OK, 200, currentTest.header + "\n!Expires: 8 hours\nfoo\n!bar\n\n@@bas\n#bam"];
+      return [200, currentTest.header + "\n!Expires: 8 hours\nfoo\n!bar\n\n@@bas\n#bam"];
     });
 
     this.runScheduledTasks(2).then(() =>
@@ -156,7 +156,7 @@ exports.testsDisabledUpdates = function(test)
 {
   Prefs.subscriptions_autoupdate = false;
 
-  let subscription = Subscription.fromURL("http://example.com/subscription");
+  let subscription = Subscription.fromURL("https://example.com/subscription");
   filterStorage.addSubscription(subscription);
 
   let requests = 0;
@@ -245,14 +245,14 @@ for (let currentTest of [
     testId += " skipping " + currentTest.skip + " hours after " + currentTest.skipAfter + " hours";
   exports.testExpirationTime[testId] = function(test)
   {
-    let subscription = Subscription.fromURL("http://example.com/subscription");
+    let subscription = Subscription.fromURL("https://example.com/subscription");
     filterStorage.addSubscription(subscription);
 
     let requests = [];
     this.registerHandler("/subscription", metadata =>
     {
       requests.push(this.getTimeOffset());
-      return [Cr.NS_OK, 200, "[Adblock]\n!Expires: " + currentTest.expiration + "\nbar"];
+      return [200, "[Adblock]\n!Expires: " + currentTest.expiration + "\nbar"];
     });
 
     this.randomResult = currentTest.randomResult;
@@ -289,12 +289,12 @@ for (let [comment, check] of [
 {
   exports.testSpecialComments[comment] = function(test)
   {
-    let subscription = Subscription.fromURL("http://example.com/subscription");
+    let subscription = Subscription.fromURL("https://example.com/subscription");
     filterStorage.addSubscription(subscription);
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_OK, 200, "[Adblock]\n" + comment + "\nfoo\nbar"];
+      return [200, "[Adblock]\n" + comment + "\nfoo\nbar"];
     });
 
     this.runScheduledTasks(2).then(() =>
@@ -305,14 +305,128 @@ for (let [comment, check] of [
   };
 }
 
+exports.testHTTPS = async function(test)
+{
+  try
+  {
+    // Test direct HTTP-only download.
+    let subscriptionDirectHTTP =
+      Subscription.fromURL("http://example.com/subscription");
+    filterStorage.addSubscription(subscriptionDirectHTTP);
+
+    let requestCount = 0;
+
+    this.registerHandler("/subscription",
+                         metadata => (requestCount++,
+                                      [200, "[Adblock]\nmalicious-filter"]));
+
+    await this.runScheduledTasks(1);
+
+    test.equal(subscriptionDirectHTTP.downloadStatus,
+               "synchronize_invalid_url",
+               "Invalid URL error recorded");
+    test.equal(requestCount, 0, "Number of requests");
+    test.equal(subscriptionDirectHTTP.errors, 1, "Number of download errors");
+
+    // Test indirect HTTPS-to-HTTP download.
+    let subscriptionIndirectHTTP =
+      Subscription.fromURL("https://example.com/subscription");
+    filterStorage.removeSubscription([...filterStorage.subscriptions()][0]);
+    filterStorage.addSubscription(subscriptionIndirectHTTP);
+
+    requestCount = 0;
+
+    this.registerHandler(
+      "/subscription",
+      metadata => (
+        requestCount++,
+        [301, "", {Location: "http://malicious.example.com/redirected"}]
+      )
+    );
+
+    this.registerHandler("/redirected",
+                         metadata => (requestCount++,
+                                      [200, "[Adblock]\nmalicious-filter"]));
+
+    await this.runScheduledTasks(1);
+
+    test.equal(subscriptionIndirectHTTP.downloadStatus,
+               "synchronize_connection_error",
+               "Connection error recorded");
+    test.equal(requestCount, 2, "Number of requests");
+    test.equal(subscriptionIndirectHTTP.errors, 1, "Number of download errors");
+
+    // Test indirect HTTPS-to-HTTP-to-HTTPS download.
+    let subscriptionIndirectHTTPS =
+      Subscription.fromURL("https://front.example.com/subscription");
+    filterStorage.removeSubscription([...filterStorage.subscriptions()][0]);
+    filterStorage.addSubscription(subscriptionIndirectHTTPS);
+
+    requestCount = 0;
+
+    this.registerHandler(
+      "/subscription",
+      metadata => (requestCount++,
+                   [301, "", {Location: "http://redirect.example.com/"}])
+    );
+
+    this.registerHandler(
+      "/",
+      metadata => (
+        requestCount++,
+        [301, "", {Location: "https://example.com/subscription-1.0"}]
+      )
+    );
+
+    this.registerHandler("/subscription-1.0",
+                         metadata => (requestCount++,
+                                      [200, "[Adblock]\ngood-filter"]));
+
+    await this.runScheduledTasks(1);
+
+    test.equal(subscriptionIndirectHTTPS.downloadStatus, "synchronize_ok");
+    test.equal(requestCount, 3, "Number of requests");
+    test.equal(subscriptionIndirectHTTPS.errors, 0, "Number of download errors");
+    test.deepEqual([...subscriptionIndirectHTTPS.filterText()], ["good-filter"],
+                   "Resulting subscription filters");
+
+    let subscriptionDirectHTTPLoopback =
+      Subscription.fromURL("http://127.0.0.1/subscription");
+    filterStorage.addSubscription(subscriptionDirectHTTPLoopback);
+
+    requestCount = 0;
+
+    this.registerHandler("/subscription",
+                         metadata => (requestCount++,
+                                      [200, "[Adblock]\ntest-filter"]));
+
+    await this.runScheduledTasks(1);
+
+    test.equal(subscriptionDirectHTTPLoopback.downloadStatus,
+               "synchronize_ok");
+    test.equal(requestCount, 1, "Number of requests");
+    test.equal(subscriptionDirectHTTPLoopback.errors, 0,
+               "Number of download errors");
+    test.deepEqual([...subscriptionDirectHTTPLoopback.filterText()],
+                   ["test-filter"],
+                   "Resulting subscription filters");
+
+    test.done();
+  }
+  catch (error)
+  {
+    test.unexpectedError(error);
+  }
+};
+
 exports.testRedirects = function(test)
 {
-  let subscription = Subscription.fromURL("http://example.com/subscription");
+  let subscription = Subscription.fromURL("https://example.com/subscription");
   filterStorage.addSubscription(subscription);
 
   this.registerHandler("/subscription", metadata =>
   {
-    return [Cr.NS_OK, 200, "[Adblock]\n!Redirect: http://example.com/redirected\nbar"];
+    return [200, "[Adblock]\n!Redirect: https://example.com/redirected\nbar"];
   });
 
   let requests;
@@ -328,22 +442,22 @@ exports.testRedirects = function(test)
     this.registerHandler("/redirected", metadata =>
     {
       requests.push(this.getTimeOffset());
-      return [Cr.NS_OK, 200, "[Adblock]\n! Expires: 8 hours\nbar"];
+      return [200, "[Adblock]\n! Expires: 8 hours\nbar"];
     });
 
     resetSubscription(subscription);
     return this.runScheduledTasks(15);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].url, "http://example.com/redirected", "Redirect followed");
+    test.equal([...filterStorage.subscriptions()][0].url, "https://example.com/redirected", "Redirect followed");
     test.deepEqual(requests, [0 + initialDelay, 8 + initialDelay], "Resulting requests");
 
     this.registerHandler("/redirected", metadata =>
     {
-      return [Cr.NS_OK, 200, "[Adblock]\n!Redirect: http://example.com/subscription\nbar"];
+      return [200, "[Adblock]\n!Redirect: https://example.com/subscription\nbar"];
     });
 
-    subscription = Subscription.fromURL("http://example.com/subscription");
+    subscription = Subscription.fromURL("https://example.com/subscription");
     resetSubscription(subscription);
     filterStorage.removeSubscription([...filterStorage.subscriptions()][0]);
     filterStorage.addSubscription(subscription);
@@ -359,9 +473,9 @@ exports.testRedirects = function(test)
 exports.testFallback = function(test)
 {
   Prefs.subscriptions_fallbackerrors = 3;
-  Prefs.subscriptions_fallbackurl = "http://example.com/fallback?%SUBSCRIPTION%&%CHANNELSTATUS%&%RESPONSESTATUS%";
+  Prefs.subscriptions_fallbackurl = "https://example.com/fallback?%SUBSCRIPTION%&%RESPONSESTATUS%";
 
-  let subscription = Subscription.fromURL("http://example.com/subscription");
+  let subscription = Subscription.fromURL("https://example.com/subscription");
   filterStorage.addSubscription(subscription);
 
   // No valid response from fallback
@@ -372,7 +486,7 @@ exports.testFallback = function(test)
   this.registerHandler("/subscription", metadata =>
   {
     requests.push(this.getTimeOffset());
-    return [Cr.NS_OK, 404, ""];
+    return [404];
   });
 
   this.runScheduledTasks(100).then(() =>
@@ -387,18 +501,18 @@ exports.testFallback = function(test)
     this.registerHandler("/fallback", metadata =>
     {
       fallbackParams = decodeURIComponent(metadata.queryString);
-      return [Cr.NS_OK, 200, "410 Gone"];
+      return [200, "410 Gone"];
     });
 
     return this.runScheduledTasks(100);
   }).then(() =>
   {
     test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay], "Stop trying if the fallback responds with Gone");
-    test.equal(fallbackParams, "http://example.com/subscription&0&404", "Fallback arguments");
+    test.equal(fallbackParams, "https://example.com/subscription&404", "Fallback arguments");
 
     // Fallback redirecting to a missing file
 
-    subscription = Subscription.fromURL("http://example.com/subscription");
+    subscription = Subscription.fromURL("https://example.com/subscription");
     resetSubscription(subscription);
     filterStorage.removeSubscription([...filterStorage.subscriptions()][0]);
     filterStorage.addSubscription(subscription);
@@ -406,12 +520,12 @@ exports.testFallback = function(test)
 
     this.registerHandler("/fallback", metadata =>
     {
-      return [Cr.NS_OK, 200, "301 http://example.com/redirected"];
+      return [200, "301 https://example.com/redirected"];
     });
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].url, "http://example.com/subscription", "Ignore invalid redirect from fallback");
+    test.equal([...filterStorage.subscriptions()][0].url, "https://example.com/subscription", "Ignore invalid redirect from fallback");
     test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Requests not affected by invalid redirect");
 
     // Fallback redirecting to an existing file
@@ -422,13 +536,13 @@ exports.testFallback = function(test)
     this.registerHandler("/redirected", metadata =>
     {
       redirectedRequests.push(this.getTimeOffset());
-      return [Cr.NS_OK, 200, "[Adblock]\n!Expires: 1day\nfoo\nbar"];
+      return [200, "[Adblock]\n!Expires: 1day\nfoo\nbar"];
     });
 
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].url, "http://example.com/redirected", "Valid redirect from fallback is followed");
+    test.equal([...filterStorage.subscriptions()][0].url, "https://example.com/redirected", "Valid redirect from fallback is followed");
     test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay], "Stop polling original URL after a valid redirect from fallback");
     test.deepEqual(redirectedRequests, [48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Request new URL after a valid redirect from fallback");
 
@@ -436,14 +550,14 @@ exports.testFallback = function(test)
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_OK, 200, "[Adblock]\n! Redirect: http://example.com/subscription2"];
+      return [200, "[Adblock]\n! Redirect: https://example.com/subscription2"];
     });
     this.registerHandler("/subscription2", metadata =>
     {
-      return [Cr.NS_OK, 200, "[Adblock]\n! Redirect: http://example.com/subscription"];
+      return [200, "[Adblock]\n! Redirect: https://example.com/subscription"];
     });
 
-    subscription = Subscription.fromURL("http://example.com/subscription");
+    subscription = Subscription.fromURL("https://example.com/subscription");
     resetSubscription(subscription);
     filterStorage.removeSubscription([...filterStorage.subscriptions()][0]);
     filterStorage.addSubscription(subscription);
@@ -451,18 +565,18 @@ exports.testFallback = function(test)
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].url, "http://example.com/redirected", "Fallback can still redirect even after a redirect loop");
+    test.equal([...filterStorage.subscriptions()][0].url, "https://example.com/redirected", "Fallback can still redirect even after a redirect loop");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
 exports.testStateFields = function(test)
 {
-  let subscription = Subscription.fromURL("http://example.com/subscription");
+  let subscription = Subscription.fromURL("https://example.com/subscription");
   filterStorage.addSubscription(subscription);
 
   this.registerHandler("/subscription", metadata =>
   {
-    return [Cr.NS_OK, 200, "[Adblock]\n! Expires: 2 hours\nfoo\nbar"];
+    return [200, "[Adblock]\n! Expires: 2 hours\nfoo\nbar"];
   });
 
   let startTime = this.currentTime;
@@ -476,7 +590,7 @@ exports.testStateFields = function(test)
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_ERROR_FAILURE, 0, ""];
+      return [0];
     });
 
     return this.runScheduledTasks(2);
@@ -490,7 +604,7 @@ exports.testStateFields = function(test)
 
     this.registerHandler("/subscription", metadata =>
     {
-      return [Cr.NS_OK, 404, ""];
+      return [404];
     });
 
     return this.runScheduledTasks(24);
@@ -506,29 +620,29 @@ exports.testStateFields = function(test)
 
 exports.testSpecialCommentOrdering = function(test)
 {
-  let subscription = Subscription.fromURL("http://example.com/subscription");
+  let subscription = Subscription.fromURL("https://example.com/subscription");
   filterStorage.addSubscription(subscription);
 
   this.registerHandler("/subscription", metadata =>
   {
-    return [Cr.NS_OK, 200, "[Adblock]\n! Special Comment: x\n!foo\n! Title: foobar\nfoo\nbar"];
+    return [200, "[Adblock]\n! Special Comment: x\n!foo\n! Title: foobar\nfoo\nbar"];
   });
 
   this.runScheduledTasks(1).then(() =>
   {
-    test.equal(subscription.title, "http://example.com/subscription", "make sure title was not found");
+    test.equal(subscription.title, "https://example.com/subscription", "make sure title was not found");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
 exports.testUnknownSpecialComments = function(test)
 {
-  let subscription = Subscription.fromURL("http://example.com/subscription");
+  let subscription = Subscription.fromURL("https://example.com/subscription");
   filterStorage.addSubscription(subscription);
 
   this.registerHandler("/subscription", metadata =>
   {
     // To test allowing unknown special comments like `! :`, `!!@#$%^&*() : `, and `! Some Unknown Comment : `
-    return [Cr.NS_OK, 200, "[Adblock]\n! :\n! !@#$%^&*() :\n! Some Unknown Comment :\n! Title: foobar\nfoo\nbar"];
+    return [200, "[Adblock]\n! :\n! !@#$%^&*() :\n! Some Unknown Comment :\n! Title: foobar\nfoo\nbar"];
   });
 
   this.runScheduledTasks(1).then(() =>

@@ -32,8 +32,7 @@ exports.setUp = function(callback)
     extraExports: {
       elemHide: ["knownFilters"],
       elemHideEmulation: ["filters"],
-      elemHideExceptions: ["knownExceptions"],
-      snippets: ["filters"]
+      elemHideExceptions: ["knownExceptions"]
     }
   });
 
@@ -97,9 +96,9 @@ function checkKnownFilters(test, text, expected)
   for (let filter of elemHideEmulation.filters)
     result.elemhideemulation.push(filter.text);
 
-  let snippets = sandboxedRequire("../lib/snippets");
+  let {snippets} = sandboxedRequire("../lib/snippets");
   result.snippets = [];
-  for (let filter of snippets.filters)
+  for (let filter of snippets._filters)
     result.snippets.push(filter.text);
 
   let types = ["blacklist", "whitelist", "elemhide", "elemhideexception",
@@ -224,13 +223,13 @@ exports.testFilterSubscriptionOperations = function(test)
   filterStorage.addFilter(filter1);
   checkKnownFilters(test, "add filter1", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
-  filterStorage.updateSubscriptionFilters(subscription, [filter4]);
+  filterStorage.updateSubscriptionFilters(subscription, [filter4.text]);
   checkKnownFilters(test, "change subscription filters to filter4", {blacklist: [filter1.text]});
 
   filterStorage.removeFilter(filter1);
   checkKnownFilters(test, "remove filter1", {});
 
-  filterStorage.updateSubscriptionFilters(subscription, [filter1, filter2]);
+  filterStorage.updateSubscriptionFilters(subscription, [filter1.text, filter2.text]);
   checkKnownFilters(test, "change subscription filters to filter1, filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filter1.disabled = true;
@@ -306,9 +305,9 @@ exports.testFilterGroupOperations = function(test)
 
   filterStorage.addFilter(filter2);
   checkKnownFilters(test, "add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
-  test.equal(filter2.subscriptionCount, 1, "@@filter2.subscriptionCount");
-  test.ok([...filter2.subscriptions()][0] instanceof SpecialSubscription, "@@filter2 added to a new filter group");
-  test.ok([...filter2.subscriptions()][0] != subscription3, "@@filter2 filter group is not the disabled exceptions group");
+  test.equal([...filterStorage.subscriptions(filter2.text)].length, 1, "@@filter2 subscription count");
+  test.ok([...filterStorage.subscriptions(filter2.text)][0] instanceof SpecialSubscription, "@@filter2 added to a new filter group");
+  test.ok([...filterStorage.subscriptions(filter2.text)][0] != subscription3, "@@filter2 filter group is not the disabled exceptions group");
 
   subscription3.disabled = false;
   checkKnownFilters(test, "enable exception rules", {blacklist: [filter1.text], whitelist: [filter2.text]});
@@ -316,17 +315,17 @@ exports.testFilterGroupOperations = function(test)
   filterStorage.removeFilter(filter2);
   filterStorage.addFilter(filter2);
   checkKnownFilters(test, "re-add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
-  test.equal(filter2.subscriptionCount, 1, "@@filter2.subscriptionCount");
-  test.ok([...filter2.subscriptions()][0] == subscription3, "@@filter2 added to the default exceptions group");
+  test.equal([...filterStorage.subscriptions(filter2.text)].length, 1, "@@filter2 subscription count");
+  test.ok([...filterStorage.subscriptions(filter2.text)][0] == subscription3, "@@filter2 added to the default exceptions group");
 
   let subscription4 = Subscription.fromURL("http://test/");
-  filterStorage.updateSubscriptionFilters(subscription4, [filter3, filter4, filter5]);
+  filterStorage.updateSubscriptionFilters(subscription4, [filter3.text, filter4.text, filter5.text]);
   checkKnownFilters(test, "update subscription not in the list yet", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filterStorage.addSubscription(subscription4);
   checkKnownFilters(test, "add subscription to the list", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text, filter4.text]});
 
-  filterStorage.updateSubscriptionFilters(subscription4, [filter3, filter2, filter5]);
+  filterStorage.updateSubscriptionFilters(subscription4, [filter3.text, filter2.text, filter5.text]);
   checkKnownFilters(test, "update subscription while in the list", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text]});
 
   subscription3.disabled = true;

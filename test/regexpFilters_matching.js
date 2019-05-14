@@ -21,25 +21,29 @@ const {createSandbox} = require("./_common");
 
 let Filter = null;
 let RegExpFilter = null;
+let URLRequest = null;
 
 exports.setUp = function(callback)
 {
   let sandboxedRequire = createSandbox();
   (
-    {Filter, RegExpFilter} = sandboxedRequire("../lib/filterClasses")
+    {Filter, RegExpFilter} = sandboxedRequire("../lib/filterClasses"),
+    {URLRequest} = sandboxedRequire("../lib/url")
   );
 
   callback();
 };
 
-
-
 function testMatch(test, text, location, contentType, docDomain, thirdParty, sitekey, expected)
 {
+  if (thirdParty && docDomain == null)
+    docDomain = "some-other-domain";
+
   function testMatchInternal(filterText)
   {
     let filter = Filter.fromText(filterText);
-    let result = filter.matches(location, RegExpFilter.typeMap[contentType], docDomain, thirdParty, sitekey);
+    let request = URLRequest.from(location, docDomain);
+    let result = filter.matches(request, RegExpFilter.typeMap[contentType], sitekey);
     test.equal(!!result, expected, '"' + filterText + '".matches(' + location + ", " + contentType + ", " + docDomain + ", " + (thirdParty ? "third-party" : "first-party") + ", " + (sitekey || "no-sitekey") + ")");
   }
 
@@ -151,9 +155,6 @@ exports.testTypeOptions = function(test)
   testMatch(test, "abc$xmlhttprequest", "http://abc/adf", "IMAGE", null, false, null, false);
   testMatch(test, "abc$xmlhttprequest", "http://abc/adf", "XMLHTTPREQUEST", null, false, null, true);
   testMatch(test, "abc$~xmlhttprequest", "http://abc/adf", "XMLHTTPREQUEST", null, false, null, false);
-  testMatch(test, "abc$object-subrequest", "http://abc/adf", "IMAGE", null, false, null, false);
-  testMatch(test, "abc$object-subrequest", "http://abc/adf", "OBJECT_SUBREQUEST", null, false, null, true);
-  testMatch(test, "abc$~object-subrequest", "http://abc/adf", "OBJECT_SUBREQUEST", null, false, null, false);
   testMatch(test, "abc$dtd", "http://abc/adf", "IMAGE", null, false, null, false);
   testMatch(test, "abc$dtd", "http://abc/adf", "DTD", null, false, null, true);
   testMatch(test, "abc$~dtd", "http://abc/adf", "DTD", null, false, null, false);
@@ -252,7 +253,6 @@ exports.testDomainRestrictions = function(test)
   testMatch(test, "abc$domain=foo.com", "http://abc/def", "IMAGE", "foo.com.", true, null, true);
   testMatch(test, "abc$domain=foo.com", "http://abc/def", "IMAGE", "www.foo.com", true, null, true);
   testMatch(test, "abc$domain=foo.com", "http://abc/def", "IMAGE", "www.foo.com.", true, null, true);
-  testMatch(test, "abc$domain=foo.com", "http://abc/def", "IMAGE", "Foo.com", true, null, true);
   testMatch(test, "abc$domain=foo.com", "http://abc/def", "IMAGE", "abc.def.foo.com", true, null, true);
   testMatch(test, "abc$domain=foo.com", "http://abc/def", "IMAGE", "www.baz.com", true, null, false);
   testMatch(test, "abc$domain=foo.com", "http://abc/def", "IMAGE", null, true, null, false);
@@ -260,7 +260,6 @@ exports.testDomainRestrictions = function(test)
   testMatch(test, "abc$domain=foo.com|bar.com", "http://abc/def", "IMAGE", "foo.com.", true, null, true);
   testMatch(test, "abc$domain=foo.com|bar.com", "http://abc/def", "IMAGE", "www.foo.com", true, null, true);
   testMatch(test, "abc$domain=foo.com|bar.com", "http://abc/def", "IMAGE", "www.foo.com.", true, null, true);
-  testMatch(test, "abc$domain=foo.com|bar.com", "http://abc/def", "IMAGE", "Foo.com", true, null, true);
   testMatch(test, "abc$domain=foo.com|bar.com", "http://abc/def", "IMAGE", "abc.def.foo.com", true, null, true);
   testMatch(test, "abc$domain=foo.com|bar.com", "http://abc/def", "IMAGE", "www.baz.com", true, null, false);
   testMatch(test, "abc$domain=foo.com|bar.com", "http://abc/def", "IMAGE", null, true, null, false);
@@ -268,7 +267,6 @@ exports.testDomainRestrictions = function(test)
   testMatch(test, "abc$domain=bar.com|foo.com", "http://abc/def", "IMAGE", "foo.com.", true, null, true);
   testMatch(test, "abc$domain=bar.com|foo.com", "http://abc/def", "IMAGE", "www.foo.com", true, null, true);
   testMatch(test, "abc$domain=bar.com|foo.com", "http://abc/def", "IMAGE", "www.foo.com.", true, null, true);
-  testMatch(test, "abc$domain=bar.com|foo.com", "http://abc/def", "IMAGE", "Foo.com", true, null, true);
   testMatch(test, "abc$domain=bar.com|foo.com", "http://abc/def", "IMAGE", "abc.def.foo.com", true, null, true);
   testMatch(test, "abc$domain=bar.com|foo.com", "http://abc/def", "IMAGE", "www.baz.com", true, null, false);
   testMatch(test, "abc$domain=bar.com|foo.com", "http://abc/def", "IMAGE", null, true, null, false);
@@ -276,7 +274,6 @@ exports.testDomainRestrictions = function(test)
   testMatch(test, "abc$domain=~foo.com", "http://abc/def", "IMAGE", "foo.com.", true, null, false);
   testMatch(test, "abc$domain=~foo.com", "http://abc/def", "IMAGE", "www.foo.com", true, null, false);
   testMatch(test, "abc$domain=~foo.com", "http://abc/def", "IMAGE", "www.foo.com.", true, null, false);
-  testMatch(test, "abc$domain=~foo.com", "http://abc/def", "IMAGE", "Foo.com", true, null, false);
   testMatch(test, "abc$domain=~foo.com", "http://abc/def", "IMAGE", "abc.def.foo.com", true, null, false);
   testMatch(test, "abc$domain=~foo.com", "http://abc/def", "IMAGE", "www.baz.com", true, null, true);
   testMatch(test, "abc$domain=~foo.com", "http://abc/def", "IMAGE", null, true, null, true);
@@ -284,7 +281,6 @@ exports.testDomainRestrictions = function(test)
   testMatch(test, "abc$domain=~foo.com|~bar.com", "http://abc/def", "IMAGE", "foo.com.", true, null, false);
   testMatch(test, "abc$domain=~foo.com|~bar.com", "http://abc/def", "IMAGE", "www.foo.com", true, null, false);
   testMatch(test, "abc$domain=~foo.com|~bar.com", "http://abc/def", "IMAGE", "www.foo.com.", true, null, false);
-  testMatch(test, "abc$domain=~foo.com|~bar.com", "http://abc/def", "IMAGE", "Foo.com", true, null, false);
   testMatch(test, "abc$domain=~foo.com|~bar.com", "http://abc/def", "IMAGE", "abc.def.foo.com", true, null, false);
   testMatch(test, "abc$domain=~foo.com|~bar.com", "http://abc/def", "IMAGE", "www.baz.com", true, null, true);
   testMatch(test, "abc$domain=~foo.com|~bar.com", "http://abc/def", "IMAGE", null, true, null, true);
@@ -292,7 +288,6 @@ exports.testDomainRestrictions = function(test)
   testMatch(test, "abc$domain=~bar.com|~foo.com", "http://abc/def", "IMAGE", "foo.com.", true, null, false);
   testMatch(test, "abc$domain=~bar.com|~foo.com", "http://abc/def", "IMAGE", "www.foo.com", true, null, false);
   testMatch(test, "abc$domain=~bar.com|~foo.com", "http://abc/def", "IMAGE", "www.foo.com.", true, null, false);
-  testMatch(test, "abc$domain=~bar.com|~foo.com", "http://abc/def", "IMAGE", "Foo.com", true, null, false);
   testMatch(test, "abc$domain=~bar.com|~foo.com", "http://abc/def", "IMAGE", "abc.def.foo.com", true, null, false);
   testMatch(test, "abc$domain=~bar.com|~foo.com", "http://abc/def", "IMAGE", "www.baz.com", true, null, true);
   testMatch(test, "abc$domain=~bar.com|~foo.com", "http://abc/def", "IMAGE", null, true, null, true);

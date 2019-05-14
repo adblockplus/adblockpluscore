@@ -295,28 +295,6 @@ exports.testPropertySelectorWithRegularExpression = async function(test)
   test.done();
 };
 
-exports.testPropertySelectorWithEscapedBrace = async function(test)
-{
-  let toHide = createElementWithStyle("{background-color: #000}");
-  let selectors = [":-abp-properties(/background.\\7B 0,6\\7D : rgb\\(0, 0, 0\\)/)"];
-
-  if (await applyElemHideEmulation(test, selectors))
-    expectHidden(test, toHide);
-
-  test.done();
-};
-
-exports.testPropertySelectorWithImproperlyEscapedBrace = async function(test)
-{
-  let toHide = createElementWithStyle("{background-color: #000}");
-  let selectors = [":-abp-properties(/background.\\7B0,6\\7D: rgb\\(0, 0, 0\\)/)"];
-
-  if (await applyElemHideEmulation(test, selectors))
-    expectVisible(test, toHide);
-
-  test.done();
-};
-
 exports.testDynamicallyChangedProperty = async function(test)
 {
   let toHide = createElementWithStyle("{}");
@@ -549,6 +527,64 @@ exports.testPseudoClassHasSelectorWithSuffixSiblingContains = function(test)
   };
   runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(
     test, "div:-abp-has(> span:-abp-contains(Advertisment))", expectations);
+};
+
+async function runTestQualifier(test, selector)
+{
+  testDocument.body.innerHTML = `
+    <style>
+    span::before {
+      content: "any";
+    }
+    </style>
+    <div id="toHide">
+      <a>
+        <p>
+          <span></span>
+        </p>
+      </a>
+    </div>`;
+
+  if (await applyElemHideEmulation(test, [selector]))
+    expectHidden(test, testDocument.getElementById("toHide"));
+
+  test.done();
+}
+
+// See issue https://issues.adblockplus.org/ticket/7428
+exports.testPropertySelectorCombinatorQualifier = function(test)
+{
+  runTestQualifier(
+    test,
+    "div:-abp-has(> a p > :-abp-properties(content: \"any\"))"
+  );
+};
+
+// See issue https://issues.adblockplus.org/ticket/7359
+exports.testPropertySelectorCombinatorQualifierNested = function(test)
+{
+  runTestQualifier(
+    test,
+    "div:-abp-has(> a p:-abp-has(> :-abp-properties(content: \"any\")))"
+  );
+};
+
+// See issue https://issues.adblockplus.org/ticket/7400
+exports.testPropertySelectorIdenticalTypeQualifier = function(test)
+{
+  runTestQualifier(
+    test,
+    "div:-abp-has(span:-abp-properties(content: \"any\"))"
+  );
+};
+
+// See issue https://issues.adblockplus.org/ticket/7400
+exports.testPropertySelectorIdenticalTypeQualifierNested = function(test)
+{
+  runTestQualifier(
+    test,
+    "div:-abp-has(p:-abp-has(span:-abp-properties(content: \"any\")))"
+  );
 };
 
 async function runTestPseudoClassContains(test, selector, expectations)

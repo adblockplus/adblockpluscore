@@ -65,15 +65,14 @@ function compareSubscription(test, url, expected, postInit)
 function compareSubscriptionFilters(test, subscription, expected)
 {
   test.deepEqual([...subscription.filterText()], expected);
-  test.deepEqual([...subscription.filters()], expected.map(f$));
 
   test.equal(subscription.filterCount, expected.length);
 
   for (let i = 0; i < subscription.filterCount; i++)
-    test.equal(subscription.filterAt(i).text, expected[i]);
+    test.equal(subscription.filterTextAt(i), expected[i]);
 
-  test.ok(!subscription.filterAt(subscription.filterCount));
-  test.ok(!subscription.filterAt(-1));
+  test.ok(!subscription.filterTextAt(subscription.filterCount));
+  test.ok(!subscription.filterTextAt(-1));
 }
 
 exports.testSubscriptionClassDefinitions = function(test)
@@ -142,11 +141,11 @@ exports.testFilterManagement = function(test)
 
   subscription.addFilter(f$("##.foo"));
   compareSubscriptionFilters(test, subscription, ["##.foo"]);
-  test.equal(subscription.searchFilter(f$("##.foo")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.foo")), 0);
 
   subscription.addFilter(f$("##.bar"));
   compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   // Repeat filter.
   subscription.addFilter(f$("##.bar"));
@@ -154,65 +153,102 @@ exports.testFilterManagement = function(test)
                                                   "##.bar"]);
 
   // The first occurrence is found.
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   subscription.deleteFilterAt(0);
   compareSubscriptionFilters(test, subscription, ["##.bar", "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 0);
 
   subscription.insertFilterAt(f$("##.foo"), 0);
   compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar",
                                                   "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   subscription.deleteFilterAt(1);
   compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   subscription.deleteFilterAt(1);
   compareSubscriptionFilters(test, subscription, ["##.foo"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), -1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), -1);
 
   subscription.addFilter(f$("##.bar"));
   compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 1);
 
   subscription.clearFilters();
   compareSubscriptionFilters(test, subscription, []);
-  test.equal(subscription.searchFilter(f$("##.foo")), -1);
-  test.equal(subscription.searchFilter(f$("##.bar")), -1);
+  test.equal(subscription.findFilterIndex(f$("##.foo")), -1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), -1);
 
   subscription.addFilter(f$("##.bar"));
   compareSubscriptionFilters(test, subscription, ["##.bar"]);
 
   subscription.addFilter(f$("##.foo"));
   compareSubscriptionFilters(test, subscription, ["##.bar", "##.foo"]);
-  test.equal(subscription.searchFilter(f$("##.bar")), 0);
-  test.equal(subscription.searchFilter(f$("##.foo")), 1);
+  test.equal(subscription.findFilterIndex(f$("##.bar")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.foo")), 1);
 
   // Insert outside of bounds.
   subscription.insertFilterAt(f$("##.lambda"), 1000);
   compareSubscriptionFilters(test, subscription, ["##.bar", "##.foo",
                                                   "##.lambda"]);
-  test.equal(subscription.searchFilter(f$("##.lambda")), 2);
+  test.equal(subscription.findFilterIndex(f$("##.lambda")), 2);
 
   // Delete outside of bounds.
   subscription.deleteFilterAt(1000);
   compareSubscriptionFilters(test, subscription, ["##.bar", "##.foo",
                                                   "##.lambda"]);
-  test.equal(subscription.searchFilter(f$("##.lambda")), 2);
+  test.equal(subscription.findFilterIndex(f$("##.lambda")), 2);
 
   // Insert outside of bounds (negative).
   subscription.insertFilterAt(f$("##.lambda"), -1000);
   compareSubscriptionFilters(test, subscription, ["##.lambda", "##.bar",
                                                   "##.foo", "##.lambda"]);
-  test.equal(subscription.searchFilter(f$("##.lambda")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.lambda")), 0);
 
   // Delete outside of bounds (negative).
   subscription.deleteFilterAt(-1000);
   compareSubscriptionFilters(test, subscription, ["##.lambda", "##.bar",
                                                   "##.foo", "##.lambda"]);
-  test.equal(subscription.searchFilter(f$("##.lambda")), 0);
+  test.equal(subscription.findFilterIndex(f$("##.lambda")), 0);
+
+  test.done();
+};
+
+exports.testSubscriptionDelta = function(test)
+{
+  let subscription = Subscription.fromURL("https://example.com/");
+
+  subscription.addFilterText("##.foo");
+  subscription.addFilterText("##.bar");
+
+  compareSubscriptionFilters(test, subscription, ["##.foo", "##.bar"]);
+
+  let delta = subscription.updateFilterText(["##.lambda", "##.foo"]);
+
+  // The filters should be in the same order in which they were in the argument
+  // to updateFilterText()
+  compareSubscriptionFilters(test, subscription, ["##.lambda", "##.foo"]);
+
+  test.deepEqual(delta, {added: ["##.lambda"], removed: ["##.bar"]});
+
+  // Add ##.lambda a second time.
+  subscription.addFilterText("##.lambda");
+  compareSubscriptionFilters(test, subscription, ["##.lambda", "##.foo",
+                                                  "##.lambda"]);
+
+  delta = subscription.updateFilterText(["##.bar", "##.bar"]);
+
+  // Duplicate filters should be allowed.
+  compareSubscriptionFilters(test, subscription, ["##.bar", "##.bar"]);
+
+  // If there are duplicates in the text, there should be duplicates in the
+  // delta.
+  test.deepEqual(delta, {
+    added: ["##.bar", "##.bar"],
+    removed: ["##.lambda", "##.foo", "##.lambda"]
+  });
 
   test.done();
 };

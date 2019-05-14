@@ -78,7 +78,7 @@ function compareFiltersList(test, testMessage, list)
 
 function compareFilterSubscriptions(test, testMessage, filter, list)
 {
-  let result = [...filter.subscriptions()].map(subscription => subscription.url);
+  let result = [...filterStorage.subscriptions(filter.text)].map(subscription => subscription.url);
   let expected = list.map(subscription => subscription.url);
   test.deepEqual(result, expected, testMessage);
 }
@@ -258,31 +258,36 @@ exports.testAddingFilters = function(test)
   test.deepEqual(changes, ["filter.added foo#@#bar"], "Received changes");
 
   changes = [];
+  filterStorage.addFilter(Filter.fromText("example.com#$#foobar"));
+  compareFiltersList(test, "Adding snippet filter", [["foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar"]]);
+  test.deepEqual(changes, ["filter.added example.com#$#foobar"], "Received changes");
+
+  changes = [];
   filterStorage.addFilter(Filter.fromText("!foobar"));
-  compareFiltersList(test, "Adding comment", [["foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["!foobar"]]);
+  compareFiltersList(test, "Adding comment", [["foo", "!foobar"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar"]]);
   test.deepEqual(changes, ["filter.added !foobar"], "Received changes");
 
   changes = [];
   filterStorage.addFilter(Filter.fromText("foo"));
-  compareFiltersList(test, "Adding already added filter", [["foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["!foobar"]]);
+  compareFiltersList(test, "Adding already added filter", [["foo", "!foobar"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar"]]);
   test.deepEqual(changes, [], "Received changes");
 
   subscription1.disabled = true;
 
   changes = [];
   filterStorage.addFilter(Filter.fromText("foo"));
-  compareFiltersList(test, "Adding filter already in a disabled subscription", [["foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["!foobar", "foo"]]);
+  compareFiltersList(test, "Adding filter already in a disabled subscription", [["foo", "!foobar"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foo"]]);
   test.deepEqual(changes, ["filter.added foo"], "Received changes");
 
   changes = [];
   filterStorage.addFilter(Filter.fromText("foo"), subscription1);
-  compareFiltersList(test, "Adding filter to an explicit subscription", [["foo", "foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["!foobar", "foo"]]);
+  compareFiltersList(test, "Adding filter to an explicit subscription", [["foo", "!foobar", "foo"], ["@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foo"]]);
   test.deepEqual(changes, ["filter.added foo"], "Received changes");
 
   changes = [];
-  filterStorage.addFilter(Filter.fromText("!foobar"), subscription2, 0);
-  compareFiltersList(test, "Adding filter to an explicit subscription with position", [["foo", "foo"], ["!foobar", "@@bar", "foo##bar", "foo#@#bar"], ["!foobar", "foo"]]);
-  test.deepEqual(changes, ["filter.added !foobar"], "Received changes");
+  filterStorage.addFilter(Filter.fromText("example.com#$#foobar"), subscription2, 0);
+  compareFiltersList(test, "Adding filter to an explicit subscription with position", [["foo", "!foobar", "foo"], ["example.com#$#foobar", "@@bar", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foo"]]);
+  test.deepEqual(changes, ["filter.added example.com#$#foobar"], "Received changes");
 
   test.done();
 };
@@ -493,7 +498,7 @@ exports.testFilterSubscriptionRelationship = function(test)
   compareFilterSubscriptions(test, "filter2 subscriptions after removing http://test1/", filter2, [subscription2]);
   compareFilterSubscriptions(test, "filter3 subscriptions after removing http://test1/", filter3, [subscription2]);
 
-  filterStorage.updateSubscriptionFilters(subscription3, [filter3]);
+  filterStorage.updateSubscriptionFilters(subscription3, [filter3.text]);
 
   compareFilterSubscriptions(test, "filter1 subscriptions after updating http://test3/ filters", filter1, []);
   compareFilterSubscriptions(test, "filter2 subscriptions after updating http://test3/ filters", filter2, [subscription2]);
@@ -505,7 +510,7 @@ exports.testFilterSubscriptionRelationship = function(test)
   compareFilterSubscriptions(test, "filter2 subscriptions after adding http://test3/", filter2, [subscription2]);
   compareFilterSubscriptions(test, "filter3 subscriptions after adding http://test3/", filter3, [subscription2, subscription3]);
 
-  filterStorage.updateSubscriptionFilters(subscription3, [filter1, filter2]);
+  filterStorage.updateSubscriptionFilters(subscription3, [filter1.text, filter2.text]);
 
   compareFilterSubscriptions(test, "filter1 subscriptions after updating http://test3/ filters", filter1, [subscription3]);
   compareFilterSubscriptions(test, "filter2 subscriptions after updating http://test3/ filters", filter2, [subscription2, subscription3]);

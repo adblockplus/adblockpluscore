@@ -8,7 +8,7 @@ let Prefs = exports.Prefs = {
   subscriptions_autoupdate: true,
   subscriptions_fallbackerrors: 5,
   subscriptions_fallbackurl: "",
-  notificationurl: "http://example.com/notification.json",
+  notificationurl: "https://example.com/notification.json",
   notificationdata: {},
   notifications_ignoredcategories: [],
   blocked_total: 10,

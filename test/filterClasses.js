@@ -94,7 +94,6 @@ function serializeFilter(filter)
       if (filter instanceof BlockingFilter)
       {
         result.push("type=filterlist");
-        result.push("collapse=" + filter.collapse);
         result.push("csp=" + filter.csp);
         result.push("rewrite=" + filter.rewrite);
       }
@@ -168,7 +167,6 @@ function addDefaults(expected)
   }
   if (type == "filterlist")
   {
-    addProperty("collapse", "null");
     addProperty("csp", "null");
     addProperty("rewrite", "null");
   }
@@ -443,7 +441,7 @@ exports.testElemHideRulesWithBraces = function(test)
       "type=elemhide",
       "text=###foo{color: red}",
       "selectorDomains=",
-      "selector=#foo\\7B color: red\\7D ",
+      "selector=#foo{color: red}",
       "domains="
     ]
   );
@@ -452,7 +450,7 @@ exports.testElemHideRulesWithBraces = function(test)
       "type=elemhideemulation",
       "text=foo.com#?#:-abp-properties(/margin: [3-4]{2}/)",
       "selectorDomains=foo.com",
-      "selector=:-abp-properties(/margin: [3-4]\\7B 2\\7D /)",
+      "selector=:-abp-properties(/margin: [3-4]{2}/)",
       "domains=foo.com"
     ]
   );
@@ -593,21 +591,13 @@ exports.testDomainMapDeduplication = function(test)
   // This compares the references to make sure that both refer to the same
   // object (#6815).
 
-  // For both request blocking and element hiding filters, the value of the
-  // property is cached internally only on second access.
-  test.notEqual(filter1.domains, filter2.domains);
   test.equal(filter1.domains, filter2.domains);
-  test.notEqual(filter3.domains, filter4.domains);
   test.equal(filter3.domains, filter4.domains);
 
   let filter5 = Filter.fromText("bar$domain=www.example.com");
   let filter6 = Filter.fromText("www.example.com##.bar");
 
   test.notEqual(filter2.domains, filter5.domains);
-
-  // Check twice for element hiding filters to make sure the internal cached
-  // values are also not equal.
-  test.notEqual(filter4.domains, filter6.domains);
   test.notEqual(filter4.domains, filter6.domains);
 
   test.done();

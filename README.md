@@ -41,13 +41,17 @@ BROWSER_TEST_RUNNERS environment, the default is
 
 You can not set a specific version of the browser at runtime.
 
+### Browser caching
+
+By default, the browsers used for testing are cached for later use in
+`<root>/{chromium|firefox}-snapshots`. You can specify the caching folder with
+the environment variable `BROWSER_SNAPSHOT_DIR`:
+
+  $ export BROWSER_SNAPSHOT_DIR="~/snapshots"
+
+Please note, that said folder needs to exist beforehand.
+
 Linting
 -------
 
-You can lint the code using [ESLint](http://eslint.org).
-
-    eslint *.js chrome lib test
-
-You will need to set up ESLint and our configuration first, see
-[eslint-config-eyeo](https://hg.adblockplus.org/codingtools/file/tip/eslint-config-eyeo)
-for more information.
+You can lint the code using [ESLint](http://eslint.org) by running `npm run lint`.

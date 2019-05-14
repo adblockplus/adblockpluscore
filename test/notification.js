@@ -18,19 +18,22 @@
 "use strict";
 
 let {
-  createSandbox, setupTimerAndXMLHttp, setupRandomResult, unexpectedError, Cr
+  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError
 } = require("./_common");
 
 let Prefs = null;
 let Utils = null;
 let Notification = null;
 
+// Only starting NodeJS 10 that URL is in the global space.
+const {URL} = require("url");
+
 exports.setUp = function(callback)
 {
   // Inject our Array and JSON to make sure that instanceof checks on arrays
   // within the sandbox succeed even with data passed in from outside.
   let globals = Object.assign({Array, JSON},
-    setupTimerAndXMLHttp.call(this), setupRandomResult.call(this));
+    setupTimerAndFetch.call(this), setupRandomResult.call(this));
 
   let sandboxedRequire = createSandbox({globals});
   (
@@ -42,7 +45,7 @@ exports.setUp = function(callback)
   callback();
 };
 
-function showNotifications(url)
+function showNotifications(location)
 {
   let shownNotifications = [];
   function showListener(notification)
@@ -51,7 +54,7 @@ function showNotifications(url)
     Notification.markAsShown(notification.id);
   }
   Notification.addShowListener(showListener);
-  Notification.showNext(url);
+  Notification.showNext(location && new URL(location));
   Notification.removeShowListener(showListener);
   return shownNotifications;
 }
@@ -80,7 +83,7 @@ function registerHandler(notifications, checkCallback)
       notifications
     };
 
-    return [Cr.NS_OK, 200, JSON.stringify(notification)];
+    return [200, JSON.stringify(notification)];
   });
 }
 
@@ -302,6 +305,113 @@ exports.testParametersSent = function(test)
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
+exports.testFirstVersion = async function(test)
+{
+  let checkDownload = async(payload, {queryParam, state: {firstVersion, data},
+                                      eFlag = ""}) =>
+  {
+    this.registerHandler("/notification.json", ({queryString}) =>
+    {
+      let params = new URLSearchParams(decodeURI(queryString));
+
+      test.equal(params.get("firstVersion"), queryParam + eFlag);
+
+      return [200, JSON.stringify(Object.assign({notifications: []}, payload))];
+    });
+
+    await this.runScheduledTasks(24);
+
+    test.equal(Prefs.notificationdata.firstVersion, firstVersion + eFlag);
+    test.equal(Prefs.notificationdata.data.version, data.version);
+  };
+
+  async function testIt({eFlag} = {})
+  {
+    Prefs.notificationdata = {firstVersion: "0"};
+
+    if (typeof eFlag != "undefined")
+    {
+      // Set the data property to an empty object to simulate an already
+      // installed version.
+      Prefs.notificationdata.data = {};
+    }
+
+    // First download on 2019-05-07T12:34Z. This gives us the initial value.
+    await checkDownload({version: "201905071234"}, {
+      queryParam: "0",
+      state: {
+        firstVersion: "201905071234",
+        data: {version: "201905071234"}
+      },
+      eFlag
+    });
+
+    // 30 days and 1 minute since the first download.
+    await checkDownload({version: "201906061235"}, {
+      queryParam: "20190507",
+      state: {
+        firstVersion: "201905071234",
+        data: {version: "201906061235"}
+      },
+      eFlag
+    });
+
+    // 30 days and 2 minutes since the first download. The value is trimmed to
+    // YYYYMM.
+    await checkDownload({version: "201906061236"}, {
+      queryParam: "201905",
+      state: {
+        firstVersion: "201905071234",
+        data: {version: "201906061236"}
+      },
+      eFlag
+    });
+
+    // 365 days and 1 minute since the first download.
+    await checkDownload({version: "202005061235"}, {
+      queryParam: "201905",
+      state: {
+        firstVersion: "201905071234",
+        data: {version: "202005061235"}
+      },
+      eFlag
+    });
+
+    // 365 days and 2 minutes since the first download. The value is trimmed to
+    // YYYY.
+    await checkDownload({version: "202005061236"}, {
+      queryParam: "2019",
+      state: {
+        firstVersion: "201905071234",
+        data: {version: "202005061236"}
+      },
+      eFlag
+    });
+
+    // 2,557 days (~7 years) since the first download.
+    await checkDownload({version: "202605071234"}, {
+      queryParam: "2019",
+      state: {
+        firstVersion: "201905071234",
+        data: {version: "202605071234"}
+      },
+      eFlag
+    });
+  }
+
+  try
+  {
+    await testIt();
+    await testIt({eFlag: "-E"});
+  }
+  catch (error)
+  {
+    unexpectedError.call(test, error);
+  }
+
+  test.done();
+};
+
 exports.testExpirationInterval = {};
 
 let initialDelay = 1 / 60;
@@ -432,7 +542,7 @@ exports.testInterval = function(test)
     test.deepEqual(showNotifications(), [], "Relentless notifications are not shown before the interval");
   }).then(() =>
   {
-    // Date always returns a fixed time (see setupTimerAndXMLHttp) so we
+    // Date always returns a fixed time (see setupTimerAndFetch) so we
     // manipulate the shown data manually.
     Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
     test.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown after the interval");
@@ -459,7 +569,7 @@ exports.testRelentlessNotification = function(test)
     test.deepEqual(showNotifications("http://foo.com"), [], "Relentless notifications are not shown before the interval");
   }).then(() =>
   {
-    // Date always returns a fixed time (see setupTimerAndXMLHttp) so we
+    // Date always returns a fixed time (see setupTimerAndFetch) so we
     // manipulate the shown data manually.
     Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
     test.deepEqual(showNotifications(), [], "Relentless notifications are not shown after the interval without URL");
