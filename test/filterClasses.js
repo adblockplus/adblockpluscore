@@ -337,7 +337,7 @@ exports.testFilterOptions = function(test)
 
   compareFilter(test, "@@bla$~script,~other", ["type=whitelist", "text=@@bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
   compareFilter(test, "@@http://bla$~script,~other", ["type=whitelist", "text=@@http://bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@|ftp://bla$~script,~other", ["type=whitelist", "text=@@|ftp://bla$~script,~other", "regexp=^ftp\\:\\/\\/bla", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter(test, "@@ftp://bla$~script,~other", ["type=whitelist", "text=@@ftp://bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
   compareFilter(test, "@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.DOCUMENT)]);
   compareFilter(test, "@@bla$~script,~other,~document", ["type=whitelist", "text=@@bla$~script,~other,~document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
   compareFilter(test, "@@bla$document", ["type=whitelist", "text=@@bla$document", "contentType=" + t.DOCUMENT]);
