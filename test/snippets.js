@@ -19,6 +19,7 @@
 
 "use strict";
 
+const assert = require("assert");
 const {createSandbox} = require("./_common");
 
 let snippets = null;
@@ -51,7 +52,7 @@ exports.testDomainRestrictions = function(test)
     let matches = snippets.getFiltersForDomain(domain).map(
       filter => filter.script
     );
-    test.deepEqual(matches.sort(), expectedMatches.sort(), description);
+    assert.deepEqual(matches.sort(), expectedMatches.sort(), description);
 
     snippets.clear();
   }
@@ -98,7 +99,7 @@ exports.testSnippetFiltersContainer = function(test)
   function compareRules(description, domain, expectedMatches)
   {
     let result = snippets.getFiltersForDomain(domain);
-    test.deepEqual(result.sort(), expectedMatches.sort(), description);
+    assert.deepEqual(result.sort(), expectedMatches.sort(), description);
   }
 
   snippets.on("snippets.filterAdded",
@@ -135,7 +136,7 @@ exports.testSnippetFiltersContainer = function(test)
     []
   );
 
-  test.deepEqual(events, [
+  assert.deepEqual(events, [
     ["snippets.filterAdded", domainFilter],
     ["snippets.filterAdded", subdomainFilter],
     ["snippets.filterAdded", otherDomainFilter],
@@ -152,7 +153,7 @@ exports.testScriptParsing = function(test)
   function checkParsedScript(description, script, expectedTree)
   {
     let tree = parseScript(script);
-    test.deepEqual(tree, expectedTree, description);
+    assert.deepEqual(tree, expectedTree, description);
   }
 
   checkParsedScript("Script with no arguments", "foo", [["foo"]]);
@@ -291,7 +292,7 @@ exports.testScriptCompilation = function(test)
     let expected = template.replace("{{{script}}}",
                                     JSON.stringify(parseScript(script)));
 
-    test.equal(expected, actual);
+    assert.equal(expected, actual);
   }
 
   verifyExecutable("hello 'How are you?'");

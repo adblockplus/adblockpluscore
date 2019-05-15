@@ -17,6 +17,8 @@
 
 "use strict";
 
+const assert = require("assert");
+
 let {
   createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
   MILLIS_IN_SECOND, MILLIS_IN_HOUR
@@ -71,7 +73,7 @@ exports.testOneSubscriptionDownloads = function(test)
 
   this.runScheduledTasks(50).then(() =>
   {
-    test.deepEqual(requests, [
+    assert.deepEqual(requests, [
       [0 + initialDelay, "GET", "/subscription"],
       [24 + initialDelay, "GET", "/subscription"],
       [48 + initialDelay, "GET", "/subscription"]
@@ -102,7 +104,7 @@ exports.testTwoSubscriptionsDownloads = function(test)
 
   this.runScheduledTasks(55).then(() =>
   {
-    test.deepEqual(requests, [
+    assert.deepEqual(requests, [
       [0 + initialDelay, "GET", "/subscription1"],
       [2 + initialDelay, "GET", "/subscription2"],
       [24 + initialDelay, "GET", "/subscription1"],
@@ -136,16 +138,16 @@ for (let currentTest of [
 
     this.runScheduledTasks(2).then(() =>
     {
-      test.equal(subscription.downloadStatus, currentTest.downloadStatus, "Download status");
-      test.equal(subscription.requiredVersion, currentTest.requiredVersion, "Required version");
+      assert.equal(subscription.downloadStatus, currentTest.downloadStatus, "Download status");
+      assert.equal(subscription.requiredVersion, currentTest.requiredVersion, "Required version");
 
       if (currentTest.downloadStatus == "synchronize_ok")
       {
-        test.deepEqual([...subscription.filterText()], ["foo", "!bar", "@@bas", "#bam"], "Resulting subscription filters");
+        assert.deepEqual([...subscription.filterText()], ["foo", "!bar", "@@bas", "#bam"], "Resulting subscription filters");
       }
       else
       {
-        test.deepEqual([...subscription.filterText()], [
+        assert.deepEqual([...subscription.filterText()], [
         ], "Resulting subscription filters");
       }
     }).catch(unexpectedError.bind(test)).then(() => test.done());
@@ -168,7 +170,7 @@ exports.testsDisabledUpdates = function(test)
 
   this.runScheduledTasks(50).then(() =>
   {
-    test.equal(requests, 0, "Request count");
+    assert.equal(requests, 0, "Request count");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -260,7 +262,7 @@ for (let currentTest of [
     let maxHours = Math.round(Math.max.apply(null, currentTest.requests)) + 1;
     this.runScheduledTasks(maxHours, currentTest.skipAfter, currentTest.skip).then(() =>
     {
-      test.deepEqual(requests, currentTest.requests, "Requests");
+      assert.deepEqual(requests, currentTest.requests, "Requests");
     }).catch(unexpectedError.bind(test)).then(() => test.done());
   };
 }
@@ -270,20 +272,20 @@ exports.testSpecialComments = {};
 for (let [comment, check] of [
   ["! Homepage: http://example.com/", (test, subscription) =>
   {
-    test.equal(subscription.homepage, "http://example.com/", "Valid homepage comment");
+    assert.equal(subscription.homepage, "http://example.com/", "Valid homepage comment");
   }],
   ["! Homepage: ssh://example.com/", (test, subscription) =>
   {
-    test.equal(subscription.homepage, null, "Invalid homepage comment");
+    assert.equal(subscription.homepage, null, "Invalid homepage comment");
   }],
   ["! Title: foo", (test, subscription) =>
   {
-    test.equal(subscription.title, "foo", "Title comment");
-    test.equal(subscription.fixedTitle, true, "Fixed title");
+    assert.equal(subscription.title, "foo", "Title comment");
+    assert.equal(subscription.fixedTitle, true, "Fixed title");
   }],
   ["! Version: 1234", (test, subscription) =>
   {
-    test.equal(subscription.version, 1234, "Version comment");
+    assert.equal(subscription.version, 1234, "Version comment");
   }]
 ])
 {
@@ -300,7 +302,7 @@ for (let [comment, check] of [
     this.runScheduledTasks(2).then(() =>
     {
       check(test, subscription);
-      test.deepEqual([...subscription.filterText()], ["foo", "bar"], "Special comment not added to filters");
+      assert.deepEqual([...subscription.filterText()], ["foo", "bar"], "Special comment not added to filters");
     }).catch(unexpectedError.bind(test)).then(() => test.done());
   };
 }
@@ -322,11 +324,11 @@ exports.testHTTPS = async function(test)
 
     await this.runScheduledTasks(1);
 
-    test.equal(subscriptionDirectHTTP.downloadStatus,
-               "synchronize_invalid_url",
-               "Invalid URL error recorded");
-    test.equal(requestCount, 0, "Number of requests");
-    test.equal(subscriptionDirectHTTP.errors, 1, "Number of download errors");
+    assert.equal(subscriptionDirectHTTP.downloadStatus,
+                 "synchronize_invalid_url",
+                 "Invalid URL error recorded");
+    assert.equal(requestCount, 0, "Number of requests");
+    assert.equal(subscriptionDirectHTTP.errors, 1, "Number of download errors");
 
     // Test indirect HTTPS-to-HTTP download.
     let subscriptionIndirectHTTP =
@@ -350,11 +352,11 @@ exports.testHTTPS = async function(test)
 
     await this.runScheduledTasks(1);
 
-    test.equal(subscriptionIndirectHTTP.downloadStatus,
-               "synchronize_connection_error",
-               "Connection error recorded");
-    test.equal(requestCount, 2, "Number of requests");
-    test.equal(subscriptionIndirectHTTP.errors, 1, "Number of download errors");
+    assert.equal(subscriptionIndirectHTTP.downloadStatus,
+                 "synchronize_connection_error",
+                 "Connection error recorded");
+    assert.equal(requestCount, 2, "Number of requests");
+    assert.equal(subscriptionIndirectHTTP.errors, 1, "Number of download errors");
 
     // Test indirect HTTPS-to-HTTP-to-HTTPS download.
     let subscriptionIndirectHTTPS =
@@ -384,11 +386,11 @@ exports.testHTTPS = async function(test)
 
     await this.runScheduledTasks(1);
 
-    test.equal(subscriptionIndirectHTTPS.downloadStatus, "synchronize_ok");
-    test.equal(requestCount, 3, "Number of requests");
-    test.equal(subscriptionIndirectHTTPS.errors, 0, "Number of download errors");
-    test.deepEqual([...subscriptionIndirectHTTPS.filterText()], ["good-filter"],
-                   "Resulting subscription filters");
+    assert.equal(subscriptionIndirectHTTPS.downloadStatus, "synchronize_ok");
+    assert.equal(requestCount, 3, "Number of requests");
+    assert.equal(subscriptionIndirectHTTPS.errors, 0, "Number of download errors");
+    assert.deepEqual([...subscriptionIndirectHTTPS.filterText()], ["good-filter"],
+                     "Resulting subscription filters");
 
     let subscriptionDirectHTTPLoopback =
       Subscription.fromURL("http://127.0.0.1/subscription");
@@ -402,14 +404,14 @@ exports.testHTTPS = async function(test)
 
     await this.runScheduledTasks(1);
 
-    test.equal(subscriptionDirectHTTPLoopback.downloadStatus,
-               "synchronize_ok");
-    test.equal(requestCount, 1, "Number of requests");
-    test.equal(subscriptionDirectHTTPLoopback.errors, 0,
-               "Number of download errors");
-    test.deepEqual([...subscriptionDirectHTTPLoopback.filterText()],
-                   ["test-filter"],
-                   "Resulting subscription filters");
+    assert.equal(subscriptionDirectHTTPLoopback.downloadStatus,
+                 "synchronize_ok");
+    assert.equal(requestCount, 1, "Number of requests");
+    assert.equal(subscriptionDirectHTTPLoopback.errors, 0,
+                 "Number of download errors");
+    assert.deepEqual([...subscriptionDirectHTTPLoopback.filterText()],
+                     ["test-filter"],
+                     "Resulting subscription filters");
 
     test.done();
   }
@@ -433,9 +435,9 @@ exports.testRedirects = function(test)
 
   this.runScheduledTasks(30).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0], subscription, "Invalid redirect ignored");
-    test.equal(subscription.downloadStatus, "synchronize_connection_error", "Connection error recorded");
-    test.equal(subscription.errors, 2, "Number of download errors");
+    assert.equal([...filterStorage.subscriptions()][0], subscription, "Invalid redirect ignored");
+    assert.equal(subscription.downloadStatus, "synchronize_connection_error", "Connection error recorded");
+    assert.equal(subscription.errors, 2, "Number of download errors");
 
     requests = [];
 
@@ -449,8 +451,8 @@ exports.testRedirects = function(test)
     return this.runScheduledTasks(15);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].url, "https://example.com/redirected", "Redirect followed");
-    test.deepEqual(requests, [0 + initialDelay, 8 + initialDelay], "Resulting requests");
+    assert.equal([...filterStorage.subscriptions()][0].url, "https://example.com/redirected", "Redirect followed");
+    assert.deepEqual(requests, [0 + initialDelay, 8 + initialDelay], "Resulting requests");
 
     this.registerHandler("/redirected", metadata =>
     {
@@ -465,8 +467,8 @@ exports.testRedirects = function(test)
     return this.runScheduledTasks(2);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0], subscription, "Redirect not followed on redirect loop");
-    test.equal(subscription.downloadStatus, "synchronize_connection_error", "Download status after redirect loop");
+    assert.equal([...filterStorage.subscriptions()][0], subscription, "Redirect not followed on redirect loop");
+    assert.equal(subscription.downloadStatus, "synchronize_connection_error", "Download status after redirect loop");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -491,7 +493,7 @@ exports.testFallback = function(test)
 
   this.runScheduledTasks(100).then(() =>
   {
-    test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Continue trying if the fallback doesn't respond");
+    assert.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Continue trying if the fallback doesn't respond");
 
     // Fallback giving "Gone" response
 
@@ -507,8 +509,8 @@ exports.testFallback = function(test)
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay], "Stop trying if the fallback responds with Gone");
-    test.equal(fallbackParams, "https://example.com/subscription&404", "Fallback arguments");
+    assert.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay], "Stop trying if the fallback responds with Gone");
+    assert.equal(fallbackParams, "https://example.com/subscription&404", "Fallback arguments");
 
     // Fallback redirecting to a missing file
 
@@ -525,8 +527,8 @@ exports.testFallback = function(test)
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].url, "https://example.com/subscription", "Ignore invalid redirect from fallback");
-    test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Requests not affected by invalid redirect");
+    assert.equal([...filterStorage.subscriptions()][0].url, "https://example.com/subscription", "Ignore invalid redirect from fallback");
+    assert.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Requests not affected by invalid redirect");
 
     // Fallback redirecting to an existing file
 
@@ -542,9 +544,9 @@ exports.testFallback = function(test)
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].url, "https://example.com/redirected", "Valid redirect from fallback is followed");
-    test.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay], "Stop polling original URL after a valid redirect from fallback");
-    test.deepEqual(redirectedRequests, [48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Request new URL after a valid redirect from fallback");
+    assert.equal([...filterStorage.subscriptions()][0].url, "https://example.com/redirected", "Valid redirect from fallback is followed");
+    assert.deepEqual(requests, [0 + initialDelay, 24 + initialDelay, 48 + initialDelay], "Stop polling original URL after a valid redirect from fallback");
+    assert.deepEqual(redirectedRequests, [48 + initialDelay, 72 + initialDelay, 96 + initialDelay], "Request new URL after a valid redirect from fallback");
 
     // Redirect loop
 
@@ -565,7 +567,7 @@ exports.testFallback = function(test)
     return this.runScheduledTasks(100);
   }).then(() =>
   {
-    test.equal([...filterStorage.subscriptions()][0].url, "https://example.com/redirected", "Fallback can still redirect even after a redirect loop");
+    assert.equal([...filterStorage.subscriptions()][0].url, "https://example.com/redirected", "Fallback can still redirect even after a redirect loop");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -582,11 +584,11 @@ exports.testStateFields = function(test)
   let startTime = this.currentTime;
   this.runScheduledTasks(2).then(() =>
   {
-    test.equal(subscription.downloadStatus, "synchronize_ok", "downloadStatus after successful download");
-    test.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastDownload after successful download");
-    test.equal(subscription.lastSuccess * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastSuccess after successful download");
-    test.equal(subscription.lastCheck * MILLIS_IN_SECOND, startTime + (1 + initialDelay) * MILLIS_IN_HOUR, "lastCheck after successful download");
-    test.equal(subscription.errors, 0, "errors after successful download");
+    assert.equal(subscription.downloadStatus, "synchronize_ok", "downloadStatus after successful download");
+    assert.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastDownload after successful download");
+    assert.equal(subscription.lastSuccess * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastSuccess after successful download");
+    assert.equal(subscription.lastCheck * MILLIS_IN_SECOND, startTime + (1 + initialDelay) * MILLIS_IN_HOUR, "lastCheck after successful download");
+    assert.equal(subscription.errors, 0, "errors after successful download");
 
     this.registerHandler("/subscription", metadata =>
     {
@@ -596,11 +598,11 @@ exports.testStateFields = function(test)
     return this.runScheduledTasks(2);
   }).then(() =>
   {
-    test.equal(subscription.downloadStatus, "synchronize_connection_error", "downloadStatus after connection error");
-    test.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime + (2 + initialDelay) * MILLIS_IN_HOUR, "lastDownload after connection error");
-    test.equal(subscription.lastSuccess * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastSuccess after connection error");
-    test.equal(subscription.lastCheck * MILLIS_IN_SECOND, startTime + (3 + initialDelay) * MILLIS_IN_HOUR, "lastCheck after connection error");
-    test.equal(subscription.errors, 1, "errors after connection error");
+    assert.equal(subscription.downloadStatus, "synchronize_connection_error", "downloadStatus after connection error");
+    assert.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime + (2 + initialDelay) * MILLIS_IN_HOUR, "lastDownload after connection error");
+    assert.equal(subscription.lastSuccess * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastSuccess after connection error");
+    assert.equal(subscription.lastCheck * MILLIS_IN_SECOND, startTime + (3 + initialDelay) * MILLIS_IN_HOUR, "lastCheck after connection error");
+    assert.equal(subscription.errors, 1, "errors after connection error");
 
     this.registerHandler("/subscription", metadata =>
     {
@@ -610,11 +612,11 @@ exports.testStateFields = function(test)
     return this.runScheduledTasks(24);
   }).then(() =>
   {
-    test.equal(subscription.downloadStatus, "synchronize_connection_error", "downloadStatus after download error");
-    test.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime + (26 + initialDelay) * MILLIS_IN_HOUR, "lastDownload after download error");
-    test.equal(subscription.lastSuccess * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastSuccess after download error");
-    test.equal(subscription.lastCheck * MILLIS_IN_SECOND, startTime + (27 + initialDelay) * MILLIS_IN_HOUR, "lastCheck after download error");
-    test.equal(subscription.errors, 2, "errors after download error");
+    assert.equal(subscription.downloadStatus, "synchronize_connection_error", "downloadStatus after download error");
+    assert.equal(subscription.lastDownload * MILLIS_IN_SECOND, startTime + (26 + initialDelay) * MILLIS_IN_HOUR, "lastDownload after download error");
+    assert.equal(subscription.lastSuccess * MILLIS_IN_SECOND, startTime + initialDelay * MILLIS_IN_HOUR, "lastSuccess after download error");
+    assert.equal(subscription.lastCheck * MILLIS_IN_SECOND, startTime + (27 + initialDelay) * MILLIS_IN_HOUR, "lastCheck after download error");
+    assert.equal(subscription.errors, 2, "errors after download error");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -630,7 +632,7 @@ exports.testSpecialCommentOrdering = function(test)
 
   this.runScheduledTasks(1).then(() =>
   {
-    test.equal(subscription.title, "https://example.com/subscription", "make sure title was not found");
+    assert.equal(subscription.title, "https://example.com/subscription", "make sure title was not found");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -647,6 +649,6 @@ exports.testUnknownSpecialComments = function(test)
 
   this.runScheduledTasks(1).then(() =>
   {
-    test.equal(subscription.title, "foobar", "make sure title was found");
+    assert.equal(subscription.title, "foobar", "make sure title was found");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };

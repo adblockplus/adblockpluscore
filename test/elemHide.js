@@ -17,6 +17,7 @@
 
 "use strict";
 
+const assert = require("assert");
 const {createSandbox} = require("./_common");
 
 let ElemHide = null;
@@ -54,7 +55,7 @@ function normalizeSelectors(selectors)
   });
 }
 
-function testResult(test, domain, expectedSelectors,
+function testResult(domain, expectedSelectors,
                     {specificOnly = false, expectedExceptions = []} = {})
 {
   let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
@@ -62,23 +63,23 @@ function testResult(test, domain, expectedSelectors,
   let {code, selectors, exceptions} =
     ElemHide.generateStyleSheetForDomain(domain, specificOnly, true, true);
 
-  test.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
+  assert.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
 
   // Test for consistency in exception free case.
-  test.deepEqual(ElemHide.generateStyleSheetForDomain(
+  assert.deepEqual(ElemHide.generateStyleSheetForDomain(
     domain, specificOnly, true, false), {
       code,
       selectors,
       exceptions: null
     });
 
-  test.deepEqual(exceptions.map(({text}) => text), expectedExceptions);
+  assert.deepEqual(exceptions.map(({text}) => text), expectedExceptions);
 
   // Make sure each expected selector is in the actual CSS code.
   for (let selector of normalizedExpectedSelectors)
   {
-    test.ok(code.includes(selector + ", ") ||
-            code.includes(selector + " {display: none !important;}\n"));
+    assert.ok(code.includes(selector + ", ") ||
+              code.includes(selector + " {display: none !important;}\n"));
   }
 }
 
@@ -91,128 +92,128 @@ exports.testGenerateStyleSheetForDomain = function(test)
   let removeException =
     filterText => ElemHideExceptions.remove(Filter.fromText(filterText));
 
-  testResult(test, "", []);
+  testResult("", []);
 
   addFilter("~foo.example.com,example.com##foo");
-  testResult(test, "barfoo.example.com", ["foo"]);
-  testResult(test, "bar.foo.example.com", []);
-  testResult(test, "foo.example.com", []);
-  testResult(test, "example.com", ["foo"]);
-  testResult(test, "com", []);
-  testResult(test, "", []);
+  testResult("barfoo.example.com", ["foo"]);
+  testResult("bar.foo.example.com", []);
+  testResult("foo.example.com", []);
+  testResult("example.com", ["foo"]);
+  testResult("com", []);
+  testResult("", []);
 
   addFilter("foo.example.com##turnip");
-  testResult(test, "foo.example.com", ["turnip"]);
-  testResult(test, "example.com", ["foo"]);
-  testResult(test, "com", []);
-  testResult(test, "", []);
+  testResult("foo.example.com", ["turnip"]);
+  testResult("example.com", ["foo"]);
+  testResult("com", []);
+  testResult("", []);
 
   addException("example.com#@#foo");
-  testResult(test, "foo.example.com", ["turnip"]);
-  testResult(test, "example.com", [], {
+  testResult("foo.example.com", ["turnip"]);
+  testResult("example.com", [], {
     expectedExceptions: ["example.com#@#foo"]
   });
-  testResult(test, "com", []);
-  testResult(test, "", []);
+  testResult("com", []);
+  testResult("", []);
 
   addFilter("com##bar");
-  testResult(test, "foo.example.com", ["turnip", "bar"]);
-  testResult(test, "example.com", ["bar"], {
+  testResult("foo.example.com", ["turnip", "bar"]);
+  testResult("example.com", ["bar"], {
     expectedExceptions: ["example.com#@#foo"]
   });
-  testResult(test, "com", ["bar"]);
-  testResult(test, "", []);
+  testResult("com", ["bar"]);
+  testResult("", []);
 
   addException("example.com#@#bar");
-  testResult(test, "foo.example.com", ["turnip"], {
+  testResult("foo.example.com", ["turnip"], {
     expectedExceptions: ["example.com#@#bar"]
   });
-  testResult(test, "example.com", [], {
+  testResult("example.com", [], {
     expectedExceptions: ["example.com#@#foo", "example.com#@#bar"]
   });
-  testResult(test, "com", ["bar"]);
-  testResult(test, "", []);
+  testResult("com", ["bar"]);
+  testResult("", []);
 
   removeException("example.com#@#foo");
-  testResult(test, "foo.example.com", ["turnip"], {
+  testResult("foo.example.com", ["turnip"], {
     expectedExceptions: ["example.com#@#bar"]
   });
-  testResult(test, "example.com", ["foo"], {
+  testResult("example.com", ["foo"], {
     expectedExceptions: ["example.com#@#bar"]
   });
-  testResult(test, "com", ["bar"]);
-  testResult(test, "", []);
+  testResult("com", ["bar"]);
+  testResult("", []);
 
   removeException("example.com#@#bar");
-  testResult(test, "foo.example.com", ["turnip", "bar"]);
-  testResult(test, "example.com", ["foo", "bar"]);
-  testResult(test, "com", ["bar"]);
-  testResult(test, "", []);
+  testResult("foo.example.com", ["turnip", "bar"]);
+  testResult("example.com", ["foo", "bar"]);
+  testResult("com", ["bar"]);
+  testResult("", []);
 
   addFilter("##generic");
-  testResult(test, "foo.example.com", ["turnip", "bar", "generic"]);
-  testResult(test, "example.com", ["foo", "bar", "generic"]);
-  testResult(test, "com", ["bar", "generic"]);
-  testResult(test, "", ["generic"]);
-  testResult(test, "foo.example.com", ["turnip", "bar"], {specificOnly: true});
-  testResult(test, "example.com", ["foo", "bar"], {specificOnly: true});
-  testResult(test, "com", ["bar"], {specificOnly: true});
-  testResult(test, "", [], {specificOnly: true});
+  testResult("foo.example.com", ["turnip", "bar", "generic"]);
+  testResult("example.com", ["foo", "bar", "generic"]);
+  testResult("com", ["bar", "generic"]);
+  testResult("", ["generic"]);
+  testResult("foo.example.com", ["turnip", "bar"], {specificOnly: true});
+  testResult("example.com", ["foo", "bar"], {specificOnly: true});
+  testResult("com", ["bar"], {specificOnly: true});
+  testResult("", [], {specificOnly: true});
   removeFilter("##generic");
 
   addFilter("~adblockplus.org##example");
-  testResult(test, "adblockplus.org", []);
-  testResult(test, "", ["example"]);
-  testResult(test, "foo.example.com", ["turnip", "bar", "example"]);
-  testResult(test, "foo.example.com", ["turnip", "bar"], {specificOnly: true});
+  testResult("adblockplus.org", []);
+  testResult("", ["example"]);
+  testResult("foo.example.com", ["turnip", "bar", "example"]);
+  testResult("foo.example.com", ["turnip", "bar"], {specificOnly: true});
   removeFilter("~adblockplus.org##example");
 
   removeFilter("~foo.example.com,example.com##foo");
-  testResult(test, "foo.example.com", ["turnip", "bar"]);
-  testResult(test, "example.com", ["bar"]);
-  testResult(test, "com", ["bar"]);
-  testResult(test, "", []);
+  testResult("foo.example.com", ["turnip", "bar"]);
+  testResult("example.com", ["bar"]);
+  testResult("com", ["bar"]);
+  testResult("", []);
 
   removeFilter("com##bar");
-  testResult(test, "foo.example.com", ["turnip"]);
-  testResult(test, "example.com", []);
-  testResult(test, "com", []);
-  testResult(test, "", []);
+  testResult("foo.example.com", ["turnip"]);
+  testResult("example.com", []);
+  testResult("com", []);
+  testResult("", []);
 
   removeFilter("foo.example.com##turnip");
-  testResult(test, "foo.example.com", []);
-  testResult(test, "example.com", []);
-  testResult(test, "com", []);
-  testResult(test, "", []);
+  testResult("foo.example.com", []);
+  testResult("example.com", []);
+  testResult("com", []);
+  testResult("", []);
 
   addFilter("example.com##dupe");
   addFilter("example.com##dupe");
-  testResult(test, "example.com", ["dupe"]);
+  testResult("example.com", ["dupe"]);
   removeFilter("example.com##dupe");
-  testResult(test, "example.com", []);
+  testResult("example.com", []);
   removeFilter("example.com##dupe");
 
   addFilter("~foo.example.com,example.com##foo");
 
   addFilter("##foo");
-  testResult(test, "foo.example.com", ["foo"]);
-  testResult(test, "example.com", ["foo"]);
-  testResult(test, "com", ["foo"]);
-  testResult(test, "", ["foo"]);
+  testResult("foo.example.com", ["foo"]);
+  testResult("example.com", ["foo"]);
+  testResult("com", ["foo"]);
+  testResult("", ["foo"]);
   removeFilter("##foo");
 
   addFilter("example.org##foo");
-  testResult(test, "foo.example.com", []);
-  testResult(test, "example.com", ["foo"]);
-  testResult(test, "com", []);
-  testResult(test, "", []);
+  testResult("foo.example.com", []);
+  testResult("example.com", ["foo"]);
+  testResult("com", []);
+  testResult("", []);
   removeFilter("example.org##foo");
 
   addFilter("~example.com##foo");
-  testResult(test, "foo.example.com", []);
-  testResult(test, "example.com", ["foo"]);
-  testResult(test, "com", ["foo"]);
-  testResult(test, "", ["foo"]);
+  testResult("foo.example.com", []);
+  testResult("example.com", ["foo"]);
+  testResult("com", ["foo"]);
+  testResult("", ["foo"]);
   removeFilter("~example.com##foo");
 
   removeFilter("~foo.example.com,example.com##foo");
@@ -221,50 +222,50 @@ exports.testGenerateStyleSheetForDomain = function(test)
   addFilter("##hello");
   addFilter("~example.com##world");
   addFilter("foo.com##specific");
-  testResult(test, "foo.com", ["specific"], {specificOnly: true});
-  testResult(test, "foo.com", ["hello", "specific", "world"]);
-  testResult(test, "example.com", [], {specificOnly: true});
+  testResult("foo.com", ["specific"], {specificOnly: true});
+  testResult("foo.com", ["hello", "specific", "world"]);
+  testResult("example.com", [], {specificOnly: true});
   removeFilter("foo.com##specific");
   removeFilter("~example.com##world");
   removeFilter("##hello");
-  testResult(test, "foo.com", []);
+  testResult("foo.com", []);
 
   addFilter("##hello");
-  testResult(test, "foo.com", [], {specificOnly: true});
-  testResult(test, "foo.com", ["hello"]);
-  testResult(test, "bar.com", [], {specificOnly: true});
-  testResult(test, "bar.com", ["hello"]);
+  testResult("foo.com", [], {specificOnly: true});
+  testResult("foo.com", ["hello"]);
+  testResult("bar.com", [], {specificOnly: true});
+  testResult("bar.com", ["hello"]);
   addException("foo.com#@#hello");
-  testResult(test, "foo.com", [], {specificOnly: true});
-  testResult(test, "foo.com", [], {expectedExceptions: ["foo.com#@#hello"]});
-  testResult(test, "bar.com", [], {specificOnly: true});
-  testResult(test, "bar.com", ["hello"]);
+  testResult("foo.com", [], {specificOnly: true});
+  testResult("foo.com", [], {expectedExceptions: ["foo.com#@#hello"]});
+  testResult("bar.com", [], {specificOnly: true});
+  testResult("bar.com", ["hello"]);
   removeException("foo.com#@#hello");
-  testResult(test, "foo.com", [], {specificOnly: true});
+  testResult("foo.com", [], {specificOnly: true});
   // Note: We don't take care to track conditional selectors which became
   //       unconditional when a filter was removed. This was too expensive.
-  testResult(test, "foo.com", ["hello"]);
-  testResult(test, "bar.com", [], {specificOnly: true});
-  testResult(test, "bar.com", ["hello"]);
+  testResult("foo.com", ["hello"]);
+  testResult("bar.com", [], {specificOnly: true});
+  testResult("bar.com", ["hello"]);
   removeFilter("##hello");
-  testResult(test, "foo.com", []);
-  testResult(test, "bar.com", []);
+  testResult("foo.com", []);
+  testResult("bar.com", []);
 
   addFilter("##hello");
   addFilter("foo.com##hello");
-  testResult(test, "foo.com", ["hello"]);
+  testResult("foo.com", ["hello"]);
   removeFilter("foo.com##hello");
-  testResult(test, "foo.com", ["hello"]);
+  testResult("foo.com", ["hello"]);
   removeFilter("##hello");
-  testResult(test, "foo.com", []);
+  testResult("foo.com", []);
 
   addFilter("##hello");
   addFilter("foo.com##hello");
-  testResult(test, "foo.com", ["hello"]);
+  testResult("foo.com", ["hello"]);
   removeFilter("##hello");
-  testResult(test, "foo.com", ["hello"]);
+  testResult("foo.com", ["hello"]);
   removeFilter("foo.com##hello");
-  testResult(test, "foo.com", []);
+  testResult("foo.com", []);
 
   test.done();
 };
@@ -273,36 +274,36 @@ exports.testZeroFilterKey = function(test)
 {
   ElemHide.add(Filter.fromText("##test"));
   ElemHideExceptions.add(Filter.fromText("foo.com#@#test"));
-  testResult(test, "foo.com", [], {expectedExceptions: ["foo.com#@#test"]});
-  testResult(test, "bar.com", ["test"]);
+  testResult("foo.com", [], {expectedExceptions: ["foo.com#@#test"]});
+  testResult("bar.com", ["test"]);
   test.done();
 };
 
 exports.testFiltersByDomain = function(test)
 {
-  test.equal(filtersByDomain.size, 0);
+  assert.equal(filtersByDomain.size, 0);
 
   ElemHide.add(Filter.fromText("##test"));
-  test.equal(filtersByDomain.size, 0);
+  assert.equal(filtersByDomain.size, 0);
 
   ElemHide.add(Filter.fromText("example.com##test"));
-  test.equal(filtersByDomain.size, 1);
+  assert.equal(filtersByDomain.size, 1);
 
   ElemHide.add(Filter.fromText("example.com,~www.example.com##test"));
-  test.equal(filtersByDomain.size, 2);
+  assert.equal(filtersByDomain.size, 2);
 
   ElemHide.remove(Filter.fromText("example.com##test"));
-  test.equal(filtersByDomain.size, 2);
+  assert.equal(filtersByDomain.size, 2);
 
   ElemHide.remove(Filter.fromText("example.com,~www.example.com##test"));
-  test.equal(filtersByDomain.size, 0);
+  assert.equal(filtersByDomain.size, 0);
 
   test.done();
 };
 
 exports.testCreateStyleSheet = function(test)
 {
-  test.equal(
+  assert.equal(
     createStyleSheet([
       "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
       "#foo[data-bar='bar']"
@@ -314,12 +315,12 @@ exports.testCreateStyleSheet = function(test)
 
   let selectors = new Array(50000).fill().map((element, index) => ".s" + index);
 
-  test.equal((createStyleSheet(selectors).match(/\n/g) || []).length,
+  assert.equal((createStyleSheet(selectors).match(/\n/g) || []).length,
              Math.ceil(50000 / selectorGroupSize),
              "Style sheet should be split up into rules with at most " +
              selectorGroupSize + " selectors each");
 
-  test.equal(
+  assert.equal(
     createStyleSheet([
       "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
       "#foo[data-bar='{foo: 1}']"
@@ -339,9 +340,9 @@ exports.testRulesFromStyleSheet = function(test)
   // not the case, the function goes into an infinite loop. It should only be
   // used with the return value of the createStyleSheet function.
 
-  test.deepEqual([...rulesFromStyleSheet("")], []);
-  test.deepEqual([...rulesFromStyleSheet("#foo {}\n")], ["#foo {}"]);
-  test.deepEqual([...rulesFromStyleSheet("#foo {}\n#bar {}\n")],
+  assert.deepEqual([...rulesFromStyleSheet("")], []);
+  assert.deepEqual([...rulesFromStyleSheet("#foo {}\n")], ["#foo {}"]);
+  assert.deepEqual([...rulesFromStyleSheet("#foo {}\n#bar {}\n")],
                  ["#foo {}", "#bar {}"]);
 
   test.done();

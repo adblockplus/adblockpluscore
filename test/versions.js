@@ -17,6 +17,7 @@
 
 "use strict";
 
+const assert = require("assert");
 const {createSandbox} = require("./_common");
 
 let compareVersions = null;
@@ -35,16 +36,16 @@ exports.testCompareVersions = function(test)
 {
   let checkEqual = (v1, v2) =>
   {
-    test.equal(compareVersions(v1, v2), 0, `${v1} and ${v2} should be equal`);
+    assert.equal(compareVersions(v1, v2), 0, `${v1} and ${v2} should be equal`);
   };
 
   // v1 should be less than v2; the function swaps the arguments to check the
   // other way as well.
   let checkNotEqual = (v1, v2) =>
   {
-    test.equal(compareVersions(v1, v2), -1, `${v1} should be less than ${v2}`);
-    test.equal(compareVersions(v2, v1), 1,
-               `${v2} should be greater than ${v1}`);
+    assert.equal(compareVersions(v1, v2), -1, `${v1} should be less than ${v2}`);
+    assert.equal(compareVersions(v2, v1), 1,
+                 `${v2} should be greater than ${v1}`);
   };
 
   let compare = (op, v1, v2) =>

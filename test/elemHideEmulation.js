@@ -17,6 +17,7 @@
 
 "use strict";
 
+const assert = require("assert");
 const {createSandbox} = require("./_common");
 
 let ElemHideEmulationFilter = null;
@@ -52,7 +53,7 @@ exports.testDomainRestrictions = function(test)
 
     let matches = ElemHideEmulation.getRulesForDomain(domain)
         .map(filter => filter.text);
-    test.deepEqual(matches.sort(), expectedMatches.sort(), description);
+    assert.deepEqual(matches.sort(), expectedMatches.sort(), description);
 
     ElemHideEmulation.clear();
     ElemHideExceptions.clear();
@@ -114,7 +115,7 @@ exports.testElemHideEmulationFiltersContainer = function(test)
     let result = ElemHideEmulation.getRulesForDomain(domain)
         .map(filter => filter.text);
     expectedMatches = expectedMatches.map(filter => filter.text);
-    test.deepEqual(result.sort(), expectedMatches.sort(), description);
+    assert.deepEqual(result.sort(), expectedMatches.sort(), description);
   }
 
   let domainFilter = Filter.fromText("example.com##filter1");

@@ -17,6 +17,7 @@
 
 "use strict";
 
+const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const {URL} = require("url");
@@ -319,5 +320,5 @@ exports.setupRandomResult = function()
 exports.unexpectedError = function(error)
 {
   console.error(error);
-  this.ok(false, "Unexpected error: " + error);
+  assert.ok(false, "Unexpected error: " + error);
 };
