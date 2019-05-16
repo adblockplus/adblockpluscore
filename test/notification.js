@@ -27,8 +27,8 @@ let Prefs = null;
 let Utils = null;
 let Notification = null;
 
-// Only starting NodeJS 10 that URL is in the global space.
-const {URL} = require("url");
+// Only starting NodeJS 10 that URL and URLSearchParams are in the global space.
+const {URL, URLSearchParams} = require("url");
 
 exports.setUp = function(callback)
 {
