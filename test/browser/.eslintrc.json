@@ -3,6 +3,7 @@
     "browser": true
   },
   "globals": {
+    "assert": true,
     "loadScript": false
   }
 }
