@@ -26,6 +26,7 @@ let Subscription = null;
 let Filter = null;
 let defaultMatcher = null;
 let SpecialSubscription = null;
+let recommendations = null;
 
 exports.setUp = function(callback)
 {
@@ -45,7 +46,8 @@ exports.setUp = function(callback)
     {filterStorage} = sandboxedRequire("../lib/filterStorage"),
     {Subscription, SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
     {Filter} = sandboxedRequire("../lib/filterClasses"),
-    {defaultMatcher} = sandboxedRequire("../lib/matcher")
+    {defaultMatcher} = sandboxedRequire("../lib/matcher"),
+    recommendations = sandboxedRequire("../data/subscriptions.json")
   );
 
   filterStorage.addSubscription(Subscription.fromURL("~fl~"));
@@ -345,33 +347,35 @@ exports.testSnippetFilters = function(test)
 {
   let filter1 = Filter.fromText("example.com#$#filter1");
   let filter2 = Filter.fromText("example.com#$#filter2");
-  let filter3 = Filter.fromText("example.com#$#filter3");
 
   let subscription1 = Subscription.fromURL("http://test1/");
+  assert.equal(subscription1.type, null);
+
   subscription1.addFilter(filter1);
   subscription1.addFilter(filter2);
 
   filterStorage.addSubscription(subscription1);
   checkKnownFilters("add subscription with filter1 and filter2", {});
 
-  let subscription2 = Subscription.fromURL("http://test2/");
-  subscription2.type = "circumvention";
+  let {url: circumventionURL} = recommendations.find(
+    ({type}) => type == "circumvention"
+  );
+
+  let subscription2 = Subscription.fromURL(circumventionURL);
+  assert.equal(subscription2.type, "circumvention");
+
   subscription2.addFilter(filter1);
 
   filterStorage.addSubscription(subscription2);
   checkKnownFilters("add subscription of type circumvention with filter1", {snippets: [filter1.text]});
 
   let subscription3 = Subscription.fromURL("~foo");
+  assert.equal(subscription3.type, null);
+
   subscription3.addFilter(filter2);
 
   filterStorage.addSubscription(subscription3);
   checkKnownFilters("add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
-
-  let subscription4 = Subscription.fromURL("https://easylist-downloads.adblockplus.org/abp-filters-anti-cv.txt");
-  subscription4.addFilter(filter3);
-
-  filterStorage.addSubscription(subscription4);
-  checkKnownFilters("add ABP anti-circumvention subscription with filter3", {snippets: [filter1.text, filter2.text, filter3.text]});
 
   test.done();
 };
