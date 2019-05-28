@@ -17,6 +17,7 @@
 
 "use strict";
 
+const assert = require("assert");
 // Only starting NodeJS 10 that URL is in the global space.
 const {URL} = require("url");
 const {createSandbox} = require("./_common");
@@ -49,7 +50,7 @@ function hostnameToURL(hostname)
   return new URL("http://" + hostname);
 }
 
-function testURLParsing(test, url)
+function testURLParsing(url)
 {
   // Note: The function expects a normalized URL.
   // e.g. "http:example.com:80?foo" should already be normalized to
@@ -60,19 +61,19 @@ function testURLParsing(test, url)
   // object.
   let urlObject = new URL(url);
 
-  test.equal(urlInfo.href, urlObject.href);
-  test.equal(urlInfo.protocol, urlObject.protocol);
-  test.equal(urlInfo.hostname, urlObject.hostname);
+  assert.equal(urlInfo.href, urlObject.href);
+  assert.equal(urlInfo.protocol, urlObject.protocol);
+  assert.equal(urlInfo.hostname, urlObject.hostname);
 
-  test.equal(urlInfo.toString(), urlObject.toString());
-  test.equal(String(urlInfo), String(urlObject));
-  test.equal(urlInfo + "", urlObject + "");
+  assert.equal(urlInfo.toString(), urlObject.toString());
+  assert.equal(String(urlInfo), String(urlObject));
+  assert.equal(urlInfo + "", urlObject + "");
 }
 
-function testThirdParty(test, requestHostname, documentHostname, expected,
+function testThirdParty(requestHostname, documentHostname, expected,
                         message)
 {
-  test.equal(
+  assert.equal(
     isThirdParty(
       hostnameToURL(requestHostname).hostname,
 
@@ -87,203 +88,179 @@ function testThirdParty(test, requestHostname, documentHostname, expected,
 
 exports.testParseURL = function(test)
 {
-  testURLParsing(test, "https://example.com/");
-  testURLParsing(test, "https://example.com/foo");
-  testURLParsing(test, "https://example.com/foo/bar");
+  testURLParsing("https://example.com/");
+  testURLParsing("https://example.com/foo");
+  testURLParsing("https://example.com/foo/bar");
   testURLParsing(
-    test,
     "https://example.com/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "https://example.com:8080/");
-  testURLParsing(test, "https://example.com:8080/foo");
-  testURLParsing(test, "https://example.com:8080/foo/bar");
+  testURLParsing("https://example.com:8080/");
+  testURLParsing("https://example.com:8080/foo");
+  testURLParsing("https://example.com:8080/foo/bar");
   testURLParsing(
-    test,
     "https://example.com:8080/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "http://localhost/");
-  testURLParsing(test, "http://localhost/foo");
-  testURLParsing(test, "http://localhost/foo/bar");
+  testURLParsing("http://localhost/");
+  testURLParsing("http://localhost/foo");
+  testURLParsing("http://localhost/foo/bar");
   testURLParsing(
-    test,
     "http://localhost/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "https://user@example.com/");
-  testURLParsing(test, "https://user@example.com/foo");
-  testURLParsing(test, "https://user@example.com/foo/bar");
+  testURLParsing("https://user@example.com/");
+  testURLParsing("https://user@example.com/foo");
+  testURLParsing("https://user@example.com/foo/bar");
   testURLParsing(
-    test,
     "https://user@example.com/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "https://user@example.com:8080/");
-  testURLParsing(test, "https://user@example.com:8080/foo");
-  testURLParsing(test, "https://user@example.com:8080/foo/bar");
+  testURLParsing("https://user@example.com:8080/");
+  testURLParsing("https://user@example.com:8080/foo");
+  testURLParsing("https://user@example.com:8080/foo/bar");
   testURLParsing(
-    test,
     "https://user@example.com:8080/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "https://user:pass@example.com/");
-  testURLParsing(test, "https://user:pass@example.com/foo");
-  testURLParsing(test, "https://user:pass@example.com/foo/bar");
+  testURLParsing("https://user:pass@example.com/");
+  testURLParsing("https://user:pass@example.com/foo");
+  testURLParsing("https://user:pass@example.com/foo/bar");
   testURLParsing(
-    test,
     "https://user:pass@example.com/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "https://user:pass@example.com:8080/");
-  testURLParsing(test, "https://user:pass@example.com:8080/foo");
-  testURLParsing(test, "https://user:pass@example.com:8080/foo/bar");
+  testURLParsing("https://user:pass@example.com:8080/");
+  testURLParsing("https://user:pass@example.com:8080/foo");
+  testURLParsing("https://user:pass@example.com:8080/foo/bar");
   testURLParsing(
-    test,
     "https://user:pass@example.com:8080/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "https://us%40er:pa%40ss@example.com/");
-  testURLParsing(test, "https://us%40er:pa%40ss@example.com/foo");
-  testURLParsing(test, "https://us%40er:pa%40ss@example.com/foo/bar");
+  testURLParsing("https://us%40er:pa%40ss@example.com/");
+  testURLParsing("https://us%40er:pa%40ss@example.com/foo");
+  testURLParsing("https://us%40er:pa%40ss@example.com/foo/bar");
   testURLParsing(
-    test,
     "https://us%40er:pa%40ss@example.com/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "https://us%40er:pa%40ss@example.com:8080/");
-  testURLParsing(test, "https://us%40er:pa%40ss@example.com:8080/foo");
-  testURLParsing(test, "https://us%40er:pa%40ss@example.com:8080/foo/bar");
+  testURLParsing("https://us%40er:pa%40ss@example.com:8080/");
+  testURLParsing("https://us%40er:pa%40ss@example.com:8080/foo");
+  testURLParsing("https://us%40er:pa%40ss@example.com:8080/foo/bar");
   testURLParsing(
-    test,
     "https://us%40er:pa%40ss@example.com:8080/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "http://192.168.1.1/");
-  testURLParsing(test, "http://192.168.1.1/foo");
-  testURLParsing(test, "http://192.168.1.1/foo/bar");
+  testURLParsing("http://192.168.1.1/");
+  testURLParsing("http://192.168.1.1/foo");
+  testURLParsing("http://192.168.1.1/foo/bar");
   testURLParsing(
-    test,
     "http://192.168.1.1/foo/bar?https://random/foo/bar"
   );
   testURLParsing(
-    test,
     "http://192.168.1.1:8080/foo/bar?https://random/foo/bar"
   );
   testURLParsing(
-    test,
     "http://user@192.168.1.1:8080/foo/bar?https://random/foo/bar"
   );
   testURLParsing(
-    test,
     "http://user:pass@192.168.1.1:8080/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "http://[2001:db8:0:42:0:8a2e:370:7334]/");
-  testURLParsing(test, "http://[2001:db8:0:42:0:8a2e:370:7334]/foo");
+  testURLParsing("http://[2001:db8:0:42:0:8a2e:370:7334]/");
+  testURLParsing("http://[2001:db8:0:42:0:8a2e:370:7334]/foo");
   testURLParsing(
-    test,
     "http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar"
   );
   testURLParsing(
-    test,
     "http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar?https://random/foo/bar"
   );
   testURLParsing(
-    test,
     "http://[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar"
   );
   testURLParsing(
-    test,
     "http://user@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar"
   );
   testURLParsing(
-    test,
     "http://user:pass@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar"
   );
 
-  testURLParsing(test, "ftp://user:pass@example.com:8021/");
-  testURLParsing(test, "ftp://user:pass@example.com:8021/foo");
-  testURLParsing(test, "ftp://user:pass@example.com:8021/foo/bar");
+  testURLParsing("ftp://user:pass@example.com:8021/");
+  testURLParsing("ftp://user:pass@example.com:8021/foo");
+  testURLParsing("ftp://user:pass@example.com:8021/foo/bar");
 
-  testURLParsing(test, "about:blank");
-  testURLParsing(test, "chrome://extensions");
+  testURLParsing("about:blank");
+  testURLParsing("chrome://extensions");
   testURLParsing(
-    test,
     "chrome-extension://bhignfpcigccnlfapldlodmhlidjaion/options.html"
   );
-  testURLParsing(test, "mailto:john.doe@mail.example.com");
+  testURLParsing("mailto:john.doe@mail.example.com");
 
-  testURLParsing(test, "news:newsgroup");
-  testURLParsing(test, "news:message-id");
-  testURLParsing(test, "nntp://example.com:8119/newsgroup");
-  testURLParsing(test, "nntp://example.com:8119/message-id");
+  testURLParsing("news:newsgroup");
+  testURLParsing("news:message-id");
+  testURLParsing("nntp://example.com:8119/newsgroup");
+  testURLParsing("nntp://example.com:8119/message-id");
 
-  testURLParsing(test, "data:,");
+  testURLParsing("data:,");
   testURLParsing(
-    test,
     "data:text/vnd-example+xyz;foo=bar;base64,R0lGODdh"
   );
   testURLParsing(
-    test,
     "data:text/plain;charset=UTF-8;page=21,the%20data:1234,5678"
   );
 
-  testURLParsing(test, "javascript:");
-  testURLParsing(test, "javascript:alert();");
-  testURLParsing(test, "javascript:foo/bar/");
-  testURLParsing(test, "javascript://foo/bar/");
+  testURLParsing("javascript:");
+  testURLParsing("javascript:alert();");
+  testURLParsing("javascript:foo/bar/");
+  testURLParsing("javascript://foo/bar/");
 
-  testURLParsing(test, "file:///dev/random");
+  testURLParsing("file:///dev/random");
 
-  testURLParsing(test, "wss://example.com/");
-  testURLParsing(test, "wss://example.com:8080/");
-  testURLParsing(test, "wss://user@example.com:8080/");
-  testURLParsing(test, "wss://user:pass@example.com:8080/");
+  testURLParsing("wss://example.com/");
+  testURLParsing("wss://example.com:8080/");
+  testURLParsing("wss://user@example.com:8080/");
+  testURLParsing("wss://user:pass@example.com:8080/");
 
-  testURLParsing(test, "stuns:stuns.example.com/");
-  testURLParsing(test, "stuns:stuns.example.com:8080/");
-  testURLParsing(test, "stuns:user@stuns.example.com:8080/");
-  testURLParsing(test, "stuns:user:pass@stuns.example.com:8080/");
+  testURLParsing("stuns:stuns.example.com/");
+  testURLParsing("stuns:stuns.example.com:8080/");
+  testURLParsing("stuns:user@stuns.example.com:8080/");
+  testURLParsing("stuns:user:pass@stuns.example.com:8080/");
 
   // The following tests are based on
   // https://cs.chromium.org/chromium/src/url/gurl_unittest.cc?rcl=9ec7bc85e0f6a0bf28eff6b2eca678067da547e9
   // Note: We do not check for "canonicalization" (normalization). parseURL()
   // should be used with normalized URLs only.
 
-  testURLParsing(test, "something:///example.com/");
-  testURLParsing(test, "something://example.com/");
+  testURLParsing("something:///example.com/");
+  testURLParsing("something://example.com/");
 
-  testURLParsing(test, "file:///C:/foo.txt");
-  testURLParsing(test, "file://server/foo.txt");
+  testURLParsing("file:///C:/foo.txt");
+  testURLParsing("file://server/foo.txt");
 
-  testURLParsing(test, "http://user:pass@example.com:99/foo;bar?q=a#ref");
+  testURLParsing("http://user:pass@example.com:99/foo;bar?q=a#ref");
 
-  testURLParsing(test, "http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/");
+  testURLParsing("http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/");
 
-  testURLParsing(test, "filesystem:http://example.com/temporary/");
+  testURLParsing("filesystem:http://example.com/temporary/");
   testURLParsing(
-    test,
     "filesystem:http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/"
   );
 
-  testURLParsing(test, "javascript:window.alert('hello, world');");
-  testURLParsing(test, "javascript:#");
+  testURLParsing("javascript:window.alert('hello, world');");
+  testURLParsing("javascript:#");
 
   testURLParsing(
-    test,
     "blob:https://example.com/7ce70a1e-9681-4148-87a8-43cb9171b994"
   );
 
-  testURLParsing(test, "http://[2001:db8::1]/");
-  testURLParsing(test, "http://[2001:db8::1]:8080/");
-  testURLParsing(test, "http://[::]:8080/");
+  testURLParsing("http://[2001:db8::1]/");
+  testURLParsing("http://[2001:db8::1]:8080/");
+  testURLParsing("http://[::]:8080/");
 
-  testURLParsing(test, "not-a-standard-scheme:this is arbitrary content");
-  testURLParsing(test, "view-source:http://example.com/path");
+  testURLParsing("not-a-standard-scheme:this is arbitrary content");
+  testURLParsing("view-source:http://example.com/path");
 
   testURLParsing(
-    test,
     "data:text/html,Question?%3Cdiv%20style=%22color:%20#bad%22%3Eidea%3C/div%3E"
   );
 
@@ -292,17 +269,17 @@ exports.testParseURL = function(test)
 
 exports.testNormalizeHostname = function(test)
 {
-  test.equal(normalizeHostname("example.com"), "example.com");
-  test.equal(normalizeHostname("example.com."), "example.com");
-  test.equal(normalizeHostname("example.com.."), "example.com");
-  test.equal(normalizeHostname("example.com..."), "example.com");
+  assert.equal(normalizeHostname("example.com"), "example.com");
+  assert.equal(normalizeHostname("example.com."), "example.com");
+  assert.equal(normalizeHostname("example.com.."), "example.com");
+  assert.equal(normalizeHostname("example.com..."), "example.com");
 
-  test.equal(normalizeHostname("192.168.1.1"), "192.168.1.1");
-  test.equal(normalizeHostname("192.168.1.1."), "192.168.1.1");
+  assert.equal(normalizeHostname("192.168.1.1"), "192.168.1.1");
+  assert.equal(normalizeHostname("192.168.1.1."), "192.168.1.1");
 
-  test.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
+  assert.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
              "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
-  test.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334."),
+  assert.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334."),
              "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
 
   test.done();
@@ -310,110 +287,103 @@ exports.testNormalizeHostname = function(test)
 
 exports.testDomainSuffixes = function(test)
 {
-  test.deepEqual([...domainSuffixes("localhost")], ["localhost"]);
-  test.deepEqual([...domainSuffixes("example.com")], ["example.com", "com"]);
-  test.deepEqual([...domainSuffixes("www.example.com")],
-                 ["www.example.com", "example.com", "com"]);
-  test.deepEqual([...domainSuffixes("www.example.co.in")],
-                 ["www.example.co.in", "example.co.in", "co.in", "in"]);
+  assert.deepEqual([...domainSuffixes("localhost")], ["localhost"]);
+  assert.deepEqual([...domainSuffixes("example.com")], ["example.com", "com"]);
+  assert.deepEqual([...domainSuffixes("www.example.com")],
+                   ["www.example.com", "example.com", "com"]);
+  assert.deepEqual([...domainSuffixes("www.example.co.in")],
+                   ["www.example.co.in", "example.co.in", "co.in", "in"]);
 
   // With blank.
-  test.deepEqual([...domainSuffixes("localhost", true)], ["localhost", ""]);
-  test.deepEqual([...domainSuffixes("example.com", true)],
-                 ["example.com", "com", ""]);
-  test.deepEqual([...domainSuffixes("www.example.com", true)],
-                 ["www.example.com", "example.com", "com", ""]);
-  test.deepEqual([...domainSuffixes("www.example.co.in", true)],
-                 ["www.example.co.in", "example.co.in", "co.in", "in", ""]);
+  assert.deepEqual([...domainSuffixes("localhost", true)], ["localhost", ""]);
+  assert.deepEqual([...domainSuffixes("example.com", true)],
+                   ["example.com", "com", ""]);
+  assert.deepEqual([...domainSuffixes("www.example.com", true)],
+                   ["www.example.com", "example.com", "com", ""]);
+  assert.deepEqual([...domainSuffixes("www.example.co.in", true)],
+                   ["www.example.co.in", "example.co.in", "co.in", "in", ""]);
 
   // Quirks and edge cases.
-  test.deepEqual([...domainSuffixes("")], []);
-  test.deepEqual([...domainSuffixes(".")], ["."]);
-  test.deepEqual([...domainSuffixes(".localhost")],
-                 [".localhost", "localhost"]);
-  test.deepEqual([...domainSuffixes(".example.com")],
-                 [".example.com", "example.com", "com"]);
-  test.deepEqual([...domainSuffixes("localhost.")],
-                 ["localhost."]);
-  test.deepEqual([...domainSuffixes("example.com.")],
-                 ["example.com.", "com."]);
-  test.deepEqual([...domainSuffixes("..localhost")],
-                 ["..localhost", ".localhost", "localhost"]);
-  test.deepEqual(
+  assert.deepEqual([...domainSuffixes("")], []);
+  assert.deepEqual([...domainSuffixes(".")], ["."]);
+  assert.deepEqual([...domainSuffixes(".localhost")],
+                   [".localhost", "localhost"]);
+  assert.deepEqual([...domainSuffixes(".example.com")],
+                   [".example.com", "example.com", "com"]);
+  assert.deepEqual([...domainSuffixes("localhost.")],
+                   ["localhost."]);
+  assert.deepEqual([...domainSuffixes("example.com.")],
+                   ["example.com.", "com."]);
+  assert.deepEqual([...domainSuffixes("..localhost")],
+                   ["..localhost", ".localhost", "localhost"]);
+  assert.deepEqual(
     [...domainSuffixes("..example..com")],
     ["..example..com", ".example..com", "example..com", ".com", "com"]
   );
-  test.deepEqual([...domainSuffixes("localhost..")], ["localhost..", "."]);
-  test.deepEqual([...domainSuffixes("example..com..")],
-                 ["example..com..", ".com..", "com..", "."]);
+  assert.deepEqual([...domainSuffixes("localhost..")], ["localhost..", "."]);
+  assert.deepEqual([...domainSuffixes("example..com..")],
+                   ["example..com..", ".com..", "com..", "."]);
 
   test.done();
 };
 
 exports.testIsThirdParty = function(test)
 {
-  testThirdParty(test, "foo", "foo", false, "same domain isn't third-party");
-  testThirdParty(test, "foo", "bar", true, "different domain is third-party");
-  testThirdParty(test, "foo.com", "foo.com", false,
+  testThirdParty("foo", "foo", false, "same domain isn't third-party");
+  testThirdParty("foo", "bar", true, "different domain is third-party");
+  testThirdParty("foo.com", "foo.com", false,
                  "same domain with TLD (.com) isn't third-party");
-  testThirdParty(test, "foo.com", "bar.com", true,
+  testThirdParty("foo.com", "bar.com", true,
                  "same TLD (.com) but different domain is third-party");
-  testThirdParty(test, "foo.com", "www.foo.com", false,
+  testThirdParty("foo.com", "www.foo.com", false,
                  "same domain but differend subdomain isn't third-party");
-  testThirdParty(test, "foo.example.com", "bar.example.com", false,
+  testThirdParty("foo.example.com", "bar.example.com", false,
                  "same basedomain (example.com) isn't third-party");
-  testThirdParty(test, "foo.uk", "bar.uk", true,
+  testThirdParty("foo.uk", "bar.uk", true,
                  "same TLD (.uk) but different domain is third-party");
-  testThirdParty(test, "foo.co.uk", "bar.co.uk", true,
+  testThirdParty("foo.co.uk", "bar.co.uk", true,
                  "same TLD (.co.uk) but different domain is third-party");
-  testThirdParty(test, "foo.example.co.uk", "bar.example.co.uk", false,
+  testThirdParty("foo.example.co.uk", "bar.example.co.uk", false,
                  "same basedomain (example.co.uk) isn't third-party");
-  testThirdParty(test, "1.2.3.4", "1.2.3.4", false,
+  testThirdParty("1.2.3.4", "1.2.3.4", false,
                  "same IPv4 address isn't third-party");
-  testThirdParty(test, "1.1.1.1", "2.1.1.1", true,
+  testThirdParty("1.1.1.1", "2.1.1.1", true,
                  "different IPv4 address is third-party");
-  testThirdParty(test, "0x01ff0101", "0x01ff0101", false,
+  testThirdParty("0x01ff0101", "0x01ff0101", false,
                  "same IPv4 hexadecimal address isn't third-party");
-  testThirdParty(test, "0x01ff0101", "0x01ff0102", true,
+  testThirdParty("0x01ff0101", "0x01ff0102", true,
                  "different IPv4 hexadecimal address is third-party");
   testThirdParty(
-    test,
     "1.0xff.3.4", "1.0xff.3.4", false,
     "same IPv4 address with hexadecimal octet isn't third-party"
   );
   testThirdParty(
-    test,
     "1.0xff.1.1", "2.0xff.1.1", true,
     "different IPv4 address with hexadecimal octet is third-party"
   );
   testThirdParty(
-    test,
     "0xff.example.com", "example.com", false,
     "domain starts like a hexadecimal IPv4 address but isn't one"
   );
   testThirdParty(
-    test,
     "[2001:db8:85a3::8a2e:370:7334]", "[2001:db8:85a3::8a2e:370:7334]", false,
     "same IPv6 address isn't third-party"
   );
   testThirdParty(
-    test,
     "[2001:db8:85a3::8a2e:370:7334]", "[5001:db8:85a3::8a2e:370:7334]", true,
     "different IPv6 address is third-party"
   );
   testThirdParty(
-    test,
     "[::ffff:192.0.2.128]", "[::ffff:192.0.2.128]", false,
     "same IPv4-mapped IPv6 address isn't third-party"
   );
   testThirdParty(
-    test,
     "[::ffff:192.0.2.128]", "[::ffff:192.1.2.128]", true,
     "different IPv4-mapped IPv6 address is third-party"
   );
-  testThirdParty(test, "xn--f-1gaa.com", "f\u00f6\u00f6.com", false,
+  testThirdParty("xn--f-1gaa.com", "f\u00f6\u00f6.com", false,
                  "same IDN isn't third-party");
-  testThirdParty(test, "example.com..", "example.com....", false,
+  testThirdParty("example.com..", "example.com....", false,
                  "traling dots are ignored");
 
   test.done();
@@ -429,8 +399,8 @@ exports.testGetBaseDomain = function(test)
     let offset = publicSuffixes[suffix];
 
     // If this fails, add more parts.
-    test.ok(offset <= parts.length - levels,
-            "Not enough domain parts for testing");
+    assert.ok(offset <= parts.length - levels,
+              "Not enough domain parts for testing");
 
     for (let i = 0; i < offset + levels; i++)
     {
@@ -440,78 +410,78 @@ exports.testGetBaseDomain = function(test)
       let expected = parts.slice(Math.max(0, i - offset), i).join(".");
       expected += (expected ? "." : "") + suffix;
 
-      test.equal(getBaseDomain(hostname), expected,
-                 `getBaseDomain("${hostname}") == "${expected}"` +
-                 ` with {suffix: "${suffix}", offset: ${offset}}`);
+      assert.equal(getBaseDomain(hostname), expected,
+                   `getBaseDomain("${hostname}") == "${expected}"` +
+                   ` with {suffix: "${suffix}", offset: ${offset}}`);
     }
   }
 
   // Unknown suffixes.
-  test.equal(typeof publicSuffixes["localhost"], "undefined");
-  test.equal(typeof publicSuffixes["localhost.localdomain"], "undefined");
+  assert.equal(typeof publicSuffixes["localhost"], "undefined");
+  assert.equal(typeof publicSuffixes["localhost.localdomain"], "undefined");
 
-  test.equal(getBaseDomain("localhost"), "localhost");
-  test.equal(getBaseDomain("localhost.localdomain"), "localhost.localdomain");
-  test.equal(
+  assert.equal(getBaseDomain("localhost"), "localhost");
+  assert.equal(getBaseDomain("localhost.localdomain"), "localhost.localdomain");
+  assert.equal(
     getBaseDomain("mail.localhost.localdomain"),
     "localhost.localdomain"
   );
-  test.equal(getBaseDomain("www.example.localhost.localdomain"),
-             "localhost.localdomain");
+  assert.equal(getBaseDomain("www.example.localhost.localdomain"),
+               "localhost.localdomain");
 
   // Unknown suffixes that overlap partly with known suffixes.
-  test.equal(typeof publicSuffixes["example.com"], "undefined");
-  test.equal(typeof publicSuffixes["africa.com"], "number");
-  test.equal(typeof publicSuffixes["compute.amazonaws.com"], "number");
+  assert.equal(typeof publicSuffixes["example.com"], "undefined");
+  assert.equal(typeof publicSuffixes["africa.com"], "number");
+  assert.equal(typeof publicSuffixes["compute.amazonaws.com"], "number");
 
-  test.equal(getBaseDomain("example.com"), "example.com");
-  test.equal(getBaseDomain("mail.example.com"), "example.com");
-  test.equal(getBaseDomain("secure.mail.example.com"), "example.com");
+  assert.equal(getBaseDomain("example.com"), "example.com");
+  assert.equal(getBaseDomain("mail.example.com"), "example.com");
+  assert.equal(getBaseDomain("secure.mail.example.com"), "example.com");
 
   // Cascading offsets.
 
   // If these sanity checks fail, look for other examles of cascading offsets
   // from the public suffix list.
-  test.equal(
+  assert.equal(
     typeof publicSuffixes[
       "images.example.s3.dualstack.us-east-1.amazonaws.com"
     ],
     "undefined"
   );
-  test.equal(
+  assert.equal(
     typeof publicSuffixes["example.s3.dualstack.us-east-1.amazonaws.com"],
     "undefined"
   );
-  test.equal(publicSuffixes["s3.dualstack.us-east-1.amazonaws.com"], 1);
-  test.equal(typeof publicSuffixes["dualstack.us-east-1.amazonaws.com"],
-             "undefined");
-  test.equal(typeof publicSuffixes["example.us-east-1.amazonaws.com"],
-             "undefined");
-  test.equal(publicSuffixes["us-east-1.amazonaws.com"], 1);
-  test.equal(typeof publicSuffixes["example.amazonaws.com"], "undefined");
-  test.equal(typeof publicSuffixes["amazonaws.com"], "undefined");
+  assert.equal(publicSuffixes["s3.dualstack.us-east-1.amazonaws.com"], 1);
+  assert.equal(typeof publicSuffixes["dualstack.us-east-1.amazonaws.com"],
+               "undefined");
+  assert.equal(typeof publicSuffixes["example.us-east-1.amazonaws.com"],
+               "undefined");
+  assert.equal(publicSuffixes["us-east-1.amazonaws.com"], 1);
+  assert.equal(typeof publicSuffixes["example.amazonaws.com"], "undefined");
+  assert.equal(typeof publicSuffixes["amazonaws.com"], "undefined");
 
-  test.equal(
+  assert.equal(
     getBaseDomain("images.example.s3.dualstack.us-east-1.amazonaws.com"),
     "example.s3.dualstack.us-east-1.amazonaws.com"
   );
-  test.equal(getBaseDomain("example.s3.dualstack.us-east-1.amazonaws.com"),
-            "example.s3.dualstack.us-east-1.amazonaws.com");
-  test.equal(getBaseDomain("s3.dualstack.us-east-1.amazonaws.com"),
-            "s3.dualstack.us-east-1.amazonaws.com");
-  test.equal(getBaseDomain("dualstack.us-east-1.amazonaws.com"),
-            "dualstack.us-east-1.amazonaws.com");
-  test.equal(getBaseDomain("example.us-east-1.amazonaws.com"),
-            "example.us-east-1.amazonaws.com");
-  test.equal(
+  assert.equal(getBaseDomain("example.s3.dualstack.us-east-1.amazonaws.com"),
+               "example.s3.dualstack.us-east-1.amazonaws.com");
+  assert.equal(getBaseDomain("s3.dualstack.us-east-1.amazonaws.com"),
+               "s3.dualstack.us-east-1.amazonaws.com");
+  assert.equal(getBaseDomain("dualstack.us-east-1.amazonaws.com"),
+               "dualstack.us-east-1.amazonaws.com");
+  assert.equal(getBaseDomain("example.us-east-1.amazonaws.com"),
+               "example.us-east-1.amazonaws.com");
+  assert.equal(
     getBaseDomain("us-east-1.amazonaws.com"),
     "us-east-1.amazonaws.com"
   );
-  test.equal(getBaseDomain("example.amazonaws.com"), "amazonaws.com");
-  test.equal(getBaseDomain("amazonaws.com"), "amazonaws.com");
+  assert.equal(getBaseDomain("example.amazonaws.com"), "amazonaws.com");
+  assert.equal(getBaseDomain("amazonaws.com"), "amazonaws.com");
 
   // Edge case.
-  test.equal(getBaseDomain(""), "");
+  assert.equal(getBaseDomain(""), "");
 
   test.done();
 };

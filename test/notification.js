@@ -17,6 +17,8 @@
 
 "use strict";
 
+const assert = require("assert");
+
 let {
   createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError
 } = require("./_common");
@@ -25,8 +27,8 @@ let Prefs = null;
 let Utils = null;
 let Notification = null;
 
-// Only starting NodeJS 10 that URL is in the global space.
-const {URL} = require("url");
+// Only starting NodeJS 10 that URL and URLSearchParams are in the global space.
+const {URL, URLSearchParams} = require("url");
 
 exports.setUp = function(callback)
 {
@@ -89,7 +91,7 @@ function registerHandler(notifications, checkCallback)
 
 exports.testNoData = function(test)
 {
-  test.deepEqual(showNotifications(), [], "No notifications should be returned if there is no data");
+  assert.deepEqual(showNotifications(), [], "No notifications should be returned if there is no data");
   test.done();
 };
 
@@ -104,8 +106,8 @@ exports.testSingleNotification = function(test)
   registerHandler.call(this, [information]);
   this.runScheduledTasks(1).then(() =>
   {
-    test.deepEqual(showNotifications(), [information], "The notification is shown");
-    test.deepEqual(showNotifications(), [], "Informational notifications aren't shown more than once");
+    assert.deepEqual(showNotifications(), [information], "The notification is shown");
+    assert.deepEqual(showNotifications(), [], "Informational notifications aren't shown more than once");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -125,8 +127,8 @@ exports.testInformationAndCritical = function(test)
   registerHandler.call(this, [information, critical]);
   this.runScheduledTasks(1).then(() =>
   {
-    test.deepEqual(showNotifications(), [critical], "The critical notification is given priority");
-    test.deepEqual(showNotifications(), [critical], "Critical notifications can be shown multiple times");
+    assert.deepEqual(showNotifications(), [critical], "The critical notification is given priority");
+    assert.deepEqual(showNotifications(), [critical], "Critical notifications can be shown multiple times");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -140,8 +142,8 @@ exports.testNoType = function(test)
   registerHandler.call(this, [information]);
   this.runScheduledTasks(1).then(() =>
   {
-    test.deepEqual(showNotifications(), [information], "The notification is shown");
-    test.deepEqual(showNotifications(), [], "Notification is treated as type information");
+    assert.deepEqual(showNotifications(), [information], "The notification is shown");
+    assert.deepEqual(showNotifications(), [], "Notification is treated as type information");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -163,8 +165,8 @@ function testTargetSelectionFunc(propName, value, result)
     this.runScheduledTasks(1).then(() =>
     {
       let expected = (result ? [information] : []);
-      test.deepEqual(showNotifications(), expected, "Selected notification for " + JSON.stringify(information.targets));
-      test.deepEqual(showNotifications(), [], "No notification on second call");
+      assert.deepEqual(showNotifications(), expected, "Selected notification for " + JSON.stringify(information.targets));
+      assert.deepEqual(showNotifications(), [], "No notification on second call");
     }).catch(unexpectedError.bind(test)).then(() => test.done());
   };
 }
@@ -279,7 +281,7 @@ for (let [[propName1, value1, result1], [propName2, value2, result2]] of pairs([
     this.runScheduledTasks(1).then(() =>
     {
       let expected = (result1 || result2 ? [information] : []);
-      test.deepEqual(showNotifications(), expected, "Selected notification for " + JSON.stringify(information.targets));
+      assert.deepEqual(showNotifications(), expected, "Selected notification for " + JSON.stringify(information.targets));
     }).catch(unexpectedError.bind(test)).then(() => test.done());
   };
 }
@@ -299,7 +301,7 @@ exports.testParametersSent = function(test)
   });
   this.runScheduledTasks(1).then(() =>
   {
-    test.equal(parameters,
+    assert.equal(parameters,
           "addonName=adblockpluschrome&addonVersion=1.4.1&application=chrome&applicationVersion=27.0&platform=chromium&platformVersion=12.0&lastVersion=3&downloadCount=0",
           "The correct parameters are sent to the server");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
@@ -314,15 +316,15 @@ exports.testFirstVersion = async function(test)
     {
       let params = new URLSearchParams(decodeURI(queryString));
 
-      test.equal(params.get("firstVersion"), queryParam + eFlag);
+      assert.equal(params.get("firstVersion"), queryParam + eFlag);
 
       return [200, JSON.stringify(Object.assign({notifications: []}, payload))];
     });
 
     await this.runScheduledTasks(24);
 
-    test.equal(Prefs.notificationdata.firstVersion, firstVersion + eFlag);
-    test.equal(Prefs.notificationdata.data.version, data.version);
+    assert.equal(Prefs.notificationdata.firstVersion, firstVersion + eFlag);
+    assert.equal(Prefs.notificationdata.data.version, data.version);
   };
 
   async function testIt({eFlag} = {})
@@ -459,7 +461,7 @@ for (let currentTest of [
     let maxHours = Math.round(Math.max.apply(null, currentTest.requests)) + 1;
     this.runScheduledTasks(maxHours, currentTest.skipAfter, currentTest.skip).then(() =>
     {
-      test.deepEqual(requests, currentTest.requests, "Requests");
+      assert.deepEqual(requests, currentTest.requests, "Requests");
     }).catch(unexpectedError.bind(test)).then(() => test.done());
   };
 }
@@ -479,9 +481,9 @@ exports.testUsingSeverityInsteadOfType = function(test)
 
     Prefs.removeListener(listener);
     let notification = Prefs.notificationdata.data.notifications[0];
-    test.ok(!("severity" in notification), "Severity property was removed");
-    test.ok("type" in notification, "Type property was added");
-    test.equal(notification.type, severityNotification.severity, "Type property has correct value");
+    assert.ok(!("severity" in notification), "Severity property was removed");
+    assert.ok("type" in notification, "Type property was added");
+    assert.equal(notification.type, severityNotification.severity, "Type property has correct value");
     test.done();
   }
   Prefs.addListener(listener);
@@ -518,10 +520,10 @@ exports.testURLSpecificNotification = function(test)
   ]);
   this.runScheduledTasks(1).then(() =>
   {
-    test.deepEqual(showNotifications(), [withoutURLFilter], "URL-specific notifications are skipped");
-    test.deepEqual(showNotifications("http://foo.com"), [withURLFilterFoo], "URL-specific notification is retrieved");
-    test.deepEqual(showNotifications("http://foo.com"), [], "URL-specific notification is not retrieved");
-    test.deepEqual(showNotifications("http://www.example.com"), [subdomainURLFilter], "URL-specific notification matches subdomain");
+    assert.deepEqual(showNotifications(), [withoutURLFilter], "URL-specific notifications are skipped");
+    assert.deepEqual(showNotifications("http://foo.com"), [withURLFilterFoo], "URL-specific notification is retrieved");
+    assert.deepEqual(showNotifications("http://foo.com"), [], "URL-specific notification is not retrieved");
+    assert.deepEqual(showNotifications("http://www.example.com"), [subdomainURLFilter], "URL-specific notification matches subdomain");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -536,16 +538,16 @@ exports.testInterval = function(test)
   registerHandler.call(this, [relentless]);
   this.runScheduledTasks(1).then(() =>
   {
-    test.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown initially");
+    assert.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown initially");
   }).then(() =>
   {
-    test.deepEqual(showNotifications(), [], "Relentless notifications are not shown before the interval");
+    assert.deepEqual(showNotifications(), [], "Relentless notifications are not shown before the interval");
   }).then(() =>
   {
     // Date always returns a fixed time (see setupTimerAndFetch) so we
     // manipulate the shown data manually.
     Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
-    test.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown after the interval");
+    assert.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown after the interval");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -561,45 +563,45 @@ exports.testRelentlessNotification = function(test)
   registerHandler.call(this, [relentless]);
   this.runScheduledTasks(1).then(() =>
   {
-    test.deepEqual(showNotifications(), [], "Relentless notification is not shown without URL");
-    test.deepEqual(showNotifications("http://bar.com"), [], "Relentless notification is not shown for a non-matching URL");
-    test.deepEqual(showNotifications("http://foo.com"), [relentless], "Relentless notification is shown for a matching URL");
+    assert.deepEqual(showNotifications(), [], "Relentless notification is not shown without URL");
+    assert.deepEqual(showNotifications("http://bar.com"), [], "Relentless notification is not shown for a non-matching URL");
+    assert.deepEqual(showNotifications("http://foo.com"), [relentless], "Relentless notification is shown for a matching URL");
   }).then(() =>
   {
-    test.deepEqual(showNotifications("http://foo.com"), [], "Relentless notifications are not shown before the interval");
+    assert.deepEqual(showNotifications("http://foo.com"), [], "Relentless notifications are not shown before the interval");
   }).then(() =>
   {
     // Date always returns a fixed time (see setupTimerAndFetch) so we
     // manipulate the shown data manually.
     Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
-    test.deepEqual(showNotifications(), [], "Relentless notifications are not shown after the interval without URL");
-    test.deepEqual(showNotifications("http://bar.com"), [], "Relentless notifications are not shown after the interval for a non-matching URL");
-    test.deepEqual(showNotifications("http://bar.foo.com"), [relentless], "Relentless notifications are shown after the interval for a matching URL");
+    assert.deepEqual(showNotifications(), [], "Relentless notifications are not shown after the interval without URL");
+    assert.deepEqual(showNotifications("http://bar.com"), [], "Relentless notifications are not shown after the interval for a non-matching URL");
+    assert.deepEqual(showNotifications("http://bar.foo.com"), [relentless], "Relentless notifications are shown after the interval for a matching URL");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
 exports.testGlobalOptOut = function(test)
 {
   Notification.toggleIgnoreCategory("*", true);
-  test.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out");
+  assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out");
   Notification.toggleIgnoreCategory("*", true);
-  test.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out (again)");
+  assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out (again)");
   Notification.toggleIgnoreCategory("*", false);
-  test.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out");
+  assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out");
   Notification.toggleIgnoreCategory("*", false);
-  test.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out (again)");
+  assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out (again)");
   Notification.toggleIgnoreCategory("*");
-  test.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Toggle enable global opt-out");
+  assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Toggle enable global opt-out");
   Notification.toggleIgnoreCategory("*");
-  test.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Toggle disable global opt-out");
+  assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Toggle disable global opt-out");
 
   Prefs.notifications_showui = false;
   Notification.toggleIgnoreCategory("*", false);
-  test.ok(!Prefs.notifications_showui, "Opt-out UI will not be shown if global opt-out hasn't been enabled yet");
+  assert.ok(!Prefs.notifications_showui, "Opt-out UI will not be shown if global opt-out hasn't been enabled yet");
   Notification.toggleIgnoreCategory("*", true);
-  test.ok(Prefs.notifications_showui, "Opt-out UI will be shown after enabling global opt-out");
+  assert.ok(Prefs.notifications_showui, "Opt-out UI will be shown after enabling global opt-out");
   Notification.toggleIgnoreCategory("*", false);
-  test.ok(Prefs.notifications_showui, "Opt-out UI will be shown after enabling global opt-out even if it got disabled again");
+  assert.ok(Prefs.notifications_showui, "Opt-out UI will be shown after enabling global opt-out even if it got disabled again");
 
   let information = {
     id: 1,
@@ -618,9 +620,9 @@ exports.testGlobalOptOut = function(test)
   registerHandler.call(this, [information]);
   this.runScheduledTasks(1).then(() =>
   {
-    test.deepEqual(showNotifications(), [], "Information notifications are ignored after enabling global opt-out");
+    assert.deepEqual(showNotifications(), [], "Information notifications are ignored after enabling global opt-out");
     Notification.toggleIgnoreCategory("*", false);
-    test.deepEqual(showNotifications(), [information], "Information notifications are shown after disabling global opt-out");
+    assert.deepEqual(showNotifications(), [information], "Information notifications are shown after disabling global opt-out");
 
     Notification.toggleIgnoreCategory("*", true);
     Prefs.notificationdata = {};
@@ -628,14 +630,14 @@ exports.testGlobalOptOut = function(test)
     return this.runScheduledTasks(1);
   }).then(() =>
   {
-    test.deepEqual(showNotifications(), [critical], "Critical notifications are not ignored");
+    assert.deepEqual(showNotifications(), [critical], "Critical notifications are not ignored");
 
     Prefs.notificationdata = {};
     registerHandler.call(this, [relentless]);
     return this.runScheduledTasks(1);
   }).then(() =>
   {
-    test.deepEqual(showNotifications(), [relentless], "Relentless notifications are not ignored");
+    assert.deepEqual(showNotifications(), [relentless], "Relentless notifications are not ignored");
   }).catch(unexpectedError.bind(test)).then(() => test.done());
 };
 
@@ -643,7 +645,7 @@ exports.testMessageWithoutLocalization = function(test)
 {
   let notification = {message: "non-localized"};
   let texts = Notification.getLocalizedTexts(notification);
-  test.equal(texts.message, "non-localized");
+  assert.equal(texts.message, "non-localized");
   test.done();
 };
 
@@ -652,10 +654,10 @@ exports.testLanguageOnly = function(test)
   let notification = {message: {fr: "fr"}};
   Utils.appLocale = "fr";
   let texts = Notification.getLocalizedTexts(notification);
-  test.equal(texts.message, "fr");
+  assert.equal(texts.message, "fr");
   Utils.appLocale = "fr-CA";
   texts = Notification.getLocalizedTexts(notification);
-  test.equal(texts.message, "fr");
+  assert.equal(texts.message, "fr");
   test.done();
 };
 
@@ -664,10 +666,10 @@ exports.testLanguageAndCountry = function(test)
   let notification = {message: {"fr": "fr", "fr-CA": "fr-CA"}};
   Utils.appLocale = "fr-CA";
   let texts = Notification.getLocalizedTexts(notification);
-  test.equal(texts.message, "fr-CA");
+  assert.equal(texts.message, "fr-CA");
   Utils.appLocale = "fr";
   texts = Notification.getLocalizedTexts(notification);
-  test.equal(texts.message, "fr");
+  assert.equal(texts.message, "fr");
   test.done();
 };
 
@@ -676,6 +678,6 @@ exports.testMissingTranslation = function(test)
   let notification = {message: {"en-US": "en-US"}};
   Utils.appLocale = "fr";
   let texts = Notification.getLocalizedTexts(notification);
-  test.equal(texts.message, "en-US");
+  assert.equal(texts.message, "en-US");
   test.done();
 };

@@ -17,6 +17,7 @@
 
 "use strict";
 
+const assert = require("assert");
 const {createSandbox, unexpectedError} = require("./_common");
 
 let Filter = null;
@@ -93,7 +94,7 @@ function canonize(data)
 
 async function testReadWrite(test, withExternal, withEmptySpecial)
 {
-  test.ok(!filterStorage.initialized, "Uninitialized before the first load");
+  assert.ok(!filterStorage.initialized, "Uninitialized before the first load");
 
   try
   {
@@ -102,8 +103,8 @@ async function testReadWrite(test, withExternal, withEmptySpecial)
     IO._setFileContents(filterStorage.sourceFile, data);
     await filterStorage.loadFromDisk();
 
-    test.ok(filterStorage.initialized, "Initialize after the first load");
-    test.equal(filterStorage.fileProperties.version, filterStorage.formatVersion, "File format version");
+    assert.ok(filterStorage.initialized, "Initialize after the first load");
+    assert.equal(filterStorage.fileProperties.version, filterStorage.formatVersion, "File format version");
 
     if (withExternal)
     {
@@ -115,10 +116,10 @@ async function testReadWrite(test, withExternal, withEmptySpecial)
       }
 
       let externalSubscriptions = [...filterStorage.subscriptions()].filter(subscription => subscription instanceof ExternalSubscription);
-      test.equal(externalSubscriptions.length, 1, "Number of external subscriptions after updateExternalSubscription");
+      assert.equal(externalSubscriptions.length, 1, "Number of external subscriptions after updateExternalSubscription");
 
-      test.equal(externalSubscriptions[0].url, "~external~external subscription ID", "ID of external subscription");
-      test.equal(externalSubscriptions[0].filterCount, 2, "Number of filters in external subscription");
+      assert.equal(externalSubscriptions[0].url, "~external~external subscription ID", "ID of external subscription");
+      assert.equal(externalSubscriptions[0].filterCount, 2, "Number of filters in external subscription");
     }
 
     if (withEmptySpecial)
@@ -129,18 +130,18 @@ async function testReadWrite(test, withExternal, withEmptySpecial)
 
       filterStorage.removeFilter(Filter.fromText("!foo"), specialSubscription);
 
-      test.equal(specialSubscription.filterCount, 0,
-                 "No filters in special subscription");
-      test.ok(new Set(filterStorage.subscriptions()).has(specialSubscription),
-              "Empty special subscription still in storage");
+      assert.equal(specialSubscription.filterCount, 0,
+                   "No filters in special subscription");
+      assert.ok(new Set(filterStorage.subscriptions()).has(specialSubscription),
+                "Empty special subscription still in storage");
     }
 
     await filterStorage.saveToDisk();
 
     let expected = await testData;
 
-    test.deepEqual(canonize(IO._getFileContents(filterStorage.sourceFile)),
-                   canonize(expected), "Read/write result");
+    assert.deepEqual(canonize(IO._getFileContents(filterStorage.sourceFile)),
+                     canonize(expected), "Read/write result");
   }
   catch (error)
   {
@@ -179,10 +180,10 @@ exports.testImportExport = async function(test)
       importer(line);
     importer(null);
 
-    test.equal(filterStorage.fileProperties.version, filterStorage.formatVersion, "File format version");
+    assert.equal(filterStorage.fileProperties.version, filterStorage.formatVersion, "File format version");
 
     let exported = Array.from(filterStorage.exportData());
-    test.deepEqual(canonize(exported), canonize(lines), "Import/export result");
+    assert.deepEqual(canonize(exported), canonize(lines), "Import/export result");
   }
   catch (error)
   {
@@ -202,8 +203,8 @@ exports.testSavingWithoutBackups = async function(test)
     await filterStorage.saveToDisk();
     await filterStorage.saveToDisk();
 
-    test.ok(!IO._getFileContents(filterStorage.getBackupName(1)),
-            "Backup shouldn't be created");
+    assert.ok(!IO._getFileContents(filterStorage.getBackupName(1)),
+              "Backup shouldn't be created");
   }
   catch (error)
   {
@@ -231,35 +232,35 @@ exports.testSavingWithBackups = async function(test)
     // Save again immediately
     await filterStorage.saveToDisk();
 
-    test.ok(IO._getFileContents(backupFile), "First backup created");
+    assert.ok(IO._getFileContents(backupFile), "First backup created");
 
     oldModifiedTime = IO._getModifiedTime(backupFile) - 10000;
     IO._setModifiedTime(backupFile, oldModifiedTime);
     await filterStorage.saveToDisk();
 
-    test.equal(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup not overwritten if it is only 10 seconds old");
+    assert.equal(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup not overwritten if it is only 10 seconds old");
 
     oldModifiedTime -= 40 * 60 * 60 * 1000;
     IO._setModifiedTime(backupFile, oldModifiedTime);
     await filterStorage.saveToDisk();
 
-    test.notEqual(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup overwritten if it is 40 hours old");
+    assert.notEqual(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup overwritten if it is 40 hours old");
 
-    test.ok(IO._getFileContents(backupFile2), "Second backup created when first backup is overwritten");
+    assert.ok(IO._getFileContents(backupFile2), "Second backup created when first backup is overwritten");
 
     IO._setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 20000);
     oldModifiedTime = IO._getModifiedTime(backupFile2);
     await filterStorage.saveToDisk();
 
-    test.equal(IO._getModifiedTime(backupFile2), oldModifiedTime, "Second backup not overwritten if first one is only 20 seconds old");
+    assert.equal(IO._getModifiedTime(backupFile2), oldModifiedTime, "Second backup not overwritten if first one is only 20 seconds old");
 
     IO._setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 25 * 60 * 60 * 1000);
     oldModifiedTime = IO._getModifiedTime(backupFile2);
     await filterStorage.saveToDisk();
 
-    test.notEqual(IO._getModifiedTime(backupFile2), oldModifiedTime, "Second backup overwritten if first one is 25 hours old");
+    assert.notEqual(IO._getModifiedTime(backupFile2), oldModifiedTime, "Second backup overwritten if first one is 25 hours old");
 
-    test.ok(!IO._getFileContents(backupFile3), "Third backup not created with patternsbackups = 2");
+    assert.ok(!IO._getFileContents(backupFile3), "Third backup not created with patternsbackups = 2");
   }
   catch (error)
   {
@@ -278,20 +279,20 @@ exports.testRestoringBackup = async function(test)
   {
     await filterStorage.saveToDisk();
 
-    test.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Initial filter count");
+    assert.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Initial filter count");
     filterStorage.addFilter(Filter.fromText("barfoo"));
-    test.equal([...filterStorage.subscriptions()][0].filterCount, 2, "Filter count after adding a filter");
+    assert.equal([...filterStorage.subscriptions()][0].filterCount, 2, "Filter count after adding a filter");
     await filterStorage.saveToDisk();
 
     await filterStorage.loadFromDisk();
 
-    test.equal([...filterStorage.subscriptions()][0].filterCount, 2, "Filter count after adding filter and reloading");
+    assert.equal([...filterStorage.subscriptions()][0].filterCount, 2, "Filter count after adding filter and reloading");
     await filterStorage.restoreBackup(1);
 
-    test.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after restoring backup");
+    assert.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after restoring backup");
     await filterStorage.loadFromDisk();
 
-    test.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after reloading");
+    assert.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after reloading");
   }
   catch (error)
   {

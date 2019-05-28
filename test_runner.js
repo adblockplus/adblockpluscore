@@ -187,7 +187,8 @@ else
 runBrowserTests(runnerProcesses).then(() =>
 {
   if (unitFiles.length)
-    nodeunit.reporters.default.run(unitFiles);
+    nodeunit.reporters.default.run(unitFiles, null,
+                                   err => process.exit(err ? 1 : 0));
 }).catch(error =>
 {
   console.error(error);

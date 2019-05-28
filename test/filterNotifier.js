@@ -17,6 +17,7 @@
 
 "use strict";
 
+const assert = require("assert");
 const {createSandbox} = require("./_common");
 
 let filterNotifier = null;
@@ -48,13 +49,13 @@ function removeListener(listener)
   filterNotifier.off("foo", listener);
 }
 
-function compareListeners(test, testDescription, list)
+function compareListeners(testDescription, list)
 {
-  test.equal(filterNotifier.hasListeners(), list.length > 0, testDescription);
-  test.equal(filterNotifier.hasListeners("foo"), list.length > 0,
-             testDescription);
+  assert.equal(filterNotifier.hasListeners(), list.length > 0, testDescription);
+  assert.equal(filterNotifier.hasListeners("foo"), list.length > 0,
+               testDescription);
 
-  test.equal(filterNotifier.hasListeners("bar"), false, testDescription);
+  assert.equal(filterNotifier.hasListeners("bar"), false, testDescription);
 
   let result1 = triggeredListeners = [];
   filterNotifier.emit("foo", {bar: true});
@@ -63,44 +64,44 @@ function compareListeners(test, testDescription, list)
   for (let observer of list)
     observer({bar: true});
 
-  test.deepEqual(result1, result2, testDescription);
+  assert.deepEqual(result1, result2, testDescription);
 }
 
 exports.testAddingRemovingListeners = function(test)
 {
   let [listener1, listener2, listener3] = listeners;
 
-  compareListeners(test, "No listeners", []);
+  compareListeners("No listeners", []);
 
   addListener(listener1);
-  compareListeners(test, "addListener(listener1)", [listener1]);
+  compareListeners("addListener(listener1)", [listener1]);
 
   addListener(listener1);
-  compareListeners(test, "addListener(listener1) again", [listener1, listener1]);
+  compareListeners("addListener(listener1) again", [listener1, listener1]);
 
   addListener(listener2);
-  compareListeners(test, "addListener(listener2)", [listener1, listener1, listener2]);
+  compareListeners("addListener(listener2)", [listener1, listener1, listener2]);
 
   removeListener(listener1);
-  compareListeners(test, "removeListener(listener1)", [listener1, listener2]);
+  compareListeners("removeListener(listener1)", [listener1, listener2]);
 
   removeListener(listener1);
-  compareListeners(test, "removeListener(listener1) again", [listener2]);
+  compareListeners("removeListener(listener1) again", [listener2]);
 
   addListener(listener3);
-  compareListeners(test, "addListener(listener3)", [listener2, listener3]);
+  compareListeners("addListener(listener3)", [listener2, listener3]);
 
   addListener(listener1);
-  compareListeners(test, "addListener(listener1)", [listener2, listener3, listener1]);
+  compareListeners("addListener(listener1)", [listener2, listener3, listener1]);
 
   removeListener(listener3);
-  compareListeners(test, "removeListener(listener3)", [listener2, listener1]);
+  compareListeners("removeListener(listener3)", [listener2, listener1]);
 
   removeListener(listener1);
-  compareListeners(test, "removeListener(listener1)", [listener2]);
+  compareListeners("removeListener(listener1)", [listener2]);
 
   removeListener(listener2);
-  compareListeners(test, "removeListener(listener2)", []);
+  compareListeners("removeListener(listener2)", []);
 
   test.done();
 };
@@ -116,8 +117,8 @@ exports.testRemovingListenersWhileBeingCalled = function(test)
   addListener(listener1);
   addListener(listener2);
 
-  compareListeners(test, "Initial call", [listener1, listener2]);
-  compareListeners(test, "Subsequent calls", [listener2]);
+  compareListeners("Initial call", [listener1, listener2]);
+  compareListeners("Subsequent calls", [listener2]);
 
   test.done();
 };

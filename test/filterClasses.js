@@ -17,6 +17,7 @@
 
 "use strict";
 
+const assert = require("assert");
 const {createSandbox} = require("./_common");
 
 let Filter = null;
@@ -183,7 +184,7 @@ function addDefaults(expected)
   }
 }
 
-function compareFilter(test, text, expected, postInit)
+function compareFilter(text, expected, postInit)
 {
   addDefaults(expected);
 
@@ -191,7 +192,7 @@ function compareFilter(test, text, expected, postInit)
   if (postInit)
     postInit(filter);
   let result = serializeFilter(filter);
-  test.equal(result.sort().join("\n"), expected.sort().join("\n"), text);
+  assert.equal(result.sort().join("\n"), expected.sort().join("\n"), text);
 
   // Test round-trip
   let filter2;
@@ -209,58 +210,58 @@ function compareFilter(test, text, expected, postInit)
   else
     filter2 = Filter.fromText(filter.text);
 
-  test.equal(serializeFilter(filter).join("\n"), serializeFilter(filter2).join("\n"), text + " deserialization");
+  assert.equal(serializeFilter(filter).join("\n"), serializeFilter(filter2).join("\n"), text + " deserialization");
 }
 
 exports.testFilterClassDefinitions = function(test)
 {
-  test.equal(typeof Filter, "function", "typeof Filter");
-  test.equal(typeof InvalidFilter, "function", "typeof InvalidFilter");
-  test.equal(typeof CommentFilter, "function", "typeof CommentFilter");
-  test.equal(typeof ActiveFilter, "function", "typeof ActiveFilter");
-  test.equal(typeof RegExpFilter, "function", "typeof RegExpFilter");
-  test.equal(typeof BlockingFilter, "function", "typeof BlockingFilter");
-  test.equal(typeof ContentFilter, "function", "typeof ContentFilter");
-  test.equal(typeof WhitelistFilter, "function", "typeof WhitelistFilter");
-  test.equal(typeof ElemHideBase, "function", "typeof ElemHideBase");
-  test.equal(typeof ElemHideFilter, "function", "typeof ElemHideFilter");
-  test.equal(typeof ElemHideException, "function", "typeof ElemHideException");
-  test.equal(typeof ElemHideEmulationFilter, "function",
-             "typeof ElemHideEmulationFilter");
-  test.equal(typeof SnippetFilter, "function", "typeof SnippetFilter");
+  assert.equal(typeof Filter, "function", "typeof Filter");
+  assert.equal(typeof InvalidFilter, "function", "typeof InvalidFilter");
+  assert.equal(typeof CommentFilter, "function", "typeof CommentFilter");
+  assert.equal(typeof ActiveFilter, "function", "typeof ActiveFilter");
+  assert.equal(typeof RegExpFilter, "function", "typeof RegExpFilter");
+  assert.equal(typeof BlockingFilter, "function", "typeof BlockingFilter");
+  assert.equal(typeof ContentFilter, "function", "typeof ContentFilter");
+  assert.equal(typeof WhitelistFilter, "function", "typeof WhitelistFilter");
+  assert.equal(typeof ElemHideBase, "function", "typeof ElemHideBase");
+  assert.equal(typeof ElemHideFilter, "function", "typeof ElemHideFilter");
+  assert.equal(typeof ElemHideException, "function", "typeof ElemHideException");
+  assert.equal(typeof ElemHideEmulationFilter, "function",
+               "typeof ElemHideEmulationFilter");
+  assert.equal(typeof SnippetFilter, "function", "typeof SnippetFilter");
 
   test.done();
 };
 
 exports.testComments = function(test)
 {
-  compareFilter(test, "!asdf", ["type=comment", "text=!asdf"]);
-  compareFilter(test, "!foo#bar", ["type=comment", "text=!foo#bar"]);
-  compareFilter(test, "!foo##bar", ["type=comment", "text=!foo##bar"]);
+  compareFilter("!asdf", ["type=comment", "text=!asdf"]);
+  compareFilter("!foo#bar", ["type=comment", "text=!foo#bar"]);
+  compareFilter("!foo##bar", ["type=comment", "text=!foo##bar"]);
 
   test.done();
 };
 
 exports.testInvalidFilters = function(test)
 {
-  compareFilter(test, "/??/", ["type=invalid", "text=/??/", "reason=filter_invalid_regexp"]);
-  compareFilter(test, "asd$foobar", ["type=invalid", "text=asd$foobar", "reason=filter_unknown_option"]);
+  compareFilter("/??/", ["type=invalid", "text=/??/", "reason=filter_invalid_regexp"]);
+  compareFilter("asd$foobar", ["type=invalid", "text=asd$foobar", "reason=filter_unknown_option"]);
 
   // No $domain or $~third-party
-  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs", ["type=invalid", "text=||example.com/ad.js$rewrite=abp-resource:noopjs", "reason=filter_invalid_rewrite"]);
-  compareFilter(test, "*example.com/ad.js$rewrite=abp-resource:noopjs", ["type=invalid", "text=*example.com/ad.js$rewrite=abp-resource:noopjs", "reason=filter_invalid_rewrite"]);
-  compareFilter(test, "example.com/ad.js$rewrite=abp-resource:noopjs", ["type=invalid", "text=example.com/ad.js$rewrite=abp-resource:noopjs", "reason=filter_invalid_rewrite"]);
+  compareFilter("||example.com/ad.js$rewrite=abp-resource:noopjs", ["type=invalid", "text=||example.com/ad.js$rewrite=abp-resource:noopjs", "reason=filter_invalid_rewrite"]);
+  compareFilter("*example.com/ad.js$rewrite=abp-resource:noopjs", ["type=invalid", "text=*example.com/ad.js$rewrite=abp-resource:noopjs", "reason=filter_invalid_rewrite"]);
+  compareFilter("example.com/ad.js$rewrite=abp-resource:noopjs", ["type=invalid", "text=example.com/ad.js$rewrite=abp-resource:noopjs", "reason=filter_invalid_rewrite"]);
   // Patterns not starting with || or *
-  compareFilter(test, "example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com", ["type=invalid", "text=example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com", "reason=filter_invalid_rewrite"]);
-  compareFilter(test, "example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=invalid", "text=example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "reason=filter_invalid_rewrite"]);
+  compareFilter("example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com", ["type=invalid", "text=example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com", "reason=filter_invalid_rewrite"]);
+  compareFilter("example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=invalid", "text=example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "reason=filter_invalid_rewrite"]);
   // $~third-party requires ||
-  compareFilter(test, "*example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=invalid", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "reason=filter_invalid_rewrite"]);
+  compareFilter("*example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=invalid", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "reason=filter_invalid_rewrite"]);
 
   function checkElemHideEmulationFilterInvalid(domains)
   {
     let filterText = domains + "#?#:-abp-properties(abc)";
     compareFilter(
-      test, filterText, [
+      filterText, [
         "type=invalid", "text=" + filterText,
         "reason=filter_elemhideemulation_nodomain"
       ]
@@ -277,9 +278,9 @@ exports.testInvalidFilters = function(test)
 
 exports.testFiltersWithState = function(test)
 {
-  compareFilter(test, "blabla", ["type=filterlist", "text=blabla"]);
+  compareFilter("blabla", ["type=filterlist", "text=blabla"]);
   compareFilter(
-    test, "blabla_default", ["type=filterlist", "text=blabla_default"],
+    "blabla_default", ["type=filterlist", "text=blabla_default"],
     filter =>
     {
       filter.disabled = false;
@@ -288,7 +289,7 @@ exports.testFiltersWithState = function(test)
     }
   );
   compareFilter(
-    test, "blabla_non_default",
+    "blabla_non_default",
     ["type=filterlist", "text=blabla_non_default", "disabled=true", "hitCount=12", "lastHit=20"],
     filter =>
     {
@@ -303,92 +304,92 @@ exports.testFiltersWithState = function(test)
 
 exports.testSpecialCharacters = function(test)
 {
-  compareFilter(test, "/ddd|f?a[s]d/", ["type=filterlist", "text=/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d"]);
-  compareFilter(test, "*asdf*d**dd*", ["type=filterlist", "text=*asdf*d**dd*", "regexp=asdf.*d.*dd"]);
-  compareFilter(test, "|*asd|f*d**dd*|", ["type=filterlist", "text=|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$"]);
-  compareFilter(test, "dd[]{}$%<>&()*d", ["type=filterlist", "text=dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d"]);
+  compareFilter("/ddd|f?a[s]d/", ["type=filterlist", "text=/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d"]);
+  compareFilter("*asdf*d**dd*", ["type=filterlist", "text=*asdf*d**dd*", "regexp=asdf.*d.*dd"]);
+  compareFilter("|*asd|f*d**dd*|", ["type=filterlist", "text=|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$"]);
+  compareFilter("dd[]{}$%<>&()*d", ["type=filterlist", "text=dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d"]);
 
-  compareFilter(test, "@@/ddd|f?a[s]d/", ["type=whitelist", "text=@@/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d", "contentType=" + defaultTypes]);
-  compareFilter(test, "@@*asdf*d**dd*", ["type=whitelist", "text=@@*asdf*d**dd*", "regexp=asdf.*d.*dd", "contentType=" + defaultTypes]);
-  compareFilter(test, "@@|*asd|f*d**dd*|", ["type=whitelist", "text=@@|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$", "contentType=" + defaultTypes]);
-  compareFilter(test, "@@dd[]{}$%<>&()*d", ["type=whitelist", "text=@@dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d", "contentType=" + defaultTypes]);
+  compareFilter("@@/ddd|f?a[s]d/", ["type=whitelist", "text=@@/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d", "contentType=" + defaultTypes]);
+  compareFilter("@@*asdf*d**dd*", ["type=whitelist", "text=@@*asdf*d**dd*", "regexp=asdf.*d.*dd", "contentType=" + defaultTypes]);
+  compareFilter("@@|*asd|f*d**dd*|", ["type=whitelist", "text=@@|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$", "contentType=" + defaultTypes]);
+  compareFilter("@@dd[]{}$%<>&()*d", ["type=whitelist", "text=@@dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d", "contentType=" + defaultTypes]);
 
   test.done();
 };
 
 exports.testFilterOptions = function(test)
 {
-  compareFilter(test, "bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", ["type=filterlist", "text=bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=foo.com", "sitekeys=FOO", "csp=first csp"]);
-  compareFilter(test, "bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~bar.com"]);
-  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
-  compareFilter(test, "@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
+  compareFilter("bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", ["type=filterlist", "text=bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=foo.com", "sitekeys=FOO", "csp=first csp"]);
+  compareFilter("bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~bar.com"]);
+  compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
+  compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
 
-  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
-  compareFilter(test, "*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
-  compareFilter(test, "||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "regexp=null", "matchCase=false", "rewrite=noopjs", "thirdParty=false", "contentType=" + (defaultTypes)]);
-  compareFilter(test, "||content.server.com/files/*.php$rewrite=$1", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite=$1"]);
-  compareFilter(test, "||content.server.com/files/*.php$rewrite=", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite="]);
+  compareFilter("||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
+  compareFilter("*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
+  compareFilter("||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "regexp=null", "matchCase=false", "rewrite=noopjs", "thirdParty=false", "contentType=" + (defaultTypes)]);
+  compareFilter("||content.server.com/files/*.php$rewrite=$1", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite=$1"]);
+  compareFilter("||content.server.com/files/*.php$rewrite=", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite="]);
 
   // background and image should be the same for backwards compatibility
-  compareFilter(test, "bla$image", ["type=filterlist", "text=bla$image", "contentType=" + (t.IMAGE)]);
-  compareFilter(test, "bla$background", ["type=filterlist", "text=bla$background", "contentType=" + (t.IMAGE)]);
-  compareFilter(test, "bla$~image", ["type=filterlist", "text=bla$~image", "contentType=" + (defaultTypes & ~t.IMAGE)]);
-  compareFilter(test, "bla$~background", ["type=filterlist", "text=bla$~background", "contentType=" + (defaultTypes & ~t.IMAGE)]);
+  compareFilter("bla$image", ["type=filterlist", "text=bla$image", "contentType=" + (t.IMAGE)]);
+  compareFilter("bla$background", ["type=filterlist", "text=bla$background", "contentType=" + (t.IMAGE)]);
+  compareFilter("bla$~image", ["type=filterlist", "text=bla$~image", "contentType=" + (defaultTypes & ~t.IMAGE)]);
+  compareFilter("bla$~background", ["type=filterlist", "text=bla$~background", "contentType=" + (defaultTypes & ~t.IMAGE)]);
 
-  compareFilter(test, "@@bla$~script,~other", ["type=whitelist", "text=@@bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@http://bla$~script,~other", ["type=whitelist", "text=@@http://bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@ftp://bla$~script,~other", ["type=whitelist", "text=@@ftp://bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.DOCUMENT)]);
-  compareFilter(test, "@@bla$~script,~other,~document", ["type=whitelist", "text=@@bla$~script,~other,~document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$document", ["type=whitelist", "text=@@bla$document", "contentType=" + t.DOCUMENT]);
-  compareFilter(test, "@@bla$~script,~other,elemhide", ["type=whitelist", "text=@@bla$~script,~other,elemhide", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.ELEMHIDE)]);
-  compareFilter(test, "@@bla$~script,~other,~elemhide", ["type=whitelist", "text=@@bla$~script,~other,~elemhide", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-  compareFilter(test, "@@bla$elemhide", ["type=whitelist", "text=@@bla$elemhide", "contentType=" + t.ELEMHIDE]);
+  compareFilter("@@bla$~script,~other", ["type=whitelist", "text=@@bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter("@@http://bla$~script,~other", ["type=whitelist", "text=@@http://bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter("@@ftp://bla$~script,~other", ["type=whitelist", "text=@@ftp://bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter("@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.DOCUMENT)]);
+  compareFilter("@@bla$~script,~other,~document", ["type=whitelist", "text=@@bla$~script,~other,~document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter("@@bla$document", ["type=whitelist", "text=@@bla$document", "contentType=" + t.DOCUMENT]);
+  compareFilter("@@bla$~script,~other,elemhide", ["type=whitelist", "text=@@bla$~script,~other,elemhide", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.ELEMHIDE)]);
+  compareFilter("@@bla$~script,~other,~elemhide", ["type=whitelist", "text=@@bla$~script,~other,~elemhide", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
+  compareFilter("@@bla$elemhide", ["type=whitelist", "text=@@bla$elemhide", "contentType=" + t.ELEMHIDE]);
 
-  compareFilter(test, "@@bla$~script,~other,donottrack", ["type=invalid", "text=@@bla$~script,~other,donottrack", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$~script,~other,~donottrack", ["type=invalid", "text=@@bla$~script,~other,~donottrack", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$donottrack", ["type=invalid", "text=@@bla$donottrack", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$foobar", ["type=invalid", "text=@@bla$foobar", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$image,foobar", ["type=invalid", "text=@@bla$image,foobar", "reason=filter_unknown_option"]);
-  compareFilter(test, "@@bla$foobar,image", ["type=invalid", "text=@@bla$foobar,image", "reason=filter_unknown_option"]);
+  compareFilter("@@bla$~script,~other,donottrack", ["type=invalid", "text=@@bla$~script,~other,donottrack", "reason=filter_unknown_option"]);
+  compareFilter("@@bla$~script,~other,~donottrack", ["type=invalid", "text=@@bla$~script,~other,~donottrack", "reason=filter_unknown_option"]);
+  compareFilter("@@bla$donottrack", ["type=invalid", "text=@@bla$donottrack", "reason=filter_unknown_option"]);
+  compareFilter("@@bla$foobar", ["type=invalid", "text=@@bla$foobar", "reason=filter_unknown_option"]);
+  compareFilter("@@bla$image,foobar", ["type=invalid", "text=@@bla$image,foobar", "reason=filter_unknown_option"]);
+  compareFilter("@@bla$foobar,image", ["type=invalid", "text=@@bla$foobar,image", "reason=filter_unknown_option"]);
 
-  compareFilter(test, "bla$csp", ["type=invalid", "text=bla$csp", "reason=filter_invalid_csp"]);
-  compareFilter(test, "bla$csp=", ["type=invalid", "text=bla$csp=", "reason=filter_invalid_csp"]);
+  compareFilter("bla$csp", ["type=invalid", "text=bla$csp", "reason=filter_invalid_csp"]);
+  compareFilter("bla$csp=", ["type=invalid", "text=bla$csp=", "reason=filter_invalid_csp"]);
 
   // Blank CSP values are allowed for whitelist filters.
-  compareFilter(test, "@@bla$csp", ["type=whitelist", "text=@@bla$csp", "contentType=" + t.CSP]);
-  compareFilter(test, "@@bla$csp=", ["type=whitelist", "text=@@bla$csp=", "contentType=" + t.CSP]);
+  compareFilter("@@bla$csp", ["type=whitelist", "text=@@bla$csp", "contentType=" + t.CSP]);
+  compareFilter("@@bla$csp=", ["type=whitelist", "text=@@bla$csp=", "contentType=" + t.CSP]);
 
-  compareFilter(test, "bla$csp=report-uri", ["type=invalid", "text=bla$csp=report-uri", "reason=filter_invalid_csp"]);
-  compareFilter(test, "bla$csp=foo,csp=report-to", ["type=invalid", "text=bla$csp=foo,csp=report-to", "reason=filter_invalid_csp"]);
-  compareFilter(test, "bla$csp=foo,csp=referrer foo", ["type=invalid", "text=bla$csp=foo,csp=referrer foo", "reason=filter_invalid_csp"]);
-  compareFilter(test, "bla$csp=foo,csp=base-uri", ["type=invalid", "text=bla$csp=foo,csp=base-uri", "reason=filter_invalid_csp"]);
-  compareFilter(test, "bla$csp=foo,csp=upgrade-insecure-requests", ["type=invalid", "text=bla$csp=foo,csp=upgrade-insecure-requests", "reason=filter_invalid_csp"]);
-  compareFilter(test, "bla$csp=foo,csp=ReFeRReR", ["type=invalid", "text=bla$csp=foo,csp=ReFeRReR", "reason=filter_invalid_csp"]);
+  compareFilter("bla$csp=report-uri", ["type=invalid", "text=bla$csp=report-uri", "reason=filter_invalid_csp"]);
+  compareFilter("bla$csp=foo,csp=report-to", ["type=invalid", "text=bla$csp=foo,csp=report-to", "reason=filter_invalid_csp"]);
+  compareFilter("bla$csp=foo,csp=referrer foo", ["type=invalid", "text=bla$csp=foo,csp=referrer foo", "reason=filter_invalid_csp"]);
+  compareFilter("bla$csp=foo,csp=base-uri", ["type=invalid", "text=bla$csp=foo,csp=base-uri", "reason=filter_invalid_csp"]);
+  compareFilter("bla$csp=foo,csp=upgrade-insecure-requests", ["type=invalid", "text=bla$csp=foo,csp=upgrade-insecure-requests", "reason=filter_invalid_csp"]);
+  compareFilter("bla$csp=foo,csp=ReFeRReR", ["type=invalid", "text=bla$csp=foo,csp=ReFeRReR", "reason=filter_invalid_csp"]);
 
   test.done();
 };
 
 exports.testElementHidingRules = function(test)
 {
-  compareFilter(test, "##ddd", ["type=elemhide", "text=##ddd", "selector=ddd"]);
-  compareFilter(test, "##body > div:first-child", ["type=elemhide", "text=##body > div:first-child", "selector=body > div:first-child"]);
-  compareFilter(test, "fOO##ddd", ["type=elemhide", "text=fOO##ddd", "selectorDomains=foo", "selector=ddd", "domains=foo"]);
-  compareFilter(test, "Foo,bAr##ddd", ["type=elemhide", "text=Foo,bAr##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo"]);
-  compareFilter(test, "foo,~baR##ddd", ["type=elemhide", "text=foo,~baR##ddd", "selectorDomains=foo", "selector=ddd", "domains=foo|~bar"]);
-  compareFilter(test, "foo,~baz,bar##ddd", ["type=elemhide", "text=foo,~baz,bar##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo|~baz"]);
+  compareFilter("##ddd", ["type=elemhide", "text=##ddd", "selector=ddd"]);
+  compareFilter("##body > div:first-child", ["type=elemhide", "text=##body > div:first-child", "selector=body > div:first-child"]);
+  compareFilter("fOO##ddd", ["type=elemhide", "text=fOO##ddd", "selectorDomains=foo", "selector=ddd", "domains=foo"]);
+  compareFilter("Foo,bAr##ddd", ["type=elemhide", "text=Foo,bAr##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo"]);
+  compareFilter("foo,~baR##ddd", ["type=elemhide", "text=foo,~baR##ddd", "selectorDomains=foo", "selector=ddd", "domains=foo|~bar"]);
+  compareFilter("foo,~baz,bar##ddd", ["type=elemhide", "text=foo,~baz,bar##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo|~baz"]);
 
   test.done();
 };
 
 exports.testElementHidingExceptions = function(test)
 {
-  compareFilter(test, "#@#ddd", ["type=elemhideexception", "text=#@#ddd", "selector=ddd"]);
-  compareFilter(test, "#@#body > div:first-child", ["type=elemhideexception", "text=#@#body > div:first-child", "selector=body > div:first-child"]);
-  compareFilter(test, "fOO#@#ddd", ["type=elemhideexception", "text=fOO#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=foo"]);
-  compareFilter(test, "Foo,bAr#@#ddd", ["type=elemhideexception", "text=Foo,bAr#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo"]);
-  compareFilter(test, "foo,~baR#@#ddd", ["type=elemhideexception", "text=foo,~baR#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=foo|~bar"]);
-  compareFilter(test, "foo,~baz,bar#@#ddd", ["type=elemhideexception", "text=foo,~baz,bar#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo|~baz"]);
+  compareFilter("#@#ddd", ["type=elemhideexception", "text=#@#ddd", "selector=ddd"]);
+  compareFilter("#@#body > div:first-child", ["type=elemhideexception", "text=#@#body > div:first-child", "selector=body > div:first-child"]);
+  compareFilter("fOO#@#ddd", ["type=elemhideexception", "text=fOO#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=foo"]);
+  compareFilter("Foo,bAr#@#ddd", ["type=elemhideexception", "text=Foo,bAr#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo"]);
+  compareFilter("foo,~baR#@#ddd", ["type=elemhideexception", "text=foo,~baR#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=foo|~bar"]);
+  compareFilter("foo,~baz,bar#@#ddd", ["type=elemhideexception", "text=foo,~baz,bar#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo|~baz"]);
 
   test.done();
 };
@@ -396,22 +397,22 @@ exports.testElementHidingExceptions = function(test)
 exports.testElemHideEmulationFilters = function(test)
 {
   // Check valid domain combinations
-  compareFilter(test, "fOO.cOm#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=fOO.cOm#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com"]);
-  compareFilter(test, "Foo.com,~bAr.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=Foo.com,~bAr.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com|~bar.com"]);
-  compareFilter(test, "foo.com,~baR#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com,~baR#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com|~bar"]);
-  compareFilter(test, "~foo.com,bar.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=~foo.com,bar.com#?#:-abp-properties(abc)", "selectorDomains=bar.com", "selector=:-abp-properties(abc)", "domains=bar.com|~foo.com"]);
+  compareFilter("fOO.cOm#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=fOO.cOm#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com"]);
+  compareFilter("Foo.com,~bAr.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=Foo.com,~bAr.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com|~bar.com"]);
+  compareFilter("foo.com,~baR#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=foo.com,~baR#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com|~bar"]);
+  compareFilter("~foo.com,bar.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=~foo.com,bar.com#?#:-abp-properties(abc)", "selectorDomains=bar.com", "selector=:-abp-properties(abc)", "domains=bar.com|~foo.com"]);
 
   // Check some special cases
-  compareFilter(test, "#?#:-abp-properties(abc)", ["type=invalid", "text=#?#:-abp-properties(abc)", "reason=filter_elemhideemulation_nodomain"]);
-  compareFilter(test, "foo.com#?#abc", ["type=elemhideemulation", "text=foo.com#?#abc", "selectorDomains=foo.com", "selector=abc", "domains=foo.com"]);
-  compareFilter(test, "foo.com#?#:-abp-foobar(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-foobar(abc)", "selectorDomains=foo.com", "selector=:-abp-foobar(abc)", "domains=foo.com"]);
-  compareFilter(test, "foo.com#?#aaa :-abp-properties(abc) bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=foo.com"]);
-  compareFilter(test, "foo.com#?#:-abp-properties(|background-image: url(data:*))", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(|background-image: url(data:*))", "selectorDomains=foo.com", "selector=:-abp-properties(|background-image: url(data:*))", "domains=foo.com"]);
+  compareFilter("#?#:-abp-properties(abc)", ["type=invalid", "text=#?#:-abp-properties(abc)", "reason=filter_elemhideemulation_nodomain"]);
+  compareFilter("foo.com#?#abc", ["type=elemhideemulation", "text=foo.com#?#abc", "selectorDomains=foo.com", "selector=abc", "domains=foo.com"]);
+  compareFilter("foo.com#?#:-abp-foobar(abc)", ["type=elemhideemulation", "text=foo.com#?#:-abp-foobar(abc)", "selectorDomains=foo.com", "selector=:-abp-foobar(abc)", "domains=foo.com"]);
+  compareFilter("foo.com#?#aaa :-abp-properties(abc) bbb", ["type=elemhideemulation", "text=foo.com#?#aaa :-abp-properties(abc) bbb", "selectorDomains=foo.com", "selector=aaa :-abp-properties(abc) bbb", "domains=foo.com"]);
+  compareFilter("foo.com#?#:-abp-properties(|background-image: url(data:*))", ["type=elemhideemulation", "text=foo.com#?#:-abp-properties(|background-image: url(data:*))", "selectorDomains=foo.com", "selector=:-abp-properties(|background-image: url(data:*))", "domains=foo.com"]);
 
   // Support element hiding emulation filters for localhost (#6931).
-  compareFilter(test, "localhost#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=localhost#?#:-abp-properties(abc)", "selectorDomains=localhost", "selector=:-abp-properties(abc)", "domains=localhost"]);
-  compareFilter(test, "localhost,~www.localhost#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=localhost,~www.localhost#?#:-abp-properties(abc)", "selectorDomains=localhost", "selector=:-abp-properties(abc)", "domains=localhost|~www.localhost"]);
-  compareFilter(test, "~www.localhost,localhost#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=~www.localhost,localhost#?#:-abp-properties(abc)", "selectorDomains=localhost", "selector=:-abp-properties(abc)", "domains=localhost|~www.localhost"]);
+  compareFilter("localhost#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=localhost#?#:-abp-properties(abc)", "selectorDomains=localhost", "selector=:-abp-properties(abc)", "domains=localhost"]);
+  compareFilter("localhost,~www.localhost#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=localhost,~www.localhost#?#:-abp-properties(abc)", "selectorDomains=localhost", "selector=:-abp-properties(abc)", "domains=localhost|~www.localhost"]);
+  compareFilter("~www.localhost,localhost#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=~www.localhost,localhost#?#:-abp-properties(abc)", "selectorDomains=localhost", "selector=:-abp-properties(abc)", "domains=localhost|~www.localhost"]);
 
   test.done();
 };
@@ -427,8 +428,8 @@ exports.testEmptyElemHideDomains = function(test)
   for (let filterText of emptyDomainFilters)
   {
     let filter = Filter.fromText(filterText);
-    test.ok(filter instanceof InvalidFilter);
-    test.equal(filter.reason, "filter_invalid_domain");
+    assert.ok(filter instanceof InvalidFilter);
+    assert.equal(filter.reason, "filter_invalid_domain");
   }
 
   test.done();
@@ -437,7 +438,7 @@ exports.testEmptyElemHideDomains = function(test)
 exports.testElemHideRulesWithBraces = function(test)
 {
   compareFilter(
-    test, "###foo{color: red}", [
+    "###foo{color: red}", [
       "type=elemhide",
       "text=###foo{color: red}",
       "selectorDomains=",
@@ -446,7 +447,7 @@ exports.testElemHideRulesWithBraces = function(test)
     ]
   );
   compareFilter(
-    test, "foo.com#?#:-abp-properties(/margin: [3-4]{2}/)", [
+    "foo.com#?#:-abp-properties(/margin: [3-4]{2}/)", [
       "type=elemhideemulation",
       "text=foo.com#?#:-abp-properties(/margin: [3-4]{2}/)",
       "selectorDomains=foo.com",
@@ -459,10 +460,10 @@ exports.testElemHideRulesWithBraces = function(test)
 
 exports.testSnippetFilters = function(test)
 {
-  compareFilter(test, "foo.com#$#abc", ["type=snippet", "text=foo.com#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com"]);
-  compareFilter(test, "foo.com,~bar.com#$#abc", ["type=snippet", "text=foo.com,~bar.com#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com|~bar.com"]);
-  compareFilter(test, "foo.com,~bar#$#abc", ["type=snippet", "text=foo.com,~bar#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com|~bar"]);
-  compareFilter(test, "~foo.com,bar.com#$#abc", ["type=snippet", "text=~foo.com,bar.com#$#abc", "scriptDomains=bar.com", "script=abc", "domains=bar.com|~foo.com"]);
+  compareFilter("foo.com#$#abc", ["type=snippet", "text=foo.com#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com"]);
+  compareFilter("foo.com,~bar.com#$#abc", ["type=snippet", "text=foo.com,~bar.com#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com|~bar.com"]);
+  compareFilter("foo.com,~bar#$#abc", ["type=snippet", "text=foo.com,~bar#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com|~bar"]);
+  compareFilter("~foo.com,bar.com#$#abc", ["type=snippet", "text=~foo.com,bar.com#$#abc", "scriptDomains=bar.com", "script=abc", "domains=bar.com|~foo.com"]);
 
   test.done();
 };
@@ -470,56 +471,56 @@ exports.testSnippetFilters = function(test)
 exports.testFilterNormalization = function(test)
 {
   // Line breaks etc
-  test.equal(Filter.normalize("\n\t\nad\ns"),
-             "ads");
+  assert.equal(Filter.normalize("\n\t\nad\ns"),
+               "ads");
 
   // Comment filters
-  test.equal(Filter.normalize("   !  fo  o##  bar   "),
-             "!  fo  o##  bar");
+  assert.equal(Filter.normalize("   !  fo  o##  bar   "),
+               "!  fo  o##  bar");
 
   // Element hiding filters
-  test.equal(Filter.normalize("   domain.c  om## # sele ctor   "),
-             "domain.com### sele ctor");
+  assert.equal(Filter.normalize("   domain.c  om## # sele ctor   "),
+               "domain.com### sele ctor");
 
   // Element hiding emulation filters
-  test.equal(Filter.normalize("   domain.c  om#?# # sele ctor   "),
-             "domain.com#?## sele ctor");
+  assert.equal(Filter.normalize("   domain.c  om#?# # sele ctor   "),
+               "domain.com#?## sele ctor");
 
   // Incorrect syntax: the separator "#?#" cannot contain spaces; treated as a
   // regular filter instead
-  test.equal(Filter.normalize("   domain.c  om# ?#. sele ctor   "),
-             "domain.com#?#.selector");
+  assert.equal(Filter.normalize("   domain.c  om# ?#. sele ctor   "),
+               "domain.com#?#.selector");
   // Incorrect syntax: the separator "#?#" cannot contain spaces; treated as an
   // element hiding filter instead, because the "##" following the "?" is taken
   // to be the separator instead
-  test.equal(Filter.normalize("   domain.c  om# ?##sele ctor   "),
-             "domain.com#?##sele ctor");
+  assert.equal(Filter.normalize("   domain.c  om# ?##sele ctor   "),
+               "domain.com#?##sele ctor");
 
   // Element hiding exception filters
-  test.equal(Filter.normalize("   domain.c  om#@# # sele ctor   "),
-             "domain.com#@## sele ctor");
+  assert.equal(Filter.normalize("   domain.c  om#@# # sele ctor   "),
+               "domain.com#@## sele ctor");
 
   // Incorrect syntax: the separator "#@#" cannot contain spaces; treated as a
   // regular filter instead (not an element hiding filter either!), because
   // unlike the case with "# ?##" the "##" following the "@" is not considered
   // to be a separator
-  test.equal(Filter.normalize("   domain.c  om# @## sele ctor   "),
-             "domain.com#@##selector");
+  assert.equal(Filter.normalize("   domain.c  om# @## sele ctor   "),
+               "domain.com#@##selector");
 
   // Snippet filters
-  test.equal(Filter.normalize("   domain.c  om#$#  sni pp  et   "),
-             "domain.com#$#sni pp  et");
+  assert.equal(Filter.normalize("   domain.c  om#$#  sni pp  et   "),
+               "domain.com#$#sni pp  et");
 
   // Regular filters
   let normalized = Filter.normalize(
     "    b$l 	 a$sitekey=  foo  ,domain= do main.com |foo   .com,c sp= c   s p  "
   );
-  test.equal(
+  assert.equal(
     normalized,
     "b$la$sitekey=foo,domain=domain.com|foo.com,csp=c s p"
   );
   compareFilter(
-    test, normalized, [
+    normalized, [
       "type=filterlist",
       "text=" + normalized,
       "csp=c s p",
@@ -530,30 +531,30 @@ exports.testFilterNormalization = function(test)
   );
 
   // Some $csp edge cases
-  test.equal(Filter.normalize("$csp=  "),
-             "$csp=");
-  test.equal(Filter.normalize("$csp= c s p"),
-             "$csp=c s p");
-  test.equal(Filter.normalize("$$csp= c s p"),
-             "$$csp=c s p");
-  test.equal(Filter.normalize("$$$csp= c s p"),
-             "$$$csp=c s p");
-  test.equal(Filter.normalize("foo?csp=b a r$csp=script-src  'self'"),
-             "foo?csp=bar$csp=script-src 'self'");
-  test.equal(Filter.normalize("foo$bar=c s p = ba z,cs p = script-src  'self'"),
-             "foo$bar=csp=baz,csp=script-src 'self'");
-  test.equal(Filter.normalize("foo$csp=c s p csp= ba z,cs p  = script-src  'self'"),
-             "foo$csp=c s p csp= ba z,csp=script-src 'self'");
-  test.equal(Filter.normalize("foo$csp=bar,$c sp=c s p"),
-             "foo$csp=bar,$csp=c s p");
-  test.equal(Filter.normalize(" f o   o   $      bar   $csp=ba r"),
-             "foo$bar$csp=ba r");
-  test.equal(Filter.normalize("f    $    o    $    o    $    csp=f o o "),
-             "f$o$o$csp=f o o");
-  test.equal(Filter.normalize("/foo$/$ csp = script-src  http://example.com/?$1=1&$2=2&$3=3"),
-             "/foo$/$csp=script-src http://example.com/?$1=1&$2=2&$3=3");
-  test.equal(Filter.normalize("||content.server.com/files/*.php$rewrite= $1"),
-             "||content.server.com/files/*.php$rewrite=$1");
+  assert.equal(Filter.normalize("$csp=  "),
+               "$csp=");
+  assert.equal(Filter.normalize("$csp= c s p"),
+               "$csp=c s p");
+  assert.equal(Filter.normalize("$$csp= c s p"),
+               "$$csp=c s p");
+  assert.equal(Filter.normalize("$$$csp= c s p"),
+               "$$$csp=c s p");
+  assert.equal(Filter.normalize("foo?csp=b a r$csp=script-src  'self'"),
+               "foo?csp=bar$csp=script-src 'self'");
+  assert.equal(Filter.normalize("foo$bar=c s p = ba z,cs p = script-src  'self'"),
+               "foo$bar=csp=baz,csp=script-src 'self'");
+  assert.equal(Filter.normalize("foo$csp=c s p csp= ba z,cs p  = script-src  'self'"),
+               "foo$csp=c s p csp= ba z,csp=script-src 'self'");
+  assert.equal(Filter.normalize("foo$csp=bar,$c sp=c s p"),
+               "foo$csp=bar,$csp=c s p");
+  assert.equal(Filter.normalize(" f o   o   $      bar   $csp=ba r"),
+               "foo$bar$csp=ba r");
+  assert.equal(Filter.normalize("f    $    o    $    o    $    csp=f o o "),
+               "f$o$o$csp=f o o");
+  assert.equal(Filter.normalize("/foo$/$ csp = script-src  http://example.com/?$1=1&$2=2&$3=3"),
+               "/foo$/$csp=script-src http://example.com/?$1=1&$2=2&$3=3");
+  assert.equal(Filter.normalize("||content.server.com/files/*.php$rewrite= $1"),
+               "||content.server.com/files/*.php$rewrite=$1");
   test.done();
 };
 
@@ -561,22 +562,22 @@ exports.testFilterRewriteOption = function(test)
 {
   let text = "/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=$1";
   let filter = Filter.fromText(text);
-  test.ok(filter instanceof InvalidFilter);
-  test.equal(filter.type, "invalid");
-  test.equal(filter.reason, "filter_invalid_rewrite");
+  assert.ok(filter instanceof InvalidFilter);
+  assert.equal(filter.type, "invalid");
+  assert.equal(filter.reason, "filter_invalid_rewrite");
 
   text = "||/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=blank-text,domains=content.server";
   filter = Filter.fromText(text);
-  test.ok(filter instanceof InvalidFilter);
-  test.equal(filter.type, "invalid");
-  test.equal(filter.reason, "filter_invalid_rewrite");
+  assert.ok(filter instanceof InvalidFilter);
+  assert.equal(filter.type, "invalid");
+  assert.equal(filter.reason, "filter_invalid_rewrite");
 
   text = "||/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=abp-resource:blank-text,domain=content.server";
   filter = Filter.fromText(text);
-  test.equal(filter.rewriteUrl("http://content.server/file/foo.txt"),
-             "data:text/plain,");
-  test.equal(filter.rewriteUrl("http://content.server/file/foo.txt?bar"),
-             "data:text/plain,");
+  assert.equal(filter.rewriteUrl("http://content.server/file/foo.txt"),
+               "data:text/plain,");
+  assert.equal(filter.rewriteUrl("http://content.server/file/foo.txt?bar"),
+               "data:text/plain,");
 
   test.done();
 };
@@ -591,14 +592,14 @@ exports.testDomainMapDeduplication = function(test)
   // This compares the references to make sure that both refer to the same
   // object (#6815).
 
-  test.equal(filter1.domains, filter2.domains);
-  test.equal(filter3.domains, filter4.domains);
+  assert.equal(filter1.domains, filter2.domains);
+  assert.equal(filter3.domains, filter4.domains);
 
   let filter5 = Filter.fromText("bar$domain=www.example.com");
   let filter6 = Filter.fromText("www.example.com##.bar");
 
-  test.notEqual(filter2.domains, filter5.domains);
-  test.notEqual(filter4.domains, filter6.domains);
+  assert.notEqual(filter2.domains, filter5.domains);
+  assert.notEqual(filter4.domains, filter6.domains);
 
   test.done();
 };

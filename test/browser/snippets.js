@@ -27,24 +27,24 @@ window.browser = {
   }
 };
 
-function expectHidden(test, element, id)
+function expectHidden(element, id)
 {
   let withId = "";
   if (typeof id != "undefined")
     withId = ` with ID '${id}'`;
 
-  test.equal(
+  assert.equal(
     window.getComputedStyle(element).display, "none",
     `The element${withId}'s display property should be set to 'none'`);
 }
 
-function expectVisible(test, element, id)
+function expectVisible(element, id)
 {
   let withId = "";
   if (typeof id != "undefined")
     withId = ` with ID '${id}'`;
 
-  test.notEqual(
+  assert.notEqual(
     window.getComputedStyle(element).display, "none",
     `The element${withId}'s display property should not be set to 'none'`);
 }
@@ -53,7 +53,7 @@ async function runSnippet(test, snippetName, ...args)
 {
   let snippet = library[snippetName];
 
-  test.ok(snippet);
+  assert.ok(snippet);
 
   snippet(...args);
 
@@ -81,16 +81,16 @@ exports.testAbortOnPropertyReadSnippet = async function(test)
     }
     catch (e)
     {
-      test.equal(e.name, errorName);
+      assert.equal(e.name, errorName);
       exceptionCaught = true;
     }
 
-    test.equal(
+    assert.equal(
       exceptionCaught,
       result,
       `The property "${property}" ${result ? "should" : "shouldn't"} trigger an exception.`
     );
-    test.equal(
+    assert.equal(
       value,
       result ? 1 : undefined,
       `The value for "${property}" ${result ? "shouldn't" : "should"} have been read.`
@@ -218,16 +218,16 @@ exports.testAbortCurrentInlineScriptSnippet = async function(test)
   injectInlineScript(document, script);
 
   let element = document.getElementById("result1");
-  test.ok(element, "Element 'result1' was not found");
+  assert.ok(element, "Element 'result1' was not found");
 
   let msg = document.getElementById("message1");
-  test.ok(msg, "Element 'message1' was not found");
+  assert.ok(msg, "Element 'message1' was not found");
 
   if (element && msg)
   {
-    test.equals(element.textContent, "", "Result element should be empty");
-    test.equals(msg.textContent, "ReferenceError",
-                "There should have been an error");
+    assert.equal(element.textContent, "", "Result element should be empty");
+    assert.equal(msg.textContent, "ReferenceError",
+                 "There should have been an error");
   }
 
   script = `
@@ -246,16 +246,16 @@ exports.testAbortCurrentInlineScriptSnippet = async function(test)
   injectInlineScript(document, script);
 
   element = document.getElementById("result2");
-  test.ok(element, "Element 'result2' was not found");
+  assert.ok(element, "Element 'result2' was not found");
 
   msg = document.getElementById("message2");
-  test.ok(msg, "Element 'message2' was not found");
+  assert.ok(msg, "Element 'message2' was not found");
 
   if (element && msg)
   {
-    test.equals(element.textContent, "", "Result element should be empty");
-    test.equals(msg.textContent, "ReferenceError",
-                "There should have been an error");
+    assert.equal(element.textContent, "", "Result element should be empty");
+    assert.equal(msg.textContent, "ReferenceError",
+                 "There should have been an error");
   }
 
   test.done();
@@ -336,25 +336,25 @@ exports.testHideIfContainsVisibleText = async function(test)
   );
 
   let element = document.getElementById("label");
-  expectHidden(test, element, "label");
+  expectHidden(element, "label");
   element = document.getElementById("label2");
-  expectHidden(test, element, "label2");
+  expectHidden(element, "label2");
 
   element = document.getElementById("article");
-  expectVisible(test, element, "article");
+  expectVisible(element, "article");
   element = document.getElementById("article2");
-  expectVisible(test, element, "article2");
+  expectVisible(element, "article2");
 
   await runSnippet(
     test, "hide-if-contains-visible-text", "Spon", "#parent > article", "#parent > article a"
   );
 
   element = document.getElementById("article");
-  expectVisible(test, element, "article");
+  expectVisible(element, "article");
   element = document.getElementById("article2");
-  expectHidden(test, element, "article2");
+  expectHidden(element, "article2");
   element = document.getElementById("article3");
-  expectVisible(test, element, "article3");
+  expectVisible(element, "article3");
 
   test.done();
 };

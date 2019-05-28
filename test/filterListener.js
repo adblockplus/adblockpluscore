@@ -17,6 +17,7 @@
 
 "use strict";
 
+const assert = require("assert");
 const {createSandbox} = require("./_common");
 let sandboxedRequire = null;
 
@@ -25,6 +26,7 @@ let Subscription = null;
 let Filter = null;
 let defaultMatcher = null;
 let SpecialSubscription = null;
+let recommendations = null;
 
 exports.setUp = function(callback)
 {
@@ -44,7 +46,8 @@ exports.setUp = function(callback)
     {filterStorage} = sandboxedRequire("../lib/filterStorage"),
     {Subscription, SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
     {Filter} = sandboxedRequire("../lib/filterClasses"),
-    {defaultMatcher} = sandboxedRequire("../lib/matcher")
+    {defaultMatcher} = sandboxedRequire("../lib/matcher"),
+    recommendations = sandboxedRequire("../data/subscriptions.json")
   );
 
   filterStorage.addSubscription(Subscription.fromURL("~fl~"));
@@ -58,7 +61,7 @@ exports.setUp = function(callback)
   callback();
 };
 
-function checkKnownFilters(test, text, expected)
+function checkKnownFilters(text, expected)
 {
   let result = {};
   for (let type of ["blacklist", "whitelist"])
@@ -72,7 +75,7 @@ function checkKnownFilters(test, text, expected)
       {
         for (let filter of set)
         {
-          test.equal(matcher.findKeyword(filter), keyword,
+          assert.equal(matcher.findKeyword(filter), keyword,
                      "Keyword of filter " + filter.text);
           filters.push(filter.text);
         }
@@ -112,7 +115,7 @@ function checkKnownFilters(test, text, expected)
     result[type].sort();
   }
 
-  test.deepEqual(result, expected, text);
+  assert.deepEqual(result, expected, text);
 }
 
 exports.testAddingAndRemovingFilters = function(test)
@@ -126,28 +129,28 @@ exports.testAddingAndRemovingFilters = function(test)
   let filter7 = Filter.fromText("example.com#@#[-abp-properties='filter7']");
 
   filterStorage.addFilter(filter1);
-  checkKnownFilters(test, "add filter1", {blacklist: [filter1.text]});
+  checkKnownFilters("add filter1", {blacklist: [filter1.text]});
   filterStorage.addFilter(filter2);
-  checkKnownFilters(test, "add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
   filterStorage.addFilter(filter3);
-  checkKnownFilters(test, "add ##filter3", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text]});
+  checkKnownFilters("add ##filter3", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text]});
   filterStorage.addFilter(filter4);
-  checkKnownFilters(test, "add !filter4", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text]});
+  checkKnownFilters("add !filter4", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text]});
   filterStorage.addFilter(filter5);
-  checkKnownFilters(test, "add #@#filter5", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text]});
+  checkKnownFilters("add #@#filter5", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text]});
   filterStorage.addFilter(filter6);
-  checkKnownFilters(test, "add example.com##:-abp-properties(filter6)", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters("add example.com##:-abp-properties(filter6)", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], elemhideemulation: [filter6.text]});
   filterStorage.addFilter(filter7);
-  checkKnownFilters(test, "add example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters("add example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   filterStorage.removeFilter(filter1);
-  checkKnownFilters(test, "remove filter1", {whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters("remove filter1", {whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
   filter2.disabled = true;
-  checkKnownFilters(test, "disable filter2", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters("disable filter2", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
   filterStorage.removeFilter(filter2);
-  checkKnownFilters(test, "remove filter2", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters("remove filter2", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
   filterStorage.removeFilter(filter4);
-  checkKnownFilters(test, "remove filter4", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters("remove filter4", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   test.done();
 };
@@ -162,34 +165,34 @@ exports.testDisablingEnablingFiltersNotInTheList = function(test)
   let filter6 = Filter.fromText("example.com#@#[-abp-properties='filter6']");
 
   filter1.disabled = true;
-  checkKnownFilters(test, "disable filter1 while not in list", {});
+  checkKnownFilters("disable filter1 while not in list", {});
   filter1.disabled = false;
-  checkKnownFilters(test, "enable filter1 while not in list", {});
+  checkKnownFilters("enable filter1 while not in list", {});
 
   filter2.disabled = true;
-  checkKnownFilters(test, "disable @@filter2 while not in list", {});
+  checkKnownFilters("disable @@filter2 while not in list", {});
   filter2.disabled = false;
-  checkKnownFilters(test, "enable @@filter2 while not in list", {});
+  checkKnownFilters("enable @@filter2 while not in list", {});
 
   filter3.disabled = true;
-  checkKnownFilters(test, "disable ##filter3 while not in list", {});
+  checkKnownFilters("disable ##filter3 while not in list", {});
   filter3.disabled = false;
-  checkKnownFilters(test, "enable ##filter3 while not in list", {});
+  checkKnownFilters("enable ##filter3 while not in list", {});
 
   filter4.disabled = true;
-  checkKnownFilters(test, "disable #@#filter4 while not in list", {});
+  checkKnownFilters("disable #@#filter4 while not in list", {});
   filter4.disabled = false;
-  checkKnownFilters(test, "enable #@#filter4 while not in list", {});
+  checkKnownFilters("enable #@#filter4 while not in list", {});
 
   filter5.disabled = true;
-  checkKnownFilters(test, "disable example.com#?#:-abp-properties(filter5) while not in list", {});
+  checkKnownFilters("disable example.com#?#:-abp-properties(filter5) while not in list", {});
   filter5.disabled = false;
-  checkKnownFilters(test, "enable example.com#?#:-abp-properties(filter5) while not in list", {});
+  checkKnownFilters("enable example.com#?#:-abp-properties(filter5) while not in list", {});
 
   filter6.disabled = true;
-  checkKnownFilters(test, "disable example.com#@#[-abp-properties='filter6'] while not in list", {});
+  checkKnownFilters("disable example.com#@#[-abp-properties='filter6'] while not in list", {});
   filter6.disabled = false;
-  checkKnownFilters(test, "enable example.com#@#[-abp-properties='filter6'] while not in list", {});
+  checkKnownFilters("enable example.com#@#[-abp-properties='filter6'] while not in list", {});
 
   test.done();
 };
@@ -215,60 +218,60 @@ exports.testFilterSubscriptionOperations = function(test)
   subscription.addFilter(filter7);
 
   filterStorage.addSubscription(subscription);
-  checkKnownFilters(test, "add subscription with filter1, @@filter2, ##filter3, !filter4, #@#filter5, example.com#?#:-abp-properties(filter6), example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters("add subscription with filter1, @@filter2, ##filter3, !filter4, #@#filter5, example.com#?#:-abp-properties(filter6), example.com#@#[-abp-properties='filter7']", {blacklist: [filter1.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   filter2.disabled = false;
-  checkKnownFilters(test, "enable @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters("enable @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   filterStorage.addFilter(filter1);
-  checkKnownFilters(test, "add filter1", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+  checkKnownFilters("add filter1", {blacklist: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
   filterStorage.updateSubscriptionFilters(subscription, [filter4.text]);
-  checkKnownFilters(test, "change subscription filters to filter4", {blacklist: [filter1.text]});
+  checkKnownFilters("change subscription filters to filter4", {blacklist: [filter1.text]});
 
   filterStorage.removeFilter(filter1);
-  checkKnownFilters(test, "remove filter1", {});
+  checkKnownFilters("remove filter1", {});
 
   filterStorage.updateSubscriptionFilters(subscription, [filter1.text, filter2.text]);
-  checkKnownFilters(test, "change subscription filters to filter1, filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("change subscription filters to filter1, filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filter1.disabled = true;
-  checkKnownFilters(test, "disable filter1", {whitelist: [filter2.text]});
+  checkKnownFilters("disable filter1", {whitelist: [filter2.text]});
   filter2.disabled = true;
-  checkKnownFilters(test, "disable filter2", {});
+  checkKnownFilters("disable filter2", {});
   filter1.disabled = false;
   filter2.disabled = false;
-  checkKnownFilters(test, "enable filter1, filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("enable filter1, filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filterStorage.addFilter(filter1);
-  checkKnownFilters(test, "add filter1", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("add filter1", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   subscription.disabled = true;
-  checkKnownFilters(test, "disable subscription", {blacklist: [filter1.text]});
+  checkKnownFilters("disable subscription", {blacklist: [filter1.text]});
 
   filterStorage.removeSubscription(subscription);
-  checkKnownFilters(test, "remove subscription", {blacklist: [filter1.text]});
+  checkKnownFilters("remove subscription", {blacklist: [filter1.text]});
 
   filterStorage.addSubscription(subscription);
-  checkKnownFilters(test, "add subscription", {blacklist: [filter1.text]});
+  checkKnownFilters("add subscription", {blacklist: [filter1.text]});
 
   subscription.disabled = false;
-  checkKnownFilters(test, "enable subscription", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("enable subscription", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   subscription.disabled = true;
-  checkKnownFilters(test, "disable subscription", {blacklist: [filter1.text]});
+  checkKnownFilters("disable subscription", {blacklist: [filter1.text]});
 
   filterStorage.addFilter(filter2);
-  checkKnownFilters(test, "add filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("add filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filterStorage.removeFilter(filter2);
-  checkKnownFilters(test, "remove filter2", {blacklist: [filter1.text]});
+  checkKnownFilters("remove filter2", {blacklist: [filter1.text]});
 
   subscription.disabled = false;
-  checkKnownFilters(test, "enable subscription", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("enable subscription", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filterStorage.removeSubscription(subscription);
-  checkKnownFilters(test, "remove subscription", {blacklist: [filter1.text]});
+  checkKnownFilters("remove subscription", {blacklist: [filter1.text]});
 
   test.done();
 };
@@ -287,55 +290,55 @@ exports.testFilterGroupOperations = function(test)
 
   filterStorage.addSubscription(subscription);
   filterStorage.addFilter(filter1);
-  checkKnownFilters(test, "initial setup", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("initial setup", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   let subscription2 = Subscription.fromURL("~fl~");
   subscription2.disabled = true;
-  checkKnownFilters(test, "disable blocking filters", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("disable blocking filters", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filterStorage.removeSubscription(subscription);
-  checkKnownFilters(test, "remove subscription", {});
+  checkKnownFilters("remove subscription", {});
 
   subscription2.disabled = false;
-  checkKnownFilters(test, "enable blocking filters", {blacklist: [filter1.text]});
+  checkKnownFilters("enable blocking filters", {blacklist: [filter1.text]});
 
   let subscription3 = Subscription.fromURL("~wl~");
   subscription3.disabled = true;
-  checkKnownFilters(test, "disable exception rules", {blacklist: [filter1.text]});
+  checkKnownFilters("disable exception rules", {blacklist: [filter1.text]});
 
   filterStorage.addFilter(filter2);
-  checkKnownFilters(test, "add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
-  test.equal([...filterStorage.subscriptions(filter2.text)].length, 1, "@@filter2 subscription count");
-  test.ok([...filterStorage.subscriptions(filter2.text)][0] instanceof SpecialSubscription, "@@filter2 added to a new filter group");
-  test.ok([...filterStorage.subscriptions(filter2.text)][0] != subscription3, "@@filter2 filter group is not the disabled exceptions group");
+  checkKnownFilters("add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  assert.equal([...filterStorage.subscriptions(filter2.text)].length, 1, "@@filter2 subscription count");
+  assert.ok([...filterStorage.subscriptions(filter2.text)][0] instanceof SpecialSubscription, "@@filter2 added to a new filter group");
+  assert.ok([...filterStorage.subscriptions(filter2.text)][0] != subscription3, "@@filter2 filter group is not the disabled exceptions group");
 
   subscription3.disabled = false;
-  checkKnownFilters(test, "enable exception rules", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("enable exception rules", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filterStorage.removeFilter(filter2);
   filterStorage.addFilter(filter2);
-  checkKnownFilters(test, "re-add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
-  test.equal([...filterStorage.subscriptions(filter2.text)].length, 1, "@@filter2 subscription count");
-  test.ok([...filterStorage.subscriptions(filter2.text)][0] == subscription3, "@@filter2 added to the default exceptions group");
+  checkKnownFilters("re-add @@filter2", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  assert.equal([...filterStorage.subscriptions(filter2.text)].length, 1, "@@filter2 subscription count");
+  assert.ok([...filterStorage.subscriptions(filter2.text)][0] == subscription3, "@@filter2 added to the default exceptions group");
 
   let subscription4 = Subscription.fromURL("http://test/");
   filterStorage.updateSubscriptionFilters(subscription4, [filter3.text, filter4.text, filter5.text]);
-  checkKnownFilters(test, "update subscription not in the list yet", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("update subscription not in the list yet", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   filterStorage.addSubscription(subscription4);
-  checkKnownFilters(test, "add subscription to the list", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text, filter4.text]});
+  checkKnownFilters("add subscription to the list", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text, filter4.text]});
 
   filterStorage.updateSubscriptionFilters(subscription4, [filter3.text, filter2.text, filter5.text]);
-  checkKnownFilters(test, "update subscription while in the list", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text]});
+  checkKnownFilters("update subscription while in the list", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text]});
 
   subscription3.disabled = true;
-  checkKnownFilters(test, "disable exception rules", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text]});
+  checkKnownFilters("disable exception rules", {blacklist: [filter1.text, filter3.text], whitelist: [filter2.text]});
 
   filterStorage.removeSubscription(subscription4);
-  checkKnownFilters(test, "remove subscription from the list", {blacklist: [filter1.text]});
+  checkKnownFilters("remove subscription from the list", {blacklist: [filter1.text]});
 
   subscription3.disabled = false;
-  checkKnownFilters(test, "enable exception rules", {blacklist: [filter1.text], whitelist: [filter2.text]});
+  checkKnownFilters("enable exception rules", {blacklist: [filter1.text], whitelist: [filter2.text]});
 
   test.done();
 };
@@ -344,33 +347,35 @@ exports.testSnippetFilters = function(test)
 {
   let filter1 = Filter.fromText("example.com#$#filter1");
   let filter2 = Filter.fromText("example.com#$#filter2");
-  let filter3 = Filter.fromText("example.com#$#filter3");
 
   let subscription1 = Subscription.fromURL("http://test1/");
+  assert.equal(subscription1.type, null);
+
   subscription1.addFilter(filter1);
   subscription1.addFilter(filter2);
 
   filterStorage.addSubscription(subscription1);
-  checkKnownFilters(test, "add subscription with filter1 and filter2", {});
+  checkKnownFilters("add subscription with filter1 and filter2", {});
 
-  let subscription2 = Subscription.fromURL("http://test2/");
-  subscription2.type = "circumvention";
+  let {url: circumventionURL} = recommendations.find(
+    ({type}) => type == "circumvention"
+  );
+
+  let subscription2 = Subscription.fromURL(circumventionURL);
+  assert.equal(subscription2.type, "circumvention");
+
   subscription2.addFilter(filter1);
 
   filterStorage.addSubscription(subscription2);
-  checkKnownFilters(test, "add subscription of type circumvention with filter1", {snippets: [filter1.text]});
+  checkKnownFilters("add subscription of type circumvention with filter1", {snippets: [filter1.text]});
 
   let subscription3 = Subscription.fromURL("~foo");
+  assert.equal(subscription3.type, null);
+
   subscription3.addFilter(filter2);
 
   filterStorage.addSubscription(subscription3);
-  checkKnownFilters(test, "add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
-
-  let subscription4 = Subscription.fromURL("https://easylist-downloads.adblockplus.org/abp-filters-anti-cv.txt");
-  subscription4.addFilter(filter3);
-
-  filterStorage.addSubscription(subscription4);
-  checkKnownFilters(test, "add ABP anti-circumvention subscription with filter3", {snippets: [filter1.text, filter2.text, filter3.text]});
+  checkKnownFilters("add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
 
   test.done();
 };

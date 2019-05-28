@@ -319,5 +319,5 @@ exports.setupRandomResult = function()
 exports.unexpectedError = function(error)
 {
   console.error(error);
-  this.ok(false, "Unexpected error: " + error);
+  this.ifError(error);
 };
