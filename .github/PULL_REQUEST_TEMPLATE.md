@@ -1,9 +1,10 @@
 Hi,
 
-You tried to submit a pull request for this adblockpluscore.
+You tried to submit a pull request for adblockpluscore.
 
-While we love github, the project is hosted on gitlab.
+While we love GitHub, the project is hosted on GitLab, therefor we do
+not monitor pull request submitted on GitHub.
 
-Please visit https://gitlab.com/eyeo/adblockplus/adblockpluscore.
+Please visit: https://gitlab.com/eyeo/adblockplus/adblockpluscore
 
 Thank you.
