@@ -27,30 +27,36 @@
 
 ---
 
+before_script:
+  - "[ -z \"$BROWSER_SNAPSHOT_DIR\" ] || mkdir -p $BROWSER_SNAPSHOT_DIR"
+  - |
+    if [[ "$CI_RUNNER_DESCRIPTION" == *gitlab.com ]]; then
+      apt-get update;
+      apt-get install -y apt-transport-https python-pip libgtk-3-0 libxt6 \
+        xvfb libnss3 libxss1 libgconf-2-4 libasound2;
+      curl -sL https://deb.nodesource.com/setup_8.x | bash -;
+      apt-get update -y;
+      apt-get install -y nodejs;
+    fi
+  - mkdir -p .git/info
+  - ./ensure_dependencies.py
+  - npm install
+
 tests:
-  before_script:
-    # Since we already use the "before_script" in order to setup dependencies
-    # we must also install other dependencies here, which would have already
-    # been available on the specific runners. Unfortunately, YAML doesn't
-    # support proper mutli-inheritance, so we need to fallback to the following
-    # inline shell script.
-    - mkdir -p $BROWSER_SNAPSHOT_DIR
-    - |
-      if [[ "$CI_RUNNER_DESCRIPTION" == *gitlab.com ]]; then
-        apt-get update;
-        apt-get install -y apt-transport-https python-pip libgtk-3-0 libxt6 \
-          xvfb libnss3 libxss1 libgconf-2-4 libasound2;
-        curl -sL https://deb.nodesource.com/setup_8.x | bash -;
-        apt-get update -y;
-        apt-get install -y nodejs;
-      fi
-    - mkdir -p .git/info
-    - ./ensure_dependencies.py
-    - npm install
   script:
     - npm test
   variables:
     BROWSER_SNAPSHOT_DIR: "/tmp/browser-snapshots/"
+  retry:
+    max: 2
+    when: stuck_or_timeout_failure
+
+docs:
+  script:
+    - npm run docs
+  artifacts:
+    paths:
+      - docs/
   retry:
     max: 2
     when: stuck_or_timeout_failure
