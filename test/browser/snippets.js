@@ -374,3 +374,111 @@ exports.testHideIfContainsVisibleText = async function(test)
 
   test.done();
 };
+
+exports.testhideIfContainsImageHash = async function(test)
+{
+  document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9ba0WqDnZQcchQnSyIijhqFYpQIdQKrTqYXPoFTRqSFBdHwbXg4Mdi1cHFWVcHV0EQ/ABxcXVSdJES/5cUWsR4cNyPd/ced+8Af73MVLNjHFA1y0gl4kImuyqEXhFEJ0IYRK/ETH1OFJPwHF/38PH1LsazvM/9OXqUnMkAn0A8y3TDIt4gnt60dM77xBFWlBTic+Ixgy5I/Mh12eU3zgWH/TwzYqRT88QRYqHQxnIbs6KhEk8RRxVVo3x/xmWF8xZntVxlzXvyF4Zz2soy12kOI4FFLEGEABlVlFCGhRitGikmUrQf9/APOX6RXDK5SmDkWEAFKiTHD/4Hv7s185MTblI4DgRfbPtjBAjtAo2abX8f23bjBAg8A1day1+pAzOfpNdaWvQI6NsGLq5bmrwHXO4AA0+6ZEiOFKDpz+eB9zP6pizQfwt0r7m9Nfdx+gCkqavkDXBwCIwWKHvd491d7b39e6bZ3w/1+HJ1S9l56wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFBgcZNA50WAgAAAAMSURBVAjXY/j//z8ABf4C/tzMWecAAAAASUVORK5CYII=\" /><img id=\"img-2\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCA0KNmzdilMAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12NgYGAAAAAEAAEnNCcKAAAAAElFTkSuQmCC\" />";
+
+  runSnippet(test, "hide-if-contains-image-hash", "8000000000000000");
+
+  // Since the images are blocked via an async event handler (onload) we need
+  // to give the snippet an opportunity to execute
+  await timeout(100);
+
+  expectHidden(document.getElementById("img-1"), "img-1");
+  expectVisible(document.getElementById("img-2"), "img-2");
+
+  document.body.innerHTML = "<div id=\"div-1\"><img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9ba0WqDnZQcchQnSyIijhqFYpQIdQKrTqYXPoFTRqSFBdHwbXg4Mdi1cHFWVcHV0EQ/ABxcXVSdJES/5cUWsR4cNyPd/ced+8Af73MVLNjHFA1y0gl4kImuyqEXhFEJ0IYRK/ETH1OFJPwHF/38PH1LsazvM/9OXqUnMkAn0A8y3TDIt4gnt60dM77xBFWlBTic+Ixgy5I/Mh12eU3zgWH/TwzYqRT88QRYqHQxnIbs6KhEk8RRxVVo3x/xmWF8xZntVxlzXvyF4Zz2soy12kOI4FFLEGEABlVlFCGhRitGikmUrQf9/APOX6RXDK5SmDkWEAFKiTHD/4Hv7s185MTblI4DgRfbPtjBAjtAo2abX8f23bjBAg8A1day1+pAzOfpNdaWvQI6NsGLq5bmrwHXO4AA0+6ZEiOFKDpz+eB9zP6pizQfwt0r7m9Nfdx+gCkqavkDXBwCIwWKHvd491d7b39e6bZ3w/1+HJ1S9l56wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFBgcZNA50WAgAAAAMSURBVAjXY/j//z8ABf4C/tzMWecAAAAASUVORK5CYII=\" /></div>";
+
+  runSnippet(test, "hide-if-contains-image-hash", "8000000000000000", "#div-1");
+
+  await timeout(100);
+
+  expectHidden(document.getElementById("div-1"), "div-1");
+  expectVisible(document.getElementById("img-1"), "img-1");
+
+  document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9ba0WqDnZQcchQnSyIijhqFYpQIdQKrTqYXPoFTRqSFBdHwbXg4Mdi1cHFWVcHV0EQ/ABxcXVSdJES/5cUWsR4cNyPd/ced+8Af73MVLNjHFA1y0gl4kImuyqEXhFEJ0IYRK/ETH1OFJPwHF/38PH1LsazvM/9OXqUnMkAn0A8y3TDIt4gnt60dM77xBFWlBTic+Ixgy5I/Mh12eU3zgWH/TwzYqRT88QRYqHQxnIbs6KhEk8RRxVVo3x/xmWF8xZntVxlzXvyF4Zz2soy12kOI4FFLEGEABlVlFCGhRitGikmUrQf9/APOX6RXDK5SmDkWEAFKiTHD/4Hv7s185MTblI4DgRfbPtjBAjtAo2abX8f23bjBAg8A1day1+pAzOfpNdaWvQI6NsGLq5bmrwHXO4AA0+6ZEiOFKDpz+eB9zP6pizQfwt0r7m9Nfdx+gCkqavkDXBwCIwWKHvd491d7b39e6bZ3w/1+HJ1S9l56wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFBgcZNA50WAgAAAAMSURBVAjXY/j//z8ABf4C/tzMWecAAAAASUVORK5CYII=\" /><img id=\"img-2\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCA0KNmzdilMAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12NgYGAAAAAEAAEnNCcKAAAAAElFTkSuQmCC\" />";
+
+  runSnippet(test, "hide-if-contains-image-hash", "0800000000000000", null, 1);
+
+  await timeout(100);
+
+  expectVisible(document.getElementById("img-1"), "img-1");
+  expectHidden(document.getElementById("img-2"), "img-2");
+
+  document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9ba0WqDnZQcchQnSyIijhqFYpQIdQKrTqYXPoFTRqSFBdHwbXg4Mdi1cHFWVcHV0EQ/ABxcXVSdJES/5cUWsR4cNyPd/ced+8Af73MVLNjHFA1y0gl4kImuyqEXhFEJ0IYRK/ETH1OFJPwHF/38PH1LsazvM/9OXqUnMkAn0A8y3TDIt4gnt60dM77xBFWlBTic+Ixgy5I/Mh12eU3zgWH/TwzYqRT88QRYqHQxnIbs6KhEk8RRxVVo3x/xmWF8xZntVxlzXvyF4Zz2soy12kOI4FFLEGEABlVlFCGhRitGikmUrQf9/APOX6RXDK5SmDkWEAFKiTHD/4Hv7s185MTblI4DgRfbPtjBAjtAo2abX8f23bjBAg8A1day1+pAzOfpNdaWvQI6NsGLq5bmrwHXO4AA0+6ZEiOFKDpz+eB9zP6pizQfwt0r7m9Nfdx+gCkqavkDXBwCIwWKHvd491d7b39e6bZ3w/1+HJ1S9l56wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFBgcZNA50WAgAAAAMSURBVAjXY/j//z8ABf4C/tzMWecAAAAASUVORK5CYII=\" />";
+
+  runSnippet(
+    test,
+    "hide-if-contains-image-hash",
+    "8000000000000000000000000000000000000000000000000000000000000000",
+    null,
+    null,
+    16);
+
+  await timeout(100);
+
+  expectHidden(document.getElementById("img-1"), "img-1");
+
+  document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCQkxNu/aqtIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAD0lEQVQI12P4//8/AwMDAA74Av7BVpVFAAAAAElFTkSuQmCC\" />";
+
+  runSnippet(
+    test,
+    "hide-if-contains-image-hash",
+    "8000000000000000",
+    null,
+    null,
+    null,
+    "0x0x1x1");
+
+  await timeout(100);
+
+  expectHidden(document.getElementById("img-1"), "img-1");
+
+  document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCQkxNu/aqtIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAD0lEQVQI12P4//8/AwMDAA74Av7BVpVFAAAAAElFTkSuQmCC\" />";
+
+  runSnippet(
+    test,
+    "hide-if-contains-image-hash",
+    "0000000000000000",
+    null,
+    null,
+    null,
+    "1x0x1x1");
+
+  await timeout(100);
+
+  expectHidden(document.getElementById("img-1"), "img-1");
+
+  document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCQkxNu/aqtIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAD0lEQVQI12P4//8/AwMDAA74Av7BVpVFAAAAAElFTkSuQmCC\" />";
+
+  runSnippet(
+    test,
+    "hide-if-contains-image-hash",
+    "0000000000000000",
+    null,
+    null,
+    null,
+    "1x0x1x1");
+
+  await timeout(100);
+
+  expectHidden(document.getElementById("img-1"), "img-1");
+
+  document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCQkxNu/aqtIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAD0lEQVQI12P4//8/AwMDAA74Av7BVpVFAAAAAElFTkSuQmCC\" />";
+
+  runSnippet(
+    test,
+    "hide-if-contains-image-hash",
+    "8000000000000000",
+    null,
+    null,
+    null,
+    "1x1x-1x-1");
+
+  await timeout(100);
+
+  expectHidden(document.getElementById("img-1"), "img-1");
+
+  test.done();
+};
