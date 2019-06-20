@@ -150,8 +150,11 @@ async function applyElemHideEmulation(test, selectors)
     let elemHideEmulation = new ElemHideEmulation(
       elems =>
       {
+        // Firefox will send mutation notifications even if the
+        // property is set to the same value.
         for (let elem of elems)
-          elem.style.display = "none";
+          if (elem.style.display != "none")
+            elem.style.display = "none";
       }
     );
 
