@@ -81,7 +81,10 @@ function compareFilterSubscriptions(testMessage, filter, list)
 {
   let result = [...filterStorage.subscriptions(filter.text)].map(subscription => subscription.url);
   let expected = list.map(subscription => subscription.url);
+
   assert.deepEqual(result, expected, testMessage);
+  assert.equal(filterStorage.getSubscriptionCount(filter.text), expected.length,
+               testMessage + " (getSubscriptionCount)");
 }
 
 exports.testAddingSubscriptions = function(test)
