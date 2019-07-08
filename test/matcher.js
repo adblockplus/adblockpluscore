@@ -120,17 +120,6 @@ function checkSearch(test, filters, location, contentType, docDomain,
                    filterType + ") with:\n" + filters.join("\n"));
 }
 
-function cacheCheck(test, matcher, location, contentType, docDomain, expected)
-{
-  let url = parseURL(location);
-
-  let result = matcher.matchesAny(url, RegExpFilter.typeMap[contentType], docDomain);
-  if (result)
-    result = result.text;
-
-  assert.equal(result, expected, "match(" + location + ", " + contentType + ", " + docDomain + ") with static filters");
-}
-
 exports.testMatcherClassDefinitions = function(test)
 {
   assert.equal(typeof Matcher, "function", "typeof Matcher");
@@ -295,40 +284,6 @@ exports.testFilterSearch = function(test)
   // Non-matching specificity.
   checkSearch(test, filters, "http://example.com/foo", "IMAGE", "example.com",
               null, true, "all", {blocking: [], whitelist: ["@@foo"]});
-
-  test.done();
-};
-
-exports.testResultCacheChecks = function(test)
-{
-  let matcher = new CombinedMatcher();
-  matcher.add(Filter.fromText("abc$image"));
-  matcher.add(Filter.fromText("abc$script"));
-  matcher.add(Filter.fromText("abc$~image,~script,~media,~ping"));
-  matcher.add(Filter.fromText("cba$third-party"));
-  matcher.add(Filter.fromText("cba$~third-party,~script"));
-  matcher.add(Filter.fromText("http://def$image"));
-  matcher.add(Filter.fromText("http://def$script"));
-  matcher.add(Filter.fromText("http://def$~image,~script,~media,~ping"));
-  matcher.add(Filter.fromText("http://fed$third-party"));
-  matcher.add(Filter.fromText("http://fed$~third-party,~script"));
-
-  cacheCheck(test, matcher, "http://abc", "IMAGE", null, "abc$image");
-  cacheCheck(test, matcher, "http://abc", "SCRIPT", null, "abc$script");
-  cacheCheck(test, matcher, "http://abc", "OTHER", null, "abc$~image,~script,~media,~ping");
-  cacheCheck(test, matcher, "http://cba", "IMAGE", null, "cba$~third-party,~script");
-  cacheCheck(test, matcher, "http://cba", "IMAGE", "other-domain", "cba$third-party");
-  cacheCheck(test, matcher, "http://def", "IMAGE", null, "http://def$image");
-  cacheCheck(test, matcher, "http://def", "SCRIPT", null, "http://def$script");
-  cacheCheck(test, matcher, "http://def", "OTHER", null, "http://def$~image,~script,~media,~ping");
-  cacheCheck(test, matcher, "http://fed", "IMAGE", null, "http://fed$~third-party,~script");
-  cacheCheck(test, matcher, "http://fed", "IMAGE", "other-domain", "http://fed$third-party");
-  cacheCheck(test, matcher, "http://abc_cba", "MEDIA", null, "cba$~third-party,~script");
-  cacheCheck(test, matcher, "http://abc_cba", "MEDIA", "other-domain", "cba$third-party");
-  cacheCheck(test, matcher, "http://abc_cba", "SCRIPT", null, "abc$script");
-  cacheCheck(test, matcher, "http://def?http://fed", "MEDIA", null, "http://fed$~third-party,~script");
-  cacheCheck(test, matcher, "http://def?http://fed", "MEDIA", "other-domain", "http://fed$third-party");
-  cacheCheck(test, matcher, "http://def?http://fed", "SCRIPT", null, "http://def$script");
 
   test.done();
 };
