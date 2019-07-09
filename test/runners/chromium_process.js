@@ -39,8 +39,11 @@ function runScript(chromiumPath, script, scriptName, scriptArgs)
         .addArguments("--no-sandbox")
         .setChromeBinaryPath(chromiumPath);
   // Headless doesn't seem to work on Windows.
-  if (process.platform != "win32")
+  if (process.platform != "win32" &&
+      process.env.BROWSER_TEST_HEADLESS != "0")
+  {
     options.headless();
+  }
 
   const driver = new Builder()
         .forBrowser("chrome")

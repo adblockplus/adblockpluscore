@@ -41,6 +41,10 @@ BROWSER_TEST_RUNNERS environment, the default is
 
 You can not set a specific version of the browser at runtime.
 
+Browser tests run headless by default (except on Windows). If you want
+to disable headless mode on the WebDriver controlled tests, set the
+BROWSER_TEST_HEADLESS environment to 0.
+
 ### Browser caching
 
 By default, the browsers used for testing are cached for later use in

@@ -30,7 +30,9 @@ const FIREFOX_VERSION = "57.0";
 
 function runScript(firefoxPath, script, scriptName, scriptArgs)
 {
-  const options = new firefox.Options().setBinary(firefoxPath).headless();
+  const options = new firefox.Options().setBinary(firefoxPath);
+  if (process.env.BROWSER_TEST_HEADLESS != "0")
+    options.headless();
   const driver = new Builder()
         .forBrowser("firefox")
         .setFirefoxOptions(options)
