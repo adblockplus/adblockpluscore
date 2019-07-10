@@ -594,14 +594,7 @@ exports.testGlobalOptOut = function(test)
   assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Toggle enable global opt-out");
   Notification.toggleIgnoreCategory("*");
   assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Toggle disable global opt-out");
-
-  Prefs.notifications_showui = false;
   Notification.toggleIgnoreCategory("*", false);
-  assert.ok(!Prefs.notifications_showui, "Opt-out UI will not be shown if global opt-out hasn't been enabled yet");
-  Notification.toggleIgnoreCategory("*", true);
-  assert.ok(Prefs.notifications_showui, "Opt-out UI will be shown after enabling global opt-out");
-  Notification.toggleIgnoreCategory("*", false);
-  assert.ok(Prefs.notifications_showui, "Opt-out UI will be shown after enabling global opt-out even if it got disabled again");
 
   let information = {
     id: 1,
