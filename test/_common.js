@@ -26,34 +26,10 @@ const MILLIS_IN_SECOND = exports.MILLIS_IN_SECOND = 1000;
 const MILLIS_IN_MINUTE = exports.MILLIS_IN_MINUTE = 60 * MILLIS_IN_SECOND;
 const MILLIS_IN_HOUR = exports.MILLIS_IN_HOUR = 60 * MILLIS_IN_MINUTE;
 
-let Services = {
-  obs: {
-    addObserver() {}
-  }
-};
-let XPCOMUtils = {
-  generateQI() {}
-};
-let FileUtils = {};
-let resources = {Services, XPCOMUtils, FileUtils};
-
 let globals = {
   atob: data => Buffer.from(data, "base64").toString("binary"),
   btoa: data => Buffer.from(data, "binary").toString("base64"),
   Ci: {
-  },
-  Cu: {
-    import(resource)
-    {
-      let match = /^resource:\/\/gre\/modules\/(.+)\.jsm$/.exec(resource);
-      let resourceName = match && match[1];
-      if (resourceName && resources.hasOwnProperty(resourceName))
-        return {[resourceName]: resources[resourceName]};
-
-      throw new Error(
-        "Attempt to import unknown JavaScript module " + resource
-      );
-    }
   },
   console: {
     log() {},
