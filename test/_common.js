@@ -53,8 +53,7 @@ let globals = {
       throw new Error(
         "Attempt to import unknown JavaScript module " + resource
       );
-    },
-    reportError(e) {}
+    }
   },
   console: {
     log() {},
