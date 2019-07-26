@@ -29,8 +29,6 @@ const MILLIS_IN_HOUR = exports.MILLIS_IN_HOUR = 60 * MILLIS_IN_MINUTE;
 let globals = {
   atob: data => Buffer.from(data, "base64").toString("binary"),
   btoa: data => Buffer.from(data, "binary").toString("base64"),
-  Ci: {
-  },
   console: {
     log() {},
     error() {}
@@ -113,12 +111,14 @@ exports.setupTimerAndFetch = function()
     delay: -1,
     nextExecution: 0,
 
-    initWithCallback(callback, delay, type)
+    setTimeout(callback, delay)
     {
-      if (this.callback)
-        throw new Error("Only one timer instance supported");
-      if (type != 1)
-        throw new Error("Only TYPE_REPEATING_SLACK timers supported");
+      // The fake timer implementation is a holdover from the legacy extension.
+      // Due to the way it works, it is safer to allow only one callback at a
+      // time.
+      // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/43
+      if (this.callback && callback != this.callback)
+        throw new Error("Only one timer callback supported");
 
       this.callback = callback;
       this.delay = delay;
@@ -246,19 +246,7 @@ exports.setupTimerAndFetch = function()
   });
 
   return {
-    Cc: {
-      "@mozilla.org/timer;1": {
-        createInstance: () => fakeTimer
-      }
-    },
-    Ci: {
-      nsITimer:
-      {
-        TYPE_ONE_SHOT: 0,
-        TYPE_REPEATING_SLACK: 1,
-        TYPE_REPEATING_PRECISE: 2
-      }
-    },
+    setTimeout: fakeTimer.setTimeout.bind(fakeTimer),
     fetch,
     Date: Object.assign(
       function(...args) // eslint-disable-line prefer-arrow-callback

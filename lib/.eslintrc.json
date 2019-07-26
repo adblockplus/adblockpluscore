@@ -4,9 +4,6 @@
   },
   "globals": {
     "atob": true,
-    "Cc": true,
-    "Ci": true,
-    "Cu": true,
     "URL": true,
     "fetch": true
   }
