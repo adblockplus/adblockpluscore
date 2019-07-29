@@ -25,110 +25,109 @@ const data = require("../data/subscriptions.json");
 
 let recommendations = null;
 
-exports.setUp = function(callback)
+describe("Recommendations", function()
 {
-  let sandboxedRequire = createSandbox({});
-  (
-    {recommendations} = sandboxedRequire("../lib/recommendations")
-  );
-
-  callback();
-};
-
-function checkValidity(recommendation)
-{
-  for (let name of ["type", "title", "url", "homepage"])
+  beforeEach(function()
   {
-    let value = recommendation[name];
-    assert.ok(typeof value == "string" && value.length > 0);
-  }
+    let sandboxedRequire = createSandbox({});
+    (
+      {recommendations} = sandboxedRequire("../lib/recommendations")
+    );
+  });
 
-  for (let name of ["languages"])
+  function checkValidity(recommendation)
   {
-    let value = recommendation[name];
-
-    assert.ok(Array.isArray(value));
-
-    for (let element of value)
-      assert.ok(typeof element == "string" && /^[a-z]{2}$/.test(element));
-  }
-
-  for (let name of ["url", "homepage"])
-  {
-    // Make sure the value parses as a URL.
-    assert.doesNotThrow(() => new URL(recommendation[name]));
-  }
-
-  for (let name of ["url"])
-  {
-    // The URL of a recommended subscription must be HTTPS.
-    // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/5
-    assert.equal(new URL(recommendation[name]).protocol, "https:");
-  }
-}
-
-function checkEquality(recommendation, source)
-{
-  // String values.
-  for (let name of ["type", "title", "url", "homepage"])
-    assert.equal(recommendation[name], source[name]);
-
-  // Array values.
-  for (let name of ["languages"])
-    assert.deepEqual(recommendation[name], source[name] || []);
-}
-
-function checkImmutability(recommendation, source)
-{
-  // No properties can be set.
-  for (let name of ["type", "languages", "title", "url", "homepage"])
-    assert.throws(() => recommendation[name] = null);
-
-  // Modifying mutable values (arrays) has an effect on neither the
-  // recommendation nor the source.
-  for (let name of ["languages"])
-  {
-    let value = recommendation[name];
-
-    // Modify an existing element.
-    if (value.length > 0)
+    for (let name of ["type", "title", "url", "homepage"])
     {
-      value[Math.floor(Math.random() * value.length)] = null;
+      let value = recommendation[name];
+      assert.ok(typeof value == "string" && value.length > 0);
+    }
+
+    for (let name of ["languages"])
+    {
+      let value = recommendation[name];
+
+      assert.ok(Array.isArray(value));
+
+      for (let element of value)
+        assert.ok(typeof element == "string" && /^[a-z]{2}$/.test(element));
+    }
+
+    for (let name of ["url", "homepage"])
+    {
+      // Make sure the value parses as a URL.
+      assert.doesNotThrow(() => new URL(recommendation[name]));
+    }
+
+    for (let name of ["url"])
+    {
+      // The URL of a recommended subscription must be HTTPS.
+      // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/5
+      assert.equal(new URL(recommendation[name]).protocol, "https:");
+    }
+  }
+
+  function checkEquality(recommendation, source)
+  {
+    // String values.
+    for (let name of ["type", "title", "url", "homepage"])
+      assert.equal(recommendation[name], source[name]);
+
+    // Array values.
+    for (let name of ["languages"])
+      assert.deepEqual(recommendation[name], source[name] || []);
+  }
+
+  function checkImmutability(recommendation, source)
+  {
+    // No properties can be set.
+    for (let name of ["type", "languages", "title", "url", "homepage"])
+      assert.throws(() => recommendation[name] = null);
+
+    // Modifying mutable values (arrays) has an effect on neither the
+    // recommendation nor the source.
+    for (let name of ["languages"])
+    {
+      let value = recommendation[name];
+
+      // Modify an existing element.
+      if (value.length > 0)
+      {
+        value[Math.floor(Math.random() * value.length)] = null;
+        assert.notDeepEqual(value, recommendation[name]);
+        assert.notDeepEqual(value, source[name]);
+      }
+
+      // Add a new element.
+      value.push(null);
       assert.notDeepEqual(value, recommendation[name]);
       assert.notDeepEqual(value, source[name]);
     }
-
-    // Add a new element.
-    value.push(null);
-    assert.notDeepEqual(value, recommendation[name]);
-    assert.notDeepEqual(value, source[name]);
   }
-}
 
-exports.testRecommendations = function(test)
-{
-  let index = 0;
-  let knownTypes = new Set();
-
-  for (let recommendation of recommendations())
+  it("Recommendations", function()
   {
-    let source = data[index++];
+    let index = 0;
+    let knownTypes = new Set();
 
-    checkValidity(recommendation);
-    checkEquality(recommendation, source);
-    checkImmutability(recommendation, source);
+    for (let recommendation of recommendations())
+    {
+      let source = data[index++];
 
-    let {type} = recommendation;
+      checkValidity(recommendation);
+      checkEquality(recommendation, source);
+      checkImmutability(recommendation, source);
 
-    // For non-ads recommendations, there should be only one per type. This is
-    // a requirement of the WebExt UI.
-    if (type != "ads")
-      assert.equal(knownTypes.has(type), false);
+      let {type} = recommendation;
 
-    knownTypes.add(type);
-  }
+      // For non-ads recommendations, there should be only one per type. This is
+      // a requirement of the WebExt UI.
+      if (type != "ads")
+        assert.equal(knownTypes.has(type), false);
 
-  assert.equal(index, data.length);
+      knownTypes.add(type);
+    }
 
-  test.done();
-};
+    assert.equal(index, data.length);
+  });
+});
