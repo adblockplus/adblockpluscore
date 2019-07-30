@@ -23,6 +23,7 @@ const fs = require("fs");
 const path = require("path");
 
 const MemoryFS = require("memory-fs");
+const Mocha = require("mocha");
 const webpack = require("webpack");
 
 const chromiumRemoteProcess = require("./test/runners/chromium_remote_process");
@@ -30,6 +31,7 @@ const chromiumProcess = require("./test/runners/chromium_process");
 const edgeProcess = require("./test/runners/edge_process");
 const firefoxProcess = require("./test/runners/firefox_process");
 
+let unitFiles = [];
 let browserFiles = [];
 
 let runnerDefinitions = {
@@ -80,6 +82,8 @@ function addTestPaths(testPaths, recurse)
     {
       if (testPath.split(path.sep).includes("browser"))
         browserFiles.push(testPath);
+      else
+        unitFiles.push(testPath);
     }
   }
 }
@@ -175,12 +179,31 @@ if (process.argv.length > 2)
 else
 {
   addTestPaths(
-    [path.join(__dirname, "test", "browser")],
+    [path.join(__dirname, "test"), path.join(__dirname, "test", "browser")],
     true
   );
 }
 
-runBrowserTests(runnerProcesses).catch(error =>
+const mocha = new Mocha();
+mocha.checkLeaks();
+
+runBrowserTests(runnerProcesses).then(() =>
+{
+  if (unitFiles.length > 0)
+  {
+    mocha.files = unitFiles;
+    return new Promise((resolve, reject) =>
+    {
+      mocha.run(failures =>
+      {
+        if (failures)
+          reject("Tests failed");
+        else
+          resolve();
+      });
+    });
+  }
+}).catch(error =>
 {
   console.error(error);
   process.exit(1);

@@ -26,7 +26,7 @@
   "scripts": {
     "docs": "jsdoc --configure .jsdoc.conf --destination docs lib",
     "lint": "eslint *.js lib test build",
-    "test": "node test_runner.js && mocha",
+    "test": "node test_runner.js",
     "posttest": "npm run lint",
     "updatepsl": "node build/updatepsl.js",
     "update-subscriptions": "node build/updateSubscriptions.js"
