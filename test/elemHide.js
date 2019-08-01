@@ -20,13 +20,12 @@
 const assert = require("assert");
 const {createSandbox} = require("./_common");
 
-let ElemHide = null;
+let elemHide = null;
 let createStyleSheet = null;
 let rulesFromStyleSheet = null;
 let ElemHideExceptions = null;
 let Filter = null;
-let filtersByDomain = null;
-let selectorGroupSize = null;
+let SELECTOR_GROUP_SIZE = null;
 
 describe("Element hiding", function()
 {
@@ -34,12 +33,12 @@ describe("Element hiding", function()
   {
     let sandboxedRequire = createSandbox({
       extraExports: {
-        elemHide: ["filtersByDomain", "selectorGroupSize"]
+        elemHide: ["SELECTOR_GROUP_SIZE"]
       }
     });
     (
-      {ElemHide, createStyleSheet, rulesFromStyleSheet,
-       filtersByDomain, selectorGroupSize} = sandboxedRequire("../lib/elemHide"),
+      {elemHide, createStyleSheet, rulesFromStyleSheet,
+       SELECTOR_GROUP_SIZE} = sandboxedRequire("../lib/elemHide"),
       {ElemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions"),
       {Filter} = sandboxedRequire("../lib/filterClasses")
     );
@@ -61,12 +60,12 @@ describe("Element hiding", function()
     let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
 
     let {code, selectors, exceptions} =
-        ElemHide.generateStyleSheetForDomain(domain, specificOnly, true, true);
+        elemHide.generateStyleSheetForDomain(domain, specificOnly, true, true);
 
     assert.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
 
     // Test for consistency in exception free case.
-    assert.deepEqual(ElemHide.generateStyleSheetForDomain(
+    assert.deepEqual(elemHide.generateStyleSheetForDomain(
       domain, specificOnly, true, false), {
         code,
         selectors,
@@ -85,8 +84,8 @@ describe("Element hiding", function()
 
   it("Generate style sheet for domain", function()
   {
-    let addFilter = filterText => ElemHide.add(Filter.fromText(filterText));
-    let removeFilter = filterText => ElemHide.remove(Filter.fromText(filterText));
+    let addFilter = filterText => elemHide.add(Filter.fromText(filterText));
+    let removeFilter = filterText => elemHide.remove(Filter.fromText(filterText));
     let addException =
       filterText => ElemHideExceptions.add(Filter.fromText(filterText));
     let removeException =
@@ -270,7 +269,7 @@ describe("Element hiding", function()
 
   it("Zero filter key", function()
   {
-    ElemHide.add(Filter.fromText("##test"));
+    elemHide.add(Filter.fromText("##test"));
     ElemHideExceptions.add(Filter.fromText("foo.com#@#test"));
     testResult("foo.com", [], {expectedExceptions: ["foo.com#@#test"]});
     testResult("bar.com", ["test"]);
@@ -278,22 +277,22 @@ describe("Element hiding", function()
 
   it("Filters by domain", function()
   {
-    assert.equal(filtersByDomain.size, 0);
+    assert.equal(elemHide._filtersByDomain.size, 0);
 
-    ElemHide.add(Filter.fromText("##test"));
-    assert.equal(filtersByDomain.size, 0);
+    elemHide.add(Filter.fromText("##test"));
+    assert.equal(elemHide._filtersByDomain.size, 0);
 
-    ElemHide.add(Filter.fromText("example.com##test"));
-    assert.equal(filtersByDomain.size, 1);
+    elemHide.add(Filter.fromText("example.com##test"));
+    assert.equal(elemHide._filtersByDomain.size, 1);
 
-    ElemHide.add(Filter.fromText("example.com,~www.example.com##test"));
-    assert.equal(filtersByDomain.size, 2);
+    elemHide.add(Filter.fromText("example.com,~www.example.com##test"));
+    assert.equal(elemHide._filtersByDomain.size, 2);
 
-    ElemHide.remove(Filter.fromText("example.com##test"));
-    assert.equal(filtersByDomain.size, 2);
+    elemHide.remove(Filter.fromText("example.com##test"));
+    assert.equal(elemHide._filtersByDomain.size, 2);
 
-    ElemHide.remove(Filter.fromText("example.com,~www.example.com##test"));
-    assert.equal(filtersByDomain.size, 0);
+    elemHide.remove(Filter.fromText("example.com,~www.example.com##test"));
+    assert.equal(elemHide._filtersByDomain.size, 0);
   });
 
   describe("Create style sheet", function()
@@ -316,9 +315,9 @@ describe("Element hiding", function()
       let selectors = new Array(50000).fill().map((element, index) => ".s" + index);
 
       assert.equal((createStyleSheet(selectors).match(/\n/g) || []).length,
-                   Math.ceil(50000 / selectorGroupSize),
+                   Math.ceil(50000 / SELECTOR_GROUP_SIZE),
                    "Style sheet should be split up into rules with at most " +
-                   selectorGroupSize + " selectors each");
+                   SELECTOR_GROUP_SIZE + " selectors each");
     });
 
     it("Escaping", function()
