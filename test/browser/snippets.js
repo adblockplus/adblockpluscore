@@ -182,6 +182,22 @@ exports.testAbortOnPropertyReadSnippet = async function(test)
   test.done();
 };
 
+exports.testAbortOnPropertyWrite = async function(test)
+{
+  try
+  {
+    await runSnippet(test, "abort-on-property-write", "document.createElement");
+
+    let element = document.createElement("script");
+    assert.ok(!!element);
+  }
+  catch (error)
+  {
+    assert.fail(error);
+  }
+  test.done();
+};
+
 exports.testAbortCurrentInlineScriptSnippet = async function(test)
 {
   function injectInlineScript(doc, script)
