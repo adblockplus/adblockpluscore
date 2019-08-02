@@ -21,7 +21,7 @@ const assert = require("assert");
 const {createSandbox} = require("./_common");
 
 let ElemHideEmulationFilter = null;
-let ElemHideEmulation = null;
+let elemHideEmulation = null;
 let ElemHideExceptions = null;
 let Filter = null;
 
@@ -33,7 +33,7 @@ describe("Element hiding emulation", function()
     (
       {Filter,
        ElemHideEmulationFilter} = sandboxedRequire("../lib/filterClasses"),
-      {ElemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation"),
+      {elemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation"),
       {ElemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions")
     );
   });
@@ -46,16 +46,16 @@ describe("Element hiding emulation", function()
       {
         filter = Filter.fromText(filter);
         if (filter instanceof ElemHideEmulationFilter)
-          ElemHideEmulation.add(filter);
+          elemHideEmulation.add(filter);
         else
           ElemHideExceptions.add(filter);
       }
 
-      let matches = ElemHideEmulation.getRulesForDomain(domain)
+      let matches = elemHideEmulation.getRulesForDomain(domain)
           .map(filter => filter.text);
       assert.deepEqual(matches.sort(), expectedMatches.sort(), description);
 
-      ElemHideEmulation.clear();
+      elemHideEmulation.clear();
       ElemHideExceptions.clear();
     }
 
@@ -110,7 +110,7 @@ describe("Element hiding emulation", function()
   {
     function compareRules(description, domain, expectedMatches)
     {
-      let result = ElemHideEmulation.getRulesForDomain(domain)
+      let result = elemHideEmulation.getRulesForDomain(domain)
           .map(filter => filter.text);
       expectedMatches = expectedMatches.map(filter => filter.text);
       assert.deepEqual(result.sort(), expectedMatches.sort(), description);
@@ -120,23 +120,23 @@ describe("Element hiding emulation", function()
     let subdomainFilter = Filter.fromText("www.example.com##filter2");
     let otherDomainFilter = Filter.fromText("other.example.com##filter3");
 
-    ElemHideEmulation.add(domainFilter);
-    ElemHideEmulation.add(subdomainFilter);
-    ElemHideEmulation.add(otherDomainFilter);
+    elemHideEmulation.add(domainFilter);
+    elemHideEmulation.add(subdomainFilter);
+    elemHideEmulation.add(otherDomainFilter);
     compareRules(
       "Return all matching filters",
       "www.example.com",
       [domainFilter, subdomainFilter]
     );
 
-    ElemHideEmulation.remove(domainFilter);
+    elemHideEmulation.remove(domainFilter);
     compareRules(
       "Return all matching filters after removing one",
       "www.example.com",
       [subdomainFilter]
     );
 
-    ElemHideEmulation.clear();
+    elemHideEmulation.clear();
     compareRules(
       "Return no filters after clearing",
       "www.example.com",

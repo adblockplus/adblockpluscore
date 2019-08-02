@@ -34,7 +34,6 @@ describe("Filter listener", function()
   {
     sandboxedRequire = createSandbox({
       extraExports: {
-        elemHideEmulation: ["filters"],
         elemHideExceptions: ["knownExceptions"]
       }
     });
@@ -93,9 +92,9 @@ describe("Filter listener", function()
     for (let exception of elemHideExceptions.knownExceptions)
       result.elemhideexception.push(exception.text);
 
-    let elemHideEmulation = sandboxedRequire("../lib/elemHideEmulation");
+    let {elemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation");
     result.elemhideemulation = [];
-    for (let filter of elemHideEmulation.filters)
+    for (let filter of elemHideEmulation._filters)
       result.elemhideemulation.push(filter.text);
 
     let {snippets} = sandboxedRequire("../lib/snippets");
