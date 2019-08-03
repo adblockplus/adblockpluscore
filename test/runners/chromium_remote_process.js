@@ -110,7 +110,10 @@ function reportMessage(text, level)
 
 function connectRemoteInterface(attempt)
 {
-  return remoteInterface().catch(error =>
+  // We use a Chrome version that is too old and doesn't support the
+  // protocal command, so we  have to pass the option `local`
+  // https://www.npmjs.com/package/chrome-remote-interface#chrome-debugging-protocol-versions
+  return remoteInterface({local: true}).catch(error =>
   {
     attempt = attempt || 1;
     if (attempt > 50)
