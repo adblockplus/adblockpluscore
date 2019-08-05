@@ -32,11 +32,7 @@ describe("Filter listener", function()
 {
   beforeEach(function()
   {
-    sandboxedRequire = createSandbox({
-      extraExports: {
-        elemHideExceptions: ["knownExceptions"]
-      }
-    });
+    sandboxedRequire = createSandbox();
 
     // We need to require the filterListener module so that filter changes will be
     // noticed, even though we don't directly use the module here.
@@ -87,9 +83,9 @@ describe("Filter listener", function()
     for (let filter of elemHide._filters)
       result.elemhide.push(filter.text);
 
-    let elemHideExceptions = sandboxedRequire("../lib/elemHideExceptions");
+    let {elemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions");
     result.elemhideexception = [];
-    for (let exception of elemHideExceptions.knownExceptions)
+    for (let exception of elemHideExceptions._exceptions)
       result.elemhideexception.push(exception.text);
 
     let {elemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation");

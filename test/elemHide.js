@@ -23,7 +23,7 @@ const {createSandbox} = require("./_common");
 let elemHide = null;
 let createStyleSheet = null;
 let rulesFromStyleSheet = null;
-let ElemHideExceptions = null;
+let elemHideExceptions = null;
 let Filter = null;
 let SELECTOR_GROUP_SIZE = null;
 
@@ -39,7 +39,7 @@ describe("Element hiding", function()
     (
       {elemHide, createStyleSheet, rulesFromStyleSheet,
        SELECTOR_GROUP_SIZE} = sandboxedRequire("../lib/elemHide"),
-      {ElemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions"),
+      {elemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions"),
       {Filter} = sandboxedRequire("../lib/filterClasses")
     );
   });
@@ -87,9 +87,9 @@ describe("Element hiding", function()
     let addFilter = filterText => elemHide.add(Filter.fromText(filterText));
     let removeFilter = filterText => elemHide.remove(Filter.fromText(filterText));
     let addException =
-      filterText => ElemHideExceptions.add(Filter.fromText(filterText));
+      filterText => elemHideExceptions.add(Filter.fromText(filterText));
     let removeException =
-      filterText => ElemHideExceptions.remove(Filter.fromText(filterText));
+      filterText => elemHideExceptions.remove(Filter.fromText(filterText));
 
     testResult("", []);
 
@@ -270,7 +270,7 @@ describe("Element hiding", function()
   it("Zero filter key", function()
   {
     elemHide.add(Filter.fromText("##test"));
-    ElemHideExceptions.add(Filter.fromText("foo.com#@#test"));
+    elemHideExceptions.add(Filter.fromText("foo.com#@#test"));
     testResult("foo.com", [], {expectedExceptions: ["foo.com#@#test"]});
     testResult("bar.com", ["test"]);
   });
