@@ -22,7 +22,7 @@ const path = require("path");
 
 const {download, unzipArchive, snapshotsRootDir} = require("./download");
 
-const MAX_VERSION_DECREMENTS = 20;
+const MAX_VERSION_DECREMENTS = 200;
 
 function getChromiumExecutable(chromiumDir)
 {
