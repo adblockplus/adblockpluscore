@@ -27,7 +27,7 @@ let Subscription = null;
 
 describe("Filter storage", function()
 {
-  beforeEach(function()
+  beforeEach(function(done)
   {
     let sandboxedRequire = createSandbox();
 
@@ -38,6 +38,11 @@ describe("Filter storage", function()
       {filterStorage} = sandboxedRequire("../lib/filterStorage"),
       {Subscription} = sandboxedRequire("../lib/subscriptionClasses")
     );
+
+    filterNotifier.on("ready", () =>
+    {
+      done();
+    });
   });
 
   function addListener(listener)
