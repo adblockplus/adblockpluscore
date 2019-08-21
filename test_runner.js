@@ -129,26 +129,28 @@ function runBrowserTests(processes)
   if (!browserFiles.length)
     return Promise.resolve();
 
-  let nodeunitPath = path.join(__dirname, "node_modules", "nodeunit",
-                               "examples", "browser", "nodeunit.js");
   let bundleFilename = "bundle.js";
+  let mochaPath = path.join(__dirname, "node_modules", "mocha",
+                            "mocha.js");
+  let chaiPath = path.join(__dirname, "node_modules", "chai", "chai.js");
 
   return webpackInMemory(bundleFilename, {
     entry: path.join(__dirname, "test", "browser", "_bootstrap.js"),
     module: {
       rules: [{
-        resource: nodeunitPath,
-        // I would have rather used exports-loader here, to avoid treating
-        // nodeunit as a global. Unfortunately the nodeunit browser example
-        // script is quite slopily put together, if exports isn't falsey it
-        // breaks! As a workaround we need to use script-loader, which means
-        // that exports is falsey for that script as a side-effect.
+        // we use the browser version of mocha
+        resource: mochaPath,
+        use: ["script-loader"]
+      },
+      {
+        resource: chaiPath,
         use: ["script-loader"]
       }]
     },
     resolve: {
       alias: {
-        nodeunit$: nodeunitPath
+        mocha$: mochaPath,
+        chai$: chaiPath
       },
       modules: [path.resolve(__dirname, "lib")]
     }

@@ -28,7 +28,7 @@ const {ensureFirefox} = require("./firefox_download");
 // on certain system configurations like Debian 9, TravisCI.
 const FIREFOX_VERSION = "57.0";
 
-function runScript(firefoxPath, script, scriptName, scriptArgs)
+function runScript(firefoxPath, script, scriptArgs)
 {
   const options = new firefox.Options().setBinary(firefoxPath);
   if (process.env.BROWSER_TEST_HEADLESS != "0")
@@ -38,12 +38,12 @@ function runScript(firefoxPath, script, scriptName, scriptArgs)
         .setFirefoxOptions(options)
         .build();
 
-  return executeScript(driver, "Firefox", script, scriptName, scriptArgs);
+  return executeScript(driver, "Firefox", script, scriptArgs);
 }
 
 module.exports = function(script, scriptName, ...scriptArgs)
 {
   return ensureFirefox(FIREFOX_VERSION)
     .then(firefoxPath =>
-          runScript(firefoxPath, script, scriptName, scriptArgs));
+          runScript(firefoxPath, script, scriptArgs));
 };

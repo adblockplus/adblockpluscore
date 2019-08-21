@@ -17,25 +17,18 @@
 
 "use strict";
 
-function executeScript(driver, name, script, scriptName, scriptArgs)
+function executeScript(driver, name, script, scriptArgs)
 {
   let realScript = `let f = ${script}
                     let callback = arguments[arguments.length - 1];
-                    return Promise.resolve()
-                      .then(() => f(...arguments))
-                      .then(() => callback());`;
-  return driver.executeScript(`let oldLog = console.log;
-                               console.log = msg => {
-                                 window._consoleLogs.log.push(msg);
-                                 oldLog.call(this, msg);
-                               };`)
-    .then(() => driver.executeAsyncScript(realScript, ...scriptArgs))
+                    return f(...arguments).then(() => callback());`;
+  return driver.executeAsyncScript(realScript, ...scriptArgs)
     .then(() => driver.executeScript("return window._consoleLogs;"))
     .then(result =>
     {
-      console.log(`\nBrowser tests in ${name}\n`);
+      console.log(`\nBrowser tests in ${name}`);
       for (let item of result.log)
-        console.log(item);
+        console.log(...item);
       return driver.quit().then(() =>
       {
         if (result.failures != 0)
