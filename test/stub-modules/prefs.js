@@ -1,6 +1,9 @@
 "use strict";
 
+const {EventEmitter} = require("../../lib/events");
+
 let listeners = [];
+let eventEmitter = new EventEmitter();
 
 let Prefs = exports.Prefs = {
   enabled: true,
@@ -31,6 +34,8 @@ for (let key of Object.keys(Prefs))
       value = newValue;
       for (let listener of listeners)
         listener(key);
+
+      eventEmitter.emit(key);
     }
   });
 }
@@ -47,3 +52,6 @@ Prefs.removeListener = function(listener)
   if (index >= 0)
     listeners.splice(index, 1);
 };
+
+Prefs.on = eventEmitter.on.bind(eventEmitter);
+Prefs.off = eventEmitter.off.bind(eventEmitter);
