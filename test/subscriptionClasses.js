@@ -214,8 +214,8 @@ describe("Subscription classes", function()
   {
     let subscription = Subscription.fromURL("https://example.com/");
 
-    subscription.addFilterText("##.foo");
-    subscription.addFilterText("##.bar");
+    subscription.addFilter(Filter.fromText("##.foo"));
+    subscription.addFilter(Filter.fromText("##.bar"));
 
     compareSubscriptionFilters(subscription, ["##.foo", "##.bar"]);
 
@@ -228,7 +228,7 @@ describe("Subscription classes", function()
     assert.deepEqual(delta, {added: ["##.lambda"], removed: ["##.bar"]});
 
     // Add ##.lambda a second time.
-    subscription.addFilterText("##.lambda");
+    subscription.addFilter(Filter.fromText("##.lambda"));
     compareSubscriptionFilters(subscription, ["##.lambda", "##.foo",
                                               "##.lambda"]);
 
