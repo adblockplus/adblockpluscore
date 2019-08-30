@@ -22,7 +22,8 @@ dependencies.
 
 ### Running specific tests
 
-You can specify specific test files or directories on the command line, e.g.:
+You can specify specific test files or directories on the
+command line, e.g.:
 `npm test test/synchronizer.js test/browser/elemHideEmulation.js`.
 
 ### Running the browser tests in a real browser
@@ -40,6 +41,10 @@ BROWSER_TEST_RUNNERS environment, the default is
 - "firefox": Firefox 57 (using WebDriver)
 
 You can not set a specific version of the browser at runtime.
+
+Browser tests run headless by default (except on Windows). If you want
+to disable headless mode on the WebDriver controlled tests, set the
+BROWSER_TEST_HEADLESS environment to 0.
 
 ### Browser caching
 

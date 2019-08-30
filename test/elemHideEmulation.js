@@ -21,129 +21,126 @@ const assert = require("assert");
 const {createSandbox} = require("./_common");
 
 let ElemHideEmulationFilter = null;
-let ElemHideEmulation = null;
-let ElemHideExceptions = null;
+let elemHideEmulation = null;
+let elemHideExceptions = null;
 let Filter = null;
 
-exports.setUp = function(callback)
+describe("Element hiding emulation", function()
 {
-  let sandboxedRequire = createSandbox();
-  (
-    {Filter,
-     ElemHideEmulationFilter} = sandboxedRequire("../lib/filterClasses"),
-    {ElemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation"),
-    {ElemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions")
-  );
-
-  callback();
-};
-
-exports.testDomainRestrictions = function(test)
-{
-  function testSelectorMatches(description, filters, domain, expectedMatches)
+  beforeEach(function()
   {
-    for (let filter of filters)
+    let sandboxedRequire = createSandbox();
+    (
+      {Filter,
+       ElemHideEmulationFilter} = sandboxedRequire("../lib/filterClasses"),
+      {elemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation"),
+      {elemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions")
+    );
+  });
+
+  it("Domain restrictions", function()
+  {
+    function testSelectorMatches(description, filters, domain, expectedMatches)
     {
-      filter = Filter.fromText(filter);
-      if (filter instanceof ElemHideEmulationFilter)
-        ElemHideEmulation.add(filter);
-      else
-        ElemHideExceptions.add(filter);
+      for (let filter of filters)
+      {
+        filter = Filter.fromText(filter);
+        if (filter instanceof ElemHideEmulationFilter)
+          elemHideEmulation.add(filter);
+        else
+          elemHideExceptions.add(filter);
+      }
+
+      let matches = elemHideEmulation.getRulesForDomain(domain)
+          .map(filter => filter.text);
+      assert.deepEqual(matches.sort(), expectedMatches.sort(), description);
+
+      elemHideEmulation.clear();
+      elemHideExceptions.clear();
     }
 
-    let matches = ElemHideEmulation.getRulesForDomain(domain)
-        .map(filter => filter.text);
-    assert.deepEqual(matches.sort(), expectedMatches.sort(), description);
+    testSelectorMatches(
+      "Ignore generic filters",
+      [
+        "#?#:-abp-properties(foo)", "example.com#?#:-abp-properties(foo)",
+        "~example.com#?#:-abp-properties(foo)"
+      ],
+      "example.com",
+      ["example.com#?#:-abp-properties(foo)"]
+    );
+    testSelectorMatches(
+      "Ignore selectors with exceptions",
+      [
+        "example.com#?#:-abp-properties(foo)",
+        "example.com#?#:-abp-properties(bar)",
+        "example.com#@#:-abp-properties(foo)"
+      ],
+      "example.com",
+      ["example.com#?#:-abp-properties(bar)"]
+    );
+    testSelectorMatches(
+      "Ignore filters that include parent domain but exclude subdomain",
+      [
+        "~www.example.com,example.com#?#:-abp-properties(foo)"
+      ],
+      "www.example.com",
+      []
+    );
+    testSelectorMatches(
+      "Ignore filters with parent domain if exception matches subdomain",
+      [
+        "www.example.com#@#:-abp-properties(foo)",
+        "example.com#?#:-abp-properties(foo)"
+      ],
+      "www.example.com",
+      []
+    );
+    testSelectorMatches(
+      "Ignore filters for other subdomain",
+      [
+        "www.example.com#?#:-abp-properties(foo)",
+        "other.example.com#?#:-abp-properties(foo)"
+      ],
+      "other.example.com",
+      ["other.example.com#?#:-abp-properties(foo)"]
+    );
+  });
 
-    ElemHideEmulation.clear();
-    ElemHideExceptions.clear();
-  }
-
-  testSelectorMatches(
-    "Ignore generic filters",
-    [
-      "#?#:-abp-properties(foo)", "example.com#?#:-abp-properties(foo)",
-      "~example.com#?#:-abp-properties(foo)"
-    ],
-    "example.com",
-    ["example.com#?#:-abp-properties(foo)"]
-  );
-  testSelectorMatches(
-    "Ignore selectors with exceptions",
-    [
-      "example.com#?#:-abp-properties(foo)",
-      "example.com#?#:-abp-properties(bar)",
-      "example.com#@#:-abp-properties(foo)"
-    ],
-    "example.com",
-    ["example.com#?#:-abp-properties(bar)"]
-  );
-  testSelectorMatches(
-    "Ignore filters that include parent domain but exclude subdomain",
-    [
-      "~www.example.com,example.com#?#:-abp-properties(foo)"
-    ],
-    "www.example.com",
-    []
-  );
-  testSelectorMatches(
-    "Ignore filters with parent domain if exception matches subdomain",
-    [
-      "www.example.com#@#:-abp-properties(foo)",
-      "example.com#?#:-abp-properties(foo)"
-    ],
-    "www.example.com",
-    []
-  );
-  testSelectorMatches(
-    "Ignore filters for other subdomain",
-    [
-      "www.example.com#?#:-abp-properties(foo)",
-      "other.example.com#?#:-abp-properties(foo)"
-    ],
-    "other.example.com",
-    ["other.example.com#?#:-abp-properties(foo)"]
-  );
-
-  test.done();
-};
-
-exports.testElemHideEmulationFiltersContainer = function(test)
-{
-  function compareRules(description, domain, expectedMatches)
+  it("Filters container", function()
   {
-    let result = ElemHideEmulation.getRulesForDomain(domain)
-        .map(filter => filter.text);
-    expectedMatches = expectedMatches.map(filter => filter.text);
-    assert.deepEqual(result.sort(), expectedMatches.sort(), description);
-  }
+    function compareRules(description, domain, expectedMatches)
+    {
+      let result = elemHideEmulation.getRulesForDomain(domain)
+          .map(filter => filter.text);
+      expectedMatches = expectedMatches.map(filter => filter.text);
+      assert.deepEqual(result.sort(), expectedMatches.sort(), description);
+    }
 
-  let domainFilter = Filter.fromText("example.com##filter1");
-  let subdomainFilter = Filter.fromText("www.example.com##filter2");
-  let otherDomainFilter = Filter.fromText("other.example.com##filter3");
+    let domainFilter = Filter.fromText("example.com##filter1");
+    let subdomainFilter = Filter.fromText("www.example.com##filter2");
+    let otherDomainFilter = Filter.fromText("other.example.com##filter3");
 
-  ElemHideEmulation.add(domainFilter);
-  ElemHideEmulation.add(subdomainFilter);
-  ElemHideEmulation.add(otherDomainFilter);
-  compareRules(
-    "Return all matching filters",
-    "www.example.com",
-    [domainFilter, subdomainFilter]
-  );
+    elemHideEmulation.add(domainFilter);
+    elemHideEmulation.add(subdomainFilter);
+    elemHideEmulation.add(otherDomainFilter);
+    compareRules(
+      "Return all matching filters",
+      "www.example.com",
+      [domainFilter, subdomainFilter]
+    );
 
-  ElemHideEmulation.remove(domainFilter);
-  compareRules(
-    "Return all matching filters after removing one",
-    "www.example.com",
-    [subdomainFilter]
-  );
+    elemHideEmulation.remove(domainFilter);
+    compareRules(
+      "Return all matching filters after removing one",
+      "www.example.com",
+      [subdomainFilter]
+    );
 
-  ElemHideEmulation.clear();
-  compareRules(
-    "Return no filters after clearing",
-    "www.example.com",
-    []
-  );
-
-  test.done();
-};
+    elemHideEmulation.clear();
+    compareRules(
+      "Return no filters after clearing",
+      "www.example.com",
+      []
+    );
+  });
+});

@@ -31,7 +31,7 @@ const {ensureChromium} = require("./chromium_download");
 // loweset version that supports WebDriver.
 const CHROMIUM_REVISION = 508578;
 
-function runScript(chromiumPath, script, scriptName, scriptArgs)
+function runScript(chromiumPath, script, scriptArgs)
 {
   const options = new chrome.Options()
         // Disabling sandboxing is needed on some system configurations
@@ -39,20 +39,22 @@ function runScript(chromiumPath, script, scriptName, scriptArgs)
         .addArguments("--no-sandbox")
         .setChromeBinaryPath(chromiumPath);
   // Headless doesn't seem to work on Windows.
-  if (process.platform != "win32")
+  if (process.platform != "win32" &&
+      process.env.BROWSER_TEST_HEADLESS != "0")
+  {
     options.headless();
+  }
 
   const driver = new Builder()
         .forBrowser("chrome")
         .setChromeOptions(options)
         .build();
 
-  return executeScript(driver, "Chromium (WebDriver)",
-                       script, scriptName, scriptArgs);
+  return executeScript(driver, "Chromium (WebDriver)", script, scriptArgs);
 }
 
 module.exports = function(script, scriptName, ...scriptArgs)
 {
   return ensureChromium(CHROMIUM_REVISION)
-    .then(chromiumPath => runScript(chromiumPath, script, scriptName, scriptArgs));
+    .then(chromiumPath => runScript(chromiumPath, script, scriptArgs));
 };

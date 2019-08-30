@@ -3,5 +3,5 @@
 exports.Utils = {
   appLocale: "en-US",
 
-  yield() {}
+  logError(error) {}
 };

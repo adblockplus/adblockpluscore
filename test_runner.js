@@ -23,7 +23,7 @@ const fs = require("fs");
 const path = require("path");
 
 const MemoryFS = require("memory-fs");
-const nodeunit = require("nodeunit");
+const Mocha = require("mocha");
 const webpack = require("webpack");
 
 const chromiumRemoteProcess = require("./test/runners/chromium_remote_process");
@@ -129,26 +129,28 @@ function runBrowserTests(processes)
   if (!browserFiles.length)
     return Promise.resolve();
 
-  let nodeunitPath = path.join(__dirname, "node_modules", "nodeunit",
-                               "examples", "browser", "nodeunit.js");
   let bundleFilename = "bundle.js";
+  let mochaPath = path.join(__dirname, "node_modules", "mocha",
+                            "mocha.js");
+  let chaiPath = path.join(__dirname, "node_modules", "chai", "chai.js");
 
   return webpackInMemory(bundleFilename, {
     entry: path.join(__dirname, "test", "browser", "_bootstrap.js"),
     module: {
       rules: [{
-        resource: nodeunitPath,
-        // I would have rather used exports-loader here, to avoid treating
-        // nodeunit as a global. Unfortunately the nodeunit browser example
-        // script is quite slopily put together, if exports isn't falsey it
-        // breaks! As a workaround we need to use script-loader, which means
-        // that exports is falsey for that script as a side-effect.
+        // we use the browser version of mocha
+        resource: mochaPath,
+        use: ["script-loader"]
+      },
+      {
+        resource: chaiPath,
         use: ["script-loader"]
       }]
     },
     resolve: {
       alias: {
-        nodeunit$: nodeunitPath
+        mocha$: mochaPath,
+        chai$: chaiPath
       },
       modules: [path.resolve(__dirname, "lib")]
     }
@@ -184,11 +186,25 @@ else
   );
 }
 
+const mocha = new Mocha();
+mocha.checkLeaks();
+
 runBrowserTests(runnerProcesses).then(() =>
 {
-  if (unitFiles.length)
-    nodeunit.reporters.default.run(unitFiles, null,
-                                   err => process.exit(err ? 1 : 0));
+  if (unitFiles.length > 0)
+  {
+    mocha.files = unitFiles;
+    return new Promise((resolve, reject) =>
+    {
+      mocha.run(failures =>
+      {
+        if (failures)
+          reject("Tests failed");
+        else
+          resolve();
+      });
+    });
+  }
 }).catch(error =>
 {
   console.error(error);

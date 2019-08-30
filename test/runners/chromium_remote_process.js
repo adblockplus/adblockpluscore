@@ -110,7 +110,10 @@ function reportMessage(text, level)
 
 function connectRemoteInterface(attempt)
 {
-  return remoteInterface().catch(error =>
+  // We use a Chrome version that is too old and doesn't support the
+  // protocal command, so we  have to pass the option `local`
+  // https://www.npmjs.com/package/chrome-remote-interface#chrome-debugging-protocol-versions
+  return remoteInterface({local: true}).catch(error =>
   {
     attempt = attempt || 1;
     if (attempt > 50)
@@ -135,20 +138,12 @@ function runScript(script, scriptName, scriptArgs)
   {
     try
     {
-      let {Runtime, Log, Console} = client;
-
-      console.log("\nBrowser tests in Chromium (Remote Interface)\n");
+      let {Runtime, Log} = client;
 
       await Log.enable();
       Log.entryAdded(({entry}) =>
       {
         reportMessage(entry.text, entry.level);
-      });
-
-      await Console.enable();
-      Console.messageAdded(({message}) =>
-      {
-        reportMessage(message.text, message.level);
       });
 
       await Runtime.enable();
@@ -180,14 +175,17 @@ function runScript(script, scriptName, scriptArgs)
       if (promiseResult.exceptionDetails)
         throwException(promiseResult.exceptionDetails, scriptName);
 
-      return Runtime.evaluate({
+      let result = await Runtime.evaluate({
         expression: "window._consoleLogs",
         returnByValue: true
-      }).then(result =>
-      {
-        if (result.result.value.failures != 0)
-          throw "Chromium (Remote Interface)";
       });
+
+      console.log("\nBrowser tests in Chromium (Remote Interface)");
+      for (let item of result.result.value.log)
+        console.log(...item);
+
+      if (result.result.value.failures != 0)
+        throw "Chromium (Remote Interface)";
     }
     finally
     {
