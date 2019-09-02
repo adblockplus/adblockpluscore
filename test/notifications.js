@@ -25,7 +25,7 @@ let {
 
 let Prefs = null;
 let Utils = null;
-let Notification = null;
+let notifications = null;
 
 // Only starting NodeJS 10 that URL and URLSearchParams are in the global space.
 const {URL, URLSearchParams} = require("url");
@@ -46,7 +46,7 @@ describe("Notifications", function()
     (
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
       {Utils} = sandboxedRequire("./stub-modules/utils"),
-      {Notification} = sandboxedRequire("../lib/notification")
+      {notifications} = sandboxedRequire("../lib/notifications")
     );
   });
 
@@ -56,11 +56,11 @@ describe("Notifications", function()
     function showListener(notification)
     {
       shownNotifications.push(notification);
-      Notification.markAsShown(notification.id);
+      notifications.markAsShown(notification.id);
     }
-    Notification.addShowListener(showListener);
-    Notification.showNext(location && new URL(location));
-    Notification.removeShowListener(showListener);
+    notifications.addShowListener(showListener);
+    notifications.showNext(location && new URL(location));
+    notifications.removeShowListener(showListener);
     return shownNotifications;
   }
 
@@ -76,19 +76,19 @@ describe("Notifications", function()
     }
   }
 
-  function registerHandler(notifications, checkCallback)
+  function registerHandler(notificationList, checkCallback)
   {
     runner.registerHandler("/notification.json", metadata =>
     {
       if (checkCallback)
         checkCallback(metadata);
 
-      let notification = {
+      let payload = {
         version: 55,
-        notifications
+        notifications: notificationList
       };
 
-      return [200, JSON.stringify(notification)];
+      return [200, JSON.stringify(payload)];
     });
   }
 
@@ -495,7 +495,7 @@ describe("Notifications", function()
     let responseText = JSON.stringify({
       notifications: [severityNotification]
     });
-    Notification._onDownloadSuccess({}, responseText, () => {}, () => {});
+    notifications._onDownloadSuccess({}, responseText, () => {}, () => {});
   });
 
   it("URL specific", function()
@@ -586,20 +586,20 @@ describe("Notifications", function()
 
   it("Global opt-out", function()
   {
-    Notification.toggleIgnoreCategory("*", true);
+    notifications.toggleIgnoreCategory("*", true);
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out");
-    Notification.toggleIgnoreCategory("*", true);
+    notifications.toggleIgnoreCategory("*", true);
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out (again)");
-    Notification.toggleIgnoreCategory("*", false);
+    notifications.toggleIgnoreCategory("*", false);
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out");
-    Notification.toggleIgnoreCategory("*", false);
+    notifications.toggleIgnoreCategory("*", false);
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out (again)");
-    Notification.toggleIgnoreCategory("*");
+    notifications.toggleIgnoreCategory("*");
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Toggle enable global opt-out");
-    Notification.toggleIgnoreCategory("*");
+    notifications.toggleIgnoreCategory("*");
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Toggle disable global opt-out");
 
-    Notification.toggleIgnoreCategory("*", false);
+    notifications.toggleIgnoreCategory("*", false);
 
     let information = {
       id: 1,
@@ -614,15 +614,15 @@ describe("Notifications", function()
       type: "relentless"
     };
 
-    Notification.toggleIgnoreCategory("*", true);
+    notifications.toggleIgnoreCategory("*", true);
     registerHandler.call(runner, [information]);
     return runner.runScheduledTasks(1).then(() =>
     {
       assert.deepEqual(showNotifications(), [], "Information notifications are ignored after enabling global opt-out");
-      Notification.toggleIgnoreCategory("*", false);
+      notifications.toggleIgnoreCategory("*", false);
       assert.deepEqual(showNotifications(), [information], "Information notifications are shown after disabling global opt-out");
 
-      Notification.toggleIgnoreCategory("*", true);
+      notifications.toggleIgnoreCategory("*", true);
       Prefs.notificationdata = {};
       registerHandler.call(runner, [critical]);
       return runner.runScheduledTasks(1);
@@ -642,7 +642,7 @@ describe("Notifications", function()
   it("Message without localization", function()
   {
     let notification = {message: "non-localized"};
-    let texts = Notification.getLocalizedTexts(notification);
+    let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "non-localized");
   });
 
@@ -650,10 +650,10 @@ describe("Notifications", function()
   {
     let notification = {message: {fr: "fr"}};
     Utils.appLocale = "fr";
-    let texts = Notification.getLocalizedTexts(notification);
+    let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr");
     Utils.appLocale = "fr-CA";
-    texts = Notification.getLocalizedTexts(notification);
+    texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr");
   });
 
@@ -661,10 +661,10 @@ describe("Notifications", function()
   {
     let notification = {message: {"fr": "fr", "fr-CA": "fr-CA"}};
     Utils.appLocale = "fr-CA";
-    let texts = Notification.getLocalizedTexts(notification);
+    let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr-CA");
     Utils.appLocale = "fr";
-    texts = Notification.getLocalizedTexts(notification);
+    texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr");
   });
 
@@ -672,7 +672,7 @@ describe("Notifications", function()
   {
     let notification = {message: {"en-US": "en-US"}};
     Utils.appLocale = "fr";
-    let texts = Notification.getLocalizedTexts(notification);
+    let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "en-US");
   });
 });
