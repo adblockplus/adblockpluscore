@@ -20,8 +20,8 @@
 const assert = require("assert");
 const {createSandbox} = require("./_common");
 
+let contentTypes = null;
 let Filter = null;
-let RegExpFilter = null;
 let URLRequest = null;
 
 describe("Regexp filters matching", function()
@@ -30,7 +30,8 @@ describe("Regexp filters matching", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {Filter, RegExpFilter} = sandboxedRequire("../lib/filterClasses"),
+      {contentTypes} = sandboxedRequire("../lib/contentTypes"),
+      {Filter} = sandboxedRequire("../lib/filterClasses"),
       {URLRequest} = sandboxedRequire("../lib/url")
     );
   });
@@ -44,7 +45,7 @@ describe("Regexp filters matching", function()
     {
       let filter = Filter.fromText(filterText);
       let request = URLRequest.from(location, docDomain);
-      let result = filter.matches(request, RegExpFilter.typeMap[contentType], sitekey);
+      let result = filter.matches(request, contentTypes[contentType], sitekey);
       assert.equal(!!result, expected, '"' + filterText + '".matches(' + location + ", " + contentType + ", " + docDomain + ", " + (thirdParty ? "third-party" : "first-party") + ", " + (sitekey || "no-sitekey") + ")");
     }
 

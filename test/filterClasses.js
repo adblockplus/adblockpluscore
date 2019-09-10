@@ -20,6 +20,8 @@
 const assert = require("assert");
 const {createSandbox} = require("./_common");
 
+let contentTypes = null;
+let RESOURCE_TYPES = null;
 let Filter = null;
 let InvalidFilter = null;
 let CommentFilter = null;
@@ -34,23 +36,18 @@ let ElemHideException = null;
 let ElemHideEmulationFilter = null;
 let SnippetFilter = null;
 
-let t = null;
-let defaultTypes = null;
-
 describe("Filter classes", function()
 {
   beforeEach(function()
   {
     let sandboxedRequire = createSandbox();
     (
+      {contentTypes, RESOURCE_TYPES} = sandboxedRequire("../lib/contentTypes"),
       {Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
        BlockingFilter, WhitelistFilter, ContentFilter, ElemHideBase,
        ElemHideFilter, ElemHideException, ElemHideEmulationFilter,
        SnippetFilter} = sandboxedRequire("../lib/filterClasses")
     );
-    t = RegExpFilter.typeMap;
-    defaultTypes = 0x7FFFFFFF & ~(t.CSP | t.ELEMHIDE | t.DOCUMENT | t.POPUP |
-                                  t.GENERICHIDE | t.GENERICBLOCK);
   });
 
   function serializeFilter(filter)
@@ -157,9 +154,7 @@ describe("Filter classes", function()
     }
     if (type == "whitelist" || type == "filterlist")
     {
-      addProperty("contentType", 0x7FFFFFFF & ~(
-        t.CSP | t.DOCUMENT | t.ELEMHIDE | t.POPUP | t.GENERICHIDE | t.GENERICBLOCK
-      ));
+      addProperty("contentType", RESOURCE_TYPES);
       addProperty("regexp", "null");
       addProperty("matchCase", "false");
       addProperty("thirdParty", "null");
@@ -301,40 +296,40 @@ describe("Filter classes", function()
     compareFilter("|*asd|f*d**dd*|", ["type=filterlist", "text=|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$"]);
     compareFilter("dd[]{}$%<>&()*d", ["type=filterlist", "text=dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d"]);
 
-    compareFilter("@@/ddd|f?a[s]d/", ["type=whitelist", "text=@@/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d", "contentType=" + defaultTypes]);
-    compareFilter("@@*asdf*d**dd*", ["type=whitelist", "text=@@*asdf*d**dd*", "regexp=asdf.*d.*dd", "contentType=" + defaultTypes]);
-    compareFilter("@@|*asd|f*d**dd*|", ["type=whitelist", "text=@@|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$", "contentType=" + defaultTypes]);
-    compareFilter("@@dd[]{}$%<>&()*d", ["type=whitelist", "text=@@dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d", "contentType=" + defaultTypes]);
+    compareFilter("@@/ddd|f?a[s]d/", ["type=whitelist", "text=@@/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d", "contentType=" + RESOURCE_TYPES]);
+    compareFilter("@@*asdf*d**dd*", ["type=whitelist", "text=@@*asdf*d**dd*", "regexp=asdf.*d.*dd", "contentType=" + RESOURCE_TYPES]);
+    compareFilter("@@|*asd|f*d**dd*|", ["type=whitelist", "text=@@|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$", "contentType=" + RESOURCE_TYPES]);
+    compareFilter("@@dd[]{}$%<>&()*d", ["type=whitelist", "text=@@dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d", "contentType=" + RESOURCE_TYPES]);
   });
 
   it("Filter options", function()
   {
-    compareFilter("bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", ["type=filterlist", "text=bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=foo.com", "sitekeys=FOO", "csp=first csp"]);
-    compareFilter("bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER)), "thirdParty=false", "domains=~bar.com"]);
-    compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER | t.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
-    compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "matchCase=true", "contentType=" + (t.SCRIPT | t.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
+    compareFilter("bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", ["type=filterlist", "text=bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER | contentTypes.CSP), "thirdParty=true", "domains=foo.com", "sitekeys=FOO", "csp=first csp"]);
+    compareFilter("bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=filterlist", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER)), "thirdParty=false", "domains=~bar.com"]);
+    compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER | contentTypes.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
+    compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=whitelist", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
 
-    compareFilter("||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
-    compareFilter("*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (defaultTypes), "domains=bar.com|foo.com"]);
-    compareFilter("||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "regexp=null", "matchCase=false", "rewrite=noopjs", "thirdParty=false", "contentType=" + (defaultTypes)]);
+    compareFilter("||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (RESOURCE_TYPES), "domains=bar.com|foo.com"]);
+    compareFilter("*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=filterlist", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (RESOURCE_TYPES), "domains=bar.com|foo.com"]);
+    compareFilter("||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=filterlist", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "regexp=null", "matchCase=false", "rewrite=noopjs", "thirdParty=false", "contentType=" + (RESOURCE_TYPES)]);
     compareFilter("||content.server.com/files/*.php$rewrite=$1", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite=$1"]);
     compareFilter("||content.server.com/files/*.php$rewrite=", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite="]);
 
     // background and image should be the same for backwards compatibility
-    compareFilter("bla$image", ["type=filterlist", "text=bla$image", "contentType=" + (t.IMAGE)]);
-    compareFilter("bla$background", ["type=filterlist", "text=bla$background", "contentType=" + (t.IMAGE)]);
-    compareFilter("bla$~image", ["type=filterlist", "text=bla$~image", "contentType=" + (defaultTypes & ~t.IMAGE)]);
-    compareFilter("bla$~background", ["type=filterlist", "text=bla$~background", "contentType=" + (defaultTypes & ~t.IMAGE)]);
+    compareFilter("bla$image", ["type=filterlist", "text=bla$image", "contentType=" + (contentTypes.IMAGE)]);
+    compareFilter("bla$background", ["type=filterlist", "text=bla$background", "contentType=" + (contentTypes.IMAGE)]);
+    compareFilter("bla$~image", ["type=filterlist", "text=bla$~image", "contentType=" + (RESOURCE_TYPES & ~contentTypes.IMAGE)]);
+    compareFilter("bla$~background", ["type=filterlist", "text=bla$~background", "contentType=" + (RESOURCE_TYPES & ~contentTypes.IMAGE)]);
 
-    compareFilter("@@bla$~script,~other", ["type=whitelist", "text=@@bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-    compareFilter("@@http://bla$~script,~other", ["type=whitelist", "text=@@http://bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-    compareFilter("@@ftp://bla$~script,~other", ["type=whitelist", "text=@@ftp://bla$~script,~other", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-    compareFilter("@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.DOCUMENT)]);
-    compareFilter("@@bla$~script,~other,~document", ["type=whitelist", "text=@@bla$~script,~other,~document", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-    compareFilter("@@bla$document", ["type=whitelist", "text=@@bla$document", "contentType=" + t.DOCUMENT]);
-    compareFilter("@@bla$~script,~other,elemhide", ["type=whitelist", "text=@@bla$~script,~other,elemhide", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER) | t.ELEMHIDE)]);
-    compareFilter("@@bla$~script,~other,~elemhide", ["type=whitelist", "text=@@bla$~script,~other,~elemhide", "contentType=" + (defaultTypes & ~(t.SCRIPT | t.OTHER))]);
-    compareFilter("@@bla$elemhide", ["type=whitelist", "text=@@bla$elemhide", "contentType=" + t.ELEMHIDE]);
+    compareFilter("@@bla$~script,~other", ["type=whitelist", "text=@@bla$~script,~other", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
+    compareFilter("@@http://bla$~script,~other", ["type=whitelist", "text=@@http://bla$~script,~other", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
+    compareFilter("@@ftp://bla$~script,~other", ["type=whitelist", "text=@@ftp://bla$~script,~other", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
+    compareFilter("@@bla$~script,~other,document", ["type=whitelist", "text=@@bla$~script,~other,document", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER) | contentTypes.DOCUMENT)]);
+    compareFilter("@@bla$~script,~other,~document", ["type=whitelist", "text=@@bla$~script,~other,~document", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
+    compareFilter("@@bla$document", ["type=whitelist", "text=@@bla$document", "contentType=" + contentTypes.DOCUMENT]);
+    compareFilter("@@bla$~script,~other,elemhide", ["type=whitelist", "text=@@bla$~script,~other,elemhide", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER) | contentTypes.ELEMHIDE)]);
+    compareFilter("@@bla$~script,~other,~elemhide", ["type=whitelist", "text=@@bla$~script,~other,~elemhide", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
+    compareFilter("@@bla$elemhide", ["type=whitelist", "text=@@bla$elemhide", "contentType=" + contentTypes.ELEMHIDE]);
 
     compareFilter("@@bla$~script,~other,donottrack", ["type=invalid", "text=@@bla$~script,~other,donottrack", "reason=filter_unknown_option"]);
     compareFilter("@@bla$~script,~other,~donottrack", ["type=invalid", "text=@@bla$~script,~other,~donottrack", "reason=filter_unknown_option"]);
@@ -347,8 +342,8 @@ describe("Filter classes", function()
     compareFilter("bla$csp=", ["type=invalid", "text=bla$csp=", "reason=filter_invalid_csp"]);
 
     // Blank CSP values are allowed for whitelist filters.
-    compareFilter("@@bla$csp", ["type=whitelist", "text=@@bla$csp", "contentType=" + t.CSP]);
-    compareFilter("@@bla$csp=", ["type=whitelist", "text=@@bla$csp=", "contentType=" + t.CSP]);
+    compareFilter("@@bla$csp", ["type=whitelist", "text=@@bla$csp", "contentType=" + contentTypes.CSP]);
+    compareFilter("@@bla$csp=", ["type=whitelist", "text=@@bla$csp=", "contentType=" + contentTypes.CSP]);
 
     compareFilter("bla$csp=report-uri", ["type=invalid", "text=bla$csp=report-uri", "reason=filter_invalid_csp"]);
     compareFilter("bla$csp=foo,csp=report-to", ["type=invalid", "text=bla$csp=foo,csp=report-to", "reason=filter_invalid_csp"]);
@@ -503,7 +498,7 @@ describe("Filter classes", function()
         "csp=c s p",
         "domains=domain.com|foo.com",
         "sitekeys=FOO",
-        "contentType=" + t.CSP
+        "contentType=" + contentTypes.CSP
       ]
     );
 
