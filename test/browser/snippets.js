@@ -476,4 +476,11 @@ describe("Snippets", function()
 
     expectHidden(document.getElementById("img-1"), "img-1");
   });
+
+  it("does not leak snippets to the global scope", async function()
+  {
+    assert.ok(typeof window.log === "undefined", "The window has no log function");
+    await runSnippet("trace", "OK");
+    assert.ok(typeof window.log === "undefined", "The window was not polluted");
+  });
 });
