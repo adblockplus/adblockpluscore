@@ -54,6 +54,7 @@ docs:
   artifacts:
     paths:
       - docs/
+    expire_in: 3 mos
   retry:
     max: 2
     when: stuck_or_timeout_failure
