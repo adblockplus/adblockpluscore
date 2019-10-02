@@ -483,4 +483,68 @@ describe("Snippets", function()
     await runSnippet("trace", "OK");
     assert.ok(typeof window.log === "undefined", "The window was not polluted");
   });
+
+  it("debug flag", async function()
+  {
+    function injectInlineScript(doc, script)
+    {
+      let scriptElement = doc.createElement("script");
+      scriptElement.type = "application/javascript";
+      scriptElement.async = false;
+      scriptElement.textContent = script;
+      doc.body.appendChild(scriptElement);
+    }
+
+    // Type 1 test: no debug
+    let snippet = library["log"];
+    let {log} = console;
+    console.log = (...args) =>
+    {
+      console.log = log;
+      assert.strictEqual(args.join(","), "1,2",
+        "debug flag should be false");
+    };
+    snippet(1, 2);
+
+    // Type 2 test: no debug
+    injectInlineScript(document, `(() =>
+    {
+      let {log} = console;
+      console.log = (...args) =>
+      {
+        console.log = log;
+        document.log = args.join(",");
+      }
+    })();`);
+    await runSnippet("trace", 1, 2);
+    assert.strictEqual(document.log, "1,2",
+        "type 2 debug flag should be false");
+
+    await runSnippet("debug");
+
+    // Type 1 test: debug flag enabled
+    console.log = (...args) =>
+    {
+      console.log = log;
+      assert.strictEqual(args.join(","), "%c DEBUG,font-weight: bold,1,2",
+        "debug flag should be true");
+    };
+    snippet(1, 2);
+
+    // Type 2 test: debug flag enabled
+    injectInlineScript(document, `(() =>
+    {
+      let {log} = console;
+      console.log = (...args) =>
+      {
+        console.log = log;
+        document.log = args.join(",");
+      }
+    })();`);
+    await runSnippet("trace", 1, 2);
+    assert.strictEqual(document.log, "%c DEBUG,font-weight: bold,1,2",
+        "type 2 debug flag should be true");
+
+    delete document.log;
+  });
 });
