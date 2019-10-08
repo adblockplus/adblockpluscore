@@ -24,7 +24,6 @@ let {
 } = require("./_common");
 
 let Prefs = null;
-let Utils = null;
 let notifications = null;
 
 // Only starting NodeJS 10 that URL and URLSearchParams are in the global space.
@@ -45,7 +44,6 @@ describe("Notifications", function()
     let sandboxedRequire = createSandbox({globals});
     (
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {Utils} = sandboxedRequire("./stub-modules/utils"),
       {notifications} = sandboxedRequire("../lib/notifications")
     );
   });
@@ -649,10 +647,10 @@ describe("Notifications", function()
   it("Language only", function()
   {
     let notification = {message: {fr: "fr"}};
-    Utils.appLocale = "fr";
+    notifications.locale = "fr";
     let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr");
-    Utils.appLocale = "fr-CA";
+    notifications.locale = "fr-CA";
     texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr");
   });
@@ -660,10 +658,10 @@ describe("Notifications", function()
   it("Language and country", function()
   {
     let notification = {message: {"fr": "fr", "fr-CA": "fr-CA"}};
-    Utils.appLocale = "fr-CA";
+    notifications.locale = "fr-CA";
     let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr-CA");
-    Utils.appLocale = "fr";
+    notifications.locale = "fr";
     texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr");
   });
@@ -671,7 +669,7 @@ describe("Notifications", function()
   it("Missing translation", function()
   {
     let notification = {message: {"en-US": "en-US"}};
-    Utils.appLocale = "fr";
+    notifications.locale = "fr";
     let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "en-US");
   });
