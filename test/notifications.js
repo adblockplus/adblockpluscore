@@ -314,16 +314,29 @@ describe("Notifications", function()
     let checkDownload = async(payload, {queryParam, state: {firstVersion, data},
                                         eFlag = ""}) =>
     {
+      let requested = false;
+
       runner.registerHandler("/notification.json", ({queryString}) =>
       {
-        let params = new URLSearchParams(decodeURI(queryString));
+        requested = true;
 
-        assert.equal(params.get("firstVersion"), queryParam + eFlag);
+        try
+        {
+          let params = new URLSearchParams(decodeURI(queryString));
+
+          assert.equal(params.get("firstVersion"), queryParam + eFlag);
+        }
+        catch (error)
+        {
+          unexpectedError.call(assert, error);
+        }
 
         return [200, JSON.stringify(Object.assign({notifications: []}, payload))];
       });
 
       await runner.runScheduledTasks(24);
+
+      assert.ok(requested);
 
       assert.equal(Prefs.notificationdata.firstVersion, firstVersion + eFlag);
       assert.equal(Prefs.notificationdata.data.version, data.version);
@@ -398,6 +411,140 @@ describe("Notifications", function()
         state: {
           firstVersion: "201905071234",
           data: {version: "202605071234"}
+        },
+        eFlag
+      });
+
+      // Repeat tests with hour-level precision.
+      Prefs.notificationdata = {firstVersion: "0"};
+
+      if (typeof eFlag != "undefined")
+        Prefs.notificationdata.data = {};
+
+      // First download on 2019-05-07T12:00Z.
+      await checkDownload({version: "2019050712"}, {
+        queryParam: "0",
+        state: {
+          firstVersion: "2019050712",
+          data: {version: "2019050712"}
+        },
+        eFlag
+      });
+
+      // 30 days and 1 hour since the first download.
+      await checkDownload({version: "2019060613"}, {
+        queryParam: "20190507",
+        state: {
+          firstVersion: "2019050712",
+          data: {version: "2019060613"}
+        },
+        eFlag
+      });
+
+      // 30 days and 2 hours since the first download. The value is trimmed to
+      // YYYYMM.
+      await checkDownload({version: "2019060614"}, {
+        queryParam: "201905",
+        state: {
+          firstVersion: "2019050712",
+          data: {version: "2019060614"}
+        },
+        eFlag
+      });
+
+      // 365 days and 1 hour since the first download.
+      await checkDownload({version: "2020050613"}, {
+        queryParam: "201905",
+        state: {
+          firstVersion: "2019050712",
+          data: {version: "2020050613"}
+        },
+        eFlag
+      });
+
+      // 365 days and 2 hours since the first download. The value is trimmed to
+      // YYYY.
+      await checkDownload({version: "2020050614"}, {
+        queryParam: "2019",
+        state: {
+          firstVersion: "2019050712",
+          data: {version: "2020050614"}
+        },
+        eFlag
+      });
+
+      // 2,557 days (~7 years) since the first download.
+      await checkDownload({version: "2026050712"}, {
+        queryParam: "2019",
+        state: {
+          firstVersion: "2019050712",
+          data: {version: "2026050712"}
+        },
+        eFlag
+      });
+
+      // Repeat tests with day-level precision.
+      Prefs.notificationdata = {firstVersion: "0"};
+
+      if (typeof eFlag != "undefined")
+        Prefs.notificationdata.data = {};
+
+      // First download on 2019-05-07T00:00Z.
+      await checkDownload({version: "20190507"}, {
+        queryParam: "0",
+        state: {
+          firstVersion: "20190507",
+          data: {version: "20190507"}
+        },
+        eFlag
+      });
+
+      // 31 days since the first download.
+      await checkDownload({version: "20190607"}, {
+        queryParam: "20190507",
+        state: {
+          firstVersion: "20190507",
+          data: {version: "20190607"}
+        },
+        eFlag
+      });
+
+      // 32 days since the first download. The value is trimmed to YYYYMM.
+      await checkDownload({version: "20190608"}, {
+        queryParam: "201905",
+        state: {
+          firstVersion: "20190507",
+          data: {version: "20190608"}
+        },
+        eFlag
+      });
+
+      // 366 days since the first download.
+      await checkDownload({version: "20200507"}, {
+        queryParam: "201905",
+        state: {
+          firstVersion: "20190507",
+          data: {version: "20200507"}
+        },
+        eFlag
+      });
+
+      // 367 days since the first download. The value is trimmed to YYYY.
+      await checkDownload({version: "20200508"}, {
+        queryParam: "2019",
+        state: {
+          firstVersion: "20190507",
+          data: {version: "20200508"}
+        },
+        eFlag
+      });
+
+      // 2,557 days (~7 years) since the first download.
+      await checkDownload({version: "20260507"}, {
+        queryParam: "2019",
+        state: {
+          firstVersion: "20190507",
+          data: {version: "20260507"}
         },
         eFlag
       });
