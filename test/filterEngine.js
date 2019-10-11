@@ -18,6 +18,7 @@
 "use strict";
 
 const assert = require("assert");
+const {URL} = require("url");
 const {createSandbox} = require("./_common");
 
 describe("lib/filterEngine.js", function()
