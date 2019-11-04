@@ -26,8 +26,8 @@ let {
 let Prefs = null;
 let notifications = null;
 
-// Only starting NodeJS 10 that URL and URLSearchParams are in the global space.
-const {URL, URLSearchParams} = require("url");
+// Only starting NodeJS 10 that URLSearchParams is in the global space.
+const {URLSearchParams} = require("url");
 
 describe("Notifications", function()
 {
@@ -48,7 +48,7 @@ describe("Notifications", function()
     );
   });
 
-  function showNotifications(location)
+  function showNotifications()
   {
     let shownNotifications = [];
     function showListener(notification)
@@ -57,7 +57,7 @@ describe("Notifications", function()
       notifications.markAsShown(notification.id);
     }
     notifications.addShowListener(showListener);
-    notifications.showNext(location && new URL(location));
+    notifications.showNext();
     notifications.removeShowListener(showListener);
     return shownNotifications;
   }
@@ -643,39 +643,6 @@ describe("Notifications", function()
     notifications._onDownloadSuccess({}, responseText, () => {}, () => {});
   });
 
-  it("URL specific", function()
-  {
-    let withURLFilterFoo = {
-      id: 1,
-      urlFilters: ["foo.com$document"]
-    };
-    let withoutURLFilter = {
-      id: 2
-    };
-    let withURLFilterBar = {
-      id: 3,
-      urlFilters: ["bar.com$document"]
-    };
-    let subdomainURLFilter = {
-      id: 4,
-      urlFilters: ["||example.com$document"]
-    };
-
-    registerHandler.call(runner, [
-      withURLFilterFoo,
-      withoutURLFilter,
-      withURLFilterBar,
-      subdomainURLFilter
-    ]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
-      assert.deepEqual(showNotifications(), [withoutURLFilter], "URL-specific notifications are skipped");
-      assert.deepEqual(showNotifications("http://foo.com"), [withURLFilterFoo], "URL-specific notification is retrieved");
-      assert.deepEqual(showNotifications("http://foo.com"), [], "URL-specific notification is not retrieved");
-      assert.deepEqual(showNotifications("http://www.example.com"), [subdomainURLFilter], "URL-specific notification matches subdomain");
-    }).catch(unexpectedError.bind(assert));
-  });
-
   it("Interval", function()
   {
     let relentless = {
@@ -697,35 +664,6 @@ describe("Notifications", function()
       // manipulate the shown data manually.
       Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
       assert.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown after the interval");
-    }).catch(unexpectedError.bind(assert));
-  });
-
-  it("Relentless", function()
-  {
-    let relentless = {
-      id: 3,
-      type: "relentless",
-      interval: 100,
-      urlFilters: ["foo.com$document", "bar.foo$document"]
-    };
-
-    registerHandler.call(runner, [relentless]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
-      assert.deepEqual(showNotifications(), [], "Relentless notification is not shown without URL");
-      assert.deepEqual(showNotifications("http://bar.com"), [], "Relentless notification is not shown for a non-matching URL");
-      assert.deepEqual(showNotifications("http://foo.com"), [relentless], "Relentless notification is shown for a matching URL");
-    }).then(() =>
-    {
-      assert.deepEqual(showNotifications("http://foo.com"), [], "Relentless notifications are not shown before the interval");
-    }).then(() =>
-    {
-      // Date always returns a fixed time (see setupTimerAndFetch) so we
-      // manipulate the shown data manually.
-      Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
-      assert.deepEqual(showNotifications(), [], "Relentless notifications are not shown after the interval without URL");
-      assert.deepEqual(showNotifications("http://bar.com"), [], "Relentless notifications are not shown after the interval for a non-matching URL");
-      assert.deepEqual(showNotifications("http://bar.foo.com"), [relentless], "Relentless notifications are shown after the interval for a matching URL");
     }).catch(unexpectedError.bind(assert));
   });
 
