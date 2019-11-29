@@ -311,7 +311,8 @@ describe("Notifications", function()
 
   it("First version", async function()
   {
-    let checkDownload = async(payload, {queryParam, state: {firstVersion, data},
+    let checkDownload = async(payload, {queryParam,
+                                        state: {firstVersion, currentVersion},
                                         eFlag = ""}) =>
     {
       let requested = false;
@@ -338,13 +339,14 @@ describe("Notifications", function()
 
       assert.ok(requested);
 
-      assert.equal(Prefs.notificationdata.firstVersion, firstVersion + eFlag);
-      assert.equal(Prefs.notificationdata.data.version, data.version);
+      assert.equal(Prefs.analytics.data.firstVersion, firstVersion + eFlag);
+      assert.equal(Prefs.analytics.data.currentVersion, currentVersion);
     };
 
     async function testIt({eFlag} = {})
     {
-      Prefs.notificationdata = {firstVersion: "0"};
+      Prefs.analytics = {trustedHosts: ["example.com"]};
+      Prefs.notificationdata = {};
 
       if (typeof eFlag != "undefined")
       {
@@ -358,7 +360,7 @@ describe("Notifications", function()
         queryParam: "0",
         state: {
           firstVersion: "201905071234",
-          data: {version: "201905071234"}
+          currentVersion: "201905071234"
         },
         eFlag
       });
@@ -368,7 +370,7 @@ describe("Notifications", function()
         queryParam: "20190507",
         state: {
           firstVersion: "201905071234",
-          data: {version: "201906061235"}
+          currentVersion: "201906061235"
         },
         eFlag
       });
@@ -379,7 +381,7 @@ describe("Notifications", function()
         queryParam: "201905",
         state: {
           firstVersion: "201905071234",
-          data: {version: "201906061236"}
+          currentVersion: "201906061236"
         },
         eFlag
       });
@@ -389,7 +391,7 @@ describe("Notifications", function()
         queryParam: "201905",
         state: {
           firstVersion: "201905071234",
-          data: {version: "202005061235"}
+          currentVersion: "202005061235"
         },
         eFlag
       });
@@ -400,7 +402,7 @@ describe("Notifications", function()
         queryParam: "2019",
         state: {
           firstVersion: "201905071234",
-          data: {version: "202005061236"}
+          currentVersion: "202005061236"
         },
         eFlag
       });
@@ -410,13 +412,14 @@ describe("Notifications", function()
         queryParam: "2019",
         state: {
           firstVersion: "201905071234",
-          data: {version: "202605071234"}
+          currentVersion: "202605071234"
         },
         eFlag
       });
 
       // Repeat tests with hour-level precision.
-      Prefs.notificationdata = {firstVersion: "0"};
+      Prefs.analytics = {trustedHosts: ["example.com"]};
+      Prefs.notificationdata = {};
 
       if (typeof eFlag != "undefined")
         Prefs.notificationdata.data = {};
@@ -426,7 +429,7 @@ describe("Notifications", function()
         queryParam: "0",
         state: {
           firstVersion: "2019050712",
-          data: {version: "2019050712"}
+          currentVersion: "2019050712"
         },
         eFlag
       });
@@ -436,7 +439,7 @@ describe("Notifications", function()
         queryParam: "20190507",
         state: {
           firstVersion: "2019050712",
-          data: {version: "2019060613"}
+          currentVersion: "2019060613"
         },
         eFlag
       });
@@ -447,7 +450,7 @@ describe("Notifications", function()
         queryParam: "201905",
         state: {
           firstVersion: "2019050712",
-          data: {version: "2019060614"}
+          currentVersion: "2019060614"
         },
         eFlag
       });
@@ -457,7 +460,7 @@ describe("Notifications", function()
         queryParam: "201905",
         state: {
           firstVersion: "2019050712",
-          data: {version: "2020050613"}
+          currentVersion: "2020050613"
         },
         eFlag
       });
@@ -468,7 +471,7 @@ describe("Notifications", function()
         queryParam: "2019",
         state: {
           firstVersion: "2019050712",
-          data: {version: "2020050614"}
+          currentVersion: "2020050614"
         },
         eFlag
       });
@@ -478,13 +481,14 @@ describe("Notifications", function()
         queryParam: "2019",
         state: {
           firstVersion: "2019050712",
-          data: {version: "2026050712"}
+          currentVersion: "2026050712"
         },
         eFlag
       });
 
       // Repeat tests with day-level precision.
-      Prefs.notificationdata = {firstVersion: "0"};
+      Prefs.analytics = {trustedHosts: ["example.com"]};
+      Prefs.notificationdata = {};
 
       if (typeof eFlag != "undefined")
         Prefs.notificationdata.data = {};
@@ -494,7 +498,7 @@ describe("Notifications", function()
         queryParam: "0",
         state: {
           firstVersion: "20190507",
-          data: {version: "20190507"}
+          currentVersion: "20190507"
         },
         eFlag
       });
@@ -504,7 +508,7 @@ describe("Notifications", function()
         queryParam: "20190507",
         state: {
           firstVersion: "20190507",
-          data: {version: "20190607"}
+          currentVersion: "20190607"
         },
         eFlag
       });
@@ -514,7 +518,7 @@ describe("Notifications", function()
         queryParam: "201905",
         state: {
           firstVersion: "20190507",
-          data: {version: "20190608"}
+          currentVersion: "20190608"
         },
         eFlag
       });
@@ -524,7 +528,7 @@ describe("Notifications", function()
         queryParam: "201905",
         state: {
           firstVersion: "20190507",
-          data: {version: "20200507"}
+          currentVersion: "20200507"
         },
         eFlag
       });
@@ -534,7 +538,7 @@ describe("Notifications", function()
         queryParam: "2019",
         state: {
           firstVersion: "20190507",
-          data: {version: "20200508"}
+          currentVersion: "20200508"
         },
         eFlag
       });
@@ -544,7 +548,7 @@ describe("Notifications", function()
         queryParam: "2019",
         state: {
           firstVersion: "20190507",
-          data: {version: "20260507"}
+          currentVersion: "20260507"
         },
         eFlag
       });

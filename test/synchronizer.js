@@ -20,10 +20,11 @@
 const assert = require("assert");
 
 let {
-  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
-  MILLIS_IN_SECOND, MILLIS_IN_HOUR
+  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError
 } = require("./_common");
 
+let MILLIS_IN_SECOND = null;
+let MILLIS_IN_HOUR = null;
 let filterStorage = null;
 let Prefs = null;
 let Subscription = null;
@@ -41,6 +42,7 @@ describe("Synchronizer", function()
 
     let sandboxedRequire = createSandbox({globals});
     (
+      {MILLIS_IN_SECOND, MILLIS_IN_HOUR} = sandboxedRequire("../lib/time"),
       {filterStorage} = sandboxedRequire("../lib/filterStorage"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
       {Subscription} = sandboxedRequire("../lib/subscriptionClasses"),
