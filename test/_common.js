@@ -22,9 +22,7 @@ const path = require("path");
 const {URL} = require("url");
 const SandboxedModule = require("sandboxed-module");
 
-const MILLIS_IN_SECOND = exports.MILLIS_IN_SECOND = 1000;
-const MILLIS_IN_MINUTE = exports.MILLIS_IN_MINUTE = 60 * MILLIS_IN_SECOND;
-const MILLIS_IN_HOUR = exports.MILLIS_IN_HOUR = 60 * MILLIS_IN_MINUTE;
+const {MILLIS_IN_HOUR} = require("../lib/time");
 
 let globals = {
   atob: data => Buffer.from(data, "base64").toString("binary"),

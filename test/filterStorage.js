@@ -64,7 +64,7 @@ describe("Filter storage", function()
   function compareSubscriptionList(testMessage, list,
                                    knownSubscriptions = null)
   {
-    let result = [...filterStorage.knownSubscriptions.keys()];
+    let result = [...filterStorage._knownSubscriptions.keys()];
     let expected = list.map(subscription => subscription.url);
     assert.deepEqual(result, expected, testMessage);
 

@@ -3,8 +3,9 @@
     "commonjs": true
   },
   "globals": {
-    "atob": true,
     "URL": true,
+    "atob": true,
+    "console": true,
     "fetch": true
   }
 }

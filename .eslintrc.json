@@ -1,4 +1,7 @@
 {
   "extends": "eslint-config-eyeo",
-  "root": true
+  "root": true,
+  "rules": {
+    "arrow-parens": ["error", "as-needed"]
+  }
 }

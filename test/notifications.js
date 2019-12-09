@@ -24,11 +24,10 @@ let {
 } = require("./_common");
 
 let Prefs = null;
-let Utils = null;
-let Notification = null;
+let notifications = null;
 
-// Only starting NodeJS 10 that URL and URLSearchParams are in the global space.
-const {URL, URLSearchParams} = require("url");
+// Only starting NodeJS 10 that URLSearchParams is in the global space.
+const {URLSearchParams} = require("url");
 
 describe("Notifications", function()
 {
@@ -45,22 +44,21 @@ describe("Notifications", function()
     let sandboxedRequire = createSandbox({globals});
     (
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {Utils} = sandboxedRequire("./stub-modules/utils"),
-      {Notification} = sandboxedRequire("../lib/notification")
+      {notifications} = sandboxedRequire("../lib/notifications")
     );
   });
 
-  function showNotifications(location)
+  function showNotifications()
   {
     let shownNotifications = [];
     function showListener(notification)
     {
       shownNotifications.push(notification);
-      Notification.markAsShown(notification.id);
+      notifications.markAsShown(notification.id);
     }
-    Notification.addShowListener(showListener);
-    Notification.showNext(location && new URL(location));
-    Notification.removeShowListener(showListener);
+    notifications.addShowListener(showListener);
+    notifications.showNext();
+    notifications.removeShowListener(showListener);
     return shownNotifications;
   }
 
@@ -76,19 +74,19 @@ describe("Notifications", function()
     }
   }
 
-  function registerHandler(notifications, checkCallback)
+  function registerHandler(notificationList, checkCallback)
   {
     runner.registerHandler("/notification.json", metadata =>
     {
       if (checkCallback)
         checkCallback(metadata);
 
-      let notification = {
+      let payload = {
         version: 55,
-        notifications
+        notifications: notificationList
       };
 
-      return [200, JSON.stringify(notification)];
+      return [200, JSON.stringify(payload)];
     });
   }
 
@@ -313,27 +311,42 @@ describe("Notifications", function()
 
   it("First version", async function()
   {
-    let checkDownload = async(payload, {queryParam, state: {firstVersion, data},
+    let checkDownload = async(payload, {queryParam,
+                                        state: {firstVersion, currentVersion},
                                         eFlag = ""}) =>
     {
+      let requested = false;
+
       runner.registerHandler("/notification.json", ({queryString}) =>
       {
-        let params = new URLSearchParams(decodeURI(queryString));
+        requested = true;
 
-        assert.equal(params.get("firstVersion"), queryParam + eFlag);
+        try
+        {
+          let params = new URLSearchParams(decodeURI(queryString));
+
+          assert.equal(params.get("firstVersion"), queryParam + eFlag);
+        }
+        catch (error)
+        {
+          unexpectedError.call(assert, error);
+        }
 
         return [200, JSON.stringify(Object.assign({notifications: []}, payload))];
       });
 
       await runner.runScheduledTasks(24);
 
-      assert.equal(Prefs.notificationdata.firstVersion, firstVersion + eFlag);
-      assert.equal(Prefs.notificationdata.data.version, data.version);
+      assert.ok(requested);
+
+      assert.equal(Prefs.analytics.data.firstVersion, firstVersion + eFlag);
+      assert.equal(Prefs.analytics.data.currentVersion, currentVersion);
     };
 
     async function testIt({eFlag} = {})
     {
-      Prefs.notificationdata = {firstVersion: "0"};
+      Prefs.analytics = {trustedHosts: ["example.com"]};
+      Prefs.notificationdata = {};
 
       if (typeof eFlag != "undefined")
       {
@@ -347,7 +360,7 @@ describe("Notifications", function()
         queryParam: "0",
         state: {
           firstVersion: "201905071234",
-          data: {version: "201905071234"}
+          currentVersion: "201905071234"
         },
         eFlag
       });
@@ -357,7 +370,7 @@ describe("Notifications", function()
         queryParam: "20190507",
         state: {
           firstVersion: "201905071234",
-          data: {version: "201906061235"}
+          currentVersion: "201906061235"
         },
         eFlag
       });
@@ -368,7 +381,7 @@ describe("Notifications", function()
         queryParam: "201905",
         state: {
           firstVersion: "201905071234",
-          data: {version: "201906061236"}
+          currentVersion: "201906061236"
         },
         eFlag
       });
@@ -378,7 +391,7 @@ describe("Notifications", function()
         queryParam: "201905",
         state: {
           firstVersion: "201905071234",
-          data: {version: "202005061235"}
+          currentVersion: "202005061235"
         },
         eFlag
       });
@@ -389,7 +402,7 @@ describe("Notifications", function()
         queryParam: "2019",
         state: {
           firstVersion: "201905071234",
-          data: {version: "202005061236"}
+          currentVersion: "202005061236"
         },
         eFlag
       });
@@ -399,7 +412,143 @@ describe("Notifications", function()
         queryParam: "2019",
         state: {
           firstVersion: "201905071234",
-          data: {version: "202605071234"}
+          currentVersion: "202605071234"
+        },
+        eFlag
+      });
+
+      // Repeat tests with hour-level precision.
+      Prefs.analytics = {trustedHosts: ["example.com"]};
+      Prefs.notificationdata = {};
+
+      if (typeof eFlag != "undefined")
+        Prefs.notificationdata.data = {};
+
+      // First download on 2019-05-07T12:00Z.
+      await checkDownload({version: "2019050712"}, {
+        queryParam: "0",
+        state: {
+          firstVersion: "2019050712",
+          currentVersion: "2019050712"
+        },
+        eFlag
+      });
+
+      // 30 days and 1 hour since the first download.
+      await checkDownload({version: "2019060613"}, {
+        queryParam: "20190507",
+        state: {
+          firstVersion: "2019050712",
+          currentVersion: "2019060613"
+        },
+        eFlag
+      });
+
+      // 30 days and 2 hours since the first download. The value is trimmed to
+      // YYYYMM.
+      await checkDownload({version: "2019060614"}, {
+        queryParam: "201905",
+        state: {
+          firstVersion: "2019050712",
+          currentVersion: "2019060614"
+        },
+        eFlag
+      });
+
+      // 365 days and 1 hour since the first download.
+      await checkDownload({version: "2020050613"}, {
+        queryParam: "201905",
+        state: {
+          firstVersion: "2019050712",
+          currentVersion: "2020050613"
+        },
+        eFlag
+      });
+
+      // 365 days and 2 hours since the first download. The value is trimmed to
+      // YYYY.
+      await checkDownload({version: "2020050614"}, {
+        queryParam: "2019",
+        state: {
+          firstVersion: "2019050712",
+          currentVersion: "2020050614"
+        },
+        eFlag
+      });
+
+      // 2,557 days (~7 years) since the first download.
+      await checkDownload({version: "2026050712"}, {
+        queryParam: "2019",
+        state: {
+          firstVersion: "2019050712",
+          currentVersion: "2026050712"
+        },
+        eFlag
+      });
+
+      // Repeat tests with day-level precision.
+      Prefs.analytics = {trustedHosts: ["example.com"]};
+      Prefs.notificationdata = {};
+
+      if (typeof eFlag != "undefined")
+        Prefs.notificationdata.data = {};
+
+      // First download on 2019-05-07T00:00Z.
+      await checkDownload({version: "20190507"}, {
+        queryParam: "0",
+        state: {
+          firstVersion: "20190507",
+          currentVersion: "20190507"
+        },
+        eFlag
+      });
+
+      // 31 days since the first download.
+      await checkDownload({version: "20190607"}, {
+        queryParam: "20190507",
+        state: {
+          firstVersion: "20190507",
+          currentVersion: "20190607"
+        },
+        eFlag
+      });
+
+      // 32 days since the first download. The value is trimmed to YYYYMM.
+      await checkDownload({version: "20190608"}, {
+        queryParam: "201905",
+        state: {
+          firstVersion: "20190507",
+          currentVersion: "20190608"
+        },
+        eFlag
+      });
+
+      // 366 days since the first download.
+      await checkDownload({version: "20200507"}, {
+        queryParam: "201905",
+        state: {
+          firstVersion: "20190507",
+          currentVersion: "20200507"
+        },
+        eFlag
+      });
+
+      // 367 days since the first download. The value is trimmed to YYYY.
+      await checkDownload({version: "20200508"}, {
+        queryParam: "2019",
+        state: {
+          firstVersion: "20190507",
+          currentVersion: "20200508"
+        },
+        eFlag
+      });
+
+      // 2,557 days (~7 years) since the first download.
+      await checkDownload({version: "20260507"}, {
+        queryParam: "2019",
+        state: {
+          firstVersion: "20190507",
+          currentVersion: "20260507"
         },
         eFlag
       });
@@ -495,40 +644,7 @@ describe("Notifications", function()
     let responseText = JSON.stringify({
       notifications: [severityNotification]
     });
-    Notification._onDownloadSuccess({}, responseText, () => {}, () => {});
-  });
-
-  it("URL specific", function()
-  {
-    let withURLFilterFoo = {
-      id: 1,
-      urlFilters: ["foo.com$document"]
-    };
-    let withoutURLFilter = {
-      id: 2
-    };
-    let withURLFilterBar = {
-      id: 3,
-      urlFilters: ["bar.com$document"]
-    };
-    let subdomainURLFilter = {
-      id: 4,
-      urlFilters: ["||example.com$document"]
-    };
-
-    registerHandler.call(runner, [
-      withURLFilterFoo,
-      withoutURLFilter,
-      withURLFilterBar,
-      subdomainURLFilter
-    ]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
-      assert.deepEqual(showNotifications(), [withoutURLFilter], "URL-specific notifications are skipped");
-      assert.deepEqual(showNotifications("http://foo.com"), [withURLFilterFoo], "URL-specific notification is retrieved");
-      assert.deepEqual(showNotifications("http://foo.com"), [], "URL-specific notification is not retrieved");
-      assert.deepEqual(showNotifications("http://www.example.com"), [subdomainURLFilter], "URL-specific notification matches subdomain");
-    }).catch(unexpectedError.bind(assert));
+    notifications._onDownloadSuccess({}, responseText, () => {}, () => {});
   });
 
   it("Interval", function()
@@ -555,51 +671,22 @@ describe("Notifications", function()
     }).catch(unexpectedError.bind(assert));
   });
 
-  it("Relentless", function()
-  {
-    let relentless = {
-      id: 3,
-      type: "relentless",
-      interval: 100,
-      urlFilters: ["foo.com$document", "bar.foo$document"]
-    };
-
-    registerHandler.call(runner, [relentless]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
-      assert.deepEqual(showNotifications(), [], "Relentless notification is not shown without URL");
-      assert.deepEqual(showNotifications("http://bar.com"), [], "Relentless notification is not shown for a non-matching URL");
-      assert.deepEqual(showNotifications("http://foo.com"), [relentless], "Relentless notification is shown for a matching URL");
-    }).then(() =>
-    {
-      assert.deepEqual(showNotifications("http://foo.com"), [], "Relentless notifications are not shown before the interval");
-    }).then(() =>
-    {
-      // Date always returns a fixed time (see setupTimerAndFetch) so we
-      // manipulate the shown data manually.
-      Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
-      assert.deepEqual(showNotifications(), [], "Relentless notifications are not shown after the interval without URL");
-      assert.deepEqual(showNotifications("http://bar.com"), [], "Relentless notifications are not shown after the interval for a non-matching URL");
-      assert.deepEqual(showNotifications("http://bar.foo.com"), [relentless], "Relentless notifications are shown after the interval for a matching URL");
-    }).catch(unexpectedError.bind(assert));
-  });
-
   it("Global opt-out", function()
   {
-    Notification.toggleIgnoreCategory("*", true);
+    notifications.toggleIgnoreCategory("*", true);
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out");
-    Notification.toggleIgnoreCategory("*", true);
+    notifications.toggleIgnoreCategory("*", true);
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out (again)");
-    Notification.toggleIgnoreCategory("*", false);
+    notifications.toggleIgnoreCategory("*", false);
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out");
-    Notification.toggleIgnoreCategory("*", false);
+    notifications.toggleIgnoreCategory("*", false);
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out (again)");
-    Notification.toggleIgnoreCategory("*");
+    notifications.toggleIgnoreCategory("*");
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Toggle enable global opt-out");
-    Notification.toggleIgnoreCategory("*");
+    notifications.toggleIgnoreCategory("*");
     assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Toggle disable global opt-out");
 
-    Notification.toggleIgnoreCategory("*", false);
+    notifications.toggleIgnoreCategory("*", false);
 
     let information = {
       id: 1,
@@ -614,15 +701,15 @@ describe("Notifications", function()
       type: "relentless"
     };
 
-    Notification.toggleIgnoreCategory("*", true);
+    notifications.toggleIgnoreCategory("*", true);
     registerHandler.call(runner, [information]);
     return runner.runScheduledTasks(1).then(() =>
     {
       assert.deepEqual(showNotifications(), [], "Information notifications are ignored after enabling global opt-out");
-      Notification.toggleIgnoreCategory("*", false);
+      notifications.toggleIgnoreCategory("*", false);
       assert.deepEqual(showNotifications(), [information], "Information notifications are shown after disabling global opt-out");
 
-      Notification.toggleIgnoreCategory("*", true);
+      notifications.toggleIgnoreCategory("*", true);
       Prefs.notificationdata = {};
       registerHandler.call(runner, [critical]);
       return runner.runScheduledTasks(1);
@@ -642,37 +729,37 @@ describe("Notifications", function()
   it("Message without localization", function()
   {
     let notification = {message: "non-localized"};
-    let texts = Notification.getLocalizedTexts(notification);
+    let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "non-localized");
   });
 
   it("Language only", function()
   {
     let notification = {message: {fr: "fr"}};
-    Utils.appLocale = "fr";
-    let texts = Notification.getLocalizedTexts(notification);
+    notifications.locale = "fr";
+    let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr");
-    Utils.appLocale = "fr-CA";
-    texts = Notification.getLocalizedTexts(notification);
+    notifications.locale = "fr-CA";
+    texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr");
   });
 
   it("Language and country", function()
   {
     let notification = {message: {"fr": "fr", "fr-CA": "fr-CA"}};
-    Utils.appLocale = "fr-CA";
-    let texts = Notification.getLocalizedTexts(notification);
+    notifications.locale = "fr-CA";
+    let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr-CA");
-    Utils.appLocale = "fr";
-    texts = Notification.getLocalizedTexts(notification);
+    notifications.locale = "fr";
+    texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "fr");
   });
 
   it("Missing translation", function()
   {
     let notification = {message: {"en-US": "en-US"}};
-    Utils.appLocale = "fr";
-    let texts = Notification.getLocalizedTexts(notification);
+    notifications.locale = "fr";
+    let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "en-US");
   });
 });

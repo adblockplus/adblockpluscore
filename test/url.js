@@ -28,24 +28,21 @@ let parseURL = null;
 let normalizeHostname = null;
 let domainSuffixes = null;
 let isThirdParty = null;
+let parseDomains = null;
 let getBaseDomain = null;
 
 describe("URL", function()
 {
   beforeEach(function()
   {
-    let sandboxedRequire = createSandbox({
-      extraExports: {
-        domain: ["getBaseDomain"]
-      }
-    });
+    let sandboxedRequire = createSandbox();
     (
-      {parseURL, normalizeHostname, domainSuffixes, isThirdParty,
+      {parseURL, normalizeHostname, domainSuffixes, isThirdParty, parseDomains,
        getBaseDomain} = sandboxedRequire("../lib/url")
     );
   });
 
-  it("Parsing", function()
+  it("Parse URL", function()
   {
     function testURLParsing(url)
     {
@@ -474,5 +471,84 @@ describe("URL", function()
 
     // Edge case.
     assert.equal(getBaseDomain(""), "");
+  });
+
+  it("Parse domains", function()
+  {
+    function testFilterDomainsParsing(source, separator, expected,
+                                      {repeatingDomains = true} = {})
+    {
+      let domains = parseDomains(source, separator);
+
+      // Test internal caching.
+      assert.equal(parseDomains(source, separator), domains);
+      assert.notEqual(parseDomains(`extra.example.com${separator}${source}`,
+                                   separator),
+                      domains);
+
+      let domainsObj = null;
+
+      if (domains)
+      {
+        domainsObj = {};
+        for (let [domain, include] of domains)
+          domainsObj[domain] = +include;
+      }
+
+      assert.deepEqual(domainsObj, expected, source);
+
+      // Test repeating domains.
+      if (repeatingDomains && source != "")
+      {
+        testFilterDomainsParsing(`${source}${separator}${source}`, separator,
+                                 expected, {repeatingDomains: false});
+      }
+    }
+
+    testFilterDomainsParsing("", "|", {"": 1});
+
+    testFilterDomainsParsing("example.com", "|", {"": 0, "example.com": 1});
+    testFilterDomainsParsing("example.com|~foo.example.com", "|", {
+      "": 0,
+      "example.com": 1,
+      "foo.example.com": 0
+    });
+    testFilterDomainsParsing("~foo.example.com", "|", {
+      "": 1,
+      "foo.example.com": 0
+    });
+
+    testFilterDomainsParsing(
+      "example.com|foo.example.com|bar.example.com", "|", {
+        "": 0,
+        "example.com": 1,
+        "foo.example.com": 1,
+        "bar.example.com": 1
+      }
+    );
+    testFilterDomainsParsing(
+      "example.com|foo.example.com|~bar.example.com", "|", {
+        "": 0,
+        "example.com": 1,
+        "foo.example.com": 1,
+        "bar.example.com": 0
+      }
+    );
+    testFilterDomainsParsing(
+      "example.com|~foo.example.com|~bar.example.com", "|", {
+        "": 0,
+        "example.com": 1,
+        "foo.example.com": 0,
+        "bar.example.com": 0
+      }
+    );
+    testFilterDomainsParsing(
+      "~example.com|~foo.example.com|~bar.example.com", "|", {
+        "": 1,
+        "example.com": 0,
+        "foo.example.com": 0,
+        "bar.example.com": 0
+      }
+    );
   });
 });
