@@ -1,7 +1,7 @@
 {
   "name": "adblockpluscore",
   "repository": "https://hg.adblockplus.org/adblockpluscore",
-  "license": "GPL-3.0",
+  "license": "GPL-3.0-only",
   "dependencies": {},
   "devDependencies": {
     "chai": "^4.2.0",
