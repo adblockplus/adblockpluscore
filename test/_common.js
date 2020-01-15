@@ -19,7 +19,6 @@
 
 const fs = require("fs");
 const path = require("path");
-const {URL} = require("url");
 const SandboxedModule = require("sandboxed-module");
 
 const {MILLIS_IN_HOUR} = require("../lib/time");
@@ -33,7 +32,6 @@ let globals = {
   },
   navigator: {
   },
-  // URL is global in Node 10. In Node 7+ it must be imported.
   URL
 };
 

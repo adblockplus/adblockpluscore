@@ -18,8 +18,6 @@
 "use strict";
 
 const assert = require("assert");
-// Only starting NodeJS 10 that URL is in the global space.
-const {URL} = require("url");
 const {createSandbox} = require("./_common");
 
 const publicSuffixes = require("../data/publicSuffixList.json");

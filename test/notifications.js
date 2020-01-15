@@ -26,9 +26,6 @@ let {
 let Prefs = null;
 let notifications = null;
 
-// Only starting NodeJS 10 that URLSearchParams is in the global space.
-const {URLSearchParams} = require("url");
-
 describe("Notifications", function()
 {
   let runner = {};

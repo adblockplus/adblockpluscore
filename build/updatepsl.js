@@ -19,7 +19,6 @@
 
 const fs = require("fs");
 const request = require("request");
-const {URL} = require("url");
 
 const PSL_URL = "https://publicsuffix.org/list/public_suffix_list.dat";
 const FILENAME = "data/publicSuffixList.json";
