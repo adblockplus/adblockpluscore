@@ -1,5 +1,6 @@
 {
   "name": "adblockpluscore",
+  "version": "0.1.0",
   "repository": "https://hg.adblockplus.org/adblockpluscore",
   "license": "GPL-3.0-only",
   "engines": {
