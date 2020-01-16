@@ -7,6 +7,7 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "c8": "^7.0.1",
     "chai": "^4.2.0",
     "chrome-remote-interface": "^0.27.2",
     "chromedriver": "2.36.0",
@@ -29,7 +30,7 @@
   "scripts": {
     "docs": "jsdoc --configure .jsdoc.conf --destination docs lib",
     "lint": "eslint *.js lib test build",
-    "test": "node test_runner.js",
+    "test": "c8 --include=lib/*.js --all node test_runner.js",
     "posttest": "npm run lint",
     "updatepsl": "node build/updatepsl.js",
     "update-subscriptions": "node build/updateSubscriptions.js"
