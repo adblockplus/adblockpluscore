@@ -447,9 +447,17 @@ describe("Filter classes", function()
     assert.equal(Filter.normalize("   domain.c  om## # sele ctor   "),
                  "domain.com### sele ctor");
 
+    // Wildcard: "*" is allowed, though not supported (yet).
+    assert.equal(Filter.normalize("   domain.*## # sele ctor   "),
+                 "domain.*### sele ctor");
+
     // Element hiding emulation filters
     assert.equal(Filter.normalize("   domain.c  om#?# # sele ctor   "),
                  "domain.com#?## sele ctor");
+
+    // Wildcard: "*" is allowed, though not supported (yet).
+    assert.equal(Filter.normalize("   domain.*#?# # sele ctor   "),
+                 "domain.*#?## sele ctor");
 
     // Incorrect syntax: the separator "#?#" cannot contain spaces; treated as a
     // regular filter instead
@@ -465,6 +473,10 @@ describe("Filter classes", function()
     assert.equal(Filter.normalize("   domain.c  om#@# # sele ctor   "),
                  "domain.com#@## sele ctor");
 
+    // Wildcard: "*" is allowed, though not supported (yet).
+    assert.equal(Filter.normalize("   domain.*#@# # sele ctor   "),
+                 "domain.*#@## sele ctor");
+
     // Incorrect syntax: the separator "#@#" cannot contain spaces; treated as a
     // regular filter instead (not an element hiding filter either!), because
     // unlike the case with "# ?##" the "##" following the "@" is not considered
@@ -475,6 +487,10 @@ describe("Filter classes", function()
     // Snippet filters
     assert.equal(Filter.normalize("   domain.c  om#$#  sni pp  et   "),
                  "domain.com#$#sni pp  et");
+
+    // Wildcard: "*" is allowed, though not supported (yet).
+    assert.equal(Filter.normalize("   domain.*#$#  sni pp  et   "),
+                 "domain.*#$#sni pp  et");
 
     // Regular filters
     let normalized = Filter.normalize(
@@ -562,5 +578,234 @@ describe("Filter classes", function()
 
     assert.notEqual(filter2.domains, filter5.domains);
     assert.notEqual(filter4.domains, filter6.domains);
+  });
+
+  it("Filters with wildcard domains", function()
+  {
+    // Blocking filters
+    compareFilter("||example.com^$domain=example.*", [
+      "type=blocking",
+      "text=||example.com^$domain=example.*",
+      "domains=example.*"
+    ]);
+
+    compareFilter("||example.com^$domain=example.*|example.net", [
+      "type=blocking",
+      "text=||example.com^$domain=example.*|example.net",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("||example.com^$domain=example.net|example.*", [
+      "type=blocking",
+      "text=||example.com^$domain=example.net|example.*",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("||example.com^$domain=~example.net|example.*", [
+      "type=blocking",
+      "text=||example.com^$domain=~example.net|example.*",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("||example.com^$domain=example.*|~example.net", [
+      "type=blocking",
+      "text=||example.com^$domain=example.*|~example.net",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Whitelisting filters
+    compareFilter("@@||example.com^$domain=example.*", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=example.*",
+      "domains=example.*"
+    ]);
+
+    compareFilter("@@||example.com^$domain=example.*|example.net", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=example.*|example.net",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("@@||example.com^$domain=example.net|example.*", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=example.net|example.*",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("@@||example.com^$domain=~example.net|example.*", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=~example.net|example.*",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("@@||example.com^$domain=example.*|~example.net", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=example.*|~example.net",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Element hiding filters
+    compareFilter("example.*##abc", [
+      "type=elemhide",
+      "text=example.*##abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*"
+    ]);
+
+    compareFilter("example.*,example.net##abc", [
+      "type=elemhide",
+      "text=example.*,example.net##abc",
+      "selectorDomains=example.*,example.net",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("example.net,example.*##abc", [
+      "type=elemhide",
+      "text=example.net,example.*##abc",
+      "selectorDomains=example.net,example.*",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("~example.net,example.*##abc", [
+      "type=elemhide",
+      "text=~example.net,example.*##abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("example.*,~example.net##abc", [
+      "type=elemhide",
+      "text=example.*,~example.net##abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Element hiding emulation filters
+    compareFilter("example.*#?#abc", [
+      "type=elemhideemulation",
+      "text=example.*#?#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*"
+    ]);
+
+    compareFilter("example.*,example.net#?#abc", [
+      "type=elemhideemulation",
+      "text=example.*,example.net#?#abc",
+      "selectorDomains=example.*,example.net",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("example.net,example.*#?#abc", [
+      "type=elemhideemulation",
+      "text=example.net,example.*#?#abc",
+      "selectorDomains=example.net,example.*",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("~example.net,example.*#?#abc", [
+      "type=elemhideemulation",
+      "text=~example.net,example.*#?#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("example.*,~example.net#?#abc", [
+      "type=elemhideemulation",
+      "text=example.*,~example.net#?#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Element hiding exception filters
+    compareFilter("example.*#@#abc", [
+      "type=elemhideexception",
+      "text=example.*#@#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*"
+    ]);
+
+    compareFilter("example.*,example.net#@#abc", [
+      "type=elemhideexception",
+      "text=example.*,example.net#@#abc",
+      "selectorDomains=example.*,example.net",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("example.net,example.*#@#abc", [
+      "type=elemhideexception",
+      "text=example.net,example.*#@#abc",
+      "selectorDomains=example.net,example.*",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("~example.net,example.*#@#abc", [
+      "type=elemhideexception",
+      "text=~example.net,example.*#@#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("example.*,~example.net#@#abc", [
+      "type=elemhideexception",
+      "text=example.*,~example.net#@#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Snippet filters
+    compareFilter("example.*#$#abc", [
+      "type=snippet",
+      "text=example.*#$#abc",
+      "scriptDomains=example.*",
+      "script=abc",
+      "domains=example.*"
+    ]);
+
+    compareFilter("example.*,example.net#$#abc", [
+      "type=snippet",
+      "text=example.*,example.net#$#abc",
+      "scriptDomains=example.*,example.net",
+      "script=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("example.net,example.*#$#abc", [
+      "type=snippet",
+      "text=example.net,example.*#$#abc",
+      "scriptDomains=example.net,example.*",
+      "script=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("~example.net,example.*#$#abc", [
+      "type=snippet",
+      "text=~example.net,example.*#$#abc",
+      "scriptDomains=example.*",
+      "script=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("example.*,~example.net#$#abc", [
+      "type=snippet",
+      "text=example.*,~example.net#$#abc",
+      "scriptDomains=example.*",
+      "script=abc",
+      "domains=example.*|~example.net"
+    ]);
   });
 });
