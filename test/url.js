@@ -550,3 +550,246 @@ describe("URL", function()
     );
   });
 });
+
+describe("isValidHostname()", function()
+{
+  let isValidHostname = null;
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {isValidHostname} = sandboxedRequire("../lib/url")
+    );
+  });
+
+  it("should return false for blank hostname", function()
+  {
+    assert.strictEqual(isValidHostname(""), false);
+  });
+
+  it("should return true for example.com", function()
+  {
+    assert.strictEqual(isValidHostname("example.com"), true);
+  });
+
+  it("should return true for EXAMPLE.COM (upper case)", function()
+  {
+    assert.strictEqual(isValidHostname("EXAMPLE.COM"), true);
+  });
+
+  it("should return true for eXaMple.COm (mixed case)", function()
+  {
+    assert.strictEqual(isValidHostname("eXaMple.COm"), true);
+  });
+
+  it("should return false for example. com (space)", function()
+  {
+    assert.strictEqual(isValidHostname("example. com"), false);
+  });
+
+  it("should return false for ' example.com' (leading space)", function()
+  {
+    assert.strictEqual(isValidHostname(" example.com"), false);
+  });
+
+  it("should return false for 'example.com ' (trailing space)", function()
+  {
+    assert.strictEqual(isValidHostname("example.com "), false);
+  });
+
+  it("should return true for example.com. (trailing dot)", function()
+  {
+    assert.strictEqual(isValidHostname("example.com."), true);
+  });
+
+  it("should return false for .example.com (leading dot)", function()
+  {
+    assert.strictEqual(isValidHostname(".example.com"), false);
+  });
+
+  it("should return false for example..com (consecutive dots)", function()
+  {
+    assert.strictEqual(isValidHostname("example..com"), false);
+  });
+
+  it("should return true for foo.example.com", function()
+  {
+    assert.strictEqual(isValidHostname("foo.example.com"), true);
+  });
+
+  it("should return true for bar.foo.example.com", function()
+  {
+    assert.strictEqual(isValidHostname("bar.foo.example.com"), true);
+  });
+
+  it("should return true for foo-bar.example.com", function()
+  {
+    assert.strictEqual(isValidHostname("foo-bar.example.com"), true);
+  });
+
+  it("should return true for -example.com (leading hyphen)", function()
+  {
+    assert.strictEqual(isValidHostname("-example.com"), false);
+  });
+
+  it("should return true for example.com- (trailing hyphen)", function()
+  {
+    assert.strictEqual(isValidHostname("example.com-"), false);
+  });
+
+  it("should return true for example.-com (inner leading hyphen)", function()
+  {
+    assert.strictEqual(isValidHostname("example.-com"), false);
+  });
+
+  it("should return true for example-.com (inner trailing hyphen)", function()
+  {
+    assert.strictEqual(isValidHostname("example-.com"), false);
+  });
+
+  it("should return true for localhost", function()
+  {
+    assert.strictEqual(isValidHostname("localhost"), true);
+  });
+
+  it("should return true for 192.168.1.1 (IPv4 address)", function()
+  {
+    assert.strictEqual(isValidHostname("192.168.1.1"), true);
+  });
+
+  it("should return true for [2001:db8:0:42:0:8a2e:370:7334] (IPv6 address)", function()
+  {
+    assert.strictEqual(isValidHostname("[2001:db8:0:42:0:8a2e:370:7334]"), true);
+  });
+
+  it("should return false for 1.2.3.4.5 (all numeric)", function()
+  {
+    assert.strictEqual(isValidHostname("1.2.3.4.5"), false);
+  });
+
+  it("should return false for 1.2.3", function()
+  {
+    assert.strictEqual(isValidHostname("1.2.3"), false);
+  });
+
+  it("should return false for 1.2", function()
+  {
+    assert.strictEqual(isValidHostname("1.2"), false);
+  });
+
+  it("should return false for 1", function()
+  {
+    assert.strictEqual(isValidHostname("1"), false);
+  });
+
+  it("should return false for example.1", function()
+  {
+    assert.strictEqual(isValidHostname("example.1"), false);
+  });
+
+  it("should return true for 1.com", function()
+  {
+    assert.strictEqual(isValidHostname("1.com"), true);
+  });
+
+  it("should return true for 2.1.com", function()
+  {
+    assert.strictEqual(isValidHostname("2.1.com"), true);
+  });
+
+  it("should return true for 3.2.1.com", function()
+  {
+    assert.strictEqual(isValidHostname("3.2.1.com"), true);
+  });
+
+  it("should return true for www1.example.com", function()
+  {
+    assert.strictEqual(isValidHostname("www1.example.com"), true);
+  });
+
+  it("should return true for 10x.example.com", function()
+  {
+    assert.strictEqual(isValidHostname("10x.example.com"), true);
+  });
+
+  it("should return true for xn--938h.com (IDNA)", function()
+  {
+    assert.strictEqual(isValidHostname("xn--938h.com"), true);
+  });
+
+  it("should return false for \u{1f642}.com (invalid characters)", function()
+  {
+    assert.strictEqual(isValidHostname("\u{1f642}.com"), false);
+  });
+
+  it("should return false for \u262e.com", function()
+  {
+    assert.strictEqual(isValidHostname("\u262e.com"), false);
+  });
+
+  it("should return false for example.*", function()
+  {
+    assert.strictEqual(isValidHostname("example.*"), false);
+  });
+
+  it("should return false for *.example.com", function()
+  {
+    assert.strictEqual(isValidHostname("*.example.com"), false);
+  });
+
+  it("should return false for example*.com", function()
+  {
+    assert.strictEqual(isValidHostname("example*.com"), false);
+  });
+
+  it("should return false for *example.com", function()
+  {
+    assert.strictEqual(isValidHostname("*example.com"), false);
+  });
+
+  it("should return false for www.example*", function()
+  {
+    assert.strictEqual(isValidHostname("www.example*"), false);
+  });
+
+  it("should return false for www.*example", function()
+  {
+    assert.strictEqual(isValidHostname("www.*example"), false);
+  });
+
+  it("should return false for example.com:443", function()
+  {
+    assert.strictEqual(isValidHostname("example.com:443"), false);
+  });
+
+  it("should return false for example.com:8080", function()
+  {
+    assert.strictEqual(isValidHostname("example.com:8080"), false);
+  });
+
+  it("should return false for hostname with 64-character label", function()
+  {
+    assert.strictEqual(isValidHostname("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz01.com"), false);
+  });
+
+  it("should return true for hostname with 63-character label", function()
+  {
+    assert.strictEqual(isValidHostname("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.com"), true);
+  });
+
+  it("should return false for 254-character hostname", function()
+  {
+    assert.strictEqual(isValidHostname("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz"), false);
+  });
+
+  it("should return true for 253-character hostname", function()
+  {
+    assert.strictEqual(isValidHostname("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxy"), true);
+  });
+
+  it("should return true for 254-character hostname with trailing dot", function()
+  {
+    assert.strictEqual(isValidHostname("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxy."), true);
+  });
+});
