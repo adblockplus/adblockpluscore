@@ -22,361 +22,888 @@ const {createSandbox} = require("./_common");
 
 const publicSuffixes = require("../data/publicSuffixList.json");
 
-let parseURL = null;
-let normalizeHostname = null;
-let domainSuffixes = null;
-let isThirdParty = null;
-let parseDomains = null;
-let getBaseDomain = null;
-
-describe("URL", function()
+describe("parseURL()", function()
 {
+  let parseURL = null;
+
+  function testURLParsing(url)
+  {
+    // Note: The function expects a normalized URL.
+    // e.g. "http:example.com:80?foo" should already be normalized to
+    // "http://example.com/?foo". If not, the tests will fail.
+    let urlInfo = parseURL(url);
+
+    // We need to ensure only that our implementation matches that of the URL
+    // object.
+    let urlObject = new URL(url);
+
+    assert.equal(urlInfo.href, urlObject.href);
+    assert.equal(urlInfo.protocol, urlObject.protocol);
+    assert.equal(urlInfo.hostname, urlObject.hostname);
+
+    assert.equal(urlInfo.toString(), urlObject.toString());
+    assert.equal(String(urlInfo), String(urlObject));
+    assert.equal(urlInfo + "", urlObject + "");
+  }
+
   beforeEach(function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {parseURL, normalizeHostname, domainSuffixes, isThirdParty, parseDomains,
-       getBaseDomain} = sandboxedRequire("../lib/url")
+      {parseURL} = sandboxedRequire("../lib/url")
     );
   });
 
-  it("Parse URL", function()
+  it("should parse https://example.com/", function()
   {
-    function testURLParsing(url)
-    {
-      // Note: The function expects a normalized URL.
-      // e.g. "http:example.com:80?foo" should already be normalized to
-      // "http://example.com/?foo". If not, the tests will fail.
-      let urlInfo = parseURL(url);
-
-      // We need to ensure only that our implementation matches that of the URL
-      // object.
-      let urlObject = new URL(url);
-
-      assert.equal(urlInfo.href, urlObject.href);
-      assert.equal(urlInfo.protocol, urlObject.protocol);
-      assert.equal(urlInfo.hostname, urlObject.hostname);
-
-      assert.equal(urlInfo.toString(), urlObject.toString());
-      assert.equal(String(urlInfo), String(urlObject));
-      assert.equal(urlInfo + "", urlObject + "");
-    }
-
     testURLParsing("https://example.com/");
+  });
+
+  it("should parse https://example.com/foo", function()
+  {
     testURLParsing("https://example.com/foo");
+  });
+
+  it("should parse https://example.com/foo/bar", function()
+  {
     testURLParsing("https://example.com/foo/bar");
-    testURLParsing(
-      "https://example.com/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse https://example.com/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("https://example.com/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse https://example.com:8080/", function()
+  {
     testURLParsing("https://example.com:8080/");
+  });
+
+  it("should parse https://example.com:8080/foo", function()
+  {
     testURLParsing("https://example.com:8080/foo");
+  });
+
+  it("should parse https://example.com:8080/foo/bar", function()
+  {
     testURLParsing("https://example.com:8080/foo/bar");
-    testURLParsing(
-      "https://example.com:8080/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse https://example.com:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("https://example.com:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse http://localhost/", function()
+  {
     testURLParsing("http://localhost/");
+  });
+
+  it("should parse http://localhost/foo", function()
+  {
     testURLParsing("http://localhost/foo");
+  });
+
+  it("should parse http://localhost/foo/bar", function()
+  {
     testURLParsing("http://localhost/foo/bar");
-    testURLParsing(
-      "http://localhost/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse http://localhost/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("http://localhost/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse https://user@example.com/", function()
+  {
     testURLParsing("https://user@example.com/");
+  });
+
+  it("should parse https://user@example.com/foo", function()
+  {
     testURLParsing("https://user@example.com/foo");
+  });
+
+  it("should parse https://user@example.com/foo/bar", function()
+  {
     testURLParsing("https://user@example.com/foo/bar");
-    testURLParsing(
-      "https://user@example.com/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse https://user@example.com/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("https://user@example.com/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse https://user@example.com:8080/", function()
+  {
     testURLParsing("https://user@example.com:8080/");
+  });
+
+  it("should parse https://user@example.com:8080/foo", function()
+  {
     testURLParsing("https://user@example.com:8080/foo");
+  });
+
+  it("should parse https://user@example.com:8080/foo/bar", function()
+  {
     testURLParsing("https://user@example.com:8080/foo/bar");
-    testURLParsing(
-      "https://user@example.com:8080/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse https://user@example.com:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("https://user@example.com:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse https://user:pass@example.com/", function()
+  {
     testURLParsing("https://user:pass@example.com/");
+  });
+
+  it("should parse https://user:pass@example.com/foo", function()
+  {
     testURLParsing("https://user:pass@example.com/foo");
+  });
+
+  it("should parse https://user:pass@example.com/foo/bar", function()
+  {
     testURLParsing("https://user:pass@example.com/foo/bar");
-    testURLParsing(
-      "https://user:pass@example.com/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse https://user:pass@example.com/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("https://user:pass@example.com/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse https://user:pass@example.com:8080/", function()
+  {
     testURLParsing("https://user:pass@example.com:8080/");
+  });
+
+  it("should parse https://user:pass@example.com:8080/foo", function()
+  {
     testURLParsing("https://user:pass@example.com:8080/foo");
+  });
+
+  it("should parse https://user:pass@example.com:8080/foo/bar", function()
+  {
     testURLParsing("https://user:pass@example.com:8080/foo/bar");
-    testURLParsing(
-      "https://user:pass@example.com:8080/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse https://user:pass@example.com:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("https://user:pass@example.com:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse https://us%40er:pa%40ss@example.com/", function()
+  {
     testURLParsing("https://us%40er:pa%40ss@example.com/");
+  });
+
+  it("should parse https://us%40er:pa%40ss@example.com/foo", function()
+  {
     testURLParsing("https://us%40er:pa%40ss@example.com/foo");
+  });
+
+  it("should parse https://us%40er:pa%40ss@example.com/foo/bar", function()
+  {
     testURLParsing("https://us%40er:pa%40ss@example.com/foo/bar");
-    testURLParsing(
-      "https://us%40er:pa%40ss@example.com/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse https://us%40er:pa%40ss@example.com/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("https://us%40er:pa%40ss@example.com/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse https://us%40er:pa%40ss@example.com:8080/", function()
+  {
     testURLParsing("https://us%40er:pa%40ss@example.com:8080/");
+  });
+
+  it("should parse https://us%40er:pa%40ss@example.com:8080/foo", function()
+  {
     testURLParsing("https://us%40er:pa%40ss@example.com:8080/foo");
+  });
+
+  it("should parse https://us%40er:pa%40ss@example.com:8080/foo/bar", function()
+  {
     testURLParsing("https://us%40er:pa%40ss@example.com:8080/foo/bar");
-    testURLParsing(
-      "https://us%40er:pa%40ss@example.com:8080/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse https://us%40er:pa%40ss@example.com:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("https://us%40er:pa%40ss@example.com:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse http://192.168.1.1/", function()
+  {
     testURLParsing("http://192.168.1.1/");
+  });
+
+  it("should parse http://192.168.1.1/foo", function()
+  {
     testURLParsing("http://192.168.1.1/foo");
+  });
+
+  it("should parse http://192.168.1.1/foo/bar", function()
+  {
     testURLParsing("http://192.168.1.1/foo/bar");
-    testURLParsing(
-      "http://192.168.1.1/foo/bar?https://random/foo/bar"
-    );
-    testURLParsing(
-      "http://192.168.1.1:8080/foo/bar?https://random/foo/bar"
-    );
-    testURLParsing(
-      "http://user@192.168.1.1:8080/foo/bar?https://random/foo/bar"
-    );
-    testURLParsing(
-      "http://user:pass@192.168.1.1:8080/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse http://192.168.1.1/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("http://192.168.1.1/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse http://192.168.1.1:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("http://192.168.1.1:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse http://user@192.168.1.1:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("http://user@192.168.1.1:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse http://user:pass@192.168.1.1:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("http://user:pass@192.168.1.1:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse http://[2001:db8:0:42:0:8a2e:370:7334]/", function()
+  {
     testURLParsing("http://[2001:db8:0:42:0:8a2e:370:7334]/");
+  });
+
+  it("should parse http://[2001:db8:0:42:0:8a2e:370:7334]/foo", function()
+  {
     testURLParsing("http://[2001:db8:0:42:0:8a2e:370:7334]/foo");
-    testURLParsing(
-      "http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar"
-    );
-    testURLParsing(
-      "http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar?https://random/foo/bar"
-    );
-    testURLParsing(
-      "http://[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar"
-    );
-    testURLParsing(
-      "http://user@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar"
-    );
-    testURLParsing(
-      "http://user:pass@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar"
-    );
+  });
 
+  it("should parse http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar", function()
+  {
+    testURLParsing("http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar");
+  });
+
+  it("should parse http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("http://[2001:db8:0:42:0:8a2e:370:7334]/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse http://[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("http://[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse http://user@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("http://user@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse http://user:pass@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar", function()
+  {
+    testURLParsing("http://user:pass@[2001:db8:0:42:0:8a2e:370:7334]:8080/foo/bar?https://random/foo/bar");
+  });
+
+  it("should parse ftp://user:pass@example.com:8021/", function()
+  {
     testURLParsing("ftp://user:pass@example.com:8021/");
+  });
+
+  it("should parse ftp://user:pass@example.com:8021/foo", function()
+  {
     testURLParsing("ftp://user:pass@example.com:8021/foo");
+  });
+
+  it("should parse ftp://user:pass@example.com:8021/foo/bar", function()
+  {
     testURLParsing("ftp://user:pass@example.com:8021/foo/bar");
+  });
 
+  it("should parse about:blank", function()
+  {
     testURLParsing("about:blank");
+  });
+
+  it("should parse chrome://extensions", function()
+  {
     testURLParsing("chrome://extensions");
-    testURLParsing(
-      "chrome-extension://bhignfpcigccnlfapldlodmhlidjaion/options.html"
-    );
+  });
+
+  it("should parse chrome-extension://bhignfpcigccnlfapldlodmhlidjaion/options.html", function()
+  {
+    testURLParsing("chrome-extension://bhignfpcigccnlfapldlodmhlidjaion/options.html");
+  });
+
+  it("should parse mailto:john.doe@mail.example.com", function()
+  {
     testURLParsing("mailto:john.doe@mail.example.com");
+  });
 
+  it("should parse news:newsgroup", function()
+  {
     testURLParsing("news:newsgroup");
+  });
+
+  it("should parse news:message-id", function()
+  {
     testURLParsing("news:message-id");
+  });
+
+  it("should parse nntp://example.com:8119/newsgroup", function()
+  {
     testURLParsing("nntp://example.com:8119/newsgroup");
+  });
+
+  it("should parse nntp://example.com:8119/message-id", function()
+  {
     testURLParsing("nntp://example.com:8119/message-id");
+  });
 
+  it("should parse data:,", function()
+  {
     testURLParsing("data:,");
-    testURLParsing(
-      "data:text/vnd-example+xyz;foo=bar;base64,R0lGODdh"
-    );
-    testURLParsing(
-      "data:text/plain;charset=UTF-8;page=21,the%20data:1234,5678"
-    );
+  });
 
+  it("should parse data:text/vnd-example+xyz;foo=bar;base64,R0lGODdh", function()
+  {
+    testURLParsing("data:text/vnd-example+xyz;foo=bar;base64,R0lGODdh");
+  });
+
+  it("should parse data:text/plain;charset=UTF-8;page=21,the%20data:1234,5678", function()
+  {
+    testURLParsing("data:text/plain;charset=UTF-8;page=21,the%20data:1234,5678");
+  });
+
+  it("should parse javascript:", function()
+  {
     testURLParsing("javascript:");
+  });
+
+  it("should parse javascript:alert();", function()
+  {
     testURLParsing("javascript:alert();");
+  });
+
+  it("should parse javascript:foo/bar/", function()
+  {
     testURLParsing("javascript:foo/bar/");
+  });
+
+  it("should parse javascript://foo/bar/", function()
+  {
     testURLParsing("javascript://foo/bar/");
+  });
 
+  it("should parse file:///dev/random", function()
+  {
     testURLParsing("file:///dev/random");
+  });
 
+  it("should parse wss://example.com/", function()
+  {
     testURLParsing("wss://example.com/");
+  });
+
+  it("should parse wss://example.com:8080/", function()
+  {
     testURLParsing("wss://example.com:8080/");
+  });
+
+  it("should parse wss://user@example.com:8080/", function()
+  {
     testURLParsing("wss://user@example.com:8080/");
+  });
+
+  it("should parse wss://user:pass@example.com:8080/", function()
+  {
     testURLParsing("wss://user:pass@example.com:8080/");
+  });
 
+  it("should parse stuns:stuns.example.com/", function()
+  {
     testURLParsing("stuns:stuns.example.com/");
+  });
+
+  it("should parse stuns:stuns.example.com:8080/", function()
+  {
     testURLParsing("stuns:stuns.example.com:8080/");
+  });
+
+  it("should parse stuns:user@stuns.example.com:8080/", function()
+  {
     testURLParsing("stuns:user@stuns.example.com:8080/");
+  });
+
+  it("should parse stuns:user:pass@stuns.example.com:8080/", function()
+  {
     testURLParsing("stuns:user:pass@stuns.example.com:8080/");
+  });
 
-    // The following tests are based on
-    // https://cs.chromium.org/chromium/src/url/gurl_unittest.cc?rcl=9ec7bc85e0f6a0bf28eff6b2eca678067da547e9
-    // Note: We do not check for "canonicalization" (normalization). parseURL()
-    // should be used with normalized URLs only.
+  // The following tests are based on
+  // https://cs.chromium.org/chromium/src/url/gurl_unittest.cc?rcl=9ec7bc85e0f6a0bf28eff6b2eca678067da547e9
+  // Note: We do not check for "canonicalization" (normalization). parseURL()
+  // should be used with normalized URLs only.
 
+  it("should parse something:///example.com/", function()
+  {
     testURLParsing("something:///example.com/");
+  });
+
+  it("should parse something://example.com/", function()
+  {
     testURLParsing("something://example.com/");
+  });
 
+  it("should parse file:///C:/foo.txt", function()
+  {
     testURLParsing("file:///C:/foo.txt");
+  });
+
+  it("should parse file://server/foo.txt", function()
+  {
     testURLParsing("file://server/foo.txt");
+  });
 
+  it("should parse http://user:pass@example.com:99/foo;bar?q=a#ref", function()
+  {
     testURLParsing("http://user:pass@example.com:99/foo;bar?q=a#ref");
+  });
 
+  it("should parse http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/", function()
+  {
     testURLParsing("http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/");
+  });
 
+  it("should parse filesystem:http://example.com/temporary/", function()
+  {
     testURLParsing("filesystem:http://example.com/temporary/");
-    testURLParsing(
-      "filesystem:http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/"
-    );
+  });
 
+  it("should parse filesystem:http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/", function()
+  {
+    testURLParsing("filesystem:http://user:%40!$&'()*+,%3B%3D%3A@example.com:12345/");
+  });
+
+  it("should parse javascript:window.alert('hello, world');", function()
+  {
     testURLParsing("javascript:window.alert('hello, world');");
+  });
+
+  it("should parse javascript:#", function()
+  {
     testURLParsing("javascript:#");
+  });
 
-    testURLParsing(
-      "blob:https://example.com/7ce70a1e-9681-4148-87a8-43cb9171b994"
-    );
+  it("should parse blob:https://example.com/7ce70a1e-9681-4148-87a8-43cb9171b994", function()
+  {
+    testURLParsing("blob:https://example.com/7ce70a1e-9681-4148-87a8-43cb9171b994");
+  });
 
+  it("should parse http://[2001:db8::1]/", function()
+  {
     testURLParsing("http://[2001:db8::1]/");
+  });
+
+  it("should parse http://[2001:db8::1]:8080/", function()
+  {
     testURLParsing("http://[2001:db8::1]:8080/");
+  });
+
+  it("should parse http://[::]:8080/", function()
+  {
     testURLParsing("http://[::]:8080/");
+  });
 
+  it("should parse not-a-standard-scheme:this is arbitrary content", function()
+  {
     testURLParsing("not-a-standard-scheme:this is arbitrary content");
-    testURLParsing("view-source:http://example.com/path");
+  });
 
-    testURLParsing(
-      "data:text/html,Question?%3Cdiv%20style=%22color:%20#bad%22%3Eidea%3C/div%3E"
+  it("should parse view-source:http://example.com/path", function()
+  {
+    testURLParsing("view-source:http://example.com/path");
+  });
+
+  it("should parse data:text/html,Question?%3Cdiv%20style=%22color:%20#bad%22%3Eidea%3C/div%3E", function()
+  {
+    testURLParsing("data:text/html,Question?%3Cdiv%20style=%22color:%20#bad%22%3Eidea%3C/div%3E");
+  });
+});
+
+describe("normalizeHostname()", function()
+{
+  let normalizeHostname = null;
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {normalizeHostname} = sandboxedRequire("../lib/url")
     );
   });
 
-  it("Normalize hostname", function()
+  it("should return example.com for example.com", function()
   {
     assert.equal(normalizeHostname("example.com"), "example.com");
+  });
+
+  it("should return example.com for example.com.", function()
+  {
     assert.equal(normalizeHostname("example.com."), "example.com");
+  });
+
+  it("should return example.com for example.com..", function()
+  {
     assert.equal(normalizeHostname("example.com.."), "example.com");
+  });
+
+  it("should return example.com for example.com...", function()
+  {
     assert.equal(normalizeHostname("example.com..."), "example.com");
+  });
 
+  it("should return 192.168.1.1 for 192.168.1.1", function()
+  {
     assert.equal(normalizeHostname("192.168.1.1"), "192.168.1.1");
-    assert.equal(normalizeHostname("192.168.1.1."), "192.168.1.1");
+  });
 
+  it("should return 192.168.1.1 for 192.168.1.1.", function()
+  {
+    assert.equal(normalizeHostname("192.168.1.1."), "192.168.1.1");
+  });
+
+  it("should return 2001:0db8:85a3:0000:0000:8a2e:0370:7334 for 2001:0db8:85a3:0000:0000:8a2e:0370:7334", function()
+  {
     assert.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
                  "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
+  });
+
+  it("should return 2001:0db8:85a3:0000:0000:8a2e:0370:7334 for 2001:0db8:85a3:0000:0000:8a2e:0370:7334.", function()
+  {
     assert.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334."),
                  "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
   });
+});
 
-  it("Domain suffixes", function()
+describe("*domainSuffixes()", function()
+{
+  let domainSuffixes = null;
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {domainSuffixes} = sandboxedRequire("../lib/url")
+    );
+  });
+
+  it("should yield localhost for localhost", function()
   {
     assert.deepEqual([...domainSuffixes("localhost")], ["localhost"]);
+  });
+
+  it("should yield example.com, com for example.com", function()
+  {
     assert.deepEqual([...domainSuffixes("example.com")], ["example.com", "com"]);
+  });
+
+  it("should yield www.example.com, example.com, com for www.example.com", function()
+  {
     assert.deepEqual([...domainSuffixes("www.example.com")],
                      ["www.example.com", "example.com", "com"]);
+  });
+
+  it("should yield www.example.co.in, example.co.in, co.in, in for www.example.co.in", function()
+  {
     assert.deepEqual([...domainSuffixes("www.example.co.in")],
                      ["www.example.co.in", "example.co.in", "co.in", "in"]);
+  });
 
-    // With blank.
+  // With blank.
+  it("should yield localhost and a blank string for localhost, true", function()
+  {
     assert.deepEqual([...domainSuffixes("localhost", true)], ["localhost", ""]);
+  });
+
+  it("should yield example.com, com, and a blank string for example.com, true", function()
+  {
     assert.deepEqual([...domainSuffixes("example.com", true)],
                      ["example.com", "com", ""]);
+  });
+
+  it("should yield www.example.com, example.com, com, and a blank string for www.example.com, true", function()
+  {
     assert.deepEqual([...domainSuffixes("www.example.com", true)],
                      ["www.example.com", "example.com", "com", ""]);
+  });
+
+  it("should yield www.example.co.in, example.co.in, co.in, in, and a blank string for www.example.co.in, true", function()
+  {
     assert.deepEqual([...domainSuffixes("www.example.co.in", true)],
                      ["www.example.co.in", "example.co.in", "co.in", "in", ""]);
+  });
 
-    // Quirks and edge cases.
+  // Quirks and edge cases.
+  it("should yield nothing for blank domain", function()
+  {
     assert.deepEqual([...domainSuffixes("")], []);
+  });
+
+  it("should yield . for .", function()
+  {
     assert.deepEqual([...domainSuffixes(".")], ["."]);
+  });
+
+  it("should yield .localhost, localhost for .localhost", function()
+  {
     assert.deepEqual([...domainSuffixes(".localhost")],
                      [".localhost", "localhost"]);
+  });
+
+  it("should yield .example.com, example.com, com for .example.com", function()
+  {
     assert.deepEqual([...domainSuffixes(".example.com")],
                      [".example.com", "example.com", "com"]);
+  });
+
+  it("should yield localhost. for localhost.", function()
+  {
     assert.deepEqual([...domainSuffixes("localhost.")],
                      ["localhost."]);
+  });
+
+  it("should yield example.com., com. for example.com.", function()
+  {
     assert.deepEqual([...domainSuffixes("example.com.")],
                      ["example.com.", "com."]);
+  });
+
+  it("should yield ..localhost, .localhost, localhost for ..localhost", function()
+  {
     assert.deepEqual([...domainSuffixes("..localhost")],
                      ["..localhost", ".localhost", "localhost"]);
-    assert.deepEqual(
-      [...domainSuffixes("..example..com")],
-      ["..example..com", ".example..com", "example..com", ".com", "com"]
-    );
+  });
+
+  it("should yield ..example..com, .example..com, example..com, .com, com for ..example..com", function()
+  {
+    assert.deepEqual([...domainSuffixes("..example..com")],
+                     ["..example..com", ".example..com", "example..com", ".com", "com"]);
+  });
+
+  it("should yield localhost.., . for localhost..", function()
+  {
     assert.deepEqual([...domainSuffixes("localhost..")], ["localhost..", "."]);
+  });
+
+  it("should yield example..com.., .com.., com.., . for example..com..", function()
+  {
     assert.deepEqual([...domainSuffixes("example..com..")],
                      ["example..com..", ".com..", "com..", "."]);
   });
+});
 
-  it("Is third-party", function()
+describe("isThirdParty()", function()
+{
+  let isThirdParty = null;
+
+  function hostnameToURL(hostname)
   {
-    function hostnameToURL(hostname)
-    {
-      return new URL("http://" + hostname);
-    }
+    return new URL("http://" + hostname);
+  }
 
-    function testThirdParty(requestHostname, documentHostname, expected,
-                            message)
-    {
-      assert.equal(
-        isThirdParty(
-          hostnameToURL(requestHostname).hostname,
+  function testThirdParty(requestHostname, documentHostname, expected,
+                          message)
+  {
+    assert.equal(
+      isThirdParty(
+        hostnameToURL(requestHostname).hostname,
 
-          // Chrome's URL object normalizes IP addresses. So some test
-          // will fail if we don't normalize the document host as well.
-          hostnameToURL(documentHostname).hostname
-        ),
-        expected,
-        message
-      );
-    }
+        // Chrome's URL object normalizes IP addresses. So some test
+        // will fail if we don't normalize the document host as well.
+        hostnameToURL(documentHostname).hostname
+      ),
+      expected,
+      message
+    );
+  }
 
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {isThirdParty} = sandboxedRequire("../lib/url")
+    );
+  });
+
+  it("should return false for foo and foo", function()
+  {
     testThirdParty("foo", "foo", false, "same domain isn't third-party");
+  });
+
+  it("should return true for foo and bar", function()
+  {
     testThirdParty("foo", "bar", true, "different domain is third-party");
+  });
+
+  it("should return false for foo.com and foo.com", function()
+  {
     testThirdParty("foo.com", "foo.com", false,
                    "same domain with TLD (.com) isn't third-party");
+  });
+
+  it("should return true for foo.com and bar.com", function()
+  {
     testThirdParty("foo.com", "bar.com", true,
                    "same TLD (.com) but different domain is third-party");
+  });
+
+  it("should return false for foo.com and www.foo.com", function()
+  {
     testThirdParty("foo.com", "www.foo.com", false,
                    "same domain but differend subdomain isn't third-party");
+  });
+
+  it("should return false for foo.example.com and bar.example.com", function()
+  {
     testThirdParty("foo.example.com", "bar.example.com", false,
                    "same basedomain (example.com) isn't third-party");
+  });
+
+  it("should return true for foo.uk and bar.uk", function()
+  {
     testThirdParty("foo.uk", "bar.uk", true,
                    "same TLD (.uk) but different domain is third-party");
+  });
+
+  it("should return true for foo.co.uk and bar.co.uk", function()
+  {
     testThirdParty("foo.co.uk", "bar.co.uk", true,
                    "same TLD (.co.uk) but different domain is third-party");
+  });
+
+  it("should return false for foo.example.co.uk and bar.example.co.uk", function()
+  {
     testThirdParty("foo.example.co.uk", "bar.example.co.uk", false,
                    "same basedomain (example.co.uk) isn't third-party");
+  });
+
+  it("should return false for 1.2.3.4 and 1.2.3.4", function()
+  {
     testThirdParty("1.2.3.4", "1.2.3.4", false,
                    "same IPv4 address isn't third-party");
+  });
+
+  it("should return true for 1.1.1.1 and 2.1.1.1", function()
+  {
     testThirdParty("1.1.1.1", "2.1.1.1", true,
                    "different IPv4 address is third-party");
+  });
+
+  it("should return false for 0x01ff0101 and 0x01ff0101", function()
+  {
     testThirdParty("0x01ff0101", "0x01ff0101", false,
                    "same IPv4 hexadecimal address isn't third-party");
+  });
+
+  it("should return true for 0x01ff0101 and 0x01ff0102", function()
+  {
     testThirdParty("0x01ff0101", "0x01ff0102", true,
                    "different IPv4 hexadecimal address is third-party");
-    testThirdParty(
-      "1.0xff.3.4", "1.0xff.3.4", false,
-      "same IPv4 address with hexadecimal octet isn't third-party"
-    );
-    testThirdParty(
-      "1.0xff.1.1", "2.0xff.1.1", true,
-      "different IPv4 address with hexadecimal octet is third-party"
-    );
-    testThirdParty(
-      "0xff.example.com", "example.com", false,
-      "domain starts like a hexadecimal IPv4 address but isn't one"
-    );
-    testThirdParty(
-      "[2001:db8:85a3::8a2e:370:7334]", "[2001:db8:85a3::8a2e:370:7334]", false,
-      "same IPv6 address isn't third-party"
-    );
-    testThirdParty(
-      "[2001:db8:85a3::8a2e:370:7334]", "[5001:db8:85a3::8a2e:370:7334]", true,
-      "different IPv6 address is third-party"
-    );
-    testThirdParty(
-      "[::ffff:192.0.2.128]", "[::ffff:192.0.2.128]", false,
-      "same IPv4-mapped IPv6 address isn't third-party"
-    );
-    testThirdParty(
-      "[::ffff:192.0.2.128]", "[::ffff:192.1.2.128]", true,
-      "different IPv4-mapped IPv6 address is third-party"
-    );
+  });
+
+  it("should return false for 1.0xff.3.4 and 1.0xff.3.4", function()
+  {
+    testThirdParty("1.0xff.3.4", "1.0xff.3.4", false,
+                   "same IPv4 address with hexadecimal octet isn't third-party");
+  });
+
+  it("should return true for 1.0xff.1.1 and 2.0xff.1.1", function()
+  {
+    testThirdParty("1.0xff.1.1", "2.0xff.1.1", true,
+                   "different IPv4 address with hexadecimal octet is third-party");
+  });
+
+  it("should return false for 0xff.example.com and example.com", function()
+  {
+    testThirdParty("0xff.example.com", "example.com", false,
+                   "domain starts like a hexadecimal IPv4 address but isn't one");
+  });
+
+  it("should return false for [2001:db8:85a3::8a2e:370:7334] and [2001:db8:85a3::8a2e:370:7334]", function()
+  {
+    testThirdParty("[2001:db8:85a3::8a2e:370:7334]", "[2001:db8:85a3::8a2e:370:7334]", false,
+                   "same IPv6 address isn't third-party");
+  });
+
+  it("should return true for [2001:db8:85a3::8a2e:370:7334] and [5001:db8:85a3::8a2e:370:7334]", function()
+  {
+    testThirdParty("[2001:db8:85a3::8a2e:370:7334]", "[5001:db8:85a3::8a2e:370:7334]", true,
+                   "different IPv6 address is third-party");
+  });
+
+  it("should return false for [::ffff:192.0.2.128] and [::ffff:192.0.2.128]", function()
+  {
+    testThirdParty("[::ffff:192.0.2.128]", "[::ffff:192.0.2.128]", false,
+                   "same IPv4-mapped IPv6 address isn't third-party");
+  });
+
+  it("should return true for [::ffff:192.0.2.128] and [::ffff:192.1.2.128]", function()
+  {
+    testThirdParty("[::ffff:192.0.2.128]", "[::ffff:192.1.2.128]", true,
+                   "different IPv4-mapped IPv6 address is third-party");
+  });
+
+  it("should return false for xn--f-1gaa.com and f\u00f6\u00f6.com", function()
+  {
     testThirdParty("xn--f-1gaa.com", "f\u00f6\u00f6.com", false,
                    "same IDN isn't third-party");
+  });
+
+  it("should return false for example.com.. and example.com....", function()
+  {
     testThirdParty("example.com..", "example.com....", false,
                    "traling dots are ignored");
   });
+});
 
-  it("Get base domain", function()
+describe("getBaseDomain()", function()
+{
+  let getBaseDomain = null;
+
+  before(function()
+  {
+    assert.equal(typeof publicSuffixes["localhost"], "undefined");
+    assert.equal(typeof publicSuffixes["localhost.localdomain"], "undefined");
+
+    assert.equal(typeof publicSuffixes["example.com"], "undefined");
+    assert.equal(typeof publicSuffixes["africa.com"], "number");
+    assert.equal(typeof publicSuffixes["compute.amazonaws.com"], "number");
+
+    // If these sanity checks fail, look for other examles of cascading offsets
+    // from the public suffix list.
+    assert.equal(typeof publicSuffixes["images.example.s3.dualstack.us-east-1.amazonaws.com"],
+                 "undefined");
+    assert.equal(typeof publicSuffixes["example.s3.dualstack.us-east-1.amazonaws.com"],
+                 "undefined");
+    assert.equal(publicSuffixes["s3.dualstack.us-east-1.amazonaws.com"], 1);
+    assert.equal(typeof publicSuffixes["dualstack.us-east-1.amazonaws.com"],
+                 "undefined");
+    assert.equal(typeof publicSuffixes["example.us-east-1.amazonaws.com"],
+                 "undefined");
+    assert.equal(publicSuffixes["us-east-1.amazonaws.com"], 1);
+    assert.equal(typeof publicSuffixes["example.amazonaws.com"], "undefined");
+    assert.equal(typeof publicSuffixes["amazonaws.com"], "undefined");
+  });
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {getBaseDomain} = sandboxedRequire("../lib/url")
+    );
+  });
+
+  it("should return correct values for all known suffixes", function()
   {
     let parts = ["aaa", "bbb", "ccc", "ddd", "eee"];
     let levels = 3;
@@ -402,152 +929,208 @@ describe("URL", function()
                      ` with {suffix: "${suffix}", offset: ${offset}}`);
       }
     }
-
-    // Unknown suffixes.
-    assert.equal(typeof publicSuffixes["localhost"], "undefined");
-    assert.equal(typeof publicSuffixes["localhost.localdomain"], "undefined");
-
-    assert.equal(getBaseDomain("localhost"), "localhost");
-    assert.equal(getBaseDomain("localhost.localdomain"), "localhost.localdomain");
-    assert.equal(
-      getBaseDomain("mail.localhost.localdomain"),
-      "localhost.localdomain"
-    );
-    assert.equal(getBaseDomain("www.example.localhost.localdomain"),
-                 "localhost.localdomain");
-
-    // Unknown suffixes that overlap partly with known suffixes.
-    assert.equal(typeof publicSuffixes["example.com"], "undefined");
-    assert.equal(typeof publicSuffixes["africa.com"], "number");
-    assert.equal(typeof publicSuffixes["compute.amazonaws.com"], "number");
-
-    assert.equal(getBaseDomain("example.com"), "example.com");
-    assert.equal(getBaseDomain("mail.example.com"), "example.com");
-    assert.equal(getBaseDomain("secure.mail.example.com"), "example.com");
-
-    // Cascading offsets.
-
-    // If these sanity checks fail, look for other examles of cascading offsets
-    // from the public suffix list.
-    assert.equal(
-      typeof publicSuffixes[
-        "images.example.s3.dualstack.us-east-1.amazonaws.com"
-      ],
-      "undefined"
-    );
-    assert.equal(
-      typeof publicSuffixes["example.s3.dualstack.us-east-1.amazonaws.com"],
-      "undefined"
-    );
-    assert.equal(publicSuffixes["s3.dualstack.us-east-1.amazonaws.com"], 1);
-    assert.equal(typeof publicSuffixes["dualstack.us-east-1.amazonaws.com"],
-                 "undefined");
-    assert.equal(typeof publicSuffixes["example.us-east-1.amazonaws.com"],
-                 "undefined");
-    assert.equal(publicSuffixes["us-east-1.amazonaws.com"], 1);
-    assert.equal(typeof publicSuffixes["example.amazonaws.com"], "undefined");
-    assert.equal(typeof publicSuffixes["amazonaws.com"], "undefined");
-
-    assert.equal(
-      getBaseDomain("images.example.s3.dualstack.us-east-1.amazonaws.com"),
-      "example.s3.dualstack.us-east-1.amazonaws.com"
-    );
-    assert.equal(getBaseDomain("example.s3.dualstack.us-east-1.amazonaws.com"),
-                 "example.s3.dualstack.us-east-1.amazonaws.com");
-    assert.equal(getBaseDomain("s3.dualstack.us-east-1.amazonaws.com"),
-                 "s3.dualstack.us-east-1.amazonaws.com");
-    assert.equal(getBaseDomain("dualstack.us-east-1.amazonaws.com"),
-                 "dualstack.us-east-1.amazonaws.com");
-    assert.equal(getBaseDomain("example.us-east-1.amazonaws.com"),
-                 "example.us-east-1.amazonaws.com");
-    assert.equal(
-      getBaseDomain("us-east-1.amazonaws.com"),
-      "us-east-1.amazonaws.com"
-    );
-    assert.equal(getBaseDomain("example.amazonaws.com"), "amazonaws.com");
-    assert.equal(getBaseDomain("amazonaws.com"), "amazonaws.com");
-
-    // Edge case.
-    assert.equal(getBaseDomain(""), "");
   });
 
-  it("Parse domains", function()
+  // Unknown suffixes.
+  it("should return localhost for localhost", function()
   {
-    function testFilterDomainsParsing(source, separator, expected,
-                                      {repeatingDomains = true} = {})
+    assert.equal(getBaseDomain("localhost"), "localhost");
+  });
+
+  it("should return localhost.localdomain for localhost.localdomain", function()
+  {
+    assert.equal(getBaseDomain("localhost.localdomain"), "localhost.localdomain");
+  });
+
+  it("should return localhost.localdomain for mail.localhost.localdomain", function()
+  {
+    assert.equal(getBaseDomain("mail.localhost.localdomain"),
+                 "localhost.localdomain");
+  });
+
+  it("should return localhost.localdomain for www.example.localhost.localdomain", function()
+  {
+    assert.equal(getBaseDomain("www.example.localhost.localdomain"),
+                 "localhost.localdomain");
+  });
+
+  // Unknown suffixes that overlap partly with known suffixes.
+  it("should return example.com for example.com", function()
+  {
+    assert.equal(getBaseDomain("example.com"), "example.com");
+  });
+
+  it("should return example.com for mail.example.com", function()
+  {
+    assert.equal(getBaseDomain("mail.example.com"), "example.com");
+  });
+
+  it("should return example.com for secure.mail.example.com", function()
+  {
+    assert.equal(getBaseDomain("secure.mail.example.com"), "example.com");
+  });
+
+  // Cascading offsets.
+  it("should return example.s3.dualstack.us-east-1.amazonaws.com for images.example.s3.dualstack.us-east-1.amazonaws.com", function()
+  {
+    assert.equal(getBaseDomain("images.example.s3.dualstack.us-east-1.amazonaws.com"),
+                 "example.s3.dualstack.us-east-1.amazonaws.com");
+  });
+
+  it("should return example.s3.dualstack.us-east-1.amazonaws.com for example.s3.dualstack.us-east-1.amazonaws.com", function()
+  {
+    assert.equal(getBaseDomain("example.s3.dualstack.us-east-1.amazonaws.com"),
+                 "example.s3.dualstack.us-east-1.amazonaws.com");
+  });
+
+  it("should return s3.dualstack.us-east-1.amazonaws.com for s3.dualstack.us-east-1.amazonaws.com", function()
+  {
+    assert.equal(getBaseDomain("s3.dualstack.us-east-1.amazonaws.com"),
+                 "s3.dualstack.us-east-1.amazonaws.com");
+  });
+
+  it("should return dualstack.us-east-1.amazonaws.com for dualstack.us-east-1.amazonaws.com", function()
+  {
+    assert.equal(getBaseDomain("dualstack.us-east-1.amazonaws.com"),
+                 "dualstack.us-east-1.amazonaws.com");
+  });
+
+  it("should return example.us-east-1.amazonaws.com for example.us-east-1.amazonaws.com", function()
+  {
+    assert.equal(getBaseDomain("example.us-east-1.amazonaws.com"),
+                 "example.us-east-1.amazonaws.com");
+  });
+
+  it("should return us-east-1.amazonaws.com for us-east-1.amazonaws.com", function()
+  {
+    assert.equal(getBaseDomain("us-east-1.amazonaws.com"),
+                 "us-east-1.amazonaws.com");
+  });
+
+  it("should return amazonaws.com for example.amazonaws.com", function()
+  {
+    assert.equal(getBaseDomain("example.amazonaws.com"), "amazonaws.com");
+  });
+
+  it("should return amazonaws.com for amazonaws.com", function()
+  {
+    assert.equal(getBaseDomain("amazonaws.com"), "amazonaws.com");
+  });
+
+  // Edge case.
+  it("should return blank domain for blank hostname", function()
+  {
+    assert.equal(getBaseDomain(""), "");
+  });
+});
+
+describe("parseDomains()", function()
+{
+  let parseDomains = null;
+
+  function testFilterDomainsParsing(source, separator, expected,
+                                    {repeatingDomains = true} = {})
+  {
+    let domains = parseDomains(source, separator);
+
+    // Test internal caching.
+    assert.equal(parseDomains(source, separator), domains);
+    assert.notEqual(parseDomains(`extra.example.com${separator}${source}`,
+                                 separator),
+                    domains);
+
+    let domainsObj = null;
+
+    if (domains)
     {
-      let domains = parseDomains(source, separator);
-
-      // Test internal caching.
-      assert.equal(parseDomains(source, separator), domains);
-      assert.notEqual(parseDomains(`extra.example.com${separator}${source}`,
-                                   separator),
-                      domains);
-
-      let domainsObj = null;
-
-      if (domains)
-      {
-        domainsObj = {};
-        for (let [domain, include] of domains)
-          domainsObj[domain] = +include;
-      }
-
-      assert.deepEqual(domainsObj, expected, source);
-
-      // Test repeating domains.
-      if (repeatingDomains && source != "")
-      {
-        testFilterDomainsParsing(`${source}${separator}${source}`, separator,
-                                 expected, {repeatingDomains: false});
-      }
+      domainsObj = {};
+      for (let [domain, include] of domains)
+        domainsObj[domain] = +include;
     }
 
-    testFilterDomainsParsing("", "|", {"": 1});
+    assert.deepEqual(domainsObj, expected, source);
 
+    // Test repeating domains.
+    if (repeatingDomains && source != "")
+    {
+      testFilterDomainsParsing(`${source}${separator}${source}`, separator,
+                               expected, {repeatingDomains: false});
+    }
+  }
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {parseDomains} = sandboxedRequire("../lib/url")
+    );
+  });
+
+  it("should return Map {'' => true} for blank string", function()
+  {
+    testFilterDomainsParsing("", "|", {"": 1});
+  });
+
+  it("should return Map {'' => false, 'example.com' => true} for example.com", function()
+  {
     testFilterDomainsParsing("example.com", "|", {"": 0, "example.com": 1});
+  });
+
+  it("should return Map {'' => false, 'example.com' => true, 'foo.example.com' => false} for example.com|~foo.example.com", function()
+  {
     testFilterDomainsParsing("example.com|~foo.example.com", "|", {
       "": 0,
       "example.com": 1,
       "foo.example.com": 0
     });
+  });
+
+  it("should return Map {'' => true, 'foo.example.com' => false} for ~foo.example.com", function()
+  {
     testFilterDomainsParsing("~foo.example.com", "|", {
       "": 1,
       "foo.example.com": 0
     });
+  });
 
-    testFilterDomainsParsing(
-      "example.com|foo.example.com|bar.example.com", "|", {
-        "": 0,
-        "example.com": 1,
-        "foo.example.com": 1,
-        "bar.example.com": 1
-      }
-    );
-    testFilterDomainsParsing(
-      "example.com|foo.example.com|~bar.example.com", "|", {
-        "": 0,
-        "example.com": 1,
-        "foo.example.com": 1,
-        "bar.example.com": 0
-      }
-    );
-    testFilterDomainsParsing(
-      "example.com|~foo.example.com|~bar.example.com", "|", {
-        "": 0,
-        "example.com": 1,
-        "foo.example.com": 0,
-        "bar.example.com": 0
-      }
-    );
-    testFilterDomainsParsing(
-      "~example.com|~foo.example.com|~bar.example.com", "|", {
-        "": 1,
-        "example.com": 0,
-        "foo.example.com": 0,
-        "bar.example.com": 0
-      }
-    );
+  it("should return Map {'' => false, 'example.com' => true, 'foo.example.com' => true, 'bar.example.com' => true} for example.com|foo.example.com|bar.example.com", function()
+  {
+    testFilterDomainsParsing("example.com|foo.example.com|bar.example.com", "|", {
+      "": 0,
+      "example.com": 1,
+      "foo.example.com": 1,
+      "bar.example.com": 1
+    });
+  });
+
+  it("should return Map {'' => false, 'example.com' => true, 'foo.example.com' => true, 'bar.example.com' => false} for example.com|foo.example.com|~bar.example.com", function()
+  {
+    testFilterDomainsParsing("example.com|foo.example.com|~bar.example.com", "|", {
+      "": 0,
+      "example.com": 1,
+      "foo.example.com": 1,
+      "bar.example.com": 0
+    });
+  });
+
+  it("should return Map {'' => false, 'example.com' => true, 'foo.example.com' => false, 'bar.example.com' => false} for example.com|~foo.example.com|~bar.example.com", function()
+  {
+    testFilterDomainsParsing("example.com|~foo.example.com|~bar.example.com", "|", {
+      "": 0,
+      "example.com": 1,
+      "foo.example.com": 0,
+      "bar.example.com": 0
+    });
+  });
+
+  it("should return Map {'' => true, 'example.com' => false, 'foo.example.com' => false, 'bar.example.com' => false} for ~example.com|~foo.example.com|~bar.example.com", function()
+  {
+    testFilterDomainsParsing("~example.com|~foo.example.com|~bar.example.com", "|", {
+      "": 1,
+      "example.com": 0,
+      "foo.example.com": 0,
+      "bar.example.com": 0
+    });
   });
 });
 
