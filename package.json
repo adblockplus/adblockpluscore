@@ -18,6 +18,7 @@
     "extract-zip": "^1.6.7",
     "geckodriver": "^1.9.0",
     "jsdoc": "^3.6.3",
+    "jsdoc-to-markdown": "^5.0.0",
     "memory-fs": "0.4.1",
     "mocha": "^5.2.0",
     "ncp": "2.0.0",
@@ -29,7 +30,9 @@
     "webpack": "3.5.4"
   },
   "scripts": {
-    "docs": "jsdoc --configure .jsdoc.conf --destination docs lib",
+    "jsdoc": "jsdoc --configure .jsdoc.conf --tutorials build/docs/tutorials --destination docs lib",
+    "snippet-filter-tutorial": "jsdoc2md --helper build/handlebars-helpers/include.js --template build/docs/snippet-filter-tutorial.hbs --files lib/content/snippets.js > build/docs/tutorials/snippet-filter-tutorial.md",
+    "docs": "npm run snippet-filter-tutorial && npm run jsdoc",
     "lint": "eslint *.js lib test build",
     "test": "c8 --include=lib/*.js --all node test_runner.js",
     "posttest": "npm run lint",
