@@ -35,8 +35,6 @@ before_script:
       apt-get install -y apt-transport-https python-pip libgtk-3-0 libxt6 \
         xvfb libnss3 libxss1 libgconf-2-4 libasound2 nodejs npm;
     fi
-  - mkdir -p .git/info
-  - ./ensure_dependencies.py
   - npm install
 
 tests:
