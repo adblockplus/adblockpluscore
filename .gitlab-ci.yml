@@ -27,14 +27,10 @@
 
 ---
 
+image: "registry.gitlab.com/eyeo/docker/adblockplus-ci:node10"
+
 before_script:
   - "[ -z \"$BROWSER_SNAPSHOT_DIR\" ] || mkdir -p $BROWSER_SNAPSHOT_DIR"
-  - |
-    if [[ "$CI_RUNNER_DESCRIPTION" == *gitlab.com ]]; then
-      apt-get update;
-      apt-get install -y apt-transport-https python-pip libgtk-3-0 libxt6 \
-        xvfb libnss3 libxss1 libgconf-2-4 libasound2 nodejs npm;
-    fi
   - npm install
 
 tests:
