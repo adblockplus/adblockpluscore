@@ -30,17 +30,19 @@
 image: "registry.gitlab.com/eyeo/docker/adblockplus-ci:node10"
 
 before_script:
-  - "[ -z \"$BROWSER_SNAPSHOT_DIR\" ] || mkdir -p $BROWSER_SNAPSHOT_DIR"
   - npm install
 
 tests:
   script:
     - npm test
-  variables:
-    BROWSER_SNAPSHOT_DIR: "/tmp/browser-snapshots/"
   retry:
     max: 2
     when: stuck_or_timeout_failure
+  cache:
+    key: global-cache
+    paths:
+      - chromium-snapshots
+      - firefox-snapshots
 
 docs:
   script:
