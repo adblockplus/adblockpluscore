@@ -20,7 +20,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const {download, unzipArchive, snapshotsRootDir} = require("./download");
+const {download, unzipArchive} = require("./download");
 
 const MAX_VERSION_DECREMENTS = 200;
 
@@ -60,7 +60,7 @@ async function ensureChromium(chromiumRevision)
   let [dir, fileName] = buildTypes[platform];
   let archive = null;
   let chromiumDir = null;
-  let snapshotsDir = path.join(snapshotsRootDir(), "chromium-snapshots");
+  let snapshotsDir = path.join(__dirname, "..", "..", "chromium-snapshots");
 
   while (true)
   {

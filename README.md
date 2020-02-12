@@ -46,16 +46,6 @@ Browser tests run headless by default (except on Windows). If you want
 to disable headless mode on the WebDriver controlled tests, set the
 BROWSER_TEST_HEADLESS environment to 0.
 
-### Browser caching
-
-By default, the browsers used for testing are cached for later use in
-`<root>/{chromium|firefox}-snapshots`. You can specify the caching folder with
-the environment variable `BROWSER_SNAPSHOT_DIR`:
-
-  $ export BROWSER_SNAPSHOT_DIR="~/snapshots"
-
-Please note, that said folder needs to exist beforehand.
-
 Linting
 -------
 

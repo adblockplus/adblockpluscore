@@ -23,7 +23,7 @@ const path = require("path");
 
 const {ncp} = require("ncp");
 
-const {download, snapshotsRootDir} = require("./download");
+const {download} = require("./download");
 
 const {platform} = process;
 
@@ -149,7 +149,7 @@ function ensureFirefox(firefoxVersion)
 
   return Promise.resolve().then(() =>
   {
-    let snapshotsDir = path.join(snapshotsRootDir(), "firefox-snapshots");
+    let snapshotsDir = path.join(__dirname, "..", "..", "firefox-snapshots");
     let browserDir = path.join(snapshotsDir,
                                 `firefox-${targetPlatform}-${firefoxVersion}`);
     if (fs.existsSync(browserDir))
