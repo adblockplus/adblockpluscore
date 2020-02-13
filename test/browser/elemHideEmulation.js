@@ -160,7 +160,7 @@ describe("Element hiding emulation", function()
       );
 
       elemHideEmulation.document = testDocument;
-      elemHideEmulation.MIN_INVOCATION_INTERVAL = REFRESH_INTERVAL / 2;
+      elemHideEmulation.minInvocationInterval = REFRESH_INTERVAL / 2;
       elemHideEmulation.apply(selectors.map(
         selector => ({selector, text: selector})
       ));

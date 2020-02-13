@@ -260,9 +260,9 @@ describe("Snippets", function()
     let template = `
     "use strict";
     {
-      const libraries = ${JSON.stringify(libraries)};
+      let libraries = ${JSON.stringify(libraries)};
 
-      const script = {{{script}}};
+      let script = {{{script}}};
 
       let imports = Object.create(null);
       for (let library of libraries)
