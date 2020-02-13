@@ -1186,6 +1186,11 @@ describe("isValidHostname()", function()
     assert.strictEqual(isValidHostname("example.com."), true);
   });
 
+  it("should return false for example.com.. (multiple trailing dots)", function()
+  {
+    assert.strictEqual(isValidHostname("example.com.."), false);
+  });
+
   it("should return false for .example.com (leading dot)", function()
   {
     assert.strictEqual(isValidHostname(".example.com"), false);
@@ -1236,9 +1241,64 @@ describe("isValidHostname()", function()
     assert.strictEqual(isValidHostname("localhost"), true);
   });
 
+  it("should return true for 0.0.0.0 (IPv4 address)", function()
+  {
+    assert.strictEqual(isValidHostname("0.0.0.0"), true);
+  });
+
+  it("should return true for 255.255.255.255 (IPv4 address)", function()
+  {
+    assert.strictEqual(isValidHostname("255.255.255.255"), true);
+  });
+
   it("should return true for 192.168.1.1 (IPv4 address)", function()
   {
     assert.strictEqual(isValidHostname("192.168.1.1"), true);
+  });
+
+  it("should return false for 192.168.257 (IPv4 address, non-normalized)", function()
+  {
+    // Normalized: 192.168.1.1
+    assert.strictEqual(isValidHostname("192.168.257"), false);
+  });
+
+  it("should return false for 192.168.000.001 (IPv4 address, non-normalized)", function()
+  {
+    // Normalized: 192.168.0.1
+    assert.strictEqual(isValidHostname("192.168.000.001"), false);
+  });
+
+  it("should return false for 192.168.1 (IPv4 address, non-normalized)", function()
+  {
+    // Normalized: 192.168.0.1
+    assert.strictEqual(isValidHostname("192.168.1"), false);
+  });
+
+  it("should return false for 127.1 (IPv4 address, non-normalized)", function()
+  {
+    // Normalized: 127.0.0.1
+    assert.strictEqual(isValidHostname("127.1"), false);
+  });
+
+  it("should return false for 0 (IPv4 address, non-normalized)", function()
+  {
+    // Normalized: 0.0.0.0
+    assert.strictEqual(isValidHostname("0"), false);
+  });
+
+  it("should return false for 255.255.255.256 (IPv4 address, invalid)", function()
+  {
+    assert.strictEqual(isValidHostname("255.255.255.256"), false);
+  });
+
+  it("should return false for 255.255.255.265 (IPv4 address, invalid)", function()
+  {
+    assert.strictEqual(isValidHostname("255.255.255.265"), false);
+  });
+
+  it("should return false for 255.255.255.355 (IPv4 address, invalid)", function()
+  {
+    assert.strictEqual(isValidHostname("255.255.255.355"), false);
   });
 
   it("should return true for [2001:db8:0:42:0:8a2e:370:7334] (IPv6 address)", function()
@@ -1249,21 +1309,6 @@ describe("isValidHostname()", function()
   it("should return false for 1.2.3.4.5 (all numeric)", function()
   {
     assert.strictEqual(isValidHostname("1.2.3.4.5"), false);
-  });
-
-  it("should return false for 1.2.3", function()
-  {
-    assert.strictEqual(isValidHostname("1.2.3"), false);
-  });
-
-  it("should return false for 1.2", function()
-  {
-    assert.strictEqual(isValidHostname("1.2"), false);
-  });
-
-  it("should return false for 1", function()
-  {
-    assert.strictEqual(isValidHostname("1"), false);
   });
 
   it("should return false for example.1", function()
