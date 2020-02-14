@@ -27,12 +27,19 @@
 
 ---
 
+stages:
+  - default
+  - pages
+
 image: "registry.gitlab.com/eyeo/docker/adblockplus-ci:node10"
 
-before_script:
-  - npm install
+.dependencies:
+  script: &dependencies
+    - npm install
 
 tests:
+  stage: default
+  before_script: *dependencies
   script:
     - npm test
   retry:
@@ -45,6 +52,8 @@ tests:
       - firefox-snapshots
 
 docs:
+  stage: default
+  before_script: *dependencies
   script:
     - npm run docs
   artifacts:
@@ -54,3 +63,10 @@ docs:
   retry:
     max: 2
     when: stuck_or_timeout_failure
+
+.pages:
+  stage: pages
+  dependencies:
+    - docs
+
+include: ".gitlab-pages.yml"
