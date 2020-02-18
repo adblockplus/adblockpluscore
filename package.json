@@ -32,6 +32,7 @@
   "scripts": {
     "jsdoc": "jsdoc --configure .jsdoc.conf --tutorials build/docs/tutorials --destination docs lib",
     "snippet-filter-tutorial": "jsdoc2md --helper build/handlebars-helpers/include.js --template build/docs/snippet-filter-tutorial.hbs --files lib/content/snippets.js > build/docs/tutorials/snippet-filter-tutorial.md",
+    "helpcenter": "jsdoc2md --helper build/handlebars-helpers/include.js --template build/docs/snippet-filters-helpcenter.hbs --files lib/content/snippets.js > snippet-filters-tutorial.md",
     "docs": "npm run snippet-filter-tutorial && npm run jsdoc",
     "lint": "eslint *.js lib test build",
     "test": "c8 --include=lib/*.js --all node test_runner.js",

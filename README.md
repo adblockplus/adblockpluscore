@@ -48,4 +48,14 @@ BROWSER_TEST_HEADLESS environment to 0.
 Linting
 -------
 
-You can lint the code using [ESLint](http://eslint.org) by running `npm run lint`.
+You can lint the code using [ESLint](http://eslint.org) by running
+`npm run lint`.
+
+Help center documentation generation
+------------------------------------
+
+You can automatically generate the snippets documentation available at
+help.eyeo.con by running `npm run helpcenter`. This will generate a
+file `snippet-filters-tutorial.md` that contains the markdown text as
+suited for our CMS. The content is the same as the tutorial included
+as part of the JSDoc.
