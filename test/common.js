@@ -20,6 +20,61 @@
 const assert = require("assert");
 const {createSandbox} = require("./_common");
 
+describe("textToRegExp()", function()
+{
+  let textToRegExp = null;
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {textToRegExp} = sandboxedRequire("../lib/common")
+    );
+  });
+
+  for (let character of ["-", "/", "\\", "^", "$", "*", "+", "?", ".",
+                         "(", ")", "|", "[", "]", "{", "}"])
+  {
+    // Alone.
+    it(`should return '\\${character}' for '${character}'`, function()
+    {
+      assert.strictEqual(textToRegExp(character), `\\${character}`);
+    });
+
+    // With single character.
+    it(`should return '\\${character}a' for '${character}a'`, function()
+    {
+      assert.strictEqual(textToRegExp(character + "a"), `\\${character}a`);
+    });
+
+    it(`should return 'a\\${character}' for 'a${character}'`, function()
+    {
+      assert.strictEqual(textToRegExp("a" + character), `a\\${character}`);
+    });
+
+    it(`should return 'a\\${character}b' for 'a${character}b'`, function()
+    {
+      assert.strictEqual(textToRegExp("a" + character + "b"), `a\\${character}b`);
+    });
+
+    // With multiple characters.
+    it(`should return '\\${character}ab' for '${character}ab'`, function()
+    {
+      assert.strictEqual(textToRegExp(character + "ab"), `\\${character}ab`);
+    });
+
+    it(`should return 'ab\\${character}' for 'ab${character}'`, function()
+    {
+      assert.strictEqual(textToRegExp("ab" + character), `ab\\${character}`);
+    });
+
+    it(`should return 'ab\\${character}cd' for 'ab${character}cd'`, function()
+    {
+      assert.strictEqual(textToRegExp("ab" + character + "cd"), `ab\\${character}cd`);
+    });
+  }
+});
+
 describe("qualifySelector()", function()
 {
   let qualifySelector = null;
