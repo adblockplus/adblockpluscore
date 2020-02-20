@@ -41,9 +41,9 @@ describe("filterEngine", function()
         case "blocking":
           let {resource} = detail;
           let url = new URL(`https://example.com${resource}`);
-          let filter = defaultMatcher.matchesAny(url,
-                                                 contentTypes.SCRIPT,
-                                                 "example.com");
+          let filter = defaultMatcher.match(url,
+                                            contentTypes.SCRIPT,
+                                            "example.com");
           assert.equal(filter ? filter.text : null, expected);
           break;
 

@@ -71,7 +71,7 @@ describe("Matcher", function()
     for (let filter of filters)
       matcher.add(Filter.fromText(filter));
 
-    let result = matcher.matchesAny(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
+    let result = matcher.match(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
     if (result)
       result = result.text;
 
@@ -83,7 +83,7 @@ describe("Matcher", function()
       for (let filter of filters)
         combinedMatcher.add(Filter.fromText(filter));
 
-      result = combinedMatcher.matchesAny(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
+      result = combinedMatcher.match(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
       if (result)
         result = result.text;
 
@@ -322,14 +322,14 @@ describe("Matcher", function()
     // by a different keyword.
     matcher.add(Filter.fromText("||example.com/foo/bar/ad.jpg^"));
 
-    assert.ok(!!matcher.matchesAny(parseURL("https://example.com/foo/bar/ad.jpg"),
-                                   contentTypes.IMAGE));
+    assert.ok(!!matcher.match(parseURL("https://example.com/foo/bar/ad.jpg"),
+                              contentTypes.IMAGE));
 
     matcher.remove(Filter.fromText("||example.com/foo/bar/ad.jpg^"));
 
     // Make sure the filter got removed so there is no match.
-    assert.ok(!matcher.matchesAny(parseURL("https://example.com/foo/bar/ad.jpg"),
-                                  contentTypes.IMAGE));
+    assert.ok(!matcher.match(parseURL("https://example.com/foo/bar/ad.jpg"),
+                             contentTypes.IMAGE));
 
     // Map { "example" => { text: "||example.com^$~third-party" } }
     matcher.add(Filter.fromText("||example.com^$~third-party"));
@@ -343,8 +343,8 @@ describe("Matcher", function()
       break;
     }
 
-    assert.ok(!!matcher.matchesAny(parseURL("https://example.com/example/ad.jpg"),
-                                   contentTypes.IMAGE, "example.com"));
+    assert.ok(!!matcher.match(parseURL("https://example.com/example/ad.jpg"),
+                              contentTypes.IMAGE, "example.com"));
 
     // Map {
     //   "example" => Map {
@@ -371,8 +371,8 @@ describe("Matcher", function()
       break;
     }
 
-    assert.ok(!!matcher.matchesAny(parseURL("https://example.com/example/ad.jpg"),
-                                   contentTypes.IMAGE, "example.com"));
+    assert.ok(!!matcher.match(parseURL("https://example.com/example/ad.jpg"),
+                              contentTypes.IMAGE, "example.com"));
 
     // Map { "example" => { text: "/example/*$~third-party" } }
     matcher.remove(Filter.fromText("||example.com^$~third-party"));
@@ -386,16 +386,16 @@ describe("Matcher", function()
       break;
     }
 
-    assert.ok(!!matcher.matchesAny(parseURL("https://example.com/example/ad.jpg"),
-                                   contentTypes.IMAGE, "example.com"));
+    assert.ok(!!matcher.match(parseURL("https://example.com/example/ad.jpg"),
+                              contentTypes.IMAGE, "example.com"));
 
     // Map {}
     matcher.remove(Filter.fromText("/example/*$~third-party"));
 
     assert.equal(matcher._blacklist._filterDomainMapsByKeyword.size, 0);
 
-    assert.ok(!matcher.matchesAny(parseURL("https://example.com/example/ad.jpg"),
-                                  contentTypes.IMAGE, "example.com"));
+    assert.ok(!matcher.match(parseURL("https://example.com/example/ad.jpg"),
+                             contentTypes.IMAGE, "example.com"));
   });
 
   it("Quick check", function()
@@ -411,15 +411,15 @@ describe("Matcher", function()
     matcher.add(Filter.fromText("/ad."));
     matcher.add(Filter.fromText("/\\bbar\\b/$match-case"));
 
-    assert.ok(!!matcher.matchesAny(parseURL("https://example/foo/"),
-                                   contentTypes.IMAGE, "example"));
+    assert.ok(!!matcher.match(parseURL("https://example/foo/"),
+                              contentTypes.IMAGE, "example"));
 
     // The request URL contains neither "example" nor "foo", therefore it should
     // get to the filters associated with the blank keyword.
     // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/13
-    assert.ok(!!matcher.matchesAny(parseURL("https://adblockplus/bar/"),
-                                   contentTypes.IMAGE, "adblockplus"));
-    assert.ok(!matcher.matchesAny(parseURL("https://adblockplus/Bar/"),
-                                  contentTypes.IMAGE, "adblockplus"));
+    assert.ok(!!matcher.match(parseURL("https://adblockplus/bar/"),
+                              contentTypes.IMAGE, "adblockplus"));
+    assert.ok(!matcher.match(parseURL("https://adblockplus/Bar/"),
+                             contentTypes.IMAGE, "adblockplus"));
   });
 });
