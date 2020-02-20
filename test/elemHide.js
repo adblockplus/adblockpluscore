@@ -332,6 +332,19 @@ describe("Element hiding", function()
         "Braces should be escaped"
       );
     });
+
+    it("Custom CSS", function()
+    {
+      assert.equal(
+        createStyleSheet([
+          "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
+          "#foo[data-bar='bar']"
+        ], "{outline: 2px solid red;}"),
+        "html, #foo, .bar, #foo .bar, #foo > .bar, #foo[data-bar='bar'] " +
+          "{outline: 2px solid red;}\n",
+        "Custom CSS should be used"
+      );
+    });
   });
 
   it("Rules from style sheet", function()
