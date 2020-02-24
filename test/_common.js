@@ -262,8 +262,14 @@ exports.setupRandomResult = function()
 {
   let randomResult = 0.5;
   Object.defineProperty(this, "randomResult", {
-    get: () => randomResult,
-    set: value => randomResult = value
+    get()
+    {
+      return randomResult;
+    },
+    set(value)
+    {
+      randomResult = value;
+    }
   });
 
   return {
