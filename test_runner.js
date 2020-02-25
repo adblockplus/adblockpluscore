@@ -57,7 +57,9 @@ function configureRunners()
     return ["chromium_remote", "firefox"];
   }
 
-  return runners.filter(runner => runnerDefinitions.hasOwnProperty(runner));
+  return runners.filter(
+    runner => Object.prototype.hasOwnProperty.call(runnerDefinitions, runner)
+  );
 }
 
 let runnerProcesses = configureRunners();

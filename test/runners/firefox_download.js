@@ -141,7 +141,7 @@ function ensureFirefox(firefoxVersion)
     "darwin": ["mac-EME-free", `Firefox ${firefoxVersion}.dmg`]
   };
 
-  if (!buildTypes.hasOwnProperty(targetPlatform))
+  if (!Object.prototype.hasOwnProperty.call(buildTypes, targetPlatform))
   {
     let err = new Error(`Cannot run browser tests, ${targetPlatform} is unsupported`);
     return Promise.reject(err);
