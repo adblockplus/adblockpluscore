@@ -251,13 +251,681 @@ describe("EventEmitter", function()
       for (let i = 0; i < listeners.length; i++)
       {
         listeners[i] = function() {};
-        eventEmitter.on("event", listeners[i]);
+        eventEmitter.on(`event-${i + 1}`, listeners[i]);
       }
 
       for (let i = 0; i < listeners.length - 1; i++)
         eventEmitter.off(`event-${i + 1}`, listeners[i]);
 
       assert.doesNotThrow(() => eventEmitter.off("event-1000", listeners[listeners.length - 1]));
+    });
+  });
+
+  describe("#listeners()", function()
+  {
+    let eventEmitter = null;
+
+    beforeEach(function()
+    {
+      eventEmitter = new EventEmitter();
+    });
+
+    it("should return empty array when no listeners exist", function()
+    {
+      assert.deepEqual(eventEmitter.listeners("event"), []);
+    });
+
+    it("should return array containing listener when one listener exists", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener]);
+    });
+
+    it("should return array containing listeners when multiple listeners exist", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener1, listener2]);
+    });
+
+    it("should return empty array when listeners exist for different event", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("otherEvent", listener1);
+      eventEmitter.on("otherEvent", listener2);
+
+      assert.deepEqual(eventEmitter.listeners("event"), []);
+    });
+
+    it("should return array containing specific listeners when listeners exist for multiple events", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+      let listener3 = function() {};
+      let listener4 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("otherEvent", listener2);
+      eventEmitter.on("event", listener3);
+      eventEmitter.on("otherEvent", listener4);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener1, listener3]);
+    });
+
+    it("should return array not containing first previously added listener after listener is removed", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener2]);
+    });
+
+    it("should return array not containing last previously added listener after listener is removed", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener2);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener1]);
+    });
+
+    it("should return empty array after all previously added listeners are removed", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+      eventEmitter.off("event", listener2);
+
+      assert.deepEqual(eventEmitter.listeners("event"), []);
+    });
+
+    it("should return array containing specific listeners after previously added listeners are removed for different event", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+      let listener3 = function() {};
+      let listener4 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("otherEvent", listener2);
+      eventEmitter.on("event", listener3);
+      eventEmitter.on("otherEvent", listener4);
+
+      eventEmitter.off("otherEvent", listener2);
+      eventEmitter.off("otherEvent", listener4);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener1, listener3]);
+    });
+
+    it("should return array containing first previously added listener after listener is removed and re-added", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+
+      eventEmitter.on("event", listener1);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener2, listener1]);
+    });
+
+    it("should return array containing last previously added listener after listener is removed and re-added", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener2);
+
+      eventEmitter.on("event", listener2);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener1, listener2]);
+    });
+
+    it("should return array containing all previously added listeners after listeners are removed and re-added", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+      eventEmitter.off("event", listener2);
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener1, listener2]);
+    });
+
+    it("should return array containing duplicate listeners when duplicate listeners exist", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener, listener]);
+    });
+
+    it("should return array containing listener after copy is removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener]);
+    });
+
+    it("should return empty array after all copies of listener are removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+      eventEmitter.off("event", listener);
+
+      assert.deepEqual(eventEmitter.listeners("event"), []);
+    });
+
+    it("should return empty array when no listeners exist for event already dispatched", function()
+    {
+      eventEmitter.emit("event");
+
+      assert.deepEqual(eventEmitter.listeners("event"), []);
+    });
+
+    it("should return array containing listeners for event already dispatched and handled", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.emit("event");
+
+      assert.deepEqual(eventEmitter.listeners("event"), [listener1, listener2]);
+    });
+
+    it("should return array containing all thousand previously added listeners for same event", function()
+    {
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function() {};
+        eventEmitter.on("event", listeners[i]);
+      }
+
+      assert.deepEqual(eventEmitter.listeners("event"), listeners);
+    });
+
+    it("should return array containing specific listener out of thousand previously added listeners for different events", function()
+    {
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function() {};
+        eventEmitter.on(`event-${i + 1}`, listeners[i]);
+      }
+
+      assert.deepEqual(eventEmitter.listeners("event-1000"), [listeners[listeners.length - 1]]);
+    });
+
+    it("should return empty array after all thousand previously added listeners for same event are removed", function()
+    {
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function() {};
+        eventEmitter.on("event", listeners[i]);
+      }
+
+      for (let i = 0; i < listeners.length; i++)
+        eventEmitter.off("event", listeners[i]);
+
+      assert.deepEqual(eventEmitter.listeners("event"), []);
+    });
+
+    it("should return empty array after all thousand previously added listeners for different events are removed", function()
+    {
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function() {};
+        eventEmitter.on(`event-${i + 1}`, listeners[i]);
+      }
+
+      for (let i = 0; i < listeners.length; i++)
+        eventEmitter.off(`event-${i + 1}`, listeners[i]);
+
+      assert.deepEqual(eventEmitter.listeners("event-1000"), []);
+    });
+  });
+
+  describe("#hasListeners()", function()
+  {
+    let eventEmitter = null;
+
+    beforeEach(function()
+    {
+      eventEmitter = new EventEmitter();
+    });
+
+    it("should return false when no listeners exist", function()
+    {
+      assert.strictEqual(eventEmitter.hasListeners("event"), false);
+    });
+
+    it("should return false with no argument when no listeners exist", function()
+    {
+      assert.strictEqual(eventEmitter.hasListeners(), false);
+    });
+
+    it("should return true when one listener exists", function()
+    {
+      eventEmitter.on("event", function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true with no argument when one listener exists", function()
+    {
+      eventEmitter.on("event", function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return true when multiple listeners exist", function()
+    {
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("event", function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true with no argument when multiple listeners exist", function()
+    {
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("event", function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return false when listeners exist for different event", function()
+    {
+      eventEmitter.on("otherEvent", function() {});
+      eventEmitter.on("otherEvent", function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), false);
+    });
+
+    it("should return true when listeners exist for multiple events", function()
+    {
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("otherEvent", function() {});
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("otherEvent", function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true with no argument when listeners exist for multiple events", function()
+    {
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("otherEvent", function() {});
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("otherEvent", function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return true after first of multiple previously added listeners is removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", function() {});
+
+      eventEmitter.off("event", listener);
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true with no argument after first of multiple previously added listeners is removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", function() {});
+
+      eventEmitter.off("event", listener);
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return true after last of multiple previously added listeners is removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true with no argument after last of multiple previously added listeners is removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return false after all previously added listeners are removed", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+      eventEmitter.off("event", listener2);
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), false);
+    });
+
+    it("should return false with no argument after all previously added listeners are removed", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+      eventEmitter.off("event", listener2);
+
+      assert.strictEqual(eventEmitter.hasListeners(), false);
+    });
+
+    it("should return true after previously added listeners for different event are removed", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("otherEvent", listener1);
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("otherEvent", listener2);
+
+      eventEmitter.off("otherEvent", listener1);
+      eventEmitter.off("otherEvent", listener2);
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true with no argument after previously added listeners for different event are removed", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("otherEvent", listener1);
+      eventEmitter.on("event", function() {});
+      eventEmitter.on("otherEvent", listener2);
+
+      eventEmitter.off("otherEvent", listener1);
+      eventEmitter.off("otherEvent", listener2);
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return true after all previously added listeners are removed and re-added", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+      eventEmitter.off("event", listener2);
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true with no argument after all previously added listeners are removed and re-added", function()
+    {
+      let listener1 = function() {};
+      let listener2 = function() {};
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+      eventEmitter.off("event", listener2);
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return true after one of multiple copies of listener is removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true with no argument after one of multiple copies of listener is removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return false after all copies of listener are removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+      eventEmitter.off("event", listener);
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), false);
+    });
+
+    it("should return false with no argument after all copies of listener are removed", function()
+    {
+      let listener = function() {};
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+      eventEmitter.off("event", listener);
+
+      assert.strictEqual(eventEmitter.hasListeners(), false);
+    });
+
+    it("should return false when no listeners exist for event already dispatched", function()
+    {
+      eventEmitter.emit("event");
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), false);
+    });
+
+    it("should return true for event already dispatched and handled", function()
+    {
+      eventEmitter.on("event", function() {});
+
+      eventEmitter.emit("event");
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true when thousand listeners exist for same event", function()
+    {
+      for (let i = 0; i < 1000; i++)
+        eventEmitter.on("event", function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), true);
+    });
+
+    it("should return true with no argument when thousand listeners exist for same event", function()
+    {
+      for (let i = 0; i < 1000; i++)
+        eventEmitter.on("event", function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return true for thousandth event when listeners exist for thousand different events", function()
+    {
+      for (let i = 0; i < 1000; i++)
+        eventEmitter.on(`event-${i + 1}`, function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners("event-1000"), true);
+    });
+
+    it("should return true with no argument when listeners exist for thousand different events", function()
+    {
+      for (let i = 0; i < 1000; i++)
+        eventEmitter.on(`event-${i + 1}`, function() {});
+
+      assert.strictEqual(eventEmitter.hasListeners(), true);
+    });
+
+    it("should return false after all thousand previously added listeners for same event are removed", function()
+    {
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function() {};
+        eventEmitter.on("event", listeners[i]);
+      }
+
+      for (let i = 0; i < listeners.length; i++)
+        eventEmitter.off("event", listeners[i]);
+
+      assert.strictEqual(eventEmitter.hasListeners("event"), false);
+    });
+
+    it("should return false with no argument after all thousand previously added listeners for same event are removed", function()
+    {
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function() {};
+        eventEmitter.on("event", listeners[i]);
+      }
+
+      for (let i = 0; i < listeners.length; i++)
+        eventEmitter.off("event", listeners[i]);
+
+      assert.strictEqual(eventEmitter.hasListeners(), false);
+    });
+
+    it("should return false for thousandth event after all previously added listeners for thousand different events are removed", function()
+    {
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function() {};
+        eventEmitter.on(`event-${i + 1}`, listeners[i]);
+      }
+
+      for (let i = 0; i < listeners.length; i++)
+        eventEmitter.off(`event-${i + 1}`, listeners[i]);
+
+      assert.strictEqual(eventEmitter.hasListeners("event-1000"), false);
+    });
+
+    it("should return false for thousandth event after all previously added listeners for thousand different events are removed", function()
+    {
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function() {};
+        eventEmitter.on(`event-${i + 1}`, listeners[i]);
+      }
+
+      for (let i = 0; i < listeners.length; i++)
+        eventEmitter.off(`event-${i + 1}`, listeners[i]);
+
+      assert.strictEqual(eventEmitter.hasListeners("event-1000"), false);
+    });
+
+    it("should return false with no argument after all previously added listeners for thousand different events are removed", function()
+    {
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function() {};
+        eventEmitter.on(`event-${i + 1}`, listeners[i]);
+      }
+
+      for (let i = 0; i < listeners.length; i++)
+        eventEmitter.off(`event-${i + 1}`, listeners[i]);
+
+      assert.strictEqual(eventEmitter.hasListeners(), false);
     });
   });
 });
