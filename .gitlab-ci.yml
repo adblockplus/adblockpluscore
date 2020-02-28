@@ -33,6 +33,9 @@ stages:
 
 image: "registry.gitlab.com/eyeo/docker/adblockplus-ci:node10"
 
+variables:
+  npm_config_audit: "false"
+
 .default_template:
   stage: default
   before_script:
