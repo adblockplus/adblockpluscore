@@ -545,7 +545,7 @@ describe("Element hiding emulation", function()
     );
   });
 
-// See issue https://issues.adblockplus.org/ticket/7400
+  // See issue https://issues.adblockplus.org/ticket/7400
   it("Pseudo-class: property selector qualifiers: nested identical", function()
   {
     return runTestQualifier(

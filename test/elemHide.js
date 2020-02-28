@@ -65,12 +65,13 @@ describe("Element hiding", function()
     assert.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
 
     // Test for consistency in exception free case.
-    assert.deepEqual(elemHide.generateStyleSheetForDomain(
-      domain, specificOnly, true, false), {
+    assert.deepEqual(
+      elemHide.generateStyleSheetForDomain(domain, specificOnly, true, false), {
         code,
         selectors,
         exceptions: null
-      });
+      }
+    );
 
     assert.deepEqual(exceptions.map(({text}) => text), expectedExceptions);
 

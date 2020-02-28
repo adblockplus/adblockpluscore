@@ -228,9 +228,10 @@ async function main()
   let tarfiles = await promisify(tarfs.readdir.bind(tarfs))(root);
 
   let parsed = await Promise.all(
-    tarfiles.filter(file => file.match(".subscription")).map(file =>
-        parseSubscriptionFile(tarfs, root + "/" + file, languages)
-  ));
+    tarfiles.filter(file => file.match(".subscription")).map(
+      file => parseSubscriptionFile(tarfs, root + "/" + file, languages)
+    )
+  );
 
   parsed = parsed.filter(subscription =>
     subscription != null && "title" in subscription

@@ -134,14 +134,16 @@ describe("Snippets", function()
       []
     );
 
-    assert.deepEqual(events, [
-      ["snippets.filterAdded", domainFilter],
-      ["snippets.filterAdded", subdomainFilter],
-      ["snippets.filterAdded", otherDomainFilter],
-      ["snippets.filterRemoved", domainFilter],
-      ["snippets.filtersCleared"]
-    ],
-    "Event log");
+    assert.deepEqual(
+      events, [
+        ["snippets.filterAdded", domainFilter],
+        ["snippets.filterAdded", subdomainFilter],
+        ["snippets.filterAdded", otherDomainFilter],
+        ["snippets.filterRemoved", domainFilter],
+        ["snippets.filtersCleared"]
+      ],
+      "Event log"
+    );
   });
 
   it("Script parsing", function()
@@ -203,7 +205,7 @@ describe("Snippets", function()
     checkParsedScript("Script with no-op commands", "foo; ;;; ;  ; bar 1",
                       [["foo"], ["bar", "1"]]);
     checkParsedScript("Script with blank argument in the middle", "foo '' Hello",
-                    [["foo", "", "Hello"]]);
+                      [["foo", "", "Hello"]]);
     checkParsedScript("Script with blank argument at the end", "foo Hello ''",
                       [["foo", "Hello", ""]]);
     checkParsedScript("Script with consecutive blank arguments", "foo '' ''",

@@ -139,15 +139,17 @@ function runBrowserTests(processes)
   return webpackInMemory(bundleFilename, {
     entry: path.join(__dirname, "test", "browser", "_bootstrap.js"),
     module: {
-      rules: [{
-        // we use the browser version of mocha
-        resource: mochaPath,
-        use: ["script-loader"]
-      },
-      {
-        resource: chaiPath,
-        use: ["script-loader"]
-      }]
+      rules: [
+        {
+          // we use the browser version of mocha
+          resource: mochaPath,
+          use: ["script-loader"]
+        },
+        {
+          resource: chaiPath,
+          use: ["script-loader"]
+        }
+      ]
     },
     resolve: {
       alias: {
@@ -169,7 +171,9 @@ function runBrowserTests(processes)
         // We need to convert rejected promise to a resolved one
         // or the test will not let close the webdriver.
         .catch(e => e)
-    )).then(results =>
+      )
+    )
+    .then(results =>
     {
       let errors = results.filter(e => typeof e != "undefined");
       if (errors.length)

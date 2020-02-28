@@ -502,7 +502,7 @@ describe("Snippets", function()
     {
       console.log = log;
       assert.strictEqual(args.join(","), "1,2",
-        "debug flag should be false");
+                         "debug flag should be false");
     };
     snippet(1, 2);
 
@@ -518,7 +518,7 @@ describe("Snippets", function()
     })();`);
     await runSnippet("trace", 1, 2);
     assert.strictEqual(document.log, "1,2",
-        "type 2 debug flag should be false");
+                       "type 2 debug flag should be false");
 
     await runSnippet("debug");
 
@@ -527,7 +527,7 @@ describe("Snippets", function()
     {
       console.log = log;
       assert.strictEqual(args.join(","), "%c DEBUG,font-weight: bold,1,2",
-        "debug flag should be true");
+                         "debug flag should be true");
     };
     snippet(1, 2);
 
@@ -543,7 +543,7 @@ describe("Snippets", function()
     })();`);
     await runSnippet("trace", 1, 2);
     assert.strictEqual(document.log, "%c DEBUG,font-weight: bold,1,2",
-        "type 2 debug flag should be true");
+                       "type 2 debug flag should be true");
 
     delete document.log;
   });

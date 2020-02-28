@@ -36,7 +36,8 @@ describe("Notifications", function()
     // Inject our Array and JSON to make sure that instanceof checks on arrays
     // within the sandbox succeed even with data passed in from outside.
     let globals = Object.assign({Array, JSON},
-      setupTimerAndFetch.call(runner), setupRandomResult.call(runner));
+                                setupTimerAndFetch.call(runner),
+                                setupRandomResult.call(runner));
 
     let sandboxedRequire = createSandbox({globals});
     (

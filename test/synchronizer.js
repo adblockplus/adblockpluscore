@@ -331,9 +331,10 @@ describe("Synchronizer", function()
 
       let requestCount = 0;
 
-      runner.registerHandler("/subscription",
-                             metadata => (requestCount++,
-                                          [200, "[Adblock]\nmalicious-filter"]));
+      runner.registerHandler(
+        "/subscription",
+        metadata => (requestCount++, [200, "[Adblock]\nmalicious-filter"])
+      );
 
       await runner.runScheduledTasks(1);
 
@@ -360,9 +361,10 @@ describe("Synchronizer", function()
         )
       );
 
-      runner.registerHandler("/redirected",
-                           metadata => (requestCount++,
-                                        [200, "[Adblock]\nmalicious-filter"]));
+      runner.registerHandler(
+        "/redirected",
+        metadata => (requestCount++, [200, "[Adblock]\nmalicious-filter"])
+      );
 
       await runner.runScheduledTasks(1);
 
@@ -382,8 +384,9 @@ describe("Synchronizer", function()
 
       runner.registerHandler(
         "/subscription",
-        metadata => (requestCount++,
-                     [301, "", {Location: "http://redirect.example.com/"}])
+        metadata =>
+          (requestCount++, [301, "",
+                            {Location: "http://redirect.example.com/"}])
       );
 
       runner.registerHandler(
@@ -394,9 +397,10 @@ describe("Synchronizer", function()
         )
       );
 
-      runner.registerHandler("/subscription-1.0",
-                             metadata => (requestCount++,
-                                          [200, "[Adblock]\ngood-filter"]));
+      runner.registerHandler(
+        "/subscription-1.0",
+        metadata => (requestCount++, [200, "[Adblock]\ngood-filter"])
+      );
 
       await runner.runScheduledTasks(1);
 
@@ -412,9 +416,10 @@ describe("Synchronizer", function()
 
       requestCount = 0;
 
-      runner.registerHandler("/subscription",
-                           metadata => (requestCount++,
-                                        [200, "[Adblock]\ntest-filter"]));
+      runner.registerHandler(
+        "/subscription",
+        metadata => (requestCount++, [200, "[Adblock]\ntest-filter"])
+      );
 
       await runner.runScheduledTasks(1);
 
