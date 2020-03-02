@@ -809,3 +809,123 @@ describe("Filter classes", function()
     ]);
   });
 });
+
+describe("isActiveFilter()", function()
+{
+  let isActiveFilter = null;
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {isActiveFilter, Filter} = sandboxedRequire("../lib/filterClasses")
+    );
+  });
+
+  // Blocking filters.
+  it("should return true for example", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example")), true);
+  });
+
+  it("should return true for ||example.com^", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("||example.com^")), true);
+  });
+
+  it("should return true for |https://example.com/foo/", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("|https://example.com/foo/")), true);
+  });
+
+  it("should return true for ||example.com/foo/$domain=example.net", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("||example.com/foo/$domain=example.net")), true);
+  });
+
+  // Whitelist filters.
+  it("should return true for @@example", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("@@example")), true);
+  });
+
+  it("should return true for @@||example.com^", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("@@||example.com^")), true);
+  });
+
+  it("should return true for @@|https://example.com/foo/", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("@@|https://example.com/foo/")), true);
+  });
+
+  it("should return true for @@||example.com/foo/$domain=example.net", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("@@||example.com/foo/$domain=example.net")), true);
+  });
+
+  // Element hiding filters.
+  it("should return true for ##.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("##.foo")), true);
+  });
+
+  it("should return true for example.com##.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com##.foo")), true);
+  });
+
+  // Element hiding exceptions.
+  it("should return true for #@#.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("#@#.foo")), true);
+  });
+
+  it("should return true for example.com#@#.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com#@#.foo")), true);
+  });
+
+  // Element hiding emulation filters.
+  it("should return false for #?#.foo", function()
+  {
+    // Element hiding emulation filters require a domain.
+    assert.strictEqual(isActiveFilter(Filter.fromText("#?#.foo")), false);
+  });
+
+  it("should return true for example.com#?#.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com#?#.foo")), true);
+  });
+
+  // Snippet filters.
+  it("should return false for #$#log 'Hello, world'", function()
+  {
+    // Snippet filters require a domain.
+    assert.strictEqual(isActiveFilter(Filter.fromText("#$#log 'Hello, world'")), false);
+  });
+
+  it("should return true for example.com#$#log 'Hello, world'", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com#$#log 'Hello, world'")), true);
+  });
+
+  // Comment filters.
+  it("should return false for ! example.com filters", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("! example.com filters")), false);
+  });
+
+  // Invalid filters.
+  it("should return false for ||example.com/foo/$domains=example.net|example.org", function()
+  {
+    // $domain, not $domains
+    assert.strictEqual(isActiveFilter(Filter.fromText("||example.com/foo/$domains=example.net|example.org")), false);
+  });
+
+  it("should return false for example.com,,example.net##.foo", function()
+  {
+    // There must be no blank domain in the list.
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com,,example.net##.foo")), false);
+  });
+});
