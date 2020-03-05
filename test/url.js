@@ -619,6 +619,17 @@ describe("*domainSuffixes()", function()
                      ["www.example.co.in", "example.co.in", "co.in", "in"]);
   });
 
+  it("should yield 192.168.1.1 for 192.168.1.1", function()
+  {
+    assert.deepEqual([...domainSuffixes("192.168.1.1")], ["192.168.1.1"]);
+  });
+
+  it("should yield [2001:db8:0:42:0:8a2e:370:7334] for [2001:db8:0:42:0:8a2e:370:7334]", function()
+  {
+    assert.deepEqual([...domainSuffixes("[2001:db8:0:42:0:8a2e:370:7334]")],
+                     ["[2001:db8:0:42:0:8a2e:370:7334]"]);
+  });
+
   // With blank.
   it("should yield localhost and a blank string for localhost, true", function()
   {
@@ -641,6 +652,17 @@ describe("*domainSuffixes()", function()
   {
     assert.deepEqual([...domainSuffixes("www.example.co.in", true)],
                      ["www.example.co.in", "example.co.in", "co.in", "in", ""]);
+  });
+
+  it("should yield 192.168.1.1 and a blank string for 192.168.1.1, true", function()
+  {
+    assert.deepEqual([...domainSuffixes("192.168.1.1", true)], ["192.168.1.1", ""]);
+  });
+
+  it("should yield [2001:db8:0:42:0:8a2e:370:7334] and a blank string for [2001:db8:0:42:0:8a2e:370:7334], true", function()
+  {
+    assert.deepEqual([...domainSuffixes("[2001:db8:0:42:0:8a2e:370:7334]", true)],
+                     ["[2001:db8:0:42:0:8a2e:370:7334]", ""]);
   });
 
   // Quirks and edge cases.
