@@ -24,7 +24,7 @@ let contentTypes = null;
 let Filter = null;
 let URLRequest = null;
 
-describe("Regexp filters matching", function()
+describe("URL filters matching", function()
 {
   beforeEach(function()
   {

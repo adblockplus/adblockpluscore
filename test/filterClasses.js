@@ -26,7 +26,7 @@ let Filter = null;
 let InvalidFilter = null;
 let CommentFilter = null;
 let ActiveFilter = null;
-let RegExpFilter = null;
+let URLFilter = null;
 let BlockingFilter = null;
 let ContentFilter = null;
 let WhitelistFilter = null;
@@ -43,7 +43,7 @@ describe("Filter classes", function()
     let sandboxedRequire = createSandbox();
     (
       {contentTypes, RESOURCE_TYPES} = sandboxedRequire("../lib/contentTypes"),
-      {Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
+      {Filter, InvalidFilter, CommentFilter, ActiveFilter, URLFilter,
        BlockingFilter, WhitelistFilter, ContentFilter, ElemHideBase,
        ElemHideFilter, ElemHideException, ElemHideEmulationFilter,
        SnippetFilter} = sandboxedRequire("../lib/filterClasses")
@@ -80,7 +80,7 @@ describe("Filter classes", function()
       }
       result.push("domains=" + domains.sort().join("|"));
 
-      if (filter instanceof RegExpFilter)
+      if (filter instanceof URLFilter)
       {
         result.push("regexp=" + (filter.regexp ? filter.regexp.source : null));
         result.push("contentType=" + filter.contentType);
@@ -207,7 +207,7 @@ describe("Filter classes", function()
     assert.equal(typeof InvalidFilter, "function", "typeof InvalidFilter");
     assert.equal(typeof CommentFilter, "function", "typeof CommentFilter");
     assert.equal(typeof ActiveFilter, "function", "typeof ActiveFilter");
-    assert.equal(typeof RegExpFilter, "function", "typeof RegExpFilter");
+    assert.equal(typeof URLFilter, "function", "typeof URLFilter");
     assert.equal(typeof BlockingFilter, "function", "typeof BlockingFilter");
     assert.equal(typeof ContentFilter, "function", "typeof ContentFilter");
     assert.equal(typeof WhitelistFilter, "function", "typeof WhitelistFilter");

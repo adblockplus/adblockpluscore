@@ -334,9 +334,9 @@ describe("Matcher", function()
     // Map { "example" => { text: "||example.com^$~third-party" } }
     matcher.add(Filter.fromText("||example.com^$~third-party"));
 
-    assert.equal(matcher._blacklist._filterDomainMapsByKeyword.size, 1);
+    assert.equal(matcher._blocking._filterDomainMapsByKeyword.size, 1);
 
-    for (let [key, value] of matcher._blacklist._filterDomainMapsByKeyword)
+    for (let [key, value] of matcher._blocking._filterDomainMapsByKeyword)
     {
       assert.equal(key, "example");
       assert.deepEqual(value, Filter.fromText("||example.com^$~third-party"));
@@ -356,9 +356,9 @@ describe("Matcher", function()
     // }
     matcher.add(Filter.fromText("/example/*$~third-party"));
 
-    assert.equal(matcher._blacklist._filterDomainMapsByKeyword.size, 1);
+    assert.equal(matcher._blocking._filterDomainMapsByKeyword.size, 1);
 
-    for (let [key, value] of matcher._blacklist._filterDomainMapsByKeyword)
+    for (let [key, value] of matcher._blocking._filterDomainMapsByKeyword)
     {
       assert.equal(key, "example");
       assert.equal(value.size, 1);
@@ -377,9 +377,9 @@ describe("Matcher", function()
     // Map { "example" => { text: "/example/*$~third-party" } }
     matcher.remove(Filter.fromText("||example.com^$~third-party"));
 
-    assert.equal(matcher._blacklist._filterDomainMapsByKeyword.size, 1);
+    assert.equal(matcher._blocking._filterDomainMapsByKeyword.size, 1);
 
-    for (let [key, value] of matcher._blacklist._filterDomainMapsByKeyword)
+    for (let [key, value] of matcher._blocking._filterDomainMapsByKeyword)
     {
       assert.equal(key, "example");
       assert.deepEqual(value, Filter.fromText("/example/*$~third-party"));
@@ -392,7 +392,7 @@ describe("Matcher", function()
     // Map {}
     matcher.remove(Filter.fromText("/example/*$~third-party"));
 
-    assert.equal(matcher._blacklist._filterDomainMapsByKeyword.size, 0);
+    assert.equal(matcher._blocking._filterDomainMapsByKeyword.size, 0);
 
     assert.ok(!matcher.match(parseURL("https://example.com/example/ad.jpg"),
                              contentTypes.IMAGE, "example.com"));
