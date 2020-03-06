@@ -26,7 +26,6 @@ let Subscription = null;
 let SpecialSubscription = null;
 let DownloadableSubscription = null;
 let RegularSubscription = null;
-let ExternalSubscription = null;
 let Filter = null;
 
 describe("Subscription classes", function()
@@ -36,8 +35,8 @@ describe("Subscription classes", function()
     let sandboxedRequire = createSandbox();
     (
       {Subscription, SpecialSubscription,
-       DownloadableSubscription, RegularSubscription,
-       ExternalSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
+       DownloadableSubscription,
+       RegularSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
       {Filter} = sandboxedRequire("../lib/filterClasses")
     );
 
@@ -81,7 +80,6 @@ describe("Subscription classes", function()
     assert.equal(typeof Subscription, "function", "typeof Subscription");
     assert.equal(typeof SpecialSubscription, "function", "typeof SpecialSubscription");
     assert.equal(typeof RegularSubscription, "function", "typeof RegularSubscription");
-    assert.equal(typeof ExternalSubscription, "function", "typeof ExternalSubscription");
     assert.equal(typeof DownloadableSubscription, "function", "typeof DownloadableSubscription");
   });
 
