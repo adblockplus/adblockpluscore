@@ -530,61 +530,6 @@ describe("parseURL()", function()
   });
 });
 
-describe("normalizeHostname()", function()
-{
-  let normalizeHostname = null;
-
-  beforeEach(function()
-  {
-    let sandboxedRequire = createSandbox();
-    (
-      {normalizeHostname} = sandboxedRequire("../lib/url")
-    );
-  });
-
-  it("should return example.com for example.com", function()
-  {
-    assert.equal(normalizeHostname("example.com"), "example.com");
-  });
-
-  it("should return example.com for example.com.", function()
-  {
-    assert.equal(normalizeHostname("example.com."), "example.com");
-  });
-
-  it("should return example.com for example.com..", function()
-  {
-    assert.equal(normalizeHostname("example.com.."), "example.com");
-  });
-
-  it("should return example.com for example.com...", function()
-  {
-    assert.equal(normalizeHostname("example.com..."), "example.com");
-  });
-
-  it("should return 192.168.1.1 for 192.168.1.1", function()
-  {
-    assert.equal(normalizeHostname("192.168.1.1"), "192.168.1.1");
-  });
-
-  it("should return 192.168.1.1 for 192.168.1.1.", function()
-  {
-    assert.equal(normalizeHostname("192.168.1.1."), "192.168.1.1");
-  });
-
-  it("should return 2001:0db8:85a3:0000:0000:8a2e:0370:7334 for 2001:0db8:85a3:0000:0000:8a2e:0370:7334", function()
-  {
-    assert.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
-                 "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
-  });
-
-  it("should return 2001:0db8:85a3:0000:0000:8a2e:0370:7334 for 2001:0db8:85a3:0000:0000:8a2e:0370:7334.", function()
-  {
-    assert.equal(normalizeHostname("2001:0db8:85a3:0000:0000:8a2e:0370:7334."),
-                 "2001:0db8:85a3:0000:0000:8a2e:0370:7334");
-  });
-});
-
 describe("*domainSuffixes()", function()
 {
   let domainSuffixes = null;
@@ -665,15 +610,28 @@ describe("*domainSuffixes()", function()
                      ["[2001:db8:0:42:0:8a2e:370:7334]", ""]);
   });
 
+  // With a trailing dot.
+  it("should yield nothing for .", function()
+  {
+    assert.deepEqual([...domainSuffixes(".")], []);
+  });
+
+  it("should yield localhost for localhost.", function()
+  {
+    assert.deepEqual([...domainSuffixes("localhost.")],
+                     ["localhost"]);
+  });
+
+  it("should yield example.com, com for example.com.", function()
+  {
+    assert.deepEqual([...domainSuffixes("example.com.")],
+                     ["example.com", "com"]);
+  });
+
   // Quirks and edge cases.
   it("should yield nothing for blank domain", function()
   {
     assert.deepEqual([...domainSuffixes("")], []);
-  });
-
-  it("should yield . for .", function()
-  {
-    assert.deepEqual([...domainSuffixes(".")], ["."]);
   });
 
   it("should yield .localhost, localhost for .localhost", function()
@@ -688,18 +646,6 @@ describe("*domainSuffixes()", function()
                      [".example.com", "example.com", "com"]);
   });
 
-  it("should yield localhost. for localhost.", function()
-  {
-    assert.deepEqual([...domainSuffixes("localhost.")],
-                     ["localhost."]);
-  });
-
-  it("should yield example.com., com. for example.com.", function()
-  {
-    assert.deepEqual([...domainSuffixes("example.com.")],
-                     ["example.com.", "com."]);
-  });
-
   it("should yield ..localhost, .localhost, localhost for ..localhost", function()
   {
     assert.deepEqual([...domainSuffixes("..localhost")],
@@ -712,15 +658,15 @@ describe("*domainSuffixes()", function()
                      ["..example..com", ".example..com", "example..com", ".com", "com"]);
   });
 
-  it("should yield localhost.., . for localhost..", function()
+  it("should yield localhost. for localhost..", function()
   {
-    assert.deepEqual([...domainSuffixes("localhost..")], ["localhost..", "."]);
+    assert.deepEqual([...domainSuffixes("localhost..")], ["localhost."]);
   });
 
-  it("should yield example..com.., .com.., com.., . for example..com..", function()
+  it("should yield example..com., .com., com. for example..com..", function()
   {
     assert.deepEqual([...domainSuffixes("example..com..")],
-                     ["example..com..", ".com..", "com..", "."]);
+                     ["example..com.", ".com.", "com."]);
   });
 });
 
