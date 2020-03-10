@@ -109,6 +109,21 @@ describe("Notifications", function()
     }).catch(unexpectedError.bind(assert));
   });
 
+  it("Local single", function()
+  {
+    let information = {
+      id: 1,
+      type: "information"
+    };
+
+    notifications.addNotification(information);
+    assert.deepEqual(
+      showNotifications(),
+      [information],
+      "Local notification is shown"
+    );
+  });
+
   it("Information and critical", function()
   {
     let information = {
@@ -130,6 +145,52 @@ describe("Notifications", function()
     }).catch(unexpectedError.bind(assert));
   });
 
+  it("Newtab", function()
+  {
+    let newtabNone = {
+      id: 1,
+      type: "newtab"
+    };
+    let newtabEmpty = {
+      id: 2,
+      type: "newtab",
+      links: []
+    };
+    let newtabSingle = {
+      id: 3,
+      type: "newtab",
+      links: ["foo"]
+    };
+    let newtabMultiple = {
+      id: 4,
+      type: "newtab",
+      links: ["foo", "bar"]
+    };
+
+    registerHandler.call(
+      runner,
+      [newtabNone, newtabEmpty, newtabSingle, newtabMultiple]
+    );
+    return runner.runScheduledTasks(1).then(() =>
+    {
+      assert.deepEqual(
+        showNotifications(),
+        [newtabSingle],
+        "Notification with single link is valid/shown"
+      );
+      assert.deepEqual(
+        showNotifications(),
+        [newtabMultiple],
+        "Notification with multiple links is valid/shown"
+      );
+      assert.deepEqual(
+        showNotifications(),
+        [],
+        "Notifications without links are invalid/not shown"
+      );
+    });
+  });
+
   it("No type", function()
   {
     let information = {
@@ -143,6 +204,49 @@ describe("Notifications", function()
       assert.deepEqual(showNotifications(), [information], "The notification is shown");
       assert.deepEqual(showNotifications(), [], "Notification is treated as type information");
     }).catch(unexpectedError.bind(assert));
+  });
+
+  it("Ignore when remote invalid", function()
+  {
+    let valid = {
+      id: 1,
+      type: "information"
+    };
+    let invalid = {
+      id: 2,
+      type: "newtab"
+    };
+
+    registerHandler.call(runner, [valid, invalid]);
+    return runner.runScheduledTasks(1).then(() =>
+    {
+      assert.deepEqual(
+        showNotifications(),
+        [valid],
+        "Valid notification is shown"
+      );
+      assert.deepEqual(
+        showNotifications(),
+        [],
+        "Invalid notification is not shown"
+      );
+    });
+  });
+
+  it("Throw when local invalid", function()
+  {
+    assert.throws(
+      () =>
+      {
+        let invalid = {
+          id: 1,
+          type: "newtab"
+        };
+
+        notifications.addNotification(invalid);
+      },
+      Error
+    );
   });
 
   function testTargetSelectionFunc(propName, value, result)
