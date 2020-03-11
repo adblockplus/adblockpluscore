@@ -157,6 +157,10 @@ function runBrowserTests(processes)
         chai$: chaiPath
       },
       modules: [path.resolve(__dirname, "lib")]
+    },
+    optimization:
+    {
+      minimize: false
     }
   }).then(bundle =>
     Promise.all(
