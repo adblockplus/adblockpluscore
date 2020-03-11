@@ -53,7 +53,9 @@ function extractDmg(archive, browserDir)
     dmg.mount(archive, (err, mpath) =>
     {
       if (err)
+      {
         reject(err);
+      }
       else
       {
         let files = fs.readdirSync(mpath);
@@ -73,7 +75,9 @@ function extractDmg(archive, browserDir)
             reject(ncperr);
           }
           else
+          {
             resolve();
+          }
         });
       }
     });

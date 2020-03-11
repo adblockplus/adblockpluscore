@@ -2,6 +2,7 @@
   "extends": "eslint-config-eyeo",
   "root": true,
   "rules": {
+    "curly": ["error", "multi-or-nest", "consistent"],
     "id-blacklist": [
       "error",
       "blacklist", "blackList",

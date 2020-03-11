@@ -71,7 +71,9 @@ describe("Filter storage read/write", function()
         curSection = {header: line, data: []};
       }
       else if (curSection && /\S/.test(line))
+      {
         curSection.data.push(line);
+      }
     }
     if (curSection)
       sections.push(curSection);

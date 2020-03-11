@@ -321,9 +321,7 @@ describe("Notifications", function()
       ["locales", ["de-DE"], false],
       ["locales", ["en-GB", "de-DE"], false]
     ])
-    {
       it(`${propName}=${value}`, testTargetSelectionFunc(propName, value, result));
-    }
   });
 
   describe("No show stats", function()
@@ -343,9 +341,7 @@ describe("Notifications", function()
       ["blockedTotalMin", "10", false],
       ["blockedTotalMax", "10", false]
     ])
-    {
       it(`Target ${propName}=${value}`, testTargetSelectionFunc(propName, value, result));
-    }
   });
 
   describe("Multiple targets", function()

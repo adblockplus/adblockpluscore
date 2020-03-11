@@ -53,9 +53,7 @@ function runTests(moduleNames)
   mocha.setup({ui: "bdd", reporter: WdReporter});
 
   for (let module of moduleNames)
-  {
     require("./" + module + ".js");
-  }
 
   return new Promise((resolve, reject) =>
   {

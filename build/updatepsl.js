@@ -29,8 +29,11 @@ request(PSL_URL, (err, response, body) =>
     throw err;
 
   if (response.statusCode != 200)
+  {
     throw new Error("Request failed with status code " +
                     response.statusCode);
+  }
+
   let psl = {};
 
   for (let line of body.split(/\r?\n/))

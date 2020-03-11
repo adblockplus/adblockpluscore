@@ -123,8 +123,10 @@ function parseSubscriptionFile(tarfs, file, validLanguages)
             url = variantMatch[2];
           }
           else
+          {
             console.warn(`Invalid variant format in ${file}, no name` +
                          " given?");
+          }
         }
         if (!("variants" in parsed))
           parsed["variants"] = [];
@@ -140,11 +142,15 @@ function parseSubscriptionFile(tarfs, file, validLanguages)
       {
         parsed["languages"] = value.split(",");
         for (let language of parsed["languages"])
+        {
           if (!validLanguages.has(language))
             console.warn(`Unknown language code ${language} in ${file}`);
+        }
       }
       else
+      {
         parsed[key] = value;
+      }
     });
 
     reader.on("close", () =>
@@ -167,8 +173,10 @@ function parseSubscriptionFile(tarfs, file, validLanguages)
         for (let variant of parsed["variants"])
         {
           if (variant[2])
+          {
             console.warn("Variant marked as complete for non-supplemental " +
                          `subscription in ${file}`);
+          }
         }
       }
 
@@ -208,8 +216,10 @@ function postProcessSubscription(subscription)
                              subscription["contact"];
 
   for (let key in subscription)
+  {
     if (!resultingKeys.has(key))
       delete subscription[key];
+  }
 }
 
 async function main()

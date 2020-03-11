@@ -88,7 +88,9 @@ async function ensureChromium(chromiumRevision)
           archive);
       }
       else
+      {
         console.info(`Reusing cached archive ${archive}`);
+      }
       break;
     }
     catch (e)

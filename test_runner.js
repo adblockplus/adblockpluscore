@@ -115,7 +115,9 @@ function webpackInMemory(bundleFilename, options)
         reject(reason);
       }
       else if (stats.hasErrors())
+      {
         reject(stats.toJson().errors);
+      }
       else
       {
         let bundle = memoryFS.readFileSync("/" + bundleFilename, "utf-8");
@@ -187,7 +189,9 @@ function runBrowserTests(processes)
 }
 
 if (process.argv.length > 2)
+{
   addTestPaths(process.argv.slice(2), true);
+}
 else
 {
   addTestPaths(

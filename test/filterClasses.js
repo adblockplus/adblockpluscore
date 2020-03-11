@@ -196,7 +196,9 @@ describe("Filter classes", function()
       filter2 = Filter.fromObject(map);
     }
     else
+    {
       filter2 = Filter.fromText(filter.text);
+    }
 
     assert.equal(serializeFilter(filter).join("\n"), serializeFilter(filter2).join("\n"), text + " deserialization");
   }

@@ -109,7 +109,9 @@ describe("Element hiding emulation", function()
     let styleElement;
     let styleElements = testDocument.head.getElementsByTagName("style");
     if (styleElements.length)
+    {
       styleElement = styleElements[0];
+    }
     else
     {
       styleElement = testDocument.createElement("style");
@@ -154,8 +156,10 @@ describe("Element hiding emulation", function()
           // Firefox will send mutation notifications even if the
           // property is set to the same value.
           for (let elem of elems)
+          {
             if (elem.style.display != "none")
               elem.style.display = "none";
+          }
         }
       );
 
@@ -1034,9 +1038,7 @@ describe("Element hiding emulation", function()
       // All <div> and <p> elements should be processed initially.
       for (let element of [...testDocument.getElementsByTagName("div"),
                            ...testDocument.getElementsByTagName("p")])
-      {
         expectProcessed(element, element.id);
-      }
 
       // Modify the text in <p id="n4_1">
       testDocument.getElementById("n4_1").innerText = "Try me!";
