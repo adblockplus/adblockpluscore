@@ -325,33 +325,14 @@ describe("Synchronizer", function()
     try
     {
       // Test direct HTTP-only download.
-      let subscriptionDirectHTTP =
-        Subscription.fromURL("http://example.com/subscription");
-      filterStorage.addSubscription(subscriptionDirectHTTP);
-
-      let requestCount = 0;
-
-      runner.registerHandler(
-        "/subscription",
-        metadata => (requestCount++, [200, "[Adblock]\nmalicious-filter"])
-      );
-
-      await runner.runScheduledTasks(1);
-
-      assert.equal(subscriptionDirectHTTP.downloadStatus,
-                   "synchronize_invalid_url",
-                   "Invalid URL error recorded");
-      assert.equal(requestCount, 0, "Number of requests");
-      assert.equal(subscriptionDirectHTTP.errors, 1,
-                   "Number of download errors");
+      assert.throws(() => Subscription.fromURL("http://example.com/subscription"));
 
       // Test indirect HTTPS-to-HTTP download.
       let subscriptionIndirectHTTP =
         Subscription.fromURL("https://example.com/subscription");
-      filterStorage.removeSubscription([...filterStorage.subscriptions()][0]);
       filterStorage.addSubscription(subscriptionIndirectHTTP);
 
-      requestCount = 0;
+      let requestCount = 0;
 
       runner.registerHandler(
         "/subscription",

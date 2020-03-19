@@ -530,6 +530,39 @@ describe("parseURL()", function()
   });
 });
 
+describe("isLocalhost()", function()
+{
+  let isLocalhost = null;
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {isLocalhost} = sandboxedRequire("../lib/url")
+    );
+  });
+
+  it("should return true for localhost", function()
+  {
+    assert.strictEqual(isLocalhost("localhost"), true);
+  });
+
+  it("should return true for 127.0.0.1", function()
+  {
+    assert.strictEqual(isLocalhost("127.0.0.1"), true);
+  });
+
+  it("should return true for [::1]", function()
+  {
+    assert.strictEqual(isLocalhost("[::1]"), true);
+  });
+
+  it("should return false for example.com", function()
+  {
+    assert.strictEqual(isLocalhost("example.com"), false);
+  });
+});
+
 describe("*domainSuffixes()", function()
 {
   let domainSuffixes = null;

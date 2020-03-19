@@ -266,7 +266,7 @@ describe("Filter listener", function()
       let filter6 = Filter.fromText("example.com#?#:-abp-properties(filter6)");
       let filter7 = Filter.fromText("example.com#@#[-abp-properties='filter7']");
 
-      let subscription = Subscription.fromURL("http://test1/");
+      let subscription = Subscription.fromURL("https://test1/");
       subscription.addFilter(filter1);
       subscription.addFilter(filter2);
       subscription.addFilter(filter3);
@@ -340,7 +340,7 @@ describe("Filter listener", function()
       let filter4 = Filter.fromText("@@filter4");
       let filter5 = Filter.fromText("!filter5");
 
-      let subscription = Subscription.fromURL("http://test1/");
+      let subscription = Subscription.fromURL("https://test1/");
       subscription.addFilter(filter1);
       subscription.addFilter(filter2);
 
@@ -377,7 +377,7 @@ describe("Filter listener", function()
       assert.equal([...filterStorage.subscriptions(filter2.text)].length, 1, "@@filter2 subscription count");
       assert.ok([...filterStorage.subscriptions(filter2.text)][0] == subscription3, "@@filter2 added to the default exceptions group");
 
-      let subscription4 = Subscription.fromURL("http://test/");
+      let subscription4 = Subscription.fromURL("https://test/");
       filterStorage.updateSubscriptionFilters(subscription4, [filter3.text, filter4.text, filter5.text]);
       checkKnownFilters("update subscription not in the list yet", {blocking: [filter1.text], whitelist: [filter2.text]});
 
@@ -402,7 +402,7 @@ describe("Filter listener", function()
       let filter1 = Filter.fromText("example.com#$#filter1");
       let filter2 = Filter.fromText("example.com#$#filter2");
 
-      let subscription1 = Subscription.fromURL("http://test1/");
+      let subscription1 = Subscription.fromURL("https://test1/");
       assert.equal(subscription1.type, null);
 
       subscription1.addFilter(filter1);

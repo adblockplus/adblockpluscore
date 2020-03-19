@@ -86,18 +86,18 @@ describe("Subscription classes", function()
   it("Subscriptions with state", function()
   {
     compareSubscription("~fl~", ["url=~fl~"]);
-    compareSubscription("http://test/default", ["url=http://test/default", "title=http://test/default"]);
+    compareSubscription("https://test/default", ["url=https://test/default", "title=https://test/default"]);
     compareSubscription(
-      "http://test/default_titled", ["url=http://test/default_titled", "title=test"],
+      "https://test/default_titled", ["url=https://test/default_titled", "title=test"],
       subscription =>
       {
         subscription.title = "test";
       }
     );
     compareSubscription(
-      "http://test/non_default",
+      "https://test/non_default",
       [
-        "url=http://test/non_default", "title=test", "disabled=true",
+        "url=https://test/non_default", "title=test", "disabled=true",
         "lastSuccess=8", "lastDownload=12", "lastCheck=16", "softExpiration=18",
         "expires=20", "downloadStatus=foo", "errors=3", "version=24",
         "requiredVersion=0.6"
