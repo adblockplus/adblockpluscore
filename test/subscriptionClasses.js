@@ -20,8 +20,6 @@
 const assert = require("assert");
 const {createSandbox} = require("./_common");
 
-let f$ = null;
-
 let Subscription = null;
 let SpecialSubscription = null;
 let DownloadableSubscription = null;
@@ -39,8 +37,6 @@ describe("Subscription classes", function()
        RegularSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
       {Filter} = sandboxedRequire("../lib/filterClasses")
     );
-
-    f$ = Filter.fromText;
   });
 
   function compareSubscription(url, expected, postInit)
@@ -133,79 +129,79 @@ describe("Subscription classes", function()
 
     compareSubscriptionFilters(subscription, []);
 
-    subscription.addFilter(f$("##.foo"));
+    subscription.addFilter(Filter.fromText("##.foo"));
     compareSubscriptionFilters(subscription, ["##.foo"]);
-    assert.equal(subscription.findFilterIndex(f$("##.foo")), 0);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.foo")), 0);
 
-    subscription.addFilter(f$("##.bar"));
+    subscription.addFilter(Filter.fromText("##.bar"));
     compareSubscriptionFilters(subscription, ["##.foo", "##.bar"]);
-    assert.equal(subscription.findFilterIndex(f$("##.bar")), 1);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.bar")), 1);
 
     // Repeat filter.
-    subscription.addFilter(f$("##.bar"));
+    subscription.addFilter(Filter.fromText("##.bar"));
     compareSubscriptionFilters(subscription, ["##.foo", "##.bar",
                                               "##.bar"]);
 
     // The first occurrence is found.
-    assert.equal(subscription.findFilterIndex(f$("##.bar")), 1);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.bar")), 1);
 
     subscription.deleteFilterAt(0);
     compareSubscriptionFilters(subscription, ["##.bar", "##.bar"]);
-    assert.equal(subscription.findFilterIndex(f$("##.bar")), 0);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.bar")), 0);
 
-    subscription.insertFilterAt(f$("##.foo"), 0);
+    subscription.insertFilterAt(Filter.fromText("##.foo"), 0);
     compareSubscriptionFilters(subscription, ["##.foo", "##.bar",
                                               "##.bar"]);
-    assert.equal(subscription.findFilterIndex(f$("##.bar")), 1);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.bar")), 1);
 
     subscription.deleteFilterAt(1);
     compareSubscriptionFilters(subscription, ["##.foo", "##.bar"]);
-    assert.equal(subscription.findFilterIndex(f$("##.bar")), 1);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.bar")), 1);
 
     subscription.deleteFilterAt(1);
     compareSubscriptionFilters(subscription, ["##.foo"]);
-    assert.equal(subscription.findFilterIndex(f$("##.bar")), -1);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.bar")), -1);
 
-    subscription.addFilter(f$("##.bar"));
+    subscription.addFilter(Filter.fromText("##.bar"));
     compareSubscriptionFilters(subscription, ["##.foo", "##.bar"]);
-    assert.equal(subscription.findFilterIndex(f$("##.bar")), 1);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.bar")), 1);
 
     subscription.clearFilters();
     compareSubscriptionFilters(subscription, []);
-    assert.equal(subscription.findFilterIndex(f$("##.foo")), -1);
-    assert.equal(subscription.findFilterIndex(f$("##.bar")), -1);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.foo")), -1);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.bar")), -1);
 
-    subscription.addFilter(f$("##.bar"));
+    subscription.addFilter(Filter.fromText("##.bar"));
     compareSubscriptionFilters(subscription, ["##.bar"]);
 
-    subscription.addFilter(f$("##.foo"));
+    subscription.addFilter(Filter.fromText("##.foo"));
     compareSubscriptionFilters(subscription, ["##.bar", "##.foo"]);
-    assert.equal(subscription.findFilterIndex(f$("##.bar")), 0);
-    assert.equal(subscription.findFilterIndex(f$("##.foo")), 1);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.bar")), 0);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.foo")), 1);
 
     // Insert outside of bounds.
-    subscription.insertFilterAt(f$("##.lambda"), 1000);
+    subscription.insertFilterAt(Filter.fromText("##.lambda"), 1000);
     compareSubscriptionFilters(subscription, ["##.bar", "##.foo",
                                               "##.lambda"]);
-    assert.equal(subscription.findFilterIndex(f$("##.lambda")), 2);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.lambda")), 2);
 
     // Delete outside of bounds.
     subscription.deleteFilterAt(1000);
     compareSubscriptionFilters(subscription, ["##.bar", "##.foo",
                                               "##.lambda"]);
-    assert.equal(subscription.findFilterIndex(f$("##.lambda")), 2);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.lambda")), 2);
 
     // Insert outside of bounds (negative).
-    subscription.insertFilterAt(f$("##.lambda"), -1000);
+    subscription.insertFilterAt(Filter.fromText("##.lambda"), -1000);
     compareSubscriptionFilters(subscription, ["##.lambda", "##.bar",
                                               "##.foo", "##.lambda"]);
-    assert.equal(subscription.findFilterIndex(f$("##.lambda")), 0);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.lambda")), 0);
 
     // Delete outside of bounds (negative).
     subscription.deleteFilterAt(-1000);
     compareSubscriptionFilters(subscription, ["##.lambda", "##.bar",
                                               "##.foo", "##.lambda"]);
-    assert.equal(subscription.findFilterIndex(f$("##.lambda")), 0);
+    assert.equal(subscription.findFilterIndex(Filter.fromText("##.lambda")), 0);
   });
 
   it("Subscrition delta", function()
