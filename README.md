@@ -55,7 +55,7 @@ Help center documentation generation
 ------------------------------------
 
 You can automatically generate the snippets documentation available at
-help.eyeo.con by running `npm run helpcenter`. This will generate a
-file `snippet-filters-tutorial.md` that contains the markdown text as
-suited for our CMS. The content is the same as the tutorial included
-as part of the JSDoc.
+[help.eyeo.com](https://help.eyeo.com/en/adblockplus/) by running
+`npm run helpcenter`. This will generate a file `snippet-filters-tutorial.md`
+that contains the markdown text as suited for our CMS. The content is the same
+as the tutorial included as part of the JSDoc.
