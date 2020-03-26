@@ -28,6 +28,7 @@ let globals = {
   btoa: data => Buffer.from(data, "binary").toString("base64"),
   console: {
     log() {},
+    warn() {},
     error() {}
   },
   navigator: {
