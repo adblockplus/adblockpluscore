@@ -322,6 +322,18 @@ describe("Snippets", function()
         #label {
           overflow-wrap: break-word;
         }
+        #pseudo .static::before {
+          content: "sp";
+        }
+        #pseudo .static::after {
+          content: "ky";
+        }
+        #pseudo .attr::before {
+          content: attr(data-before);
+        }
+        #pseudo .attr::after {
+          content: attr(data-after) "ky";
+        }
       </style>
       <div id="parent">
         <div id="middle">
@@ -348,6 +360,11 @@ describe("Snippets", function()
         <article id="article3">
           <div><a href="foo"><div>by Writer</div></a> about the Sponsorship.</div>
         </article>
+      </div>
+      <div id="pseudo">
+        <div class="static">oo</div>
+        <div>ok</div>
+        <div class="attr" data-before="sp">oo</div>
       </div>`;
 
     await runSnippet(
@@ -374,6 +391,15 @@ describe("Snippets", function()
     expectHidden(element, "article2");
     element = document.getElementById("article3");
     expectVisible(element, "article3");
+
+    await runSnippet(
+      "hide-if-contains-visible-text", "spooky", "#pseudo > div"
+    );
+
+    element = document.getElementById("pseudo");
+    expectHidden(element.querySelector(".static"), "#pseudo .static");
+    expectHidden(element.querySelector(".attr"), "#pseudo .attr");
+    expectVisible(element.children[1], "#pseudo div");
   });
 
   it("hide-if-contains-image-hash", async function()
