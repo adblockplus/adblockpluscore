@@ -265,7 +265,6 @@ describe("Filter listener", function()
       let filter5 = Filter.fromText("#@#filter5");
       let filter6 = Filter.fromText("example.com#?#:-abp-properties(filter6)");
       let filter7 = Filter.fromText("example.com#@#[-abp-properties='filter7']");
-      let filter8 = Filter.fromText("filter8");
 
       let subscription = Subscription.fromURL("https://test1/");
       subscription.addFilter(filter1);
@@ -331,13 +330,6 @@ describe("Filter listener", function()
 
       filterStorage.removeSubscription(subscription);
       checkKnownFilters("remove subscription", {blocking: [filter1.text]});
-
-      let invalidSubscription = Subscription.fromURL("http://example.com/");
-      invalidSubscription.addFilter(filter8);
-
-      filterStorage.addSubscription(invalidSubscription);
-
-      checkKnownFilters("add invalid subscription", {blocking: [filter1.text]});
     });
 
     it("Filter group operations", function()
