@@ -139,17 +139,23 @@ describe("Filter storage read/write", function()
   {
     it("To file", function()
     {
+      this.timeout(5000);
+
       return testReadWrite();
     });
 
     it("To file with empty special subscription", function()
     {
+      this.timeout(5000);
+
       return testReadWrite(true);
     });
   });
 
   it("Import/export", async function()
   {
+    this.timeout(5000);
+
     try
     {
       let lines = await testData;

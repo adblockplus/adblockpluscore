@@ -60,6 +60,8 @@ describe("Signatures", function()
 
   it("2048-bit signing key", function()
   {
+    this.timeout(5000);
+
     /*
     -----BEGIN RSA PRIVATE KEY-----
     MIIEowIBAAKCAQEAy45IKQw0R5YBiIFyfKftx3F/6WsvtdNMnCKodkDemXuJOcFu
