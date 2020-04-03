@@ -943,13 +943,18 @@ describe("EventEmitter", function()
       assert.doesNotThrow(() => eventEmitter.emit("event"));
     });
 
+    it("should not throw with argument when no listeners exist", function()
+    {
+      assert.doesNotThrow(() => eventEmitter.emit("event"), true);
+    });
+
     it("should invoke listener when one listener exists", function()
     {
       let calls = [];
 
-      let listener = function()
+      let listener = function(...args)
       {
-        calls.push([listener]);
+        calls.push([listener, ...args]);
       };
 
       eventEmitter.on("event", listener);
@@ -957,18 +962,32 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener]]);
     });
 
+    it("should invoke listener with argument when one listener exists", function()
+    {
+      let calls = [];
+
+      let listener = function(...args)
+      {
+        calls.push([listener, ...args]);
+      };
+
+      eventEmitter.on("event", listener);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener, true]]);
+    });
+
     it("should invoke listeners when multiple listeners exist", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -977,18 +996,38 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener1], [listener2]]);
     });
 
+    it("should invoke listeners with argument when multiple listeners exist", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener1, true], [listener2, true]]);
+    });
+
     it("should invoke no listeners when listeners exist for different event", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
       eventEmitter.on("otherEvent", listener1);
@@ -997,28 +1036,48 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), []);
     });
 
+    it("should invoke no listeners with argument when listeners exist for different event", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      eventEmitter.on("otherEvent", listener1);
+      eventEmitter.on("otherEvent", listener2);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), []);
+    });
+
     it("should invoke specific listeners when listeners exist for multiple events", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
-      let listener3 = function()
+      let listener3 = function(...args)
       {
-        calls.push([listener3]);
+        calls.push([listener3, ...args]);
       };
 
-      let listener4 = function()
+      let listener4 = function(...args)
       {
-        calls.push([listener4]);
+        calls.push([listener4, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -1029,18 +1088,50 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener1], [listener3]]);
     });
 
+    it("should invoke specific listeners with argument when listeners exist for multiple events", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      let listener3 = function(...args)
+      {
+        calls.push([listener3, ...args]);
+      };
+
+      let listener4 = function(...args)
+      {
+        calls.push([listener4, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("otherEvent", listener2);
+      eventEmitter.on("event", listener3);
+      eventEmitter.on("otherEvent", listener4);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener1, true], [listener3, true]]);
+    });
+
     it("should not invoke first previously added listener after listener is removed", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -1051,18 +1142,40 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener2]]);
     });
 
+    it("should not invoke first previously added listener with argument after listener is removed", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener2, true]]);
+    });
+
     it("should not invoke last previously added listener after listener is removed", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -1073,18 +1186,40 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener1]]);
     });
 
+    it("should not invoke last previously added listener with argument after listener is removed", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener2);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener1, true]]);
+    });
+
     it("should invoke no listeners after all previously added listeners are removed", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -1096,28 +1231,51 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), []);
     });
 
+    it("should invoke no listeners with argument after all previously added listeners are removed", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+      eventEmitter.off("event", listener2);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), []);
+    });
+
     it("should invoke specific listeners after previously added listeners are removed for different event", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
-      let listener3 = function()
+      let listener3 = function(...args)
       {
-        calls.push([listener3]);
+        calls.push([listener3, ...args]);
       };
 
-      let listener4 = function()
+      let listener4 = function(...args)
       {
-        calls.push([listener4]);
+        calls.push([listener4, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -1131,18 +1289,53 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener1], [listener3]]);
     });
 
+    it("should invoke specific listeners with argument after previously added listeners are removed for different event", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      let listener3 = function(...args)
+      {
+        calls.push([listener3, ...args]);
+      };
+
+      let listener4 = function(...args)
+      {
+        calls.push([listener4, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("otherEvent", listener2);
+      eventEmitter.on("event", listener3);
+      eventEmitter.on("otherEvent", listener4);
+
+      eventEmitter.off("otherEvent", listener2);
+      eventEmitter.off("otherEvent", listener4);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener1, true], [listener3, true]]);
+    });
+
     it("should invoke first previously added listener after listener is removed and re-added", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -1155,18 +1348,42 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener2], [listener1]]);
     });
 
+    it("should invoke first previously added listener with argument after listener is removed and re-added", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+
+      eventEmitter.on("event", listener1);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener2, true], [listener1, true]]);
+    });
+
     it("should invoke last previously added listener after listener is removed and re-added", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -1179,18 +1396,42 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener1], [listener2]]);
     });
 
+    it("should invoke last previously added listener with argument after listener is removed and re-added", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener2);
+
+      eventEmitter.on("event", listener2);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener1, true], [listener2, true]]);
+    });
+
     it("should invoke all previously added listeners after listeners are removed and re-added", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -1205,13 +1446,39 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener1], [listener2]]);
     });
 
+    it("should invoke all previously added listeners with argument after listeners are removed and re-added", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.off("event", listener1);
+      eventEmitter.off("event", listener2);
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener1, true], [listener2, true]]);
+    });
+
     it("should invoke duplicate listeners when duplicate listeners exist", function()
     {
       let calls = [];
 
-      let listener = function()
+      let listener = function(...args)
       {
-        calls.push([listener]);
+        calls.push([listener, ...args]);
       };
 
       eventEmitter.on("event", listener);
@@ -1220,13 +1487,28 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener], [listener]]);
     });
 
+    it("should invoke duplicate listeners with argument when duplicate listeners exist", function()
+    {
+      let calls = [];
+
+      let listener = function(...args)
+      {
+        calls.push([listener, ...args]);
+      };
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener, true], [listener, true]]);
+    });
+
     it("should invoke listener after copy is removed", function()
     {
       let calls = [];
 
-      let listener = function()
+      let listener = function(...args)
       {
-        calls.push([listener]);
+        calls.push([listener, ...args]);
       };
 
       eventEmitter.on("event", listener);
@@ -1237,15 +1519,31 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener]]);
     });
 
+    it("should invoke listener with argument after copy is removed", function()
+    {
+      let calls = [];
+
+      let listener = function(...args)
+      {
+        calls.push([listener, ...args]);
+      };
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener, true]]);
+    });
+
     it("should invoke no listeners after all copies of listener are removed", function()
     {
       let calls = [];
 
-      let listener = function()
+      let listener = function(...args)
       {
-        calls.push([listener]);
+        calls.push([listener, ...args]);
       };
-
 
       eventEmitter.on("event", listener);
       eventEmitter.on("event", listener);
@@ -1256,6 +1554,24 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), []);
     });
 
+    it("should invoke no listeners with argument after all copies of listener are removed", function()
+    {
+      let calls = [];
+
+      let listener = function(...args)
+      {
+        calls.push([listener, ...args]);
+      };
+
+      eventEmitter.on("event", listener);
+      eventEmitter.on("event", listener);
+
+      eventEmitter.off("event", listener);
+      eventEmitter.off("event", listener);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), []);
+    });
+
     it("should not throw when no listeners exist for event already dispatched", function()
     {
       eventEmitter.emit("event");
@@ -1263,18 +1579,25 @@ describe("EventEmitter", function()
       assert.doesNotThrow(() => eventEmitter.emit("event"));
     });
 
+    it("should not throw with argument when no listeners exist for event already dispatched", function()
+    {
+      eventEmitter.emit("event");
+
+      assert.doesNotThrow(() => eventEmitter.emit("event", true));
+    });
+
     it("should invoke listeners for event already dispatched and handled", function()
     {
       let calls = [];
 
-      let listener1 = function()
+      let listener1 = function(...args)
       {
-        calls.push([listener1]);
+        calls.push([listener1, ...args]);
       };
 
-      let listener2 = function()
+      let listener2 = function(...args)
       {
-        calls.push([listener2]);
+        calls.push([listener2, ...args]);
       };
 
       eventEmitter.on("event", listener1);
@@ -1287,6 +1610,30 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), [[listener1], [listener2]]);
     });
 
+    it("should invoke listeners with argument for event already dispatched and handled", function()
+    {
+      let calls = [];
+
+      let listener1 = function(...args)
+      {
+        calls.push([listener1, ...args]);
+      };
+
+      let listener2 = function(...args)
+      {
+        calls.push([listener2, ...args]);
+      };
+
+      eventEmitter.on("event", listener1);
+      eventEmitter.on("event", listener2);
+
+      eventEmitter.emit("event", true);
+
+      calls = [];
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), [[listener1, true], [listener2, true]]);
+    });
+
     it("should invoke all thousand previously added listeners for same event", function()
     {
       let calls = [];
@@ -1294,15 +1641,33 @@ describe("EventEmitter", function()
       let listeners = new Array(1000);
       for (let i = 0; i < listeners.length; i++)
       {
-        listeners[i] = function()
+        listeners[i] = function(...args)
         {
-          calls.push([listeners[i]]);
+          calls.push([listeners[i], ...args]);
         };
 
         eventEmitter.on("event", listeners[i]);
       }
 
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), listeners.map(listener => [listener]));
+    });
+
+    it("should invoke all thousand previously added listeners with argument for same event", function()
+    {
+      let calls = [];
+
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function(...args)
+        {
+          calls.push([listeners[i], ...args]);
+        };
+
+        eventEmitter.on("event", listeners[i]);
+      }
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), listeners.map(listener => [listener, true]));
     });
 
     it("should invoke specific listener out of thousand previously added listeners for different events", function()
@@ -1312,15 +1677,33 @@ describe("EventEmitter", function()
       let listeners = new Array(1000);
       for (let i = 0; i < listeners.length; i++)
       {
-        listeners[i] = function()
+        listeners[i] = function(...args)
         {
-          calls.push([listeners[i]]);
+          calls.push([listeners[i], ...args]);
         };
 
         eventEmitter.on(`event-${i + 1}`, listeners[i]);
       }
 
       assert.deepStrictEqual((eventEmitter.emit("event-1000"), calls), [[listeners[listeners.length - 1]]]);
+    });
+
+    it("should invoke specific listener with argument out of thousand previously added listeners for different events", function()
+    {
+      let calls = [];
+
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function(...args)
+        {
+          calls.push([listeners[i], ...args]);
+        };
+
+        eventEmitter.on(`event-${i + 1}`, listeners[i]);
+      }
+
+      assert.deepStrictEqual((eventEmitter.emit("event-1000", true), calls), [[listeners[listeners.length - 1], true]]);
     });
 
     it("should invoke no listeners after all thousand previously added listeners for same event are removed", function()
@@ -1330,9 +1713,9 @@ describe("EventEmitter", function()
       let listeners = new Array(1000);
       for (let i = 0; i < listeners.length; i++)
       {
-        listeners[i] = function()
+        listeners[i] = function(...args)
         {
-          calls.push([listeners[i]]);
+          calls.push([listeners[i], ...args]);
         };
 
         eventEmitter.on("event", listeners[i]);
@@ -1344,6 +1727,27 @@ describe("EventEmitter", function()
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), []);
     });
 
+    it("should invoke no listeners with argument after all thousand previously added listeners for same event are removed", function()
+    {
+      let calls = [];
+
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function(...args)
+        {
+          calls.push([listeners[i], ...args]);
+        };
+
+        eventEmitter.on("event", listeners[i]);
+      }
+
+      for (let i = 0; i < listeners.length; i++)
+        eventEmitter.off("event", listeners[i]);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), []);
+    });
+
     it("should invoke no listeners after all thousand previously added listeners for different events are removed", function()
     {
       let calls = [];
@@ -1351,9 +1755,9 @@ describe("EventEmitter", function()
       let listeners = new Array(1000);
       for (let i = 0; i < listeners.length; i++)
       {
-        listeners[i] = function()
+        listeners[i] = function(...args)
         {
-          calls.push([listeners[i]]);
+          calls.push([listeners[i], ...args]);
         };
 
         eventEmitter.on(`event-${i + 1}`, listeners[i]);
@@ -1363,6 +1767,27 @@ describe("EventEmitter", function()
         eventEmitter.off(`event-${i + 1}`, listeners[i]);
 
       assert.deepStrictEqual((eventEmitter.emit("event"), calls), []);
+    });
+
+    it("should invoke no listeners with argument after all thousand previously added listeners for different events are removed", function()
+    {
+      let calls = [];
+
+      let listeners = new Array(1000);
+      for (let i = 0; i < listeners.length; i++)
+      {
+        listeners[i] = function(...args)
+        {
+          calls.push([listeners[i], ...args]);
+        };
+
+        eventEmitter.on(`event-${i + 1}`, listeners[i]);
+      }
+
+      for (let i = 0; i < listeners.length; i++)
+        eventEmitter.off(`event-${i + 1}`, listeners[i]);
+
+      assert.deepStrictEqual((eventEmitter.emit("event", true), calls), []);
     });
   });
 });
