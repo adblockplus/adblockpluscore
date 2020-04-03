@@ -244,7 +244,7 @@ describe("Snippets", function()
   {
     let libraries = [
       `
-        let foo = 0;
+        let foo = "foo" in environment ? environment.foo : 0;
 
         exports.setFoo = function(value)
         {
@@ -263,12 +263,16 @@ describe("Snippets", function()
     "use strict";
     {
       let libraries = ${JSON.stringify(libraries)};
+      let environment = JSON.stringify({});
 
       let script = {{{script}}};
 
       let imports = Object.create(null);
       for (let library of libraries)
-        new Function("exports", library)(imports);
+      {
+        let loadLibrary = new Function("exports", "environment", library);
+        loadLibrary(imports, JSON.parse(environment));
+      }
 
       for (let [name, ...args] of script)
       {
@@ -294,6 +298,7 @@ describe("Snippets", function()
     verifyExecutable("hello 'How are you?'");
 
     // Test script execution.
+    new Function(compileScript("assertFoo 0", libraries))();
     new Function(compileScript("setFoo 123; assertFoo 123", libraries))();
 
     // Override setFoo in a second library, without overriding assertFoo. A
@@ -306,5 +311,14 @@ describe("Snippets", function()
         ...libraries, "let foo = 1; exports.setFoo = value => { foo = value; };"
       ])
     )();
+
+    new Function(compileScript("assertFoo 123", libraries, {foo: 123}))();
+
+    // Every library gets its own copy of the environment object.
+    new Function(compileScript("assertFoo 0",
+                               ["environment.foo = 456;", ...libraries]))();
+    new Function(compileScript("assertFoo 123",
+                               ["environment.foo = 456;", ...libraries],
+                               {foo: 123}))();
   });
 });
