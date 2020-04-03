@@ -573,4 +573,23 @@ describe("Snippets", function()
 
     delete document.log;
   });
+
+  it("hide-if-matches-xpath", async function()
+  {
+    document.body.innerHTML = '<div id="xpath-target"></div>';
+    let target = document.getElementById("xpath-target");
+    expectVisible(target);
+    await runSnippet("hide-if-matches-xpath", '//*[@id="xpath-target"]');
+    expectHidden(target);
+  });
+
+  it("hide-if-matches-xpath lazily", async function()
+  {
+    await runSnippet("hide-if-matches-xpath", '//*[@id="xpath-lazily"]');
+    document.body.innerHTML = '<div id="xpath-lazily"></div>';
+    let target = document.getElementById("xpath-lazily");
+    expectVisible(target);
+    await timeout(100);
+    expectHidden(target);
+  });
 });
