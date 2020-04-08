@@ -23,26 +23,24 @@ const {createSandbox} = require("./_common");
 let Filter = null;
 let filterNotifier = null;
 let filterStorage = null;
+let filterEngine = null;
 let Subscription = null;
 
 describe("Filter storage", function()
 {
-  beforeEach(function(done)
+  beforeEach(async function()
   {
     let sandboxedRequire = createSandbox();
 
-    sandboxedRequire("../lib/filterListener");
     (
       {Filter} = sandboxedRequire("../lib/filterClasses"),
       {filterNotifier} = sandboxedRequire("../lib/filterNotifier"),
       {filterStorage} = sandboxedRequire("../lib/filterStorage"),
+      {filterEngine} = sandboxedRequire("../lib/filterEngine"),
       {Subscription} = sandboxedRequire("../lib/subscriptionClasses")
     );
 
-    filterNotifier.on("ready", () =>
-    {
-      done();
-    });
+    await filterEngine.initialize();
   });
 
   function addListener(listener)

@@ -81,6 +81,29 @@ beforeEach(function()
   );
 });
 
+describe("filterEngine.initialize()", function()
+{
+  it("should return promise", function()
+  {
+    assert.ok(filterEngine.initialize().constructor.name, "Promise");
+  });
+
+  it("should return same promise if already invoked", function()
+  {
+    let promise = filterEngine.initialize();
+
+    assert.strictEqual(filterEngine.initialize(), promise);
+  });
+
+  it("should return same promise if already invoked and promise fulfilled", async function()
+  {
+    let promise = filterEngine.initialize();
+    await promise;
+
+    assert.strictEqual(filterEngine.initialize(), promise);
+  });
+});
+
 describe("filterEngine.add()", function()
 {
   it("should add a filter", function()

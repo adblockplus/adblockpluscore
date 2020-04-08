@@ -22,8 +22,8 @@ const {createSandbox} = require("./_common");
 let sandboxedRequire = null;
 
 let IO = null;
-let filterNotifier = null;
 let filterStorage = null;
+let filterEngine = null;
 let Subscription = null;
 let Filter = null;
 let defaultMatcher = null;
@@ -95,13 +95,13 @@ describe("Filter listener", function()
 
     (
       {IO} = sandboxedRequire("./stub-modules/io"),
-      {filterNotifier} = sandboxedRequire("../lib/filterNotifier"),
       {filterStorage} = sandboxedRequire("../lib/filterStorage"),
+      {filterEngine} = sandboxedRequire("../lib/filterEngine"),
       {defaultMatcher} = sandboxedRequire("../lib/matcher")
     );
   });
 
-  it("Initialization", function(done)
+  it("Initialization", async function()
   {
     IO._setFileContents(filterStorage.sourceFile, `
       version=5
@@ -130,35 +130,28 @@ describe("Filter listener", function()
     `
     .split(/\s*\n\s*/));
 
-    sandboxedRequire("../lib/filterListener");
-
+    let promise = filterEngine.initialize();
     checkKnownFilters("No filters ready", {});
+    await promise;
 
-    filterNotifier.on("ready", () =>
-    {
-      checkKnownFilters("All filters ready", {
-        blocking: ["^foo^", "||example.com^", "^bar^"],
-        whitelist: ["@@$domain=example.com"],
-        elemhide: ["##.foo", "example.com##.bar"],
-        elemhideexception: ["example.com#@#.foo"],
-        elemhideemulation: ["example.com#?#.foo:-abp-contains(Ad)"],
+    checkKnownFilters("All filters ready", {
+      blocking: ["^foo^", "||example.com^", "^bar^"],
+      whitelist: ["@@$domain=example.com"],
+      elemhide: ["##.foo", "example.com##.bar"],
+      elemhideexception: ["example.com#@#.foo"],
+      elemhideemulation: ["example.com#?#.foo:-abp-contains(Ad)"],
 
-        // Note: By design, only snippet filters from a subscription of type
-        // "circumvention" are taken into account (#6781).
-        snippets: []
-      });
-
-      done();
+      // Note: By design, only snippet filters from a subscription of type
+      // "circumvention" are taken into account (#6781).
+      snippets: []
     });
   });
 
   describe("Synchronization", function()
   {
-    beforeEach(function(done)
+    beforeEach(async function()
     {
-      // We need to require the filterListener module so that filter changes
-      // will be noticed, even though we don't directly use the module here.
-      sandboxedRequire("../lib/filterListener");
+      await filterEngine.initialize();
 
       (
         {Subscription, SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
@@ -166,18 +159,13 @@ describe("Filter listener", function()
         recommendations = sandboxedRequire("../data/subscriptions.json")
       );
 
-      filterNotifier.on("ready", () =>
-      {
-        filterStorage.addSubscription(Subscription.fromURL("~user~fl"));
-        filterStorage.addSubscription(Subscription.fromURL("~user~wl"));
-        filterStorage.addSubscription(Subscription.fromURL("~user~eh"));
+      filterStorage.addSubscription(Subscription.fromURL("~user~fl"));
+      filterStorage.addSubscription(Subscription.fromURL("~user~wl"));
+      filterStorage.addSubscription(Subscription.fromURL("~user~eh"));
 
-        Subscription.fromURL("~user~fl").defaults = ["blocking"];
-        Subscription.fromURL("~user~wl").defaults = ["whitelist"];
-        Subscription.fromURL("~user~eh").defaults = ["elemhide"];
-
-        done();
-      });
+      Subscription.fromURL("~user~fl").defaults = ["blocking"];
+      Subscription.fromURL("~user~wl").defaults = ["whitelist"];
+      Subscription.fromURL("~user~eh").defaults = ["elemhide"];
     });
 
     it("Adding/removing filters", function()
