@@ -18,6 +18,9 @@
 "use strict";
 
 const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+const {promisify} = require("util");
 const {createSandbox, unexpectedError} = require("./_common");
 
 let Filter = null;
@@ -42,20 +45,15 @@ describe("Filter storage read/write", function()
     filterStorage.addFilter(Filter.fromText("foobar"));
   });
 
-  let testData = new Promise((resolve, reject) =>
+  async function readData()
   {
-    const fs = require("fs");
-    const path = require("path");
-    let datapath = path.resolve(__dirname, "data", "patterns.ini");
+    let dataPath = path.resolve(__dirname, "data", "patterns.ini");
+    let readFileAsync = promisify(fs.readFile);
+    let data = await readFileAsync(dataPath, "utf-8");
+    return data.split(/[\r\n]+/);
+  }
 
-    fs.readFile(datapath, "utf-8", (error, data) =>
-    {
-      if (error)
-        reject(error);
-      else
-        resolve(data.split(/[\r\n]+/));
-    });
-  });
+  let testData = readData();
 
   function canonize(data)
   {
