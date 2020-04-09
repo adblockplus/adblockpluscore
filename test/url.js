@@ -703,167 +703,107 @@ describe("*domainSuffixes()", function()
   });
 });
 
-describe("isThirdParty()", function()
+describe("URLRequest", function()
 {
-  let isThirdParty = null;
-
-  function hostnameToURL(hostname)
-  {
-    return new URL("http://" + hostname);
-  }
-
-  function testThirdParty(requestHostname, documentHostname, expected,
-                          message)
-  {
-    assert.equal(
-      isThirdParty(
-        hostnameToURL(requestHostname).hostname,
-
-        // Chrome's URL object normalizes IP addresses. So some test
-        // will fail if we don't normalize the document host as well.
-        hostnameToURL(documentHostname).hostname
-      ),
-      expected,
-      message
-    );
-  }
+  let URLRequest = null;
 
   beforeEach(function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {isThirdParty} = sandboxedRequire("../lib/url")
+      {URLRequest} = sandboxedRequire("../lib/url")
     );
   });
 
-  it("should return false for foo and foo", function()
+  describe("#get thirdParty()", function()
   {
-    testThirdParty("foo", "foo", false, "same domain isn't third-party");
-  });
+    function testThirdParty(url, documentHostname, expected, message)
+    {
+      let {thirdParty} = URLRequest.from(url, documentHostname);
+      assert.equal(thirdParty, expected, message);
+    }
 
-  it("should return true for foo and bar", function()
-  {
-    testThirdParty("foo", "bar", true, "different domain is third-party");
-  });
+    it("should return false for http://foo/ and foo", function()
+    {
+      testThirdParty("http://foo/", "foo", false, "same domain isn't third-party");
+    });
 
-  it("should return false for foo.com and foo.com", function()
-  {
-    testThirdParty("foo.com", "foo.com", false,
-                   "same domain with TLD (.com) isn't third-party");
-  });
+    it("should return true for http://foo/ and bar", function()
+    {
+      testThirdParty("http://foo/", "bar", true, "different domain is third-party");
+    });
 
-  it("should return true for foo.com and bar.com", function()
-  {
-    testThirdParty("foo.com", "bar.com", true,
-                   "same TLD (.com) but different domain is third-party");
-  });
+    it("should return false for http://foo.com/ and foo.com", function()
+    {
+      testThirdParty("http://foo.com/", "foo.com", false,
+                     "same domain with TLD (.com) isn't third-party");
+    });
 
-  it("should return false for foo.com and www.foo.com", function()
-  {
-    testThirdParty("foo.com", "www.foo.com", false,
-                   "same domain but differend subdomain isn't third-party");
-  });
+    it("should return true for http://foo.com/ and bar.com", function()
+    {
+      testThirdParty("http://foo.com/", "bar.com", true,
+                     "same TLD (.com) but different domain is third-party");
+    });
 
-  it("should return false for foo.example.com and bar.example.com", function()
-  {
-    testThirdParty("foo.example.com", "bar.example.com", false,
-                   "same basedomain (example.com) isn't third-party");
-  });
+    it("should return false for http://foo.com/ and www.foo.com", function()
+    {
+      testThirdParty("http://foo.com/", "www.foo.com", false,
+                     "same domain but differend subdomain isn't third-party");
+    });
 
-  it("should return true for foo.uk and bar.uk", function()
-  {
-    testThirdParty("foo.uk", "bar.uk", true,
-                   "same TLD (.uk) but different domain is third-party");
-  });
+    it("should return false for http://foo.example.com/ and bar.example.com", function()
+    {
+      testThirdParty("http://foo.example.com/", "bar.example.com", false,
+                     "same basedomain (example.com) isn't third-party");
+    });
 
-  it("should return true for foo.co.uk and bar.co.uk", function()
-  {
-    testThirdParty("foo.co.uk", "bar.co.uk", true,
-                   "same TLD (.co.uk) but different domain is third-party");
-  });
+    it("should return true for http://foo.uk/ and bar.uk", function()
+    {
+      testThirdParty("http://foo.uk/", "bar.uk", true,
+                     "same TLD (.uk) but different domain is third-party");
+    });
 
-  it("should return false for foo.example.co.uk and bar.example.co.uk", function()
-  {
-    testThirdParty("foo.example.co.uk", "bar.example.co.uk", false,
-                   "same basedomain (example.co.uk) isn't third-party");
-  });
+    it("should return true for http://foo.co.uk/ and bar.co.uk", function()
+    {
+      testThirdParty("http://foo.co.uk/", "bar.co.uk", true,
+                     "same TLD (.co.uk) but different domain is third-party");
+    });
 
-  it("should return false for 1.2.3.4 and 1.2.3.4", function()
-  {
-    testThirdParty("1.2.3.4", "1.2.3.4", false,
-                   "same IPv4 address isn't third-party");
-  });
+    it("should return false for http://foo.example.co.uk/ and bar.example.co.uk", function()
+    {
+      testThirdParty("http://foo.example.co.uk/", "bar.example.co.uk", false,
+                     "same basedomain (example.co.uk) isn't third-party");
+    });
 
-  it("should return true for 1.1.1.1 and 2.1.1.1", function()
-  {
-    testThirdParty("1.1.1.1", "2.1.1.1", true,
-                   "different IPv4 address is third-party");
-  });
+    it("should return false for http://1.2.3.4/ and 1.2.3.4", function()
+    {
+      testThirdParty("http://1.2.3.4/", "1.2.3.4", false,
+                     "same IPv4 address isn't third-party");
+    });
 
-  it("should return false for 0x01ff0101 and 0x01ff0101", function()
-  {
-    testThirdParty("0x01ff0101", "0x01ff0101", false,
-                   "same IPv4 hexadecimal address isn't third-party");
-  });
+    it("should return true for http://1.1.1.1/ and 2.1.1.1", function()
+    {
+      testThirdParty("http://1.1.1.1/", "2.1.1.1", true,
+                     "different IPv4 address is third-party");
+    });
 
-  it("should return true for 0x01ff0101 and 0x01ff0102", function()
-  {
-    testThirdParty("0x01ff0101", "0x01ff0102", true,
-                   "different IPv4 hexadecimal address is third-party");
-  });
+    it("should return false for http://[2001:db8:85a3::8a2e:370:7334]/ and [2001:db8:85a3::8a2e:370:7334]", function()
+    {
+      testThirdParty("http://[2001:db8:85a3::8a2e:370:7334]/", "[2001:db8:85a3::8a2e:370:7334]", false,
+                     "same IPv6 address isn't third-party");
+    });
 
-  it("should return false for 1.0xff.3.4 and 1.0xff.3.4", function()
-  {
-    testThirdParty("1.0xff.3.4", "1.0xff.3.4", false,
-                   "same IPv4 address with hexadecimal octet isn't third-party");
-  });
+    it("should return true for http://[2001:db8:85a3::8a2e:370:7334]/ and [5001:db8:85a3::8a2e:370:7334]", function()
+    {
+      testThirdParty("http://[2001:db8:85a3::8a2e:370:7334]/", "[5001:db8:85a3::8a2e:370:7334]", true,
+                     "different IPv6 address is third-party");
+    });
 
-  it("should return true for 1.0xff.1.1 and 2.0xff.1.1", function()
-  {
-    testThirdParty("1.0xff.1.1", "2.0xff.1.1", true,
-                   "different IPv4 address with hexadecimal octet is third-party");
-  });
-
-  it("should return false for 0xff.example.com and example.com", function()
-  {
-    testThirdParty("0xff.example.com", "example.com", false,
-                   "domain starts like a hexadecimal IPv4 address but isn't one");
-  });
-
-  it("should return false for [2001:db8:85a3::8a2e:370:7334] and [2001:db8:85a3::8a2e:370:7334]", function()
-  {
-    testThirdParty("[2001:db8:85a3::8a2e:370:7334]", "[2001:db8:85a3::8a2e:370:7334]", false,
-                   "same IPv6 address isn't third-party");
-  });
-
-  it("should return true for [2001:db8:85a3::8a2e:370:7334] and [5001:db8:85a3::8a2e:370:7334]", function()
-  {
-    testThirdParty("[2001:db8:85a3::8a2e:370:7334]", "[5001:db8:85a3::8a2e:370:7334]", true,
-                   "different IPv6 address is third-party");
-  });
-
-  it("should return false for [::ffff:192.0.2.128] and [::ffff:192.0.2.128]", function()
-  {
-    testThirdParty("[::ffff:192.0.2.128]", "[::ffff:192.0.2.128]", false,
-                   "same IPv4-mapped IPv6 address isn't third-party");
-  });
-
-  it("should return true for [::ffff:192.0.2.128] and [::ffff:192.1.2.128]", function()
-  {
-    testThirdParty("[::ffff:192.0.2.128]", "[::ffff:192.1.2.128]", true,
-                   "different IPv4-mapped IPv6 address is third-party");
-  });
-
-  it("should return false for xn--f-1gaa.com and f\u00f6\u00f6.com", function()
-  {
-    testThirdParty("xn--f-1gaa.com", "f\u00f6\u00f6.com", false,
-                   "same IDN isn't third-party");
-  });
-
-  it("should return false for example.com.. and example.com....", function()
-  {
-    testThirdParty("example.com..", "example.com....", false,
-                   "traling dots are ignored");
+    it("should return false for http://example.com/ and example.com.", function()
+    {
+      testThirdParty("http://example.com/", "example.com.", false,
+                     "traling dots are ignored");
+    });
   });
 });
 
