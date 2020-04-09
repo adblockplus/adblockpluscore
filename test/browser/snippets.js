@@ -494,15 +494,17 @@ describe("Snippets", function()
       doc.body.appendChild(scriptElement);
     }
 
+    let logArgs = [];
+
     // Type 1 test: no debug
     let {log} = console;
     console.log = (...args) =>
     {
       console.log = log;
-      assert.strictEqual(args.join(","), "1,2",
-                         "debug flag should be false");
+      logArgs = args.join(",");
     };
     runSnippetScript("log 1 2");
+    assert.strictEqual(logArgs, "1,2", "type 1 debug flag should be false");
 
     // Type 2 test: no debug
     injectInlineScript(document, `(() =>
@@ -523,10 +525,11 @@ describe("Snippets", function()
     console.log = (...args) =>
     {
       console.log = log;
-      assert.strictEqual(args.join(","), "%c DEBUG,font-weight: bold,1,2",
-                         "debug flag should be true");
+      logArgs = args.join(",");
     };
     await runSnippetScript("debug; log 1 2");
+    assert.strictEqual(logArgs, "%c DEBUG,font-weight: bold,1,2",
+                       "type 1 debug flag should be true");
 
     // Type 2 test: debug flag enabled
     injectInlineScript(document, `(() =>
