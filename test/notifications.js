@@ -44,6 +44,8 @@ describe("Notifications", function()
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
       {notifications} = sandboxedRequire("../lib/notifications")
     );
+
+    notifications.start();
   });
 
   function showNotifications()

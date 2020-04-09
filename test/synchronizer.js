@@ -28,6 +28,7 @@ let MILLIS_IN_HOUR = null;
 let filterStorage = null;
 let Prefs = null;
 let Subscription = null;
+let synchronizer = null;
 
 describe("Synchronizer", function()
 {
@@ -46,8 +47,10 @@ describe("Synchronizer", function()
       {filterStorage} = sandboxedRequire("../lib/filterStorage"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
       {Subscription} = sandboxedRequire("../lib/subscriptionClasses"),
-      sandboxedRequire("../lib/synchronizer")
+      {synchronizer} = sandboxedRequire("../lib/synchronizer")
     );
+
+    synchronizer.start();
   });
 
   function resetSubscription(subscription)
