@@ -83,24 +83,155 @@ beforeEach(function()
 
 describe("filterEngine.initialize()", function()
 {
-  it("should return promise", function()
+  context("Using filters loaded from disk", function()
   {
-    assert.ok(filterEngine.initialize().constructor.name, "Promise");
+    it("should return promise", function()
+    {
+      assert.ok(filterEngine.initialize().constructor.name, "Promise");
+    });
+
+    it("should return same promise if already invoked", function()
+    {
+      let promise = filterEngine.initialize();
+
+      assert.strictEqual(filterEngine.initialize(), promise);
+    });
+
+    it("should return same promise if already invoked and promise fulfilled", async function()
+    {
+      let promise = filterEngine.initialize();
+      await promise;
+
+      assert.strictEqual(filterEngine.initialize(), promise);
+    });
   });
 
-  it("should return same promise if already invoked", function()
+  context("Using static filter text", function()
   {
-    let promise = filterEngine.initialize();
+    let filterText = [
+      "^foo.",
+      "^bar.",
+      "##.foo",
+      "example.com#?#div:abp-has(> .foo)",
+      "example.com#$#snippet-1"
+    ];
 
-    assert.strictEqual(filterEngine.initialize(), promise);
+    it("should return promise", function()
+    {
+      assert.ok(filterEngine.initialize(filterText).constructor.name, "Promise");
+    });
+
+    it("should return same promise if already invoked", function()
+    {
+      let promise = filterEngine.initialize(filterText);
+
+      assert.strictEqual(filterEngine.initialize(filterText), promise);
+    });
+
+    it("should return same promise if already invoked and promise fulfilled", async function()
+    {
+      let promise = filterEngine.initialize(filterText);
+      await promise;
+
+      assert.strictEqual(filterEngine.initialize(filterText), promise);
+    });
+
+    it("should reject returned promise if filter text contains illegal values", async function()
+    {
+      let rejected = false;
+
+      let promise = filterEngine.initialize(filterText.concat(null));
+
+      try
+      {
+        await promise;
+      }
+      catch (error)
+      {
+        rejected = true;
+      }
+
+      assert.ok(rejected);
+    });
   });
 
-  it("should return same promise if already invoked and promise fulfilled", async function()
+  context("Using dynamic filter source", function()
   {
-    let promise = filterEngine.initialize();
-    await promise;
+    function* filterSource()
+    {
+      for (let i = 0; i < 100; i++)
+        yield `/track?timestamp=${Date.now()}`;
+    }
 
-    assert.strictEqual(filterEngine.initialize(), promise);
+    it("should return promise", function()
+    {
+      assert.ok(filterEngine.initialize(filterSource()).constructor.name, "Promise");
+    });
+
+    it("should return same promise if already invoked", function()
+    {
+      let promise = filterEngine.initialize(filterSource());
+
+      assert.strictEqual(filterEngine.initialize(filterSource()), promise);
+    });
+
+    it("should return same promise if already invoked and promise fulfilled", async function()
+    {
+      let promise = filterEngine.initialize(filterSource());
+      await promise;
+
+      assert.strictEqual(filterEngine.initialize(filterSource()), promise);
+    });
+
+    it("should reject returned promise if filter source yields illegal values", async function()
+    {
+      let rejected = false;
+
+      function* badFilterSource()
+      {
+        yield* filterSource();
+        yield null;
+      }
+
+      // Note: The call should not throw. Any processing should happen
+      // asynchronously.
+      let promise = filterEngine.initialize(badFilterSource());
+
+      try
+      {
+        await promise;
+      }
+      catch (error)
+      {
+        rejected = true;
+      }
+
+      assert.ok(rejected);
+    });
+
+    it("should reject returned promise if filter source throws", async function()
+    {
+      let rejected = false;
+
+      function* badFilterSource()
+      {
+        yield* filterSource();
+        throw new Error();
+      }
+
+      let promise = filterEngine.initialize(badFilterSource());
+
+      try
+      {
+        await promise;
+      }
+      catch (error)
+      {
+        rejected = true;
+      }
+
+      assert.ok(rejected);
+    });
   });
 });
 
