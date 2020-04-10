@@ -17,32 +17,27 @@
 
 "use strict";
 
-function executeScript(driver, name, script, scriptArgs)
+async function executeScript(driver, name, script, scriptArgs)
 {
   let realScript = `let f = ${script}
                     let callback = arguments[arguments.length - 1];
                     return f(...arguments).then(() => callback());`;
-  return driver.executeAsyncScript(realScript, ...scriptArgs)
-    .then(() => driver.executeScript("return window._consoleLogs;"))
-    .then(result =>
-    {
-      console.log(`\nBrowser tests in ${name}`);
-      for (let item of result.log)
-        console.log(...item);
-      return driver.quit().then(() =>
-      {
-        if (result.failures != 0)
-          throw name;
-      });
-    }, error =>
-    {
-      // This could be replaced by Promise.finally()
-      // once we require NodeJS >= 10
-      return driver.quit().then(() =>
-      {
-        throw error;
-      });
-    });
+  try
+  {
+    await driver.executeAsyncScript(realScript, ...scriptArgs);
+    let result = await driver.executeScript("return window._consoleLogs;");
+
+    console.log(`\nBrowser tests in ${name}`);
+    for (let item of result.log)
+      console.log(...item);
+
+    if (result.failures != 0)
+      throw name;
+  }
+  finally
+  {
+    await driver.quit();
+  }
 }
 
 module.exports.executeScript = executeScript;
