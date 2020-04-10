@@ -11,5 +11,11 @@
       "BLACKLIST", "BLACK_LIST"
     ],
     "nonblock-statement-body-position": ["error", "below"]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.mjs"],
+      "parser": "babel-eslint"
+    }
+  ]
 }

@@ -17,19 +17,20 @@
 
 /* eslint-env node */
 
-"use strict";
+import fs from "fs";
+import path from "path";
+import {fileURLToPath} from "url";
 
-const fs = require("fs");
-const path = require("path");
+import MemoryFS from "memory-fs";
+import Mocha from "mocha";
+import webpack from "webpack";
 
-const MemoryFS = require("memory-fs");
-const Mocha = require("mocha");
-const webpack = require("webpack");
+import chromiumRemoteProcess from "./test/runners/chromium_remote_process";
+import chromiumProcess from "./test/runners/chromium_process";
+import edgeProcess from "./test/runners/edge_process";
+import firefoxProcess from "./test/runners/firefox_process";
 
-const chromiumRemoteProcess = require("./test/runners/chromium_remote_process");
-const chromiumProcess = require("./test/runners/chromium_process");
-const edgeProcess = require("./test/runners/edge_process");
-const firefoxProcess = require("./test/runners/firefox_process");
+let dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let unitFiles = [];
 let browserFiles = [];
@@ -134,12 +135,12 @@ function runBrowserTests(processes)
     return Promise.resolve();
 
   let bundleFilename = "bundle.js";
-  let mochaPath = path.join(__dirname, "node_modules", "mocha",
+  let mochaPath = path.join(dirname, "node_modules", "mocha",
                             "mocha.js");
-  let chaiPath = path.join(__dirname, "node_modules", "chai", "chai.js");
+  let chaiPath = path.join(dirname, "node_modules", "chai", "chai.js");
 
   return webpackInMemory(bundleFilename, {
-    entry: path.join(__dirname, "test", "browser", "_bootstrap.js"),
+    entry: path.join(dirname, "test", "browser", "_bootstrap.js"),
     module: {
       rules: [
         {
@@ -158,7 +159,7 @@ function runBrowserTests(processes)
         mocha$: mochaPath,
         chai$: chaiPath
       },
-      modules: [path.resolve(__dirname, "lib")]
+      modules: [path.resolve(dirname, "lib")]
     },
     optimization:
     {
@@ -170,7 +171,7 @@ function runBrowserTests(processes)
         runnerDefinitions[currentProcess](
           bundle, bundleFilename,
           browserFiles.map(
-            file => path.relative(path.join(__dirname, "test", "browser"),
+            file => path.relative(path.join(dirname, "test", "browser"),
                                   file).replace(/\.js$/, "")
           )
         )
@@ -195,7 +196,7 @@ if (process.argv.length > 2)
 else
 {
   addTestPaths(
-    [path.join(__dirname, "test"), path.join(__dirname, "test", "browser")],
+    [path.join(dirname, "test"), path.join(dirname, "test", "browser")],
     true
   );
 }
