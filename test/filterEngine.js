@@ -46,18 +46,17 @@ function checkFilters(...details)
         break;
 
       case "elemhide":
-        let {selectors} =
-          elemHide.generateStyleSheetForDomain("example.com", false, true);
+        let {selectors} = elemHide.getStyleSheet("example.com", false, true);
         assert.deepEqual(selectors, expected);
         break;
 
       case "elemhideemulation":
-        let rules = elemHideEmulation.getRulesForDomain("example.com");
+        let rules = elemHideEmulation.getFilters("example.com");
         assert.deepEqual(rules.map(({selector}) => selector), expected);
         break;
 
       case "snippet":
-        let filters = snippets.getFiltersForDomain("example.com");
+        let filters = snippets.getFilters("example.com");
         assert.deepEqual(filters.map(({script}) => script), expected);
         break;
 

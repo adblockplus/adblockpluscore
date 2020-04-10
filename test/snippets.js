@@ -49,9 +49,7 @@ describe("Snippets", function()
           snippets.add(filter);
       }
 
-      let matches = snippets.getFiltersForDomain(domain).map(
-        filter => filter.script
-      );
+      let matches = snippets.getFilters(domain).map(filter => filter.script);
       assert.deepEqual(matches.sort(), expectedMatches.sort(), description);
 
       snippets.clear();
@@ -96,7 +94,7 @@ describe("Snippets", function()
 
     function compareRules(description, domain, expectedMatches)
     {
-      let result = snippets.getFiltersForDomain(domain);
+      let result = snippets.getFilters(domain);
       assert.deepEqual(result.sort(), expectedMatches.sort(), description);
     }
 

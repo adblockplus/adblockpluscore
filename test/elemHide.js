@@ -46,7 +46,7 @@ describe("Element hiding", function()
 
   function normalizeSelectors(selectors)
   {
-    // generateStyleSheetForDomain is currently allowed to return duplicate
+    // getStyleSheet is currently allowed to return duplicate
     // selectors for performance reasons, so we need to remove duplicates here.
     return selectors.slice().sort().filter((selector, index, sortedSelectors) =>
     {
@@ -60,13 +60,13 @@ describe("Element hiding", function()
     let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
 
     let {code, selectors, exceptions} =
-        elemHide.generateStyleSheetForDomain(domain, specificOnly, true, true);
+        elemHide.getStyleSheet(domain, specificOnly, true, true);
 
     assert.deepEqual(normalizeSelectors(selectors), normalizedExpectedSelectors);
 
     // Test for consistency in exception free case.
     assert.deepEqual(
-      elemHide.generateStyleSheetForDomain(domain, specificOnly, true, false), {
+      elemHide.getStyleSheet(domain, specificOnly, true, false), {
         code,
         selectors,
         exceptions: null
