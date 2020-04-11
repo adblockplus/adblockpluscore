@@ -846,6 +846,8 @@ describe("getBaseDomain()", function()
 
   it("should return correct values for all known suffixes", function()
   {
+    this.timeout(10000);
+
     let parts = ["aaa", "bbb", "ccc", "ddd", "eee"];
     let levels = 3;
 
