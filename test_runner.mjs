@@ -17,12 +17,12 @@
 
 /* eslint-env node */
 
+import {spawn} from "child_process";
 import fs from "fs";
 import path from "path";
 import {fileURLToPath} from "url";
 
 import MemoryFS from "memory-fs";
-import Mocha from "mocha";
 import webpack from "webpack";
 
 import chromiumRemoteProcess from "./test/runners/chromium_remote_process.js";
@@ -201,27 +201,29 @@ else
   );
 }
 
-const mocha = new Mocha();
-mocha.checkLeaks();
-
 runBrowserTests(runnerProcesses).then(() =>
 {
   if (unitFiles.length > 0)
   {
-    mocha.files = unitFiles;
     return new Promise((resolve, reject) =>
     {
-      mocha.run(failures =>
+      let script = spawn("npm",
+                         ["run", "unit-tests", ...unitFiles],
+                         {stdio: ["inherit", "inherit", "inherit"]});
+      script.on("error", reject);
+      script.on("close", code =>
       {
-        if (failures)
-          reject("Tests failed");
-        else
+        if (code == 0)
           resolve();
+        else
+          reject();
       });
     });
   }
 }).catch(error =>
 {
-  console.error(error);
+  if (error)
+    console.error(error);
+
   process.exit(1);
 });
