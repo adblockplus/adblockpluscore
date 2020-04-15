@@ -25,10 +25,10 @@ import MemoryFS from "memory-fs";
 import Mocha from "mocha";
 import webpack from "webpack";
 
-import chromiumRemoteProcess from "./test/runners/chromium_remote_process";
-import chromiumProcess from "./test/runners/chromium_process";
-import edgeProcess from "./test/runners/edge_process";
-import firefoxProcess from "./test/runners/firefox_process";
+import chromiumRemoteProcess from "./test/runners/chromium_remote_process.js";
+import chromiumProcess from "./test/runners/chromium_process.js";
+import edgeProcess from "./test/runners/edge_process.js";
+import firefoxProcess from "./test/runners/firefox_process.js";
 
 let dirname = path.dirname(fileURLToPath(import.meta.url));
 
