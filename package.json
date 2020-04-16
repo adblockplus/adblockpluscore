@@ -43,5 +43,6 @@
     "posttest": "npm run lint",
     "updatepsl": "node build/updatepsl.js",
     "update-subscriptions": "node build/updateSubscriptions.js"
-  }
+  },
+  "main": "lib"
 }

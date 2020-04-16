@@ -2,8 +2,8 @@ Adblock Plus core
 =================
 
 This repository contains the generic Adblock Plus code that's shared between
-platforms. This repository is not designed to be used directly, but instead to
-serve as a dependency for `adblockpluschrome` and `libadblockplus`.
+platforms. This repository is __not designed to be used directly__, but instead
+to serve as a dependency for `adblockpluschrome` and `libadblockplus`.
 
 Running the unit tests
 ----------------------
@@ -59,3 +59,39 @@ You can automatically generate the snippets documentation available at
 `npm run helpcenter`. This will generate a file `snippet-filters-tutorial.md`
 that contains the markdown text as suited for our CMS. The content is the same
 as the tutorial included as part of the JSDoc.
+
+Node.js module
+-----------------------------
+
+There is now __experimental__ support for this repository to be used directly
+as a Node.js module.
+
+```
+npm install git+https://gitlab.com/eyeo/adblockplus/adblockpluscore
+```
+
+```javascript
+let {contentTypes, filterEngine} = require("adblockpluscore");
+
+async function main()
+{
+  await filterEngine.initialize(
+    [
+      "/annoying-ad^$image",
+      "||example.com/social-widget.html^"
+    ]
+  );
+
+  let resource = {
+    url: "https://ad-server.example.net/annoying-ad.png",
+    documentURL: "https://news.example.com/world.html"
+  };
+
+  let filter = filterEngine.match(resource.url, contentTypes.IMAGE,
+                                  new URL(resource.documentURL).hostname);
+  console.log(filter); // prints "/annoying-ad^$image"
+}
+
+if (require.main == module)
+  main();
+```
