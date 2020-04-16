@@ -566,4 +566,33 @@ describe("Snippets", function()
     await timeout(100);
     expectHidden(target);
   });
+
+  it("hide-if-labelled-by", async function()
+  {
+    document.body.innerHTML = `
+      <div id="hilb-label">Sponsored</div>
+      <div id="hilb-target">
+        <div aria-labelledby="hilb-label">Content</div>
+      </div>
+    `;
+    let target = document.getElementById("hilb-target");
+    expectVisible(target);
+    await runSnippetScript("hide-if-labelled-by 'Sponsored' '#hilb-target [aria-labelledby]' '#hilb-target'");
+    expectHidden(target);
+  });
+
+  it("hide-if-labelled-by lazily", async function()
+  {
+    await runSnippetScript("hide-if-labelled-by 'Sponsored' '#hilb-target-lazy [aria-labelledby]' '#hilb-target-lazy'");
+    document.body.innerHTML = `
+      <div id="hilb-label-lazy">Sponsored</div>
+      <div id="hilb-target">
+        <div aria-labelledby="hilb-label-lazy">Content</div>
+      </div>
+    `;
+    let target = document.getElementById("hilb-target");
+    expectVisible(target);
+    await timeout(100);
+    expectHidden(target);
+  });
 });
