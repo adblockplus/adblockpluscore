@@ -109,7 +109,9 @@ describe("Element hiding emulation", function()
     let styleElement;
     let styleElements = testDocument.head.getElementsByTagName("style");
     if (styleElements.length)
+    {
       styleElement = styleElements[0];
+    }
     else
     {
       styleElement = testDocument.createElement("style");
@@ -154,13 +156,15 @@ describe("Element hiding emulation", function()
           // Firefox will send mutation notifications even if the
           // property is set to the same value.
           for (let elem of elems)
+          {
             if (elem.style.display != "none")
               elem.style.display = "none";
+          }
         }
       );
 
       elemHideEmulation.document = testDocument;
-      elemHideEmulation.MIN_INVOCATION_INTERVAL = REFRESH_INTERVAL / 2;
+      elemHideEmulation.minInvocationInterval = REFRESH_INTERVAL / 2;
       elemHideEmulation.apply(selectors.map(
         selector => ({selector, text: selector})
       ));
@@ -545,7 +549,7 @@ describe("Element hiding emulation", function()
     );
   });
 
-// See issue https://issues.adblockplus.org/ticket/7400
+  // See issue https://issues.adblockplus.org/ticket/7400
   it("Pseudo-class: property selector qualifiers: nested identical", function()
   {
     return runTestQualifier(
@@ -1034,9 +1038,7 @@ describe("Element hiding emulation", function()
       // All <div> and <p> elements should be processed initially.
       for (let element of [...testDocument.getElementsByTagName("div"),
                            ...testDocument.getElementsByTagName("p")])
-      {
         expectProcessed(element, element.id);
-      }
 
       // Modify the text in <p id="n4_1">
       testDocument.getElementById("n4_1").innerText = "Try me!";

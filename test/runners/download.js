@@ -60,18 +60,9 @@ function download(url, destFile)
   });
 }
 
-function unzipArchive(archive, destDir)
+async function unzipArchive(archive, destDir)
 {
-  return new Promise((resolve, reject) =>
-  {
-    extractZip(archive, {dir: destDir}, err =>
-    {
-      if (err)
-        reject(err);
-      else
-        resolve();
-    });
-  });
+  await extractZip(archive, {dir: destDir});
 }
 
 module.exports = {

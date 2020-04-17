@@ -15,10 +15,12 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* global chai */
+/* eslint no-new-func: "off" */
 
 "use strict";
 
-const library = require("../../lib/content/snippets.js");
+const libraryText = require("raw-loader!../../lib/content/snippets.js");
+const {compileScript} = require("../../lib/snippets.js");
 const {timeout} = require("./_utils");
 
 const {assert} = chai;
@@ -57,13 +59,9 @@ describe("Snippets", function()
       `The element${withId}'s display property should not be set to 'none'`);
   }
 
-  async function runSnippet(snippetName, ...args)
+  async function runSnippetScript(script)
   {
-    let snippet = library[snippetName];
-
-    assert.ok(snippet);
-
-    snippet(...args);
+    new Function(compileScript(script, [libraryText]))();
 
     // For snippets that run in the context of the document via a <script>
     // element (i.e. snippets that use makeInjector()), we need to wait for
@@ -106,15 +104,15 @@ describe("Snippets", function()
   it("abort-property-read", async function()
   {
     window.abpTest = "fortytwo";
-    await runSnippet("abort-on-property-read", "abpTest");
+    await runSnippetScript("abort-on-property-read abpTest");
     testProperty("abpTest");
 
     window.abpTest2 = {prop1: "fortytwo"};
-    await runSnippet("abort-on-property-read", "abpTest2.prop1");
+    await runSnippetScript("abort-on-property-read abpTest2.prop1");
     testProperty("abpTest2.prop1");
 
     // Test that we try to catch a property that doesn't exist yet.
-    await runSnippet("abort-on-property-read", "abpTest3.prop1");
+    await runSnippetScript("abort-on-property-read abpTest3.prop1");
     window.abpTest3 = {prop1: "fortytwo"};
     testProperty("abpTest3.prop1");
 
@@ -123,14 +121,14 @@ describe("Snippets", function()
 
     // Test overwriting the object with another object.
     window.abpTest4 = {prop3: {}};
-    await runSnippet("abort-on-property-read", "abpTest4.prop3.foo");
+    await runSnippetScript("abort-on-property-read abpTest4.prop3.foo");
     testProperty("abpTest4.prop3.foo");
     window.abpTest4.prop3 = {};
     testProperty("abpTest4.prop3.foo");
 
     // Test if we start with a non-object.
     window.abpTest5 = 42;
-    await runSnippet("abort-on-property-read", "abpTest5.prop4.bar");
+    await runSnippetScript("abort-on-property-read abpTest5.prop4.bar");
 
     testProperty("abpTest5.prop4.bar", true, "TypeError");
 
@@ -143,47 +141,47 @@ describe("Snippets", function()
     // https://issues.adblockplus.org/ticket/7419
 
     // Existing function (from the API).
-    await runSnippet("abort-on-property-read", "Object.keys");
+    await runSnippetScript("abort-on-property-read Object.keys");
     testProperty("Object.keys");
 
     // Function properties.
     window.abpTest6 = function() {};
     window.abpTest6.prop1 = function() {};
-    await runSnippet("abort-on-property-read", "abpTest6.prop1");
+    await runSnippetScript("abort-on-property-read abpTest6.prop1");
     testProperty("abpTest6.prop1");
 
     // Function properties, with sub-property set afterwards.
     window.abpTest7 = function() {};
-    await runSnippet("abort-on-property-read", "abpTest7.prop1");
+    await runSnippetScript("abort-on-property-read abpTest7.prop1");
     window.abpTest7.prop1 = function() {};
     testProperty("abpTest7.prop1");
 
     // Function properties, with base property as function set afterwards.
-    await runSnippet("abort-on-property-read", "abpTest8.prop1");
+    await runSnippetScript("abort-on-property-read abpTest8.prop1");
     window.abpTest8 = function() {};
     window.abpTest8.prop1 = function() {};
     testProperty("abpTest8.prop1");
 
     // Arrow function properties.
     window.abpTest9 = () => {};
-    await runSnippet("abort-on-property-read", "abpTest9");
+    await runSnippetScript("abort-on-property-read abpTest9");
     testProperty("abpTest9");
 
     // Class function properties.
     window.abpTest10 = class {};
-    await runSnippet("abort-on-property-read", "abpTest10");
+    await runSnippetScript("abort-on-property-read abpTest10");
     testProperty("abpTest10");
 
     // Class function properties with prototype function properties.
     window.abpTest11 = class {};
     window.abpTest11.prototype.prop1 = function() {};
-    await runSnippet("abort-on-property-read", "abpTest11.prototype.prop1");
+    await runSnippetScript("abort-on-property-read abpTest11.prototype.prop1");
     testProperty("abpTest11.prototype.prop1");
 
     // Class function properties with prototype function properties, with
     // prototype property set afterwards.
     window.abpTest12 = class {};
-    await runSnippet("abort-on-property-read", "abpTest12.prototype.prop1");
+    await runSnippetScript("abort-on-property-read abpTest12.prototype.prop1");
     window.abpTest12.prototype.prop1 = function() {};
     testProperty("abpTest12.prototype.prop1");
   });
@@ -192,7 +190,7 @@ describe("Snippets", function()
   {
     try
     {
-      await runSnippet("abort-on-property-write", "document.createElement");
+      await runSnippetScript("abort-on-property-write document.createElement");
 
       let element = document.createElement("script");
       assert.ok(!!element);
@@ -214,11 +212,11 @@ describe("Snippets", function()
       doc.body.appendChild(scriptElement);
     }
 
-    await runSnippet(
-      "abort-current-inline-script", "document.write", "atob"
+    await runSnippetScript(
+      "abort-current-inline-script document.write atob"
     );
-    await runSnippet(
-      "abort-current-inline-script", "document.write", "btoa"
+    await runSnippetScript(
+      "abort-current-inline-script document.write btoa"
     );
 
     document.body.innerHTML = "<p id=\"result1\"></p><p id=\"message1\"></p><p id=\"result2\"></p><p id=\"message2\"></p>";
@@ -367,8 +365,8 @@ describe("Snippets", function()
         <div class="attr" data-before="sp">oo</div>
       </div>`;
 
-    await runSnippet(
-      "hide-if-contains-visible-text", "Spon", "#parent > div"
+    await runSnippetScript(
+      "hide-if-contains-visible-text Spon '#parent > div'"
     );
 
     let element = document.getElementById("label");
@@ -381,8 +379,8 @@ describe("Snippets", function()
     element = document.getElementById("article2");
     expectVisible(element, "article2");
 
-    await runSnippet(
-      "hide-if-contains-visible-text", "Spon", "#parent > article", "#parent > article a"
+    await runSnippetScript(
+      "hide-if-contains-visible-text Spon '#parent > article' '#parent > article a'"
     );
 
     element = document.getElementById("article");
@@ -392,8 +390,8 @@ describe("Snippets", function()
     element = document.getElementById("article3");
     expectVisible(element, "article3");
 
-    await runSnippet(
-      "hide-if-contains-visible-text", "spooky", "#pseudo > div"
+    await runSnippetScript(
+      "hide-if-contains-visible-text spooky '#pseudo > div'"
     );
 
     element = document.getElementById("pseudo");
@@ -406,7 +404,7 @@ describe("Snippets", function()
   {
     document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9ba0WqDnZQcchQnSyIijhqFYpQIdQKrTqYXPoFTRqSFBdHwbXg4Mdi1cHFWVcHV0EQ/ABxcXVSdJES/5cUWsR4cNyPd/ced+8Af73MVLNjHFA1y0gl4kImuyqEXhFEJ0IYRK/ETH1OFJPwHF/38PH1LsazvM/9OXqUnMkAn0A8y3TDIt4gnt60dM77xBFWlBTic+Ixgy5I/Mh12eU3zgWH/TwzYqRT88QRYqHQxnIbs6KhEk8RRxVVo3x/xmWF8xZntVxlzXvyF4Zz2soy12kOI4FFLEGEABlVlFCGhRitGikmUrQf9/APOX6RXDK5SmDkWEAFKiTHD/4Hv7s185MTblI4DgRfbPtjBAjtAo2abX8f23bjBAg8A1day1+pAzOfpNdaWvQI6NsGLq5bmrwHXO4AA0+6ZEiOFKDpz+eB9zP6pizQfwt0r7m9Nfdx+gCkqavkDXBwCIwWKHvd491d7b39e6bZ3w/1+HJ1S9l56wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFBgcZNA50WAgAAAAMSURBVAjXY/j//z8ABf4C/tzMWecAAAAASUVORK5CYII=\" /><img id=\"img-2\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCA0KNmzdilMAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12NgYGAAAAAEAAEnNCcKAAAAAElFTkSuQmCC\" />";
 
-    await runSnippet("hide-if-contains-image-hash", "8000000000000000");
+    await runSnippetScript("hide-if-contains-image-hash 8000000000000000");
 
     // Since the images are blocked via an async event handler (onload) we need
     // to give the snippet an opportunity to execute
@@ -417,7 +415,7 @@ describe("Snippets", function()
 
     document.body.innerHTML = "<div id=\"div-1\"><img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9ba0WqDnZQcchQnSyIijhqFYpQIdQKrTqYXPoFTRqSFBdHwbXg4Mdi1cHFWVcHV0EQ/ABxcXVSdJES/5cUWsR4cNyPd/ced+8Af73MVLNjHFA1y0gl4kImuyqEXhFEJ0IYRK/ETH1OFJPwHF/38PH1LsazvM/9OXqUnMkAn0A8y3TDIt4gnt60dM77xBFWlBTic+Ixgy5I/Mh12eU3zgWH/TwzYqRT88QRYqHQxnIbs6KhEk8RRxVVo3x/xmWF8xZntVxlzXvyF4Zz2soy12kOI4FFLEGEABlVlFCGhRitGikmUrQf9/APOX6RXDK5SmDkWEAFKiTHD/4Hv7s185MTblI4DgRfbPtjBAjtAo2abX8f23bjBAg8A1day1+pAzOfpNdaWvQI6NsGLq5bmrwHXO4AA0+6ZEiOFKDpz+eB9zP6pizQfwt0r7m9Nfdx+gCkqavkDXBwCIwWKHvd491d7b39e6bZ3w/1+HJ1S9l56wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFBgcZNA50WAgAAAAMSURBVAjXY/j//z8ABf4C/tzMWecAAAAASUVORK5CYII=\" /></div>";
 
-    await runSnippet("hide-if-contains-image-hash", "8000000000000000", "#div-1");
+    await runSnippetScript("hide-if-contains-image-hash 8000000000000000 #div-1");
 
     await timeout(100);
 
@@ -426,7 +424,7 @@ describe("Snippets", function()
 
     document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9ba0WqDnZQcchQnSyIijhqFYpQIdQKrTqYXPoFTRqSFBdHwbXg4Mdi1cHFWVcHV0EQ/ABxcXVSdJES/5cUWsR4cNyPd/ced+8Af73MVLNjHFA1y0gl4kImuyqEXhFEJ0IYRK/ETH1OFJPwHF/38PH1LsazvM/9OXqUnMkAn0A8y3TDIt4gnt60dM77xBFWlBTic+Ixgy5I/Mh12eU3zgWH/TwzYqRT88QRYqHQxnIbs6KhEk8RRxVVo3x/xmWF8xZntVxlzXvyF4Zz2soy12kOI4FFLEGEABlVlFCGhRitGikmUrQf9/APOX6RXDK5SmDkWEAFKiTHD/4Hv7s185MTblI4DgRfbPtjBAjtAo2abX8f23bjBAg8A1day1+pAzOfpNdaWvQI6NsGLq5bmrwHXO4AA0+6ZEiOFKDpz+eB9zP6pizQfwt0r7m9Nfdx+gCkqavkDXBwCIwWKHvd491d7b39e6bZ3w/1+HJ1S9l56wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFBgcZNA50WAgAAAAMSURBVAjXY/j//z8ABf4C/tzMWecAAAAASUVORK5CYII=\" /><img id=\"img-2\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCA0KNmzdilMAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12NgYGAAAAAEAAEnNCcKAAAAAElFTkSuQmCC\" />";
 
-    await runSnippet("hide-if-contains-image-hash", "0800000000000000", null, 1);
+    await runSnippetScript("hide-if-contains-image-hash 0800000000000000 '' 1");
 
     await timeout(100);
 
@@ -435,12 +433,8 @@ describe("Snippets", function()
 
     document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9ba0WqDnZQcchQnSyIijhqFYpQIdQKrTqYXPoFTRqSFBdHwbXg4Mdi1cHFWVcHV0EQ/ABxcXVSdJES/5cUWsR4cNyPd/ced+8Af73MVLNjHFA1y0gl4kImuyqEXhFEJ0IYRK/ETH1OFJPwHF/38PH1LsazvM/9OXqUnMkAn0A8y3TDIt4gnt60dM77xBFWlBTic+Ixgy5I/Mh12eU3zgWH/TwzYqRT88QRYqHQxnIbs6KhEk8RRxVVo3x/xmWF8xZntVxlzXvyF4Zz2soy12kOI4FFLEGEABlVlFCGhRitGikmUrQf9/APOX6RXDK5SmDkWEAFKiTHD/4Hv7s185MTblI4DgRfbPtjBAjtAo2abX8f23bjBAg8A1day1+pAzOfpNdaWvQI6NsGLq5bmrwHXO4AA0+6ZEiOFKDpz+eB9zP6pizQfwt0r7m9Nfdx+gCkqavkDXBwCIwWKHvd491d7b39e6bZ3w/1+HJ1S9l56wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFBgcZNA50WAgAAAAMSURBVAjXY/j//z8ABf4C/tzMWecAAAAASUVORK5CYII=\" />";
 
-    await runSnippet(
-      "hide-if-contains-image-hash",
-      "8000000000000000000000000000000000000000000000000000000000000000",
-      null,
-      null,
-      16);
+    await runSnippetScript(
+      "hide-if-contains-image-hash 8000000000000000000000000000000000000000000000000000000000000000 '' 0 16");
 
     await timeout(100);
 
@@ -448,13 +442,7 @@ describe("Snippets", function()
 
     document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCQkxNu/aqtIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAD0lEQVQI12P4//8/AwMDAA74Av7BVpVFAAAAAElFTkSuQmCC\" />";
 
-    await runSnippet(
-      "hide-if-contains-image-hash",
-      "8000000000000000",
-      null,
-      null,
-      null,
-      "0x0x1x1");
+    await runSnippetScript("hide-if-contains-image-hash 8000000000000000 '' 0 8 0x0x1x1");
 
     await timeout(100);
 
@@ -462,13 +450,8 @@ describe("Snippets", function()
 
     document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCQkxNu/aqtIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAD0lEQVQI12P4//8/AwMDAA74Av7BVpVFAAAAAElFTkSuQmCC\" />";
 
-    await runSnippet(
-      "hide-if-contains-image-hash",
-      "0000000000000000",
-      null,
-      null,
-      null,
-      "1x0x1x1");
+    await runSnippetScript(
+      "hide-if-contains-image-hash 0000000000000000 '' 0 8 1x0x1x1");
 
     await timeout(100);
 
@@ -476,13 +459,8 @@ describe("Snippets", function()
 
     document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCQkxNu/aqtIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAD0lEQVQI12P4//8/AwMDAA74Av7BVpVFAAAAAElFTkSuQmCC\" />";
 
-    await runSnippet(
-      "hide-if-contains-image-hash",
-      "0000000000000000",
-      null,
-      null,
-      null,
-      "1x0x1x1");
+    await runSnippetScript(
+      "hide-if-contains-image-hash 0000000000000000 '' 0 8 1x0x1x1");
 
     await timeout(100);
 
@@ -490,13 +468,8 @@ describe("Snippets", function()
 
     document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCQkxNu/aqtIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAD0lEQVQI12P4//8/AwMDAA74Av7BVpVFAAAAAElFTkSuQmCC\" />";
 
-    await runSnippet(
-      "hide-if-contains-image-hash",
-      "8000000000000000",
-      null,
-      null,
-      null,
-      "1x1x-1x-1");
+    await runSnippetScript(
+      "hide-if-contains-image-hash 8000000000000000 '' 0 8 1x1x-1x-1");
 
     await timeout(100);
 
@@ -506,7 +479,7 @@ describe("Snippets", function()
   it("does not leak snippets to the global scope", async function()
   {
     assert.ok(typeof window.log === "undefined", "The window has no log function");
-    await runSnippet("trace", "OK");
+    await runSnippetScript("trace OK");
     assert.ok(typeof window.log === "undefined", "The window was not polluted");
   });
 
@@ -521,16 +494,17 @@ describe("Snippets", function()
       doc.body.appendChild(scriptElement);
     }
 
+    let logArgs = [];
+
     // Type 1 test: no debug
-    let snippet = library["log"];
     let {log} = console;
     console.log = (...args) =>
     {
       console.log = log;
-      assert.strictEqual(args.join(","), "1,2",
-        "debug flag should be false");
+      logArgs = args.join(",");
     };
-    snippet(1, 2);
+    runSnippetScript("log 1 2");
+    assert.strictEqual(logArgs, "1,2", "type 1 debug flag should be false");
 
     // Type 2 test: no debug
     injectInlineScript(document, `(() =>
@@ -542,20 +516,20 @@ describe("Snippets", function()
         document.log = args.join(",");
       }
     })();`);
-    await runSnippet("trace", 1, 2);
+    await runSnippetScript("trace 1 2");
     assert.strictEqual(document.log, "1,2",
-        "type 2 debug flag should be false");
+                       "type 2 debug flag should be false");
 
-    await runSnippet("debug");
 
     // Type 1 test: debug flag enabled
     console.log = (...args) =>
     {
       console.log = log;
-      assert.strictEqual(args.join(","), "%c DEBUG,font-weight: bold,1,2",
-        "debug flag should be true");
+      logArgs = args.join(",");
     };
-    snippet(1, 2);
+    await runSnippetScript("debug; log 1 2");
+    assert.strictEqual(logArgs, "%c DEBUG,font-weight: bold,1,2",
+                       "type 1 debug flag should be true");
 
     // Type 2 test: debug flag enabled
     injectInlineScript(document, `(() =>
@@ -567,10 +541,58 @@ describe("Snippets", function()
         document.log = args.join(",");
       }
     })();`);
-    await runSnippet("trace", 1, 2);
+    await runSnippetScript("debug; trace 1 2");
     assert.strictEqual(document.log, "%c DEBUG,font-weight: bold,1,2",
-        "type 2 debug flag should be true");
+                       "type 2 debug flag should be true");
 
     delete document.log;
+  });
+
+  it("hide-if-matches-xpath", async function()
+  {
+    document.body.innerHTML = '<div id="xpath-target"></div>';
+    let target = document.getElementById("xpath-target");
+    expectVisible(target);
+    await runSnippetScript("hide-if-matches-xpath //*[@id=\"xpath-target\"]");
+    expectHidden(target);
+  });
+
+  it("hide-if-matches-xpath lazily", async function()
+  {
+    await runSnippetScript("hide-if-matches-xpath //*[@id=\"xpath-lazily\"]");
+    document.body.innerHTML = '<div id="xpath-lazily"></div>';
+    let target = document.getElementById("xpath-lazily");
+    expectVisible(target);
+    await timeout(100);
+    expectHidden(target);
+  });
+
+  it("hide-if-labelled-by", async function()
+  {
+    document.body.innerHTML = `
+      <div id="hilb-label">Sponsored</div>
+      <div id="hilb-target">
+        <div aria-labelledby="hilb-label">Content</div>
+      </div>
+    `;
+    let target = document.getElementById("hilb-target");
+    expectVisible(target);
+    await runSnippetScript("hide-if-labelled-by 'Sponsored' '#hilb-target [aria-labelledby]' '#hilb-target'");
+    expectHidden(target);
+  });
+
+  it("hide-if-labelled-by lazily", async function()
+  {
+    await runSnippetScript("hide-if-labelled-by 'Sponsored' '#hilb-target-lazy [aria-labelledby]' '#hilb-target-lazy'");
+    document.body.innerHTML = `
+      <div id="hilb-label-lazy">Sponsored</div>
+      <div id="hilb-target">
+        <div aria-labelledby="hilb-label-lazy">Content</div>
+      </div>
+    `;
+    let target = document.getElementById("hilb-target");
+    expectVisible(target);
+    await timeout(100);
+    expectHidden(target);
   });
 });

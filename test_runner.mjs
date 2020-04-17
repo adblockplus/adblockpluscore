@@ -17,19 +17,20 @@
 
 /* eslint-env node */
 
-"use strict";
+import {spawn} from "child_process";
+import fs from "fs";
+import path from "path";
+import {fileURLToPath} from "url";
 
-const fs = require("fs");
-const path = require("path");
+import MemoryFS from "memory-fs";
+import webpack from "webpack";
 
-const MemoryFS = require("memory-fs");
-const Mocha = require("mocha");
-const webpack = require("webpack");
+import chromiumRemoteProcess from "./test/runners/chromium_remote_process.js";
+import chromiumProcess from "./test/runners/chromium_process.js";
+import edgeProcess from "./test/runners/edge_process.js";
+import firefoxProcess from "./test/runners/firefox_process.js";
 
-const chromiumRemoteProcess = require("./test/runners/chromium_remote_process");
-const chromiumProcess = require("./test/runners/chromium_process");
-const edgeProcess = require("./test/runners/edge_process");
-const firefoxProcess = require("./test/runners/firefox_process");
+let dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let unitFiles = [];
 let browserFiles = [];
@@ -57,7 +58,9 @@ function configureRunners()
     return ["chromium_remote", "firefox"];
   }
 
-  return runners.filter(runner => runnerDefinitions.hasOwnProperty(runner));
+  return runners.filter(
+    runner => Object.prototype.hasOwnProperty.call(runnerDefinitions, runner)
+  );
 }
 
 let runnerProcesses = configureRunners();
@@ -113,7 +116,9 @@ function webpackInMemory(bundleFilename, options)
         reject(reason);
       }
       else if (stats.hasErrors())
+      {
         reject(stats.toJson().errors);
+      }
       else
       {
         let bundle = memoryFS.readFileSync("/" + bundleFilename, "utf-8");
@@ -130,29 +135,35 @@ function runBrowserTests(processes)
     return Promise.resolve();
 
   let bundleFilename = "bundle.js";
-  let mochaPath = path.join(__dirname, "node_modules", "mocha",
+  let mochaPath = path.join(dirname, "node_modules", "mocha",
                             "mocha.js");
-  let chaiPath = path.join(__dirname, "node_modules", "chai", "chai.js");
+  let chaiPath = path.join(dirname, "node_modules", "chai", "chai.js");
 
   return webpackInMemory(bundleFilename, {
-    entry: path.join(__dirname, "test", "browser", "_bootstrap.js"),
+    entry: path.join(dirname, "test", "browser", "_bootstrap.js"),
     module: {
-      rules: [{
-        // we use the browser version of mocha
-        resource: mochaPath,
-        use: ["script-loader"]
-      },
-      {
-        resource: chaiPath,
-        use: ["script-loader"]
-      }]
+      rules: [
+        {
+          // we use the browser version of mocha
+          resource: mochaPath,
+          use: ["script-loader"]
+        },
+        {
+          resource: chaiPath,
+          use: ["script-loader"]
+        }
+      ]
     },
     resolve: {
       alias: {
         mocha$: mochaPath,
         chai$: chaiPath
       },
-      modules: [path.resolve(__dirname, "lib")]
+      modules: [path.resolve(dirname, "lib")]
+    },
+    optimization:
+    {
+      minimize: false
     }
   }).then(bundle =>
     Promise.all(
@@ -160,14 +171,16 @@ function runBrowserTests(processes)
         runnerDefinitions[currentProcess](
           bundle, bundleFilename,
           browserFiles.map(
-            file => path.relative(path.join(__dirname, "test", "browser"),
+            file => path.relative(path.join(dirname, "test", "browser"),
                                   file).replace(/\.js$/, "")
           )
         )
         // We need to convert rejected promise to a resolved one
         // or the test will not let close the webdriver.
         .catch(e => e)
-    )).then(results =>
+      )
+    )
+    .then(results =>
     {
       let errors = results.filter(e => typeof e != "undefined");
       if (errors.length)
@@ -177,36 +190,40 @@ function runBrowserTests(processes)
 }
 
 if (process.argv.length > 2)
+{
   addTestPaths(process.argv.slice(2), true);
+}
 else
 {
   addTestPaths(
-    [path.join(__dirname, "test"), path.join(__dirname, "test", "browser")],
+    [path.join(dirname, "test"), path.join(dirname, "test", "browser")],
     true
   );
 }
-
-const mocha = new Mocha();
-mocha.checkLeaks();
 
 runBrowserTests(runnerProcesses).then(() =>
 {
   if (unitFiles.length > 0)
   {
-    mocha.files = unitFiles;
     return new Promise((resolve, reject) =>
     {
-      mocha.run(failures =>
+      let script = spawn("npm",
+                         ["run", "unit-tests", ...unitFiles],
+                         {stdio: ["inherit", "inherit", "inherit"]});
+      script.on("error", reject);
+      script.on("close", code =>
       {
-        if (failures)
-          reject("Tests failed");
-        else
+        if (code == 0)
           resolve();
+        else
+          reject();
       });
     });
   }
 }).catch(error =>
 {
-  console.error(error);
+  if (error)
+    console.error(error);
+
   process.exit(1);
 });

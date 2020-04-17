@@ -49,9 +49,7 @@ describe("Snippets", function()
           snippets.add(filter);
       }
 
-      let matches = snippets.getFiltersForDomain(domain).map(
-        filter => filter.script
-      );
+      let matches = snippets.getFilters(domain).map(filter => filter.script);
       assert.deepEqual(matches.sort(), expectedMatches.sort(), description);
 
       snippets.clear();
@@ -96,7 +94,7 @@ describe("Snippets", function()
 
     function compareRules(description, domain, expectedMatches)
     {
-      let result = snippets.getFiltersForDomain(domain);
+      let result = snippets.getFilters(domain);
       assert.deepEqual(result.sort(), expectedMatches.sort(), description);
     }
 
@@ -134,14 +132,16 @@ describe("Snippets", function()
       []
     );
 
-    assert.deepEqual(events, [
-      ["snippets.filterAdded", domainFilter],
-      ["snippets.filterAdded", subdomainFilter],
-      ["snippets.filterAdded", otherDomainFilter],
-      ["snippets.filterRemoved", domainFilter],
-      ["snippets.filtersCleared"]
-    ],
-    "Event log");
+    assert.deepEqual(
+      events, [
+        ["snippets.filterAdded", domainFilter],
+        ["snippets.filterAdded", subdomainFilter],
+        ["snippets.filterAdded", otherDomainFilter],
+        ["snippets.filterRemoved", domainFilter],
+        ["snippets.filtersCleared"]
+      ],
+      "Event log"
+    );
   });
 
   it("Script parsing", function()
@@ -203,7 +203,7 @@ describe("Snippets", function()
     checkParsedScript("Script with no-op commands", "foo; ;;; ;  ; bar 1",
                       [["foo"], ["bar", "1"]]);
     checkParsedScript("Script with blank argument in the middle", "foo '' Hello",
-                    [["foo", "", "Hello"]]);
+                      [["foo", "", "Hello"]]);
     checkParsedScript("Script with blank argument at the end", "foo Hello ''",
                       [["foo", "Hello", ""]]);
     checkParsedScript("Script with consecutive blank arguments", "foo '' ''",
@@ -242,7 +242,7 @@ describe("Snippets", function()
   {
     let libraries = [
       `
-        let foo = 0;
+        let foo = "foo" in environment ? environment.foo : 0;
 
         exports.setFoo = function(value)
         {
@@ -260,13 +260,17 @@ describe("Snippets", function()
     let template = `
     "use strict";
     {
-      const libraries = ${JSON.stringify(libraries)};
+      let libraries = ${JSON.stringify(libraries)};
+      let environment = JSON.stringify({});
 
-      const script = {{{script}}};
+      let script = {{{script}}};
 
       let imports = Object.create(null);
       for (let library of libraries)
-        new Function("exports", library)(imports);
+      {
+        let loadLibrary = new Function("exports", "environment", library);
+        loadLibrary(imports, JSON.parse(environment));
+      }
 
       for (let [name, ...args] of script)
       {
@@ -292,6 +296,7 @@ describe("Snippets", function()
     verifyExecutable("hello 'How are you?'");
 
     // Test script execution.
+    new Function(compileScript("assertFoo 0", libraries))();
     new Function(compileScript("setFoo 123; assertFoo 123", libraries))();
 
     // Override setFoo in a second library, without overriding assertFoo. A
@@ -304,5 +309,14 @@ describe("Snippets", function()
         ...libraries, "let foo = 1; exports.setFoo = value => { foo = value; };"
       ])
     )();
+
+    new Function(compileScript("assertFoo 123", libraries, {foo: 123}))();
+
+    // Every library gets its own copy of the environment object.
+    new Function(compileScript("assertFoo 0",
+                               ["environment.foo = 456;", ...libraries]))();
+    new Function(compileScript("assertFoo 123",
+                               ["environment.foo = 456;", ...libraries],
+                               {foo: 123}))();
   });
 });

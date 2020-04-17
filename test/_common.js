@@ -19,7 +19,6 @@
 
 const fs = require("fs");
 const path = require("path");
-const {URL} = require("url");
 const SandboxedModule = require("sandboxed-module");
 
 const {MILLIS_IN_HOUR} = require("../lib/time");
@@ -29,11 +28,11 @@ let globals = {
   btoa: data => Buffer.from(data, "binary").toString("base64"),
   console: {
     log() {},
+    warn() {},
     error() {}
   },
   navigator: {
   },
-  // URL is global in Node 10. In Node 7+ it must be imported.
   URL
 };
 
@@ -264,8 +263,14 @@ exports.setupRandomResult = function()
 {
   let randomResult = 0.5;
   Object.defineProperty(this, "randomResult", {
-    get: () => randomResult,
-    set: value => randomResult = value
+    get()
+    {
+      return randomResult;
+    },
+    set(value)
+    {
+      randomResult = value;
+    }
   });
 
   return {

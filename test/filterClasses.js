@@ -26,7 +26,7 @@ let Filter = null;
 let InvalidFilter = null;
 let CommentFilter = null;
 let ActiveFilter = null;
-let RegExpFilter = null;
+let URLFilter = null;
 let BlockingFilter = null;
 let ContentFilter = null;
 let WhitelistFilter = null;
@@ -43,7 +43,7 @@ describe("Filter classes", function()
     let sandboxedRequire = createSandbox();
     (
       {contentTypes, RESOURCE_TYPES} = sandboxedRequire("../lib/contentTypes"),
-      {Filter, InvalidFilter, CommentFilter, ActiveFilter, RegExpFilter,
+      {Filter, InvalidFilter, CommentFilter, ActiveFilter, URLFilter,
        BlockingFilter, WhitelistFilter, ContentFilter, ElemHideBase,
        ElemHideFilter, ElemHideException, ElemHideEmulationFilter,
        SnippetFilter} = sandboxedRequire("../lib/filterClasses")
@@ -80,7 +80,7 @@ describe("Filter classes", function()
       }
       result.push("domains=" + domains.sort().join("|"));
 
-      if (filter instanceof RegExpFilter)
+      if (filter instanceof URLFilter)
       {
         result.push("regexp=" + (filter.regexp ? filter.regexp.source : null));
         result.push("contentType=" + filter.contentType);
@@ -196,7 +196,9 @@ describe("Filter classes", function()
       filter2 = Filter.fromObject(map);
     }
     else
+    {
       filter2 = Filter.fromText(filter.text);
+    }
 
     assert.equal(serializeFilter(filter).join("\n"), serializeFilter(filter2).join("\n"), text + " deserialization");
   }
@@ -207,7 +209,7 @@ describe("Filter classes", function()
     assert.equal(typeof InvalidFilter, "function", "typeof InvalidFilter");
     assert.equal(typeof CommentFilter, "function", "typeof CommentFilter");
     assert.equal(typeof ActiveFilter, "function", "typeof ActiveFilter");
-    assert.equal(typeof RegExpFilter, "function", "typeof RegExpFilter");
+    assert.equal(typeof URLFilter, "function", "typeof URLFilter");
     assert.equal(typeof BlockingFilter, "function", "typeof BlockingFilter");
     assert.equal(typeof ContentFilter, "function", "typeof ContentFilter");
     assert.equal(typeof WhitelistFilter, "function", "typeof WhitelistFilter");
@@ -447,9 +449,17 @@ describe("Filter classes", function()
     assert.equal(Filter.normalize("   domain.c  om## # sele ctor   "),
                  "domain.com### sele ctor");
 
+    // Wildcard: "*" is allowed, though not supported (yet).
+    assert.equal(Filter.normalize("   domain.*## # sele ctor   "),
+                 "domain.*### sele ctor");
+
     // Element hiding emulation filters
     assert.equal(Filter.normalize("   domain.c  om#?# # sele ctor   "),
                  "domain.com#?## sele ctor");
+
+    // Wildcard: "*" is allowed, though not supported (yet).
+    assert.equal(Filter.normalize("   domain.*#?# # sele ctor   "),
+                 "domain.*#?## sele ctor");
 
     // Incorrect syntax: the separator "#?#" cannot contain spaces; treated as a
     // regular filter instead
@@ -465,6 +475,10 @@ describe("Filter classes", function()
     assert.equal(Filter.normalize("   domain.c  om#@# # sele ctor   "),
                  "domain.com#@## sele ctor");
 
+    // Wildcard: "*" is allowed, though not supported (yet).
+    assert.equal(Filter.normalize("   domain.*#@# # sele ctor   "),
+                 "domain.*#@## sele ctor");
+
     // Incorrect syntax: the separator "#@#" cannot contain spaces; treated as a
     // regular filter instead (not an element hiding filter either!), because
     // unlike the case with "# ?##" the "##" following the "@" is not considered
@@ -475,6 +489,10 @@ describe("Filter classes", function()
     // Snippet filters
     assert.equal(Filter.normalize("   domain.c  om#$#  sni pp  et   "),
                  "domain.com#$#sni pp  et");
+
+    // Wildcard: "*" is allowed, though not supported (yet).
+    assert.equal(Filter.normalize("   domain.*#$#  sni pp  et   "),
+                 "domain.*#$#sni pp  et");
 
     // Regular filters
     let normalized = Filter.normalize(
@@ -562,5 +580,354 @@ describe("Filter classes", function()
 
     assert.notEqual(filter2.domains, filter5.domains);
     assert.notEqual(filter4.domains, filter6.domains);
+  });
+
+  it("Filters with wildcard domains", function()
+  {
+    // Blocking filters
+    compareFilter("||example.com^$domain=example.*", [
+      "type=blocking",
+      "text=||example.com^$domain=example.*",
+      "domains=example.*"
+    ]);
+
+    compareFilter("||example.com^$domain=example.*|example.net", [
+      "type=blocking",
+      "text=||example.com^$domain=example.*|example.net",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("||example.com^$domain=example.net|example.*", [
+      "type=blocking",
+      "text=||example.com^$domain=example.net|example.*",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("||example.com^$domain=~example.net|example.*", [
+      "type=blocking",
+      "text=||example.com^$domain=~example.net|example.*",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("||example.com^$domain=example.*|~example.net", [
+      "type=blocking",
+      "text=||example.com^$domain=example.*|~example.net",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Whitelisting filters
+    compareFilter("@@||example.com^$domain=example.*", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=example.*",
+      "domains=example.*"
+    ]);
+
+    compareFilter("@@||example.com^$domain=example.*|example.net", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=example.*|example.net",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("@@||example.com^$domain=example.net|example.*", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=example.net|example.*",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("@@||example.com^$domain=~example.net|example.*", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=~example.net|example.*",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("@@||example.com^$domain=example.*|~example.net", [
+      "type=whitelist",
+      "text=@@||example.com^$domain=example.*|~example.net",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Element hiding filters
+    compareFilter("example.*##abc", [
+      "type=elemhide",
+      "text=example.*##abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*"
+    ]);
+
+    compareFilter("example.*,example.net##abc", [
+      "type=elemhide",
+      "text=example.*,example.net##abc",
+      "selectorDomains=example.*,example.net",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("example.net,example.*##abc", [
+      "type=elemhide",
+      "text=example.net,example.*##abc",
+      "selectorDomains=example.net,example.*",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("~example.net,example.*##abc", [
+      "type=elemhide",
+      "text=~example.net,example.*##abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("example.*,~example.net##abc", [
+      "type=elemhide",
+      "text=example.*,~example.net##abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Element hiding emulation filters
+    compareFilter("example.*#?#abc", [
+      "type=elemhideemulation",
+      "text=example.*#?#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*"
+    ]);
+
+    compareFilter("example.*,example.net#?#abc", [
+      "type=elemhideemulation",
+      "text=example.*,example.net#?#abc",
+      "selectorDomains=example.*,example.net",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("example.net,example.*#?#abc", [
+      "type=elemhideemulation",
+      "text=example.net,example.*#?#abc",
+      "selectorDomains=example.net,example.*",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("~example.net,example.*#?#abc", [
+      "type=elemhideemulation",
+      "text=~example.net,example.*#?#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("example.*,~example.net#?#abc", [
+      "type=elemhideemulation",
+      "text=example.*,~example.net#?#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Element hiding exception filters
+    compareFilter("example.*#@#abc", [
+      "type=elemhideexception",
+      "text=example.*#@#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*"
+    ]);
+
+    compareFilter("example.*,example.net#@#abc", [
+      "type=elemhideexception",
+      "text=example.*,example.net#@#abc",
+      "selectorDomains=example.*,example.net",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("example.net,example.*#@#abc", [
+      "type=elemhideexception",
+      "text=example.net,example.*#@#abc",
+      "selectorDomains=example.net,example.*",
+      "selector=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("~example.net,example.*#@#abc", [
+      "type=elemhideexception",
+      "text=~example.net,example.*#@#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("example.*,~example.net#@#abc", [
+      "type=elemhideexception",
+      "text=example.*,~example.net#@#abc",
+      "selectorDomains=example.*",
+      "selector=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    // Snippet filters
+    compareFilter("example.*#$#abc", [
+      "type=snippet",
+      "text=example.*#$#abc",
+      "scriptDomains=example.*",
+      "script=abc",
+      "domains=example.*"
+    ]);
+
+    compareFilter("example.*,example.net#$#abc", [
+      "type=snippet",
+      "text=example.*,example.net#$#abc",
+      "scriptDomains=example.*,example.net",
+      "script=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("example.net,example.*#$#abc", [
+      "type=snippet",
+      "text=example.net,example.*#$#abc",
+      "scriptDomains=example.net,example.*",
+      "script=abc",
+      "domains=example.*|example.net"
+    ]);
+
+    compareFilter("~example.net,example.*#$#abc", [
+      "type=snippet",
+      "text=~example.net,example.*#$#abc",
+      "scriptDomains=example.*",
+      "script=abc",
+      "domains=example.*|~example.net"
+    ]);
+
+    compareFilter("example.*,~example.net#$#abc", [
+      "type=snippet",
+      "text=example.*,~example.net#$#abc",
+      "scriptDomains=example.*",
+      "script=abc",
+      "domains=example.*|~example.net"
+    ]);
+  });
+});
+
+describe("isActiveFilter()", function()
+{
+  let isActiveFilter = null;
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {isActiveFilter, Filter} = sandboxedRequire("../lib/filterClasses")
+    );
+  });
+
+  // Blocking filters.
+  it("should return true for example", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example")), true);
+  });
+
+  it("should return true for ||example.com^", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("||example.com^")), true);
+  });
+
+  it("should return true for |https://example.com/foo/", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("|https://example.com/foo/")), true);
+  });
+
+  it("should return true for ||example.com/foo/$domain=example.net", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("||example.com/foo/$domain=example.net")), true);
+  });
+
+  // Whitelist filters.
+  it("should return true for @@example", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("@@example")), true);
+  });
+
+  it("should return true for @@||example.com^", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("@@||example.com^")), true);
+  });
+
+  it("should return true for @@|https://example.com/foo/", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("@@|https://example.com/foo/")), true);
+  });
+
+  it("should return true for @@||example.com/foo/$domain=example.net", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("@@||example.com/foo/$domain=example.net")), true);
+  });
+
+  // Element hiding filters.
+  it("should return true for ##.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("##.foo")), true);
+  });
+
+  it("should return true for example.com##.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com##.foo")), true);
+  });
+
+  // Element hiding exceptions.
+  it("should return true for #@#.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("#@#.foo")), true);
+  });
+
+  it("should return true for example.com#@#.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com#@#.foo")), true);
+  });
+
+  // Element hiding emulation filters.
+  it("should return false for #?#.foo", function()
+  {
+    // Element hiding emulation filters require a domain.
+    assert.strictEqual(isActiveFilter(Filter.fromText("#?#.foo")), false);
+  });
+
+  it("should return true for example.com#?#.foo", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com#?#.foo")), true);
+  });
+
+  // Snippet filters.
+  it("should return false for #$#log 'Hello, world'", function()
+  {
+    // Snippet filters require a domain.
+    assert.strictEqual(isActiveFilter(Filter.fromText("#$#log 'Hello, world'")), false);
+  });
+
+  it("should return true for example.com#$#log 'Hello, world'", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com#$#log 'Hello, world'")), true);
+  });
+
+  // Comment filters.
+  it("should return false for ! example.com filters", function()
+  {
+    assert.strictEqual(isActiveFilter(Filter.fromText("! example.com filters")), false);
+  });
+
+  // Invalid filters.
+  it("should return false for ||example.com/foo/$domains=example.net|example.org", function()
+  {
+    // $domain, not $domains
+    assert.strictEqual(isActiveFilter(Filter.fromText("||example.com/foo/$domains=example.net|example.org")), false);
+  });
+
+  it("should return false for example.com,,example.net##.foo", function()
+  {
+    // There must be no blank domain in the list.
+    assert.strictEqual(isActiveFilter(Filter.fromText("example.com,,example.net##.foo")), false);
   });
 });

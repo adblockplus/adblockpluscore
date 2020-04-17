@@ -18,20 +18,22 @@
 "use strict";
 
 const fs = require("fs");
+const {promisify} = require("util");
 const request = require("request");
-const {URL} = require("url");
+
+const writeFileAsync = promisify(fs.writeFile);
+const requestAsync = promisify(request);
 
 const PSL_URL = "https://publicsuffix.org/list/public_suffix_list.dat";
 const FILENAME = "data/publicSuffixList.json";
 
-request(PSL_URL, (err, response, body) =>
+async function main()
 {
-  if (err)
-    throw err;
+  let {statusCode, body} = await requestAsync(PSL_URL);
 
-  if (response.statusCode != 200)
-    throw new Error("Request failed with status code " +
-                    response.statusCode);
+  if (statusCode != 200)
+    throw new Error("Request failed with status code " + statusCode);
+
   let psl = {};
 
   for (let line of body.split(/\r?\n/))
@@ -56,5 +58,9 @@ request(PSL_URL, (err, response, body) =>
     psl[new URL("http://" + line).hostname] = value;
   }
 
-  fs.writeFileSync(FILENAME, JSON.stringify(psl, Object.keys(psl).sort(), 2));
-});
+  let keys = Object.keys(psl).sort();
+  await writeFileAsync(FILENAME, JSON.stringify(psl, keys, 2));
+}
+
+if (require.main == module)
+  main();

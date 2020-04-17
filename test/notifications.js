@@ -26,9 +26,6 @@ let {
 let Prefs = null;
 let notifications = null;
 
-// Only starting NodeJS 10 that URLSearchParams is in the global space.
-const {URLSearchParams} = require("url");
-
 describe("Notifications", function()
 {
   let runner = {};
@@ -39,13 +36,16 @@ describe("Notifications", function()
     // Inject our Array and JSON to make sure that instanceof checks on arrays
     // within the sandbox succeed even with data passed in from outside.
     let globals = Object.assign({Array, JSON},
-      setupTimerAndFetch.call(runner), setupRandomResult.call(runner));
+                                setupTimerAndFetch.call(runner),
+                                setupRandomResult.call(runner));
 
     let sandboxedRequire = createSandbox({globals});
     (
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
       {notifications} = sandboxedRequire("../lib/notifications")
     );
+
+    notifications.start();
   });
 
   function showNotifications()
@@ -111,6 +111,21 @@ describe("Notifications", function()
     }).catch(unexpectedError.bind(assert));
   });
 
+  it("Local single", function()
+  {
+    let information = {
+      id: 1,
+      type: "information"
+    };
+
+    notifications.addNotification(information);
+    assert.deepEqual(
+      showNotifications(),
+      [information],
+      "Local notification is shown"
+    );
+  });
+
   it("Information and critical", function()
   {
     let information = {
@@ -132,6 +147,52 @@ describe("Notifications", function()
     }).catch(unexpectedError.bind(assert));
   });
 
+  it("Newtab", function()
+  {
+    let newtabNone = {
+      id: 1,
+      type: "newtab"
+    };
+    let newtabEmpty = {
+      id: 2,
+      type: "newtab",
+      links: []
+    };
+    let newtabSingle = {
+      id: 3,
+      type: "newtab",
+      links: ["foo"]
+    };
+    let newtabMultiple = {
+      id: 4,
+      type: "newtab",
+      links: ["foo", "bar"]
+    };
+
+    registerHandler.call(
+      runner,
+      [newtabNone, newtabEmpty, newtabSingle, newtabMultiple]
+    );
+    return runner.runScheduledTasks(1).then(() =>
+    {
+      assert.deepEqual(
+        showNotifications(),
+        [newtabSingle],
+        "Notification with single link is valid/shown"
+      );
+      assert.deepEqual(
+        showNotifications(),
+        [newtabMultiple],
+        "Notification with multiple links is valid/shown"
+      );
+      assert.deepEqual(
+        showNotifications(),
+        [],
+        "Notifications without links are invalid/not shown"
+      );
+    });
+  });
+
   it("No type", function()
   {
     let information = {
@@ -145,6 +206,49 @@ describe("Notifications", function()
       assert.deepEqual(showNotifications(), [information], "The notification is shown");
       assert.deepEqual(showNotifications(), [], "Notification is treated as type information");
     }).catch(unexpectedError.bind(assert));
+  });
+
+  it("Ignore when remote invalid", function()
+  {
+    let valid = {
+      id: 1,
+      type: "information"
+    };
+    let invalid = {
+      id: 2,
+      type: "newtab"
+    };
+
+    registerHandler.call(runner, [valid, invalid]);
+    return runner.runScheduledTasks(1).then(() =>
+    {
+      assert.deepEqual(
+        showNotifications(),
+        [valid],
+        "Valid notification is shown"
+      );
+      assert.deepEqual(
+        showNotifications(),
+        [],
+        "Invalid notification is not shown"
+      );
+    });
+  });
+
+  it("Throw when local invalid", function()
+  {
+    assert.throws(
+      () =>
+      {
+        let invalid = {
+          id: 1,
+          type: "newtab"
+        };
+
+        notifications.addNotification(invalid);
+      },
+      Error
+    );
   });
 
   function testTargetSelectionFunc(propName, value, result)
@@ -219,9 +323,7 @@ describe("Notifications", function()
       ["locales", ["de-DE"], false],
       ["locales", ["en-GB", "de-DE"], false]
     ])
-    {
       it(`${propName}=${value}`, testTargetSelectionFunc(propName, value, result));
-    }
   });
 
   describe("No show stats", function()
@@ -241,9 +343,7 @@ describe("Notifications", function()
       ["blockedTotalMin", "10", false],
       ["blockedTotalMax", "10", false]
     ])
-    {
       it(`Target ${propName}=${value}`, testTargetSelectionFunc(propName, value, result));
-    }
   });
 
   describe("Multiple targets", function()

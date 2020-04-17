@@ -18,7 +18,6 @@
 "use strict";
 
 const assert = require("assert");
-const {URL} = require("url");
 const {createSandbox} = require("./_common");
 
 const data = require("../data/subscriptions.json");

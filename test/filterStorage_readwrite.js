@@ -18,13 +18,15 @@
 "use strict";
 
 const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+const {promisify} = require("util");
 const {createSandbox, unexpectedError} = require("./_common");
 
 let Filter = null;
 let filterStorage = null;
 let IO = null;
 let Prefs = null;
-let ExternalSubscription = null;
 let SpecialSubscription = null;
 
 describe("Filter storage read/write", function()
@@ -37,26 +39,21 @@ describe("Filter storage read/write", function()
       {filterStorage} = sandboxedRequire("../lib/filterStorage"),
       {IO} = sandboxedRequire("./stub-modules/io"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {ExternalSubscription, SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses")
+      {SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses")
     );
 
     filterStorage.addFilter(Filter.fromText("foobar"));
   });
 
-  let testData = new Promise((resolve, reject) =>
+  async function readData()
   {
-    const fs = require("fs");
-    const path = require("path");
-    let datapath = path.resolve(__dirname, "data", "patterns.ini");
+    let dataPath = path.resolve(__dirname, "data", "patterns.ini");
+    let readFileAsync = promisify(fs.readFile);
+    let data = await readFileAsync(dataPath, "utf-8");
+    return data.split(/[\r\n]+/);
+  }
 
-    fs.readFile(datapath, "utf-8", (error, data) =>
-    {
-      if (error)
-        reject(error);
-      else
-        resolve(data.split(/[\r\n]+/));
-    });
-  });
+  let testData = readData();
 
   function canonize(data)
   {
@@ -72,7 +69,9 @@ describe("Filter storage read/write", function()
         curSection = {header: line, data: []};
       }
       else if (curSection && /\S/.test(line))
+      {
         curSection.data.push(line);
+      }
     }
     if (curSection)
       sections.push(curSection);
@@ -93,7 +92,7 @@ describe("Filter storage read/write", function()
     return sections;
   }
 
-  async function testReadWrite(withExternal, withEmptySpecial)
+  async function testReadWrite(withEmptySpecial)
   {
     assert.ok(!filterStorage.initialized, "Uninitialized before the first load");
 
@@ -106,22 +105,6 @@ describe("Filter storage read/write", function()
 
       assert.ok(filterStorage.initialized, "Initialize after the first load");
       assert.equal(filterStorage.fileProperties.version, filterStorage.formatVersion, "File format version");
-
-      if (withExternal)
-      {
-        {
-          let subscription = new ExternalSubscription("~external~external subscription ID", "External subscription");
-          subscription.addFilter(Filter.fromText("foo"));
-          subscription.addFilter(Filter.fromText("bar"));
-          filterStorage.addSubscription(subscription);
-        }
-
-        let externalSubscriptions = [...filterStorage.subscriptions()].filter(subscription => subscription instanceof ExternalSubscription);
-        assert.equal(externalSubscriptions.length, 1, "Number of external subscriptions after updateExternalSubscription");
-
-        assert.equal(externalSubscriptions[0].url, "~external~external subscription ID", "ID of external subscription");
-        assert.equal(externalSubscriptions[0].filterCount, 2, "Number of filters in external subscription");
-      }
 
       if (withEmptySpecial)
       {
@@ -154,22 +137,23 @@ describe("Filter storage read/write", function()
   {
     it("To file", function()
     {
-      return testReadWrite(false);
-    });
+      this.timeout(5000);
 
-    it("To file with external subscription", function()
-    {
-      return testReadWrite(true);
+      return testReadWrite();
     });
 
     it("To file with empty special subscription", function()
     {
-      return testReadWrite(false, true);
+      this.timeout(5000);
+
+      return testReadWrite(true);
     });
   });
 
   it("Import/export", async function()
   {
+    this.timeout(5000);
+
     try
     {
       let lines = await testData;

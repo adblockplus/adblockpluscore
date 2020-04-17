@@ -54,7 +54,7 @@ async function ensureChromium(chromiumRevision)
     "darwin": ["Mac", "chrome-mac.zip"]
   };
 
-  if (!buildTypes.hasOwnProperty(platform))
+  if (!Object.prototype.hasOwnProperty.call(buildTypes, platform))
     throw new Error(`Cannot run browser tests, ${platform} is unsupported`);
 
   let [dir, fileName] = buildTypes[platform];
@@ -88,7 +88,9 @@ async function ensureChromium(chromiumRevision)
           archive);
       }
       else
+      {
         console.info(`Reusing cached archive ${archive}`);
+      }
       break;
     }
     catch (e)

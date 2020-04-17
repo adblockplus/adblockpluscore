@@ -23,26 +23,24 @@ const {createSandbox} = require("./_common");
 let Filter = null;
 let filterNotifier = null;
 let filterStorage = null;
+let filterEngine = null;
 let Subscription = null;
 
 describe("Filter storage", function()
 {
-  beforeEach(function(done)
+  beforeEach(async function()
   {
     let sandboxedRequire = createSandbox();
 
-    sandboxedRequire("../lib/filterListener");
     (
       {Filter} = sandboxedRequire("../lib/filterClasses"),
       {filterNotifier} = sandboxedRequire("../lib/filterNotifier"),
       {filterStorage} = sandboxedRequire("../lib/filterStorage"),
+      {filterEngine} = sandboxedRequire("../lib/filterEngine"),
       {Subscription} = sandboxedRequire("../lib/subscriptionClasses")
     );
 
-    filterNotifier.on("ready", () =>
-    {
-      done();
-    });
+    await filterEngine.initialize();
   });
 
   function addListener(listener)
@@ -93,8 +91,8 @@ describe("Filter storage", function()
 
   it("Adding subscriptions", function()
   {
-    let subscription1 = Subscription.fromURL("http://test1/");
-    let subscription2 = Subscription.fromURL("http://test2/");
+    let subscription1 = Subscription.fromURL("https://test1/");
+    let subscription2 = Subscription.fromURL("https://test2/");
 
     let changes = [];
     function listener(action, subscription)
@@ -110,7 +108,7 @@ describe("Filter storage", function()
     changes = [];
     filterStorage.addSubscription(subscription1);
     compareSubscriptionList("Adding first subscription", [subscription1]);
-    assert.deepEqual(changes, ["subscription.added http://test1/"], "Received changes");
+    assert.deepEqual(changes, ["subscription.added https://test1/"], "Received changes");
 
     changes = [];
     filterStorage.addSubscription(subscription1);
@@ -120,7 +118,7 @@ describe("Filter storage", function()
     changes = [];
     filterStorage.addSubscription(subscription2);
     compareSubscriptionList("Adding second", [subscription1, subscription2]);
-    assert.deepEqual(changes, ["subscription.added http://test2/"], "Received changes");
+    assert.deepEqual(changes, ["subscription.added https://test2/"], "Received changes");
 
     filterStorage.removeSubscription(subscription1);
     compareSubscriptionList("Remove", [subscription2]);
@@ -128,13 +126,13 @@ describe("Filter storage", function()
     changes = [];
     filterStorage.addSubscription(subscription1);
     compareSubscriptionList("Re-adding previously removed subscription", [subscription2, subscription1]);
-    assert.deepEqual(changes, ["subscription.added http://test1/"], "Received changes");
+    assert.deepEqual(changes, ["subscription.added https://test1/"], "Received changes");
   });
 
   it("Removing subscriptions", function()
   {
-    let subscription1 = Subscription.fromURL("http://test1/");
-    let subscription2 = Subscription.fromURL("http://test2/");
+    let subscription1 = Subscription.fromURL("https://test1/");
+    let subscription2 = Subscription.fromURL("https://test2/");
 
     assert.equal(Subscription.fromURL(subscription1.url), subscription1,
                  "Subscription known before addition");
@@ -161,7 +159,7 @@ describe("Filter storage", function()
     filterStorage.removeSubscription(subscription1);
     compareSubscriptionList("Removing first subscription", [subscription2],
                             [subscription2]);
-    assert.deepEqual(changes, ["subscription.removed http://test1/"], "Received changes");
+    assert.deepEqual(changes, ["subscription.removed https://test1/"], "Received changes");
 
     // Once a subscription has been removed, it is forgotten; a new object is
     // created for the previously known subscription URL.
@@ -178,7 +176,7 @@ describe("Filter storage", function()
     changes = [];
     filterStorage.removeSubscription(subscription2);
     compareSubscriptionList("Removing remaining subscription", [], []);
-    assert.deepEqual(changes, ["subscription.removed http://test2/"], "Received changes");
+    assert.deepEqual(changes, ["subscription.removed https://test2/"], "Received changes");
 
     filterStorage.addSubscription(subscription1);
     compareSubscriptionList("Add", [subscription1], []);
@@ -186,14 +184,14 @@ describe("Filter storage", function()
     changes = [];
     filterStorage.removeSubscription(subscription1);
     compareSubscriptionList("Re-removing previously added subscription", [], []);
-    assert.deepEqual(changes, ["subscription.removed http://test1/"], "Received changes");
+    assert.deepEqual(changes, ["subscription.removed https://test1/"], "Received changes");
   });
 
   it("Moving subscriptions", function()
   {
-    let subscription1 = Subscription.fromURL("http://test1/");
-    let subscription2 = Subscription.fromURL("http://test2/");
-    let subscription3 = Subscription.fromURL("http://test3/");
+    let subscription1 = Subscription.fromURL("https://test1/");
+    let subscription2 = Subscription.fromURL("https://test2/");
+    let subscription3 = Subscription.fromURL("https://test3/");
 
     filterStorage.addSubscription(subscription1);
     filterStorage.addSubscription(subscription2);
@@ -304,7 +302,7 @@ describe("Filter storage", function()
     subscription2.addFilter(Filter.fromText("bar"));
     subscription2.addFilter(Filter.fromText("foo"));
 
-    let subscription3 = Subscription.fromURL("http://test/");
+    let subscription3 = Subscription.fromURL("https://test/");
     subscription3.addFilter(Filter.fromText("foo"));
     subscription3.addFilter(Filter.fromText("bar"));
 
@@ -362,7 +360,7 @@ describe("Filter storage", function()
     subscription1.addFilter(Filter.fromText("bas"));
     subscription1.addFilter(Filter.fromText("foo"));
 
-    let subscription2 = Subscription.fromURL("http://test/");
+    let subscription2 = Subscription.fromURL("https://test/");
     subscription2.addFilter(Filter.fromText("foo"));
     subscription2.addFilter(Filter.fromText("bar"));
 
@@ -457,15 +455,15 @@ describe("Filter storage", function()
     let filter2 = Filter.fromText("filter2");
     let filter3 = Filter.fromText("filter3");
 
-    let subscription1 = Subscription.fromURL("http://test1/");
+    let subscription1 = Subscription.fromURL("https://test1/");
     subscription1.addFilter(filter1);
     subscription1.addFilter(filter2);
 
-    let subscription2 = Subscription.fromURL("http://test2/");
+    let subscription2 = Subscription.fromURL("https://test2/");
     subscription2.addFilter(filter2);
     subscription2.addFilter(filter3);
 
-    let subscription3 = Subscription.fromURL("http://test3/");
+    let subscription3 = Subscription.fromURL("https://test3/");
     subscription3.addFilter(filter1);
     subscription3.addFilter(filter2);
     subscription3.addFilter(filter3);
@@ -476,44 +474,44 @@ describe("Filter storage", function()
 
     filterStorage.addSubscription(subscription1);
 
-    compareFilterSubscriptions("filter1 subscriptions after adding http://test1/", filter1, [subscription1]);
-    compareFilterSubscriptions("filter2 subscriptions after adding http://test1/", filter2, [subscription1]);
-    compareFilterSubscriptions("filter3 subscriptions after adding http://test1/", filter3, []);
+    compareFilterSubscriptions("filter1 subscriptions after adding https://test1/", filter1, [subscription1]);
+    compareFilterSubscriptions("filter2 subscriptions after adding https://test1/", filter2, [subscription1]);
+    compareFilterSubscriptions("filter3 subscriptions after adding https://test1/", filter3, []);
 
     filterStorage.addSubscription(subscription2);
 
-    compareFilterSubscriptions("filter1 subscriptions after adding http://test2/", filter1, [subscription1]);
-    compareFilterSubscriptions("filter2 subscriptions after adding http://test2/", filter2, [subscription1, subscription2]);
-    compareFilterSubscriptions("filter3 subscriptions after adding http://test2/", filter3, [subscription2]);
+    compareFilterSubscriptions("filter1 subscriptions after adding https://test2/", filter1, [subscription1]);
+    compareFilterSubscriptions("filter2 subscriptions after adding https://test2/", filter2, [subscription1, subscription2]);
+    compareFilterSubscriptions("filter3 subscriptions after adding https://test2/", filter3, [subscription2]);
 
     filterStorage.removeSubscription(subscription1);
 
-    compareFilterSubscriptions("filter1 subscriptions after removing http://test1/", filter1, []);
-    compareFilterSubscriptions("filter2 subscriptions after removing http://test1/", filter2, [subscription2]);
-    compareFilterSubscriptions("filter3 subscriptions after removing http://test1/", filter3, [subscription2]);
+    compareFilterSubscriptions("filter1 subscriptions after removing https://test1/", filter1, []);
+    compareFilterSubscriptions("filter2 subscriptions after removing https://test1/", filter2, [subscription2]);
+    compareFilterSubscriptions("filter3 subscriptions after removing https://test1/", filter3, [subscription2]);
 
     filterStorage.updateSubscriptionFilters(subscription3, [filter3.text]);
 
-    compareFilterSubscriptions("filter1 subscriptions after updating http://test3/ filters", filter1, []);
-    compareFilterSubscriptions("filter2 subscriptions after updating http://test3/ filters", filter2, [subscription2]);
-    compareFilterSubscriptions("filter3 subscriptions after updating http://test3/ filters", filter3, [subscription2]);
+    compareFilterSubscriptions("filter1 subscriptions after updating https://test3/ filters", filter1, []);
+    compareFilterSubscriptions("filter2 subscriptions after updating https://test3/ filters", filter2, [subscription2]);
+    compareFilterSubscriptions("filter3 subscriptions after updating https://test3/ filters", filter3, [subscription2]);
 
     filterStorage.addSubscription(subscription3);
 
-    compareFilterSubscriptions("filter1 subscriptions after adding http://test3/", filter1, []);
-    compareFilterSubscriptions("filter2 subscriptions after adding http://test3/", filter2, [subscription2]);
-    compareFilterSubscriptions("filter3 subscriptions after adding http://test3/", filter3, [subscription2, subscription3]);
+    compareFilterSubscriptions("filter1 subscriptions after adding https://test3/", filter1, []);
+    compareFilterSubscriptions("filter2 subscriptions after adding https://test3/", filter2, [subscription2]);
+    compareFilterSubscriptions("filter3 subscriptions after adding https://test3/", filter3, [subscription2, subscription3]);
 
     filterStorage.updateSubscriptionFilters(subscription3, [filter1.text, filter2.text]);
 
-    compareFilterSubscriptions("filter1 subscriptions after updating http://test3/ filters", filter1, [subscription3]);
-    compareFilterSubscriptions("filter2 subscriptions after updating http://test3/ filters", filter2, [subscription2, subscription3]);
-    compareFilterSubscriptions("filter3 subscriptions after updating http://test3/ filters", filter3, [subscription2]);
+    compareFilterSubscriptions("filter1 subscriptions after updating https://test3/ filters", filter1, [subscription3]);
+    compareFilterSubscriptions("filter2 subscriptions after updating https://test3/ filters", filter2, [subscription2, subscription3]);
+    compareFilterSubscriptions("filter3 subscriptions after updating https://test3/ filters", filter3, [subscription2]);
 
     filterStorage.removeSubscription(subscription3);
 
-    compareFilterSubscriptions("filter1 subscriptions after removing http://test3/", filter1, []);
-    compareFilterSubscriptions("filter2 subscriptions after removing http://test3/", filter2, [subscription2]);
-    compareFilterSubscriptions("filter3 subscriptions after removing http://test3/", filter3, [subscription2]);
+    compareFilterSubscriptions("filter1 subscriptions after removing https://test3/", filter1, []);
+    compareFilterSubscriptions("filter2 subscriptions after removing https://test3/", filter2, [subscription2]);
+    compareFilterSubscriptions("filter3 subscriptions after removing https://test3/", filter3, [subscription2]);
   });
 });

@@ -43,8 +43,8 @@ Mocha.utils.inherits(WdReporter, Mocha.reporters.Spec);
 
 function runTests(moduleNames)
 {
-  let oldLog = console.log;
-  console.log = (...msg) =>
+  let oldLog = Mocha.reporters.Base.consoleLog;
+  Mocha.reporters.Base.consoleLog = (...msg) =>
   {
     window._consoleLogs.log.push(msg);
     oldLog.call(this, ...msg);
@@ -53,9 +53,7 @@ function runTests(moduleNames)
   mocha.setup({ui: "bdd", reporter: WdReporter});
 
   for (let module of moduleNames)
-  {
     require("./" + module + ".js");
-  }
 
   return new Promise((resolve, reject) =>
   {

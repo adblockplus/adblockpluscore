@@ -51,7 +51,7 @@ describe("Element hiding emulation", function()
           elemHideExceptions.add(filter);
       }
 
-      let matches = elemHideEmulation.getRulesForDomain(domain)
+      let matches = elemHideEmulation.getFilters(domain)
           .map(filter => filter.text);
       assert.deepEqual(matches.sort(), expectedMatches.sort(), description);
 
@@ -108,9 +108,9 @@ describe("Element hiding emulation", function()
 
   it("Filters container", function()
   {
-    function compareRules(description, domain, expectedMatches)
+    function compareFilters(description, domain, expectedMatches)
     {
-      let result = elemHideEmulation.getRulesForDomain(domain)
+      let result = elemHideEmulation.getFilters(domain)
           .map(filter => filter.text);
       expectedMatches = expectedMatches.map(filter => filter.text);
       assert.deepEqual(result.sort(), expectedMatches.sort(), description);
@@ -123,21 +123,21 @@ describe("Element hiding emulation", function()
     elemHideEmulation.add(domainFilter);
     elemHideEmulation.add(subdomainFilter);
     elemHideEmulation.add(otherDomainFilter);
-    compareRules(
+    compareFilters(
       "Return all matching filters",
       "www.example.com",
       [domainFilter, subdomainFilter]
     );
 
     elemHideEmulation.remove(domainFilter);
-    compareRules(
+    compareFilters(
       "Return all matching filters after removing one",
       "www.example.com",
       [subdomainFilter]
     );
 
     elemHideEmulation.clear();
-    compareRules(
+    compareFilters(
       "Return no filters after clearing",
       "www.example.com",
       []
