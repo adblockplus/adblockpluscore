@@ -40,7 +40,7 @@ function getChromiumExecutable(chromiumDir)
   }
 }
 
-async function ensureChromium(chromiumRevision)
+async function ensureChromium(chromiumRevision, unpack = true)
 {
   let revisionInt = parseInt(chromiumRevision, 10);
   let startingRevision = revisionInt;
@@ -103,6 +103,9 @@ async function ensureChromium(chromiumRevision)
         throw new Error(`No Chromium packagefound for ${startingRevision}`);
     }
   }
+
+  if (!unpack)
+    return null;
 
   await unzipArchive(archive, chromiumDir);
   return getChromiumExecutable(chromiumDir);

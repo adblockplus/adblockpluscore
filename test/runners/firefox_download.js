@@ -133,7 +133,7 @@ function getFirefoxExecutable(browserDir)
   }
 }
 
-function ensureFirefox(firefoxVersion)
+function ensureFirefox(firefoxVersion, unpack = true)
 {
   let targetPlatform = platform;
   if (platform == "win32")
@@ -159,7 +159,7 @@ function ensureFirefox(firefoxVersion)
     if (fs.existsSync(browserDir))
     {
       console.info(`Reusing cached executable from ${browserDir}`);
-      return browserDir;
+      return getFirefoxExecutable(browserDir);
     }
 
     if (!fs.existsSync(path.dirname(browserDir)))
@@ -179,9 +179,15 @@ function ensureFirefox(firefoxVersion)
         }
         console.info(`Reusing cached archive ${archive}`);
       })
-      .then(() => extractArchive(archive, browserDir))
-      .then(() => browserDir);
-  }).then(dir => getFirefoxExecutable(dir));
+      .then(async() =>
+      {
+        if (!unpack)
+          return null;
+
+        await extractArchive(archive, browserDir);
+        return getFirefoxExecutable(browserDir);
+      });
+  });
 }
 
 module.exports.ensureFirefox = ensureFirefox;
