@@ -22,14 +22,38 @@
 
 "use strict";
 
-const {promisify} = require("util");
-
-const request = require("request");
+const https = require("https");
 
 const {filterEngine} = require("./lib/filterEngine");
 
 const EASY_LIST = "https://easylist-downloads.adblockplus.org/easylist.txt";
 const AA = "https://easylist-downloads.adblockplus.org/exceptionrules.txt";
+
+function download(url)
+{
+  return new Promise((resolve, reject) =>
+  {
+    let request = https.request(url);
+
+    request.on("error", reject);
+    request.on("response", response =>
+    {
+      let {statusCode} = response;
+      if (statusCode != 200)
+      {
+        reject(`Download failed for ${url} with status ${statusCode}`);
+        return;
+      }
+
+      let body = "";
+
+      response.on("data", data => body += data);
+      response.on("end", () => resolve(body));
+    });
+
+    request.end();
+  });
+}
 
 function toMiB(numBytes)
 {
@@ -69,11 +93,8 @@ async function main()
     {
       console.debug(`Downloading ${list} ...`);
 
-      let {statusCode, body} = await promisify(request)(list);
-      if (statusCode != 200)
-        throw new Error(`Download failed for ${list}`);
-
-      filters = filters.concat(body.split(/\r?\n/));
+      let content = await download(list);
+      filters = filters.concat(content.split(/\r?\n/));
     }
 
     console.debug();
