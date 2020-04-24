@@ -55,8 +55,8 @@ describe("Filter storage", function()
     filterNotifier.on("filter.removed", makeWrapper("filter.removed"));
     filterNotifier.on("filter.moved", makeWrapper("filter.moved"));
 
-    filterNotifier.on("filter.hitCount", makeWrapper("filter.hitCount"));
-    filterNotifier.on("filter.lastHit", makeWrapper("filter.lastHit"));
+    filterNotifier.on("filterState.hitCount", makeWrapper("filterState.hitCount"));
+    filterNotifier.on("filterState.lastHit", makeWrapper("filterState.lastHit"));
   }
 
   function compareSubscriptionList(testMessage, list,
@@ -409,8 +409,8 @@ describe("Filter storage", function()
     let changes = [];
     function listener(action, filter)
     {
-      if (action.indexOf("filter.") == 0)
-        changes.push(action + " " + filter.text);
+      if (action.indexOf("filterState." == 0))
+        changes.push(action + " " + filter);
     }
     addListener(listener);
 
@@ -428,25 +428,25 @@ describe("Filter storage", function()
     filterStorage.increaseHitCount(filter1);
     assert.equal(filter1.hitCount, 1, "Hit count after increase (filter in list)");
     assert.ok(filter1.lastHit > 0, "Last hit changed after increase");
-    assert.deepEqual(changes, ["filter.hitCount filter1", "filter.lastHit filter1"], "Received changes");
+    assert.deepEqual(changes, ["filterState.hitCount filter1", "filterState.lastHit filter1"], "Received changes");
 
     changes = [];
     filterStorage.increaseHitCount(filter2);
     assert.equal(filter2.hitCount, 1, "Hit count after increase (filter not in list)");
     assert.ok(filter2.lastHit > 0, "Last hit changed after increase");
-    assert.deepEqual(changes, ["filter.hitCount filter2", "filter.lastHit filter2"], "Received changes");
+    assert.deepEqual(changes, ["filterState.hitCount filter2", "filterState.lastHit filter2"], "Received changes");
 
     changes = [];
     filterStorage.resetHitCounts([filter1]);
     assert.equal(filter1.hitCount, 0, "Hit count after reset");
     assert.equal(filter1.lastHit, 0, "Last hit after reset");
-    assert.deepEqual(changes, ["filter.hitCount filter1", "filter.lastHit filter1"], "Received changes");
+    assert.deepEqual(changes, ["filterState.hitCount filter1", "filterState.lastHit filter1"], "Received changes");
 
     changes = [];
     filterStorage.resetHitCounts(null);
     assert.equal(filter2.hitCount, 0, "Hit count after complete reset");
     assert.equal(filter2.lastHit, 0, "Last hit after complete reset");
-    assert.deepEqual(changes, ["filter.hitCount filter2", "filter.lastHit filter2"], "Received changes");
+    assert.deepEqual(changes, ["filterState.hitCount filter2", "filterState.lastHit filter2"], "Received changes");
   });
 
   it("Filter-subscription relationship", function()
