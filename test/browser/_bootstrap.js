@@ -29,9 +29,9 @@ if (typeof window._consoleLogs == "undefined")
  * template string as the chrome remote interface doesn't support
  * mutiple console.log arguments.
  */
-function WdReporter(runner)
+function WdReporter(runner, options)
 {
-  Mocha.reporters.Spec.call(this, runner);
+  Mocha.reporters.Spec.call(this, runner, options);
 
   runner.on("fail", test =>
   {
