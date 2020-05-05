@@ -29,6 +29,12 @@ const {filterEngine} = require("./lib/filterEngine");
 const EASY_LIST = "https://easylist-downloads.adblockplus.org/easylist.txt";
 const AA = "https://easylist-downloads.adblockplus.org/exceptionrules.txt";
 
+function sliceString(str)
+{
+  // Create a new string in V8 to free up the parent string.
+  return JSON.parse(JSON.stringify(str));
+}
+
 function download(url)
 {
   return new Promise((resolve, reject) =>
@@ -68,6 +74,8 @@ function printMemory()
 
   console.log(`Heap (used): ${toMiB(heapUsed)} MiB`);
   console.log(`Heap (total): ${toMiB(heapTotal)} MiB`);
+
+  console.log();
 }
 
 async function main()
@@ -94,7 +102,7 @@ async function main()
       console.debug(`Downloading ${list} ...`);
 
       let content = await download(list);
-      filters = filters.concat(content.split(/\r?\n/));
+      filters = filters.concat(content.split(/\r?\n/).map(sliceString));
     }
 
     console.debug();
@@ -110,11 +118,9 @@ async function main()
     console.timeEnd("Initialization");
     console.log();
 
-    filters = null;
-
-    printMemory();
-
-    console.log();
+    // Call printMemory() asynchronously so GC can clean up any objects from
+    // here.
+    setTimeout(printMemory, 1000);
   }
 }
 
