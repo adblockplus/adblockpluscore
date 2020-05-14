@@ -18,8 +18,13 @@
 "use strict";
 
 const fs = require("fs");
+const {Module} = require("module");
 const path = require("path");
-const SandboxedModule = require("sandboxed-module");
+
+// Load sandboxed-module dynamically instead of using require() so it does not
+// have a module.parent
+// https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/192
+const SandboxedModule = dynamicRequire("sandboxed-module");
 
 const {MILLIS_IN_HOUR} = require("../lib/time");
 
@@ -45,6 +50,13 @@ for (let dir of [path.join(__dirname, "stub-modules"),
     if (path.extname(file) == ".js")
       knownModules.set(path.basename(file, ".js"), path.resolve(dir, file));
   }
+}
+
+function dynamicRequire(id)
+{
+  let module = new Module(id);
+  module.load(require.resolve(id));
+  return module.exports;
 }
 
 function addExports(exports)
@@ -90,13 +102,11 @@ exports.createSandbox = function(options)
 
   // This module loads itself into a sandbox, keeping track of the require
   // function which can be used to load further modules into the sandbox.
-  return SandboxedModule.require("./_common", {
+  return SandboxedModule.require("./_sandbox.js", {
     globals: Object.assign({}, globals, options.globals),
     sourceTransformers
   }).require;
 };
-
-exports.require = require;
 
 exports.setupTimerAndFetch = function()
 {

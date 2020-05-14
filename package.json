@@ -39,7 +39,7 @@
     "helpcenter": "jsdoc2md --helper build/handlebars-helpers/include.js --template build/docs/snippet-filters-helpcenter.hbs --files lib/content/snippets.js > snippet-filters-tutorial.md",
     "docs": "npm run snippet-filter-tutorial && npm run jsdoc",
     "lint": "eslint *.js *.mjs lib test build",
-    "unit-tests": "c8 --include=lib/*.js --exclude=lib/index.js --exclude=lib/jsbn.js --exclude=lib/rusha.js --all mocha --max-old-space-size=4096 --check-leaks",
+    "unit-tests": "c8 --include=lib/*.js --exclude=lib/index.js --exclude=lib/jsbn.js --exclude=lib/rusha.js --all mocha --check-leaks",
     "test": "node --experimental-modules test_runner.mjs",
     "posttest": "npm run lint",
     "updatepsl": "node build/updatepsl.js",
