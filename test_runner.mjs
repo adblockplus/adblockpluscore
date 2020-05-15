@@ -21,6 +21,7 @@ import {spawn} from "child_process";
 import fs from "fs";
 import path from "path";
 import {fileURLToPath} from "url";
+import {promisify} from "util";
 
 import MemoryFS from "memory-fs";
 import webpack from "webpack";
@@ -47,7 +48,8 @@ let runnerDefinitions = {
 function configureRunners()
 {
   let runners = "BROWSER_TEST_RUNNERS" in process.env ?
-      process.env.BROWSER_TEST_RUNNERS.split(",") : [];
+                  process.env.BROWSER_TEST_RUNNERS.split(",") :
+                  [];
 
   if (runners.length == 0)
   {
@@ -75,7 +77,8 @@ function addTestPaths(testPaths, recurse)
       if (recurse)
       {
         addTestPaths(fs.readdirSync(testPath).map(
-          file => path.join(testPath, file)));
+          file => path.join(testPath, file))
+        );
       }
       continue;
     }
@@ -91,55 +94,52 @@ function addTestPaths(testPaths, recurse)
   }
 }
 
-function webpackInMemory(bundleFilename, options)
+async function webpackInMemory(bundleFilename, options)
 {
-  return new Promise((resolve, reject) =>
+  // Based on this example
+  // https://webpack.js.org/api/node/#custom-file-systems
+  let memoryFS = new MemoryFS();
+
+  options.output = {filename: bundleFilename, path: "/"};
+  options.devtool = "cheap-eval-source-map";
+  let webpackCompiler = webpack(options);
+  webpackCompiler.outputFileSystem = memoryFS;
+
+  let stats = null;
+
+  try
   {
-    // Based on this example
-    // https://webpack.js.org/api/node/#custom-file-systems
-    let memoryFS = new MemoryFS();
+    stats = await promisify(webpackCompiler.run).call(webpackCompiler);
+  }
+  catch (error)
+  {
+    // Error handling is based on this example
+    // https://webpack.js.org/api/node/#error-handling
+    let reason = error.stack || error;
+    if (error.details)
+      reason += "\n" + error.details;
+    throw reason;
+  }
 
-    options.output = {filename: bundleFilename, path: "/"};
-    options.devtool = "cheap-eval-source-map";
-    let webpackCompiler = webpack(options);
-    webpackCompiler.outputFileSystem = memoryFS;
+  if (stats.hasErrors())
+    throw stats.toJson().errors;
 
-    webpackCompiler.run((err, stats) =>
-    {
-      // Error handling is based on this example
-      // https://webpack.js.org/api/node/#error-handling
-      if (err)
-      {
-        let reason = err.stack || err;
-        if (err.details)
-          reason += "\n" + err.details;
-        reject(reason);
-      }
-      else if (stats.hasErrors())
-      {
-        reject(stats.toJson().errors);
-      }
-      else
-      {
-        let bundle = memoryFS.readFileSync("/" + bundleFilename, "utf-8");
-        memoryFS.unlinkSync("/" + bundleFilename);
-        resolve(bundle);
-      }
-    });
-  });
+  let bundle = memoryFS.readFileSync("/" + bundleFilename, "utf-8");
+  memoryFS.unlinkSync("/" + bundleFilename);
+  return bundle;
 }
 
-function runBrowserTests(processes)
+async function runBrowserTests(processes)
 {
-  if (!browserFiles.length)
-    return Promise.resolve();
+  if (browserFiles.length == 0)
+    return;
 
   let bundleFilename = "bundle.js";
   let mochaPath = path.join(dirname, "node_modules", "mocha",
                             "mocha.js");
   let chaiPath = path.join(dirname, "node_modules", "chai", "chai.js");
 
-  return webpackInMemory(bundleFilename, {
+  let bundle = await webpackInMemory(bundleFilename, {
     entry: path.join(dirname, "test", "browser", "_bootstrap.js"),
     module: {
       rules: [
@@ -165,65 +165,69 @@ function runBrowserTests(processes)
     {
       minimize: false
     }
-  }).then(bundle =>
-    Promise.all(
-      processes.map(currentProcess =>
-        runnerDefinitions[currentProcess](
-          bundle, bundleFilename,
-          browserFiles.map(
-            file => path.relative(path.join(dirname, "test", "browser"),
-                                  file).replace(/\.js$/, "")
-          )
+  });
+
+  let errors = [];
+
+  await Promise.all(
+    processes.map(
+      currentProcess => runnerDefinitions[currentProcess](
+        bundle, bundleFilename,
+        browserFiles.map(
+          file => path.relative(path.join(dirname, "test", "browser"), file)
+                  .replace(/\.js$/, "")
         )
-        // We need to convert rejected promise to a resolved one
-        // or the test will not let close the webdriver.
-        .catch(e => e)
       )
-    )
-    .then(results =>
-    {
-      let errors = results.filter(e => typeof e != "undefined");
-      if (errors.length)
-        throw `Browser unit test failed: ${errors.join(", ")}`;
-    })
-  );
-}
-
-if (process.argv.length > 2)
-{
-  addTestPaths(process.argv.slice(2), true);
-}
-else
-{
-  addTestPaths(
-    [path.join(dirname, "test"), path.join(dirname, "test", "browser")],
-    true
-  );
-}
-
-runBrowserTests(runnerProcesses).then(() =>
-{
-  if (unitFiles.length > 0)
-  {
-    return new Promise((resolve, reject) =>
-    {
-      let script = spawn("npm",
-                         ["run", "unit-tests", ...unitFiles],
-                         {stdio: ["inherit", "inherit", "inherit"]});
-      script.on("error", reject);
-      script.on("close", code =>
+      // We need to convert rejected promise to a resolved one
+      // or the test will not let close the webdriver.
+      .catch(error =>
       {
-        if (code == 0)
-          resolve();
-        else
-          reject();
-      });
-    });
-  }
-}).catch(error =>
-{
-  if (error)
-    console.error(error);
+        errors.push(error);
+      })
+    )
+  );
 
-  process.exit(1);
-});
+  if (errors.length > 0)
+    throw `Browser tests failed: ${errors.join(", ")}`;
+}
+
+function spawnScript(name, ...args)
+{
+  return new Promise((resolve, reject) =>
+  {
+    let script = spawn("npm",
+                       ["run", name, ...args],
+                       {stdio: ["inherit", "inherit", "inherit"]});
+    script.on("error", reject);
+    script.on("close", code =>
+    {
+      if (code == 0)
+        resolve();
+      else
+        reject();
+    });
+  });
+}
+
+(async function()
+{
+  let paths = process.argv.length > 2 ? process.argv.slice(2) :
+                [path.join(dirname, "test"),
+                 path.join(dirname, "test", "browser")];
+  addTestPaths(paths, true);
+
+  try
+  {
+    await runBrowserTests(runnerProcesses);
+
+    if (unitFiles.length > 0)
+      await spawnScript("unit-tests", ...unitFiles);
+  }
+  catch (error)
+  {
+    if (error)
+      console.error(error);
+
+    process.exit(1);
+  }
+})();
