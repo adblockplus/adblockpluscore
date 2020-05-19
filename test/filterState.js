@@ -915,3 +915,213 @@ describe("filterState.toggleEnabled()", function()
     });
   });
 });
+
+describe("filterState.resetEnabled()", function()
+{
+  let events = null;
+
+  function checkEvents(func, expectedEvents = [])
+  {
+    events = [];
+
+    func();
+
+    assert.deepEqual(events, expectedEvents);
+  }
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {filterState} = sandboxedRequire("../lib/filterState"),
+      {filterNotifier} = sandboxedRequire("../lib/filterNotifier")
+    );
+
+    filterNotifier.on("filterState.enabled", (...args) => events.push(args));
+  });
+
+  context("No state", function()
+  {
+    it("should not emit filterState.enabled when filter's enabled state is reset", function()
+    {
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is re-reset", function()
+    {
+      filterState.resetEnabled("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset after filter is disabled", function()
+    {
+      filterState.setEnabled("||example.com^", false);
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's enabled state is toggled", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's hit count is set to 1", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's hit count is reset", function()
+    {
+      filterState.resetHitCount("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's last hit time is set to 946684800000", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's last hit time is reset", function()
+    {
+      filterState.resetLastHit("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter hit is registered", function()
+    {
+      filterState.registerHit("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter hits are reset", function()
+    {
+      filterState.resetHits("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter state is reset", function()
+    {
+      filterState.reset("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter state is serialized", function()
+    {
+      [...filterState.serialize("||example.com^")];
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+  });
+
+  context("State: disabled = true", function()
+  {
+    beforeEach(function()
+    {
+      filterState.fromObject("||example.com^", {disabled: true});
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset", function()
+    {
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is re-reset", function()
+    {
+      filterState.resetEnabled("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter is enabled", function()
+    {
+      filterState.setEnabled("||example.com^", true);
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's enabled state is toggled", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's hit count is set to 1", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's hit count is reset", function()
+    {
+      filterState.resetHitCount("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's last hit time is set to 946684800000", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's last hit time is reset", function()
+    {
+      filterState.resetLastHit("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset after filter hit is registered", function()
+    {
+      filterState.registerHit("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset after filter hits are reset", function()
+    {
+      filterState.resetHits("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter state is reset", function()
+    {
+      filterState.reset("||example.com^");
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"), []);
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is reset after filter state is serialized", function()
+    {
+      [...filterState.serialize("||example.com^")];
+
+      checkEvents(() => filterState.resetEnabled("||example.com^"),
+                  [["||example.com^", true, false]]);
+    });
+  });
+});
