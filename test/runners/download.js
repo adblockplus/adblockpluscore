@@ -18,46 +18,33 @@
 "use strict";
 
 const fs = require("fs");
-const https = require("https");
 const path = require("path");
+const {pipeline} = require("stream");
+const {promisify} = require("util");
 
+const got = require("got");
 const extractZip = require("extract-zip");
 
-function download(url, destFile)
+async function download(url, destFile)
 {
-  return new Promise((resolve, reject) =>
+  let cacheDir = path.dirname(destFile);
+  if (!await fs.promises.access(cacheDir))
+    await fs.promises.mkdir(cacheDir);
+
+  let tempDest = `${destFile}-${process.pid}`;
+  let writable = fs.createWriteStream(tempDest);
+
+  try
   {
-    let cacheDir = path.dirname(destFile);
-    if (!fs.existsSync(cacheDir))
-      fs.mkdirSync(cacheDir);
-    let tempDest = destFile + "-" + process.pid;
-    let writable = fs.createWriteStream(tempDest);
+    await promisify(pipeline)(got.stream(url), writable);
+  }
+  catch (error)
+  {
+    fs.unlink(tempDest, () => {});
+    throw error;
+  }
 
-    https.get(url, response =>
-    {
-      if (response.statusCode != 200)
-      {
-        reject(
-          new Error(`Unexpected server response: ${response.statusCode}`));
-        response.resume();
-        return;
-      }
-
-      response.pipe(writable)
-              .on("error", error =>
-              {
-                writable.close();
-                fs.unlinkSync(tempDest);
-                reject(error);
-              })
-              .on("close", () =>
-              {
-                writable.close();
-                fs.renameSync(tempDest, destFile);
-                resolve();
-              });
-    }).on("error", reject);
-  });
+  await fs.promises.rename(tempDest, destFile);
 }
 
 async function unzipArchive(archive, destDir)

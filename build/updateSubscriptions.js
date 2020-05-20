@@ -17,18 +17,14 @@
 
 "use strict";
 
-const fs = require("fs");
+const {promises: {writeFile}} = require("fs");
 const path = require("path");
 const {promisify} = require("util");
 const readline = require("readline");
-const request = require("request");
 
-const MemoryFileSystem = require("memory-fs");
+const got = require("got");
 const untarToMemory = require("untar-memory");
 
-const writeFileAsync = promisify(fs.writeFile);
-
-const memoryArchive = "/archive.tar.gz";
 const root = "/subscriptionlist-default";
 const listUrl = "https://hg.adblockplus.org/subscriptionlist/archive/" +
                 "default.tar.gz";
@@ -224,17 +220,8 @@ function postProcessSubscription(subscription)
 
 async function main()
 {
-  let memoryFs = new MemoryFileSystem();
-  let writeStream = memoryFs.createWriteStream(memoryArchive);
-
-  request(listUrl).pipe(writeStream);
-  await new Promise(writeStream.on.bind(writeStream, "finish"));
-
-  let readStream = memoryFs.createReadStream(memoryArchive);
-  let tarfs = await untarToMemory(readStream);
-
+  let tarfs = await untarToMemory(got.stream(listUrl));
   let languages = await parseValidLanguages(tarfs);
-
   let tarfiles = await promisify(tarfs.readdir.bind(tarfs))(root);
 
   let parsed = await Promise.all(
@@ -254,7 +241,7 @@ async function main()
     a["type"].toLowerCase().localeCompare(b["type"]) ||
     a["title"].localeCompare(b["title"])
   );
-  await writeFileAsync(filename, JSON.stringify(parsed, null, 2), "utf8");
+  await writeFile(filename, JSON.stringify(parsed, null, 2), "utf8");
 }
 
 if (require.main == module)
