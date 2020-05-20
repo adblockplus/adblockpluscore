@@ -15,14 +15,15 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+import fs from "fs";
+import path from "path";
+import {fileURLToPath} from "url";
 
-const fs = require("fs");
-const path = require("path");
-
-const {download, unzipArchive} = require("./download");
+import {download, unzipArchive} from "./download.mjs";
 
 const MAX_VERSION_DECREMENTS = 200;
+
+let dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function getChromiumExecutable(chromiumDir)
 {
@@ -40,7 +41,7 @@ function getChromiumExecutable(chromiumDir)
   }
 }
 
-async function ensureChromium(chromiumRevision, unpack = true)
+export async function ensureChromium(chromiumRevision, unpack = true)
 {
   let revisionInt = parseInt(chromiumRevision, 10);
   let startingRevision = revisionInt;
@@ -60,7 +61,7 @@ async function ensureChromium(chromiumRevision, unpack = true)
   let [dir, fileName] = buildTypes[platform];
   let archive = null;
   let chromiumDir = null;
-  let snapshotsDir = path.join(__dirname, "..", "..", "chromium-snapshots");
+  let snapshotsDir = path.join(dirname, "..", "..", "chromium-snapshots");
 
   while (true)
   {
@@ -110,5 +111,3 @@ async function ensureChromium(chromiumRevision, unpack = true)
   await unzipArchive(archive, chromiumDir);
   return getChromiumExecutable(chromiumDir);
 }
-
-module.exports.ensureChromium = ensureChromium;

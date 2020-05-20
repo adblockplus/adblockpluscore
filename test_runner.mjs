@@ -26,9 +26,9 @@ import {promisify} from "util";
 import MemoryFS from "memory-fs";
 import webpack from "webpack";
 
-import chromiumRemoteProcess from "./test/runners/chromium_remote_process.js";
-import chromiumProcess from "./test/runners/chromium_process.js";
-import firefoxProcess from "./test/runners/firefox_process.js";
+import chromiumRemoteProcess from "./test/runners/chromium_remote_process.mjs";
+import chromiumProcess from "./test/runners/chromium_process.mjs";
+import firefoxProcess from "./test/runners/firefox_process.mjs";
 
 let dirname = path.dirname(fileURLToPath(import.meta.url));
 

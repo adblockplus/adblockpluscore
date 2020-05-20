@@ -15,14 +15,12 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+import webdriver from "selenium-webdriver";
+import firefox from "selenium-webdriver/firefox.js";
+import "geckodriver";
 
-const {Builder} = require("selenium-webdriver");
-const firefox = require("selenium-webdriver/firefox");
-require("geckodriver");
-
-const {executeScript} = require("./webdriver");
-const {ensureFirefox} = require("./firefox_download");
+import {executeScript} from "./webdriver.mjs";
+import {ensureFirefox} from "./firefox_download.mjs";
 
 // Firefox 57 seems to be the minimum to reliably run with WebDriver
 // on certain system configurations like Debian 9, TravisCI.
@@ -33,7 +31,7 @@ function runScript(firefoxPath, script, scriptArgs)
   const options = new firefox.Options().setBinary(firefoxPath);
   if (process.env.BROWSER_TEST_HEADLESS != "0")
     options.headless();
-  const driver = new Builder()
+  const driver = new webdriver.Builder()
         .forBrowser("firefox")
         .setFirefoxOptions(options)
         .build();
@@ -41,10 +39,10 @@ function runScript(firefoxPath, script, scriptArgs)
   return executeScript(driver, "Firefox", script, scriptArgs);
 }
 
-module.exports = function(script, scriptName, ...scriptArgs)
+export default function(script, scriptName, ...scriptArgs)
 {
   return ensureFirefox(FIREFOX_VERSION)
     .then(
       firefoxPath => runScript(firefoxPath, script, scriptArgs)
     );
-};
+}

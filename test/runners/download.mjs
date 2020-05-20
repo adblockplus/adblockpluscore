@@ -15,29 +15,37 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+import fs from "fs";
+import path from "path";
+import {pipeline} from "stream";
+import {promisify} from "util";
 
-async function executeScript(driver, name, script, scriptArgs)
+import got from "got";
+import extractZip from "extract-zip";
+
+export async function download(url, destFile)
 {
-  let realScript = `let f = ${script}
-                    let callback = arguments[arguments.length - 1];
-                    return f(...arguments).then(() => callback());`;
+  let cacheDir = path.dirname(destFile);
+  if (!await fs.promises.access(cacheDir))
+    await fs.promises.mkdir(cacheDir);
+
+  let tempDest = `${destFile}-${process.pid}`;
+  let writable = fs.createWriteStream(tempDest);
+
   try
   {
-    await driver.executeAsyncScript(realScript, ...scriptArgs);
-    let result = await driver.executeScript("return window._consoleLogs;");
-
-    console.log(`\nBrowser tests in ${name}`);
-    for (let item of result.log)
-      console.log(...item);
-
-    if (result.failures != 0)
-      throw name;
+    await promisify(pipeline)(got.stream(url), writable);
   }
-  finally
+  catch (error)
   {
-    await driver.quit();
+    fs.unlink(tempDest, () => {});
+    throw error;
   }
+
+  await fs.promises.rename(tempDest, destFile);
 }
 
-module.exports.executeScript = executeScript;
+export async function unzipArchive(archive, destDir)
+{
+  await extractZip(archive, {dir: destDir});
+}
