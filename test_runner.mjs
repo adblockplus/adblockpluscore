@@ -28,7 +28,6 @@ import webpack from "webpack";
 
 import chromiumRemoteProcess from "./test/runners/chromium_remote_process.js";
 import chromiumProcess from "./test/runners/chromium_process.js";
-import edgeProcess from "./test/runners/edge_process.js";
 import firefoxProcess from "./test/runners/firefox_process.js";
 
 let dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -41,7 +40,6 @@ let runnerDefinitions = {
   chromium_remote: chromiumRemoteProcess,
   // Chromium with WebDriver (requires Chromium >= 63.0.3239)
   chromium: chromiumProcess,
-  edge: edgeProcess,
   firefox: firefoxProcess
 };
 
@@ -56,7 +54,7 @@ function configureRunners()
     // We default to not using the Chromium remote interface on Windows,
     // as it fails.
     if (process.platform == "win32")
-      return ["chromium", "edge", "firefox"];
+      return ["chromium", "firefox"];
     return ["chromium_remote", "firefox"];
   }
 
