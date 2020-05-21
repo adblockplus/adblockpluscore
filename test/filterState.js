@@ -1125,3 +1125,415 @@ describe("filterState.resetEnabled()", function()
     });
   });
 });
+
+describe("filterState.getHitCount()", function()
+{
+  context("No state", function()
+  {
+    it("should return 0 for filter with no hits", function()
+    {
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter's hit count is reset", function()
+    {
+      filterState.resetHitCount("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter's hit count is set to 1", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter's hit count is re-set to 0", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+      filterState.setHitCount("||example.com^", 0);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter's hit count is re-set to 1", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+      filterState.setHitCount("||example.com^", 0);
+      filterState.setHitCount("||example.com^", 1);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter's hit count is set to 1 and then reset", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+      filterState.resetHitCount("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter hits are reset", function()
+    {
+      filterState.resetHits("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter hit is registered", function()
+    {
+      filterState.registerHit("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 2 after two filter hits are registered", function()
+    {
+      filterState.registerHit("||example.com^");
+      filterState.registerHit("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 2);
+    });
+
+    it("should return 0 after filter hit is registered and filter hits are reset", function()
+    {
+      filterState.registerHit("||example.com^");
+      filterState.resetHits("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter's enabled state is reset", function()
+    {
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter is disabled", function()
+    {
+      filterState.setEnabled("||example.com^", false);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter is disabled and filter's hit count is set to 1", function()
+    {
+      filterState.setEnabled("||example.com^", false);
+      filterState.setHitCount("||example.com^", 1);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 1 after filter is disabled, filter's hit count is set to 1, and filter's enabled state is reset", function()
+    {
+      filterState.setEnabled("||example.com^", false);
+      filterState.setHitCount("||example.com^", 1);
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter's enabled state is toggled", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter's enabled state is toggled and filter's hit count is set to 1", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+      filterState.setHitCount("||example.com^", 1);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 1 after filter's enabled state is toggled, filter's hit count is set to 1, and filter's enabled state is reset", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+      filterState.setHitCount("||example.com^", 1);
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter's last hit time is reset", function()
+    {
+      filterState.resetLastHit("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter's last hit time is set to 946684800000", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter's last hit time is set to 946684800000 and filter's hit count is set to 1", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+      filterState.setHitCount("||example.com^", 1);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 1 after filter's last hit time is set to 946684800000, filter's hit count is set to 1, and filter's last hit time is reset", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+      filterState.setHitCount("||example.com^", 1);
+      filterState.resetLastHit("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter state is reset", function()
+    {
+      filterState.reset("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter's hit count is set to 1 and filter state is reset", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+      filterState.reset("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter state is serialized", function()
+    {
+      [...filterState.serialize("||example.com^")];
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter's hit count is set to 1 and filter state is serialized", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+      [...filterState.serialize("||example.com^")];
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter state is serialized and filter's hit count is re-set to 0", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+      [...filterState.serialize("||example.com^")];
+      filterState.setHitCount("||example.com^", 0);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+  });
+
+  context("State: hitCount = 1", function()
+  {
+    beforeEach(function()
+    {
+      filterState.fromObject("||example.com^", {hitCount: 1});
+    });
+
+    it("should return 1 for filter with one hit", function()
+    {
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter's hit count is reset", function()
+    {
+      filterState.resetHitCount("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter's hit count is set to 0", function()
+    {
+      filterState.setHitCount("||example.com^", 0);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter's hit count is re-set to 1", function()
+    {
+      filterState.setHitCount("||example.com^", 0);
+      filterState.setHitCount("||example.com^", 1);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter's hit count is re-set to 0", function()
+    {
+      filterState.setHitCount("||example.com^", 0);
+      filterState.setHitCount("||example.com^", 1);
+      filterState.setHitCount("||example.com^", 0);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter's hit count is set to 0 and then reset", function()
+    {
+      filterState.setHitCount("||example.com^", 0);
+      filterState.resetHitCount("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter hits are reset", function()
+    {
+      filterState.resetHits("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 2 after filter hit is registered", function()
+    {
+      filterState.registerHit("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 2);
+    });
+
+    it("should return 3 after two filter hits are registered", function()
+    {
+      filterState.registerHit("||example.com^");
+      filterState.registerHit("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 3);
+    });
+
+    it("should return 0 after filter hit is registered and filter hits are reset", function()
+    {
+      filterState.registerHit("||example.com^");
+      filterState.resetHits("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter's enabled state is reset", function()
+    {
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 1 after filter is disabled", function()
+    {
+      filterState.setEnabled("||example.com^", false);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter is disabled and filter's hit count is set to 0", function()
+    {
+      filterState.setEnabled("||example.com^", false);
+      filterState.setHitCount("||example.com^", 0);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter is disabled, filter's hit count is set to 0, and filter's enabled state is reset", function()
+    {
+      filterState.setEnabled("||example.com^", false);
+      filterState.setHitCount("||example.com^", 0);
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter's enabled state is toggled", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter's enabled state is toggled and filter's hit count is set to 0", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+      filterState.setHitCount("||example.com^", 0);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter's enabled state is toggled, filter's hit count is set to 0, and filter's enabled state is reset", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+      filterState.setHitCount("||example.com^", 0);
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter's last hit time is reset", function()
+    {
+      filterState.resetLastHit("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 1 after filter's last hit time is set to 946684800000", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter's last hit time is set to 946684800000 and filter's hit count is set to 0", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+      filterState.setHitCount("||example.com^", 0);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter's last hit time is set to 946684800000, filter's hit count is set to 0, and filter's last hit time is reset", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+      filterState.setHitCount("||example.com^", 0);
+      filterState.resetLastHit("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter state is reset", function()
+    {
+      filterState.reset("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 0 after filter's hit count is set to 0 and filter state is reset", function()
+    {
+      filterState.setHitCount("||example.com^", 0);
+      filterState.reset("||example.com^");
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter state is serialized", function()
+    {
+      [...filterState.serialize("||example.com^")];
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+
+    it("should return 0 after filter's hit count is set to 0 and filter state is serialized", function()
+    {
+      filterState.setHitCount("||example.com^", 0);
+      [...filterState.serialize("||example.com^")];
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should return 1 after filter state is serialized and filter's hit count is re-set to 1", function()
+    {
+      filterState.setHitCount("||example.com^", 0);
+      [...filterState.serialize("||example.com^")];
+      filterState.setHitCount("||example.com^", 1);
+
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
+    });
+  });
+});
