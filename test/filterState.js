@@ -1537,3 +1537,251 @@ describe("filterState.getHitCount()", function()
     });
   });
 });
+
+describe("filterState.setHitCount()", function()
+{
+  let events = null;
+
+  function checkEvents(func, expectedEvents = [])
+  {
+    events = [];
+
+    func();
+
+    assert.deepEqual(events, expectedEvents);
+  }
+
+  beforeEach(function()
+  {
+    let sandboxedRequire = createSandbox();
+    (
+      {filterState} = sandboxedRequire("../lib/filterState"),
+      {filterNotifier} = sandboxedRequire("../lib/filterNotifier")
+    );
+
+    filterNotifier.on("filterState.hitCount", (...args) => events.push(args));
+  });
+
+  context("No state", function()
+  {
+    it("should emit filterState.hitCount when filter's hit count is set to 1", function()
+    {
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should not emit filterState.hitCount when filter's hit count is set to 0", function()
+    {
+      checkEvents(() => filterState.setHitCount("||example.com^", 0));
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is re-set to 0", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 1]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is re-set to 1", function()
+    {
+      filterState.setHitCount("||example.com^", 1);
+      filterState.setHitCount("||example.com^", 0);
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's hit count is reset", function()
+    {
+      filterState.resetHitCount("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should not emit filterState.hitCount when filter's hit count is set to 1 after filter hit is registered", function()
+    {
+      filterState.registerHit("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1));
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter hits are reset", function()
+    {
+      filterState.resetHits("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter is disabled", function()
+    {
+      filterState.setEnabled("||example.com^", false);
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's enabled state is reset", function()
+    {
+      filterState.resetEnabled("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's enabled state is toggled", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's last hit time is set to 946684800000", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's last hit time is reset", function()
+    {
+      filterState.resetLastHit("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter state is reset", function()
+    {
+      filterState.reset("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter state is serialized", function()
+    {
+      [...filterState.serialize("||example.com^")];
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+  });
+
+  context("State: hitCount = 1", function()
+  {
+    beforeEach(function()
+    {
+      filterState.fromObject("||example.com^", {hitCount: 1});
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 0", function()
+    {
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 1]]);
+    });
+
+    it("should not emit filterState.hitCount when filter's hit count is set to 1", function()
+    {
+      checkEvents(() => filterState.setHitCount("||example.com^", 1));
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is re-set to 1", function()
+    {
+      filterState.setHitCount("||example.com^", 0);
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 1),
+                  [["||example.com^", 1, 0]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is re-set to 0", function()
+    {
+      filterState.setHitCount("||example.com^", 0);
+      filterState.setHitCount("||example.com^", 1);
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 1]]);
+    });
+
+    it("should not emit filterState.hitCount when filter's hit count is set to 0 after filter's hit count is reset", function()
+    {
+      filterState.resetHitCount("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0));
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter hit is registered", function()
+    {
+      filterState.registerHit("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 2]]);
+    });
+
+    it("should not emit filterState.hitCount when filter's hit count is set to 0 after filter hits are reset", function()
+    {
+      filterState.resetHits("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0));
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter is disabled", function()
+    {
+      filterState.setEnabled("||example.com^", false);
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 1]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's enabled state is reset", function()
+    {
+      filterState.resetEnabled("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 1]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's enabled state is toggled", function()
+    {
+      filterState.toggleEnabled("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 1]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's last hit time is set to 946684800000", function()
+    {
+      filterState.setLastHit("||example.com^", 946684800000);
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 1]]);
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's last hit time is reset", function()
+    {
+      filterState.resetLastHit("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 1]]);
+    });
+
+    it("should not emit filterState.hitCount when filter's hit count is set to 0 after filter state is reset", function()
+    {
+      filterState.reset("||example.com^");
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0));
+    });
+
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter state is serialized", function()
+    {
+      [...filterState.serialize("||example.com^")];
+
+      checkEvents(() => filterState.setHitCount("||example.com^", 0),
+                  [["||example.com^", 0, 1]]);
+    });
+  });
+});
