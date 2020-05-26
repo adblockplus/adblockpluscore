@@ -176,6 +176,8 @@ describe("Matcher", function()
     checkMatch(["||example.com/abc"], "http://example.com/abc/def", "IMAGE", null, null, false, "||example.com/abc");
     checkMatch(["||com/abc/def"], "http://example.com/abc/def", "IMAGE", null, null, false, "||com/abc/def");
     checkMatch(["||com/abc"], "http://example.com/abc/def", "IMAGE", null, null, false, "||com/abc");
+    checkMatch(["||com^"], "http://example.com/abc/def", "IMAGE", null, null, false, "||com^");
+    checkMatch(["||com^"], "http://com-example.com/abc/def", "IMAGE", null, null, false, "||com^");
     checkMatch(["||mple.com/abc"], "http://example.com/abc/def", "IMAGE", null, null, false, null);
     checkMatch(["||.com/abc/def"], "http://example.com/abc/def", "IMAGE", null, null, false, null);
     checkMatch(["||http://example.com/"], "http://example.com/abc/def", "IMAGE", null, null, false, null);
