@@ -101,7 +101,7 @@ export async function ensureChromium(chromiumRevision, unpack = true)
       // https://www.chromium.org/getting-involved/download-chromium
       console.info(`Base ${revisionInt} not found, trying ${--revisionInt}`);
       if (revisionInt <= startingRevision - MAX_VERSION_DECREMENTS)
-        throw new Error(`No Chromium packagefound for ${startingRevision}`);
+        throw new Error(`No Chromium package found for ${startingRevision}`);
     }
   }
 

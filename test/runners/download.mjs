@@ -26,8 +26,15 @@ import extractZip from "extract-zip";
 export async function download(url, destFile)
 {
   let cacheDir = path.dirname(destFile);
-  if (!await fs.promises.access(cacheDir))
+
+  try
+  {
+    await fs.promises.access(cacheDir);
+  }
+  catch (error)
+  {
     await fs.promises.mkdir(cacheDir);
+  }
 
   let tempDest = `${destFile}-${process.pid}`;
   let writable = fs.createWriteStream(tempDest);
