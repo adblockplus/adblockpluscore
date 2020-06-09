@@ -554,12 +554,16 @@ describe("Filter classes", function()
     assert.equal(filter.type, "invalid");
     assert.equal(filter.reason, "filter_invalid_rewrite");
 
-    text = "||/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=abp-resource:blank-text,domain=content.server";
-    filter = Filter.fromText(text);
-    assert.equal(filter.rewriteUrl("http://content.server/file/foo.txt"),
-                 "data:text/plain,");
-    assert.equal(filter.rewriteUrl("http://content.server/file/foo.txt?bar"),
-                 "data:text/plain,");
+    const rewriteTestCases = require("./data/rewrite.json");
+    for (let {resource, expected} of rewriteTestCases)
+    {
+      text = `||/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=abp-resource:${resource},domain=content.server`;
+      filter = Filter.fromText(text);
+      assert.equal(filter.rewriteUrl("http://content.server/file/foo.txt"),
+                   expected);
+      assert.equal(filter.rewriteUrl("http://content.server/file/foo.txt?bar"),
+                   expected);
+    }
   });
 
   it("Domain map deduplication", function()
