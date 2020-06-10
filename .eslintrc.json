@@ -9,8 +9,7 @@
       "_blacklist", "_blackList",
       "Blacklist", "BlackList",
       "BLACKLIST", "BLACK_LIST"
-    ],
-    "nonblock-statement-body-position": ["error", "below"]
+    ]
   },
   "overrides": [
     {
