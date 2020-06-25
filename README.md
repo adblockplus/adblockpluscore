@@ -77,7 +77,7 @@ async function main()
 {
   await filterEngine.initialize(
     [
-      "/annoying-ad^$image",
+      "/annoying-ad.$image",
       "||example.com/social-widget.html^"
     ]
   );
@@ -89,7 +89,7 @@ async function main()
 
   let filter = filterEngine.match(resource.url, contentTypes.IMAGE,
                                   new URL(resource.documentURL).hostname);
-  console.log(filter); // prints "/annoying-ad^$image"
+  console.log(filter); // prints "/annoying-ad.$image"
 }
 
 if (require.main == module)
