@@ -278,6 +278,36 @@ describe("Snippets", function()
     }
   });
 
+  it("json-prune", async function()
+  {
+    // ensure the JSON object is the window one, not one
+    // the testing environment is providing
+    let {JSON} = window;
+    await runSnippetScript("json-prune toBeDeleted");
+    let testProp = {
+      toBeDeleted: "delete me",
+      a: "a"
+    };
+    let result = JSON.parse(JSON.stringify(testProp));
+    delete testProp.toBeDeleted;
+    assert.equal(JSON.stringify(testProp), JSON.stringify(result));
+
+    await runSnippetScript("json-prune toBeDeleted2 a");
+    let testProp2 = {
+      toBeDeleted2: "delete me",
+      a: "a"
+    };
+    let testProp3 = {
+      toBeDeleted2: "don't delete me",
+      b: "b"
+    };
+    let result2 = JSON.parse(JSON.stringify(testProp2));
+    let result3 = JSON.parse(JSON.stringify(testProp3));
+    delete testProp2.toBeDeleted2;
+    assert.equal(JSON.stringify(testProp2), JSON.stringify(result2));
+    assert.equal(JSON.stringify(testProp3), JSON.stringify(result3));
+  });
+
   it("hide-if-contains-visible-text", async function()
   {
     document.body.innerHTML = `
