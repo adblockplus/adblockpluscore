@@ -246,6 +246,9 @@ describe("Matcher", function()
     checkMatch(["^foo/bar/$script,domain=example.com", "@@^foo/bar/$script"], "http://foo/bar/", "SCRIPT", "example.com", null, true, "@@^foo/bar/$script", "^foo/bar/$script,domain=example.com");
     checkMatch(["@@^foo/bar/$script", "^foo/bar/$script,domain=example.com"], "http://foo/bar/", "SCRIPT", "example.com", null, true, "@@^foo/bar/$script", "^foo/bar/$script,domain=example.com");
     checkMatch(["@@^foo/bar/$script", "^foo/bar/$script,domain=example.com"], "http://foo/bar/", "SCRIPT", "example.com", null, false, "@@^foo/bar/$script");
+
+    // See https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/230
+    checkMatch(["@@||*$document"], "http://foo/bar/", "DOCUMENT", "example.com", null, false, "@@||*$document");
   });
 
   it("Filter search", function()
