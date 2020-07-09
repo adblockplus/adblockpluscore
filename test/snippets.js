@@ -261,24 +261,27 @@ describe("Snippets", function()
     "use strict";
     {
       let libraries = ${JSON.stringify(libraries)};
-      let environment = JSON.stringify({});
 
-      let script = {{{script}}};
+      let scripts = {{{script}}};
 
       let imports = Object.create(null);
       for (let library of libraries)
       {
         let loadLibrary = new Function("exports", "environment", library);
-        loadLibrary(imports, JSON.parse(environment));
+        loadLibrary(imports, {});
       }
 
-      for (let [name, ...args] of script)
+      let {hasOwnProperty} = Object.prototype;
+      for (let script of scripts)
       {
-        if (Object.prototype.hasOwnProperty.call(imports, name))
+        for (let [name, ...args] of script)
         {
-          let value = imports[name];
-          if (typeof value == "function")
-            value(...args);
+          if (hasOwnProperty.call(imports, name))
+          {
+            let value = imports[name];
+            if (typeof value == "function")
+              value(...args);
+          }
         }
       }
     }
@@ -287,13 +290,13 @@ describe("Snippets", function()
     function verifyExecutable(script)
     {
       let actual = compileScript(script, libraries);
-      let expected = template.replace("{{{script}}}",
-                                      JSON.stringify(parseScript(script)));
+      let parsed = [].concat(script).map(parseScript);
+      let expected = template.replace("{{{script}}}", JSON.stringify(parsed));
 
       assert.equal(expected, actual);
     }
 
-    verifyExecutable("hello 'How are you?'");
+    verifyExecutable(["hello 'How are you?'", "hello 'Fine, thanks!'"]);
 
     // Test script execution.
     new Function(compileScript("assertFoo 0", libraries))();
