@@ -625,4 +625,17 @@ describe("Snippets", function()
     await timeout(100);
     expectHidden(target);
   });
+
+  it("hide-if-labelled-by inline", async function()
+  {
+    document.body.innerHTML = `
+      <div id="hilb-target-inline">
+        <div aria-labelledby="hilb-label-nope" aria-label="Sponsored">Content</div>
+      </div>
+    `;
+    let target = document.getElementById("hilb-target-inline");
+    expectVisible(target);
+    await runSnippetScript("hide-if-labelled-by 'Sponsored' '#hilb-target-inline [aria-labelledby]' '#hilb-target-inline'");
+    expectHidden(target);
+  });
 });
