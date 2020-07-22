@@ -638,4 +638,582 @@ describe("Snippets", function()
     await runSnippetScript("hide-if-labelled-by 'Sponsored' '#hilb-target-inline [aria-labelledby]' '#hilb-target-inline'");
     expectHidden(target);
   });
+
+  describe("freeze-element", function()
+  {
+    let {freeze} = window.Object;
+    let {WeakMap} = window;
+    let snippetWM = new WeakMap();
+    let {has} = WeakMap.prototype;
+    let domTree = `
+    <div id="page">
+      <div id="header">
+        <div id="navbar">
+          <span class="nav-item">home</span>
+          <span class="nav-item">contact</span>
+        </div>
+        <span id="logo">logo</span>
+        <span id="title">title</span>
+      </div>
+      <div id="content">
+        <div id="article">
+          <h2>title</h2>
+          <p>article body</p>
+        </div>
+        <div id="comments">
+          <div class="comment">
+            <img class="profile" src="img1.jpg"/>
+            <p>comment_1</p>
+          </div>
+          <div class="comment">
+            <img class="profile" src="img2.jpg"/>
+            <p>comment_2</p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    let targetNode = null;
+    let targetNodeChild = null;
+    let targetNodeGrandChild = null;
+    let targetNodeParent = null;
+    let targetNodeSibling = null;
+    let domContent = null;
+    let propertiesList = [
+      "appendChild",
+      "append",
+      "prepend",
+      "insertBefore",
+      "replaceChild",
+      "replaceWith",
+      "after",
+      "before",
+      "insertAdjacentElement",
+      "insertAdjacentHTML",
+      "insertAdjacentText",
+      "innerHTML",
+      "outerHTML",
+      "textContent",
+      "innerText",
+      "nodeValue"
+    ];
+
+    async function resetAndRun(script)
+    {
+      document.body.innerHTML = domTree;
+      domContent = document.body.innerHTML;
+      attachToWeakMap();
+      window.Object.freeze = window.Object;
+      await runSnippetScript(script);
+      await timeout(100);
+      window.Object.freeze = freeze;
+      targetNode = document.querySelector("#header");
+      targetNodeChild = document.querySelector("#navbar");
+      targetNodeGrandChild = document.querySelectorAll(".nav-item")[0];
+      targetNodeParent = document.querySelector("#page");
+      targetNodeSibling = document.querySelector("#content");
+    }
+
+    function attachToWeakMap()
+    {
+      WeakMap.prototype.has = function(x)
+      {
+        if (x !== document)
+          return has.call(this, x);
+        this.set = function(key, value)
+        {
+          snippetWM.set(key, value);
+        };
+        this.get = function(key)
+        {
+          return snippetWM.get(key);
+        };
+        this.has = function(key)
+        {
+          return snippetWM.has(key);
+        };
+        WeakMap.prototype.has = has;
+        if (!snippetWM.has(x))
+        {
+          snippetWM.set(x, true);
+          return false;
+        }
+        return true;
+      };
+    }
+
+    let badNode = document.createElement("div");
+    badNode.className = "bad-node";
+    let getBadNode = () => badNode.cloneNode();
+
+    let goodNode = document.createElement("div");
+    goodNode.className = "good-node";
+    let queryGoodNodes = () => document.querySelectorAll(".good-node");
+    let getGoodNode = () => goodNode.cloneNode();
+
+    let exceptionNode = document.createElement("div");
+    exceptionNode.className = "exception-node";
+    let queryExceptionNodes = () => document.querySelectorAll(".exception-node");
+    let getExceptionNode = () => exceptionNode.cloneNode();
+
+    function protect(cb, abort, shouldThrow)
+    {
+      if (!abort)
+        cb();
+      else
+        shouldThrow ? assert.throws(cb) : assert.doesNotThrow(cb);
+    }
+
+    async function testProps(title, subtree, abort, exceptions, script)
+    {
+      describe(title, function()
+      {
+        beforeEach(async function()
+        {
+          await resetAndRun(script);
+        });
+        for (let property of propertiesList)
+        {
+          it(property, function()
+          {
+            testProp(property, subtree, abort, exceptions);
+          });
+        }
+      });
+    }
+
+    let targetMessage = "targeted node should be frozen";
+    let exceptionMessage = "exception nodes should be allowed";
+    let nonTargetMessage = "non-targeted node should not be frozen";
+
+    function testProp(property, subtree, abort, exceptions)
+    {
+      switch (property)
+      {
+        case "appendChild":
+        case "append":
+        case "prepend":
+          return testAppendChild();
+        case "insertBefore":
+          return testInsertBefore();
+        case "replaceChild":
+          return testReplaceChild();
+        case "replaceWith":
+          return testReplaceWith();
+        case "after":
+        case "before":
+          return testBeforeAndAfter();
+        case "insertAdjacentElement":
+        case "insertAdjacentHTML":
+        case "insertAdjacentText":
+          return testInsertAdjacent();
+        case "outerHTML":
+        case "innerHTML":
+          return testInnerHTML();
+        case "textContent":
+        case "innerText":
+          return testTextContent();
+        case "nodeValue":
+          return testNodeValue();
+      }
+
+      function testAppendChild()
+      {
+        let exceptionsCount;
+        let notTargetedCount;
+        // targeted node should be frozen
+        protect(() => Element.prototype[property].call(targetNode, getBadNode()), abort, true);
+        protect(() => targetNode[property](getBadNode()), abort, true);
+        if (subtree)
+        {
+          protect(() => targetNodeChild[property](getBadNode()), abort, true);
+          protect(() => targetNodeGrandChild[property](getBadNode()), abort, true);
+        }
+        assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
+
+        // exception nodes should be allowed
+        if (exceptions)
+        {
+          exceptionsCount = 2;
+          protect(() => Element.prototype[property].call(targetNode, getExceptionNode()), abort, false);
+          protect(() => targetNode[property](getExceptionNode()), abort, false);
+          if (subtree)
+          {
+            exceptionsCount = 4;
+            protect(() => targetNodeChild[property](getExceptionNode()), abort, false);
+            protect(() => targetNodeGrandChild[property](getExceptionNode()), abort, false);
+          }
+          assert.strictEqual(queryExceptionNodes().length, exceptionsCount, exceptionMessage);
+        }
+
+        // non-targeted nodes should not be frozen
+        notTargetedCount = 3;
+        protect(() => Element.prototype[property].call(targetNodeParent, getGoodNode()), abort, false);
+        protect(() => targetNodeParent[property](getGoodNode()), abort, false);
+        protect(() => targetNodeSibling[property](getGoodNode()), abort, false);
+        if (!subtree)
+        {
+          notTargetedCount = 4;
+          protect(() => targetNodeChild[property](getGoodNode()), abort, false);
+        }
+        assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage);
+      }
+
+      function testInsertBefore()
+      {
+        let exceptionsCount;
+        let notTargetedCount;
+        // targeted node should be frozen
+        protect(() => Node.prototype.insertBefore.call(targetNode, getBadNode(), targetNodeChild), abort, true);
+        protect(() => targetNode.insertBefore(getBadNode(), targetNodeChild), abort, true);
+        if (subtree)
+        {
+          protect(() => targetNodeChild.insertBefore(getBadNode(), null), abort, true);
+          protect(() => targetNodeGrandChild.insertBefore(getBadNode(), null), abort, true);
+        }
+        assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
+
+        // exception nodes should be allowed
+        if (exceptions)
+        {
+          exceptionsCount = 2;
+          protect(() => Node.prototype.insertBefore.call(targetNode, getExceptionNode(), targetNodeChild), abort, false);
+          protect(() => targetNode.insertBefore(getExceptionNode(), targetNodeChild), abort, false);
+          if (subtree)
+          {
+            exceptionsCount = 4;
+            protect(() => targetNodeChild.insertBefore(getExceptionNode(), null), abort, false);
+            protect(() => targetNodeGrandChild.insertBefore(getExceptionNode(), null), abort, false);
+          }
+          assert.strictEqual(queryExceptionNodes().length, exceptionsCount, exceptionMessage);
+        }
+
+        // non-targeted nodes should not be frozen
+        notTargetedCount = 3;
+        protect(() => Node.prototype.insertBefore.call(targetNodeParent, getGoodNode(), null), abort, false);
+        protect(() => targetNodeParent.insertBefore(getGoodNode(), null), abort, false);
+        protect(() => targetNodeSibling.insertBefore(getGoodNode(), null), abort, false);
+        if (!subtree)
+        {
+          notTargetedCount = 4;
+          protect(() => targetNodeChild.insertBefore(getGoodNode(), null), abort, false);
+        }
+        assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage);
+      }
+
+      function testReplaceChild()
+      {
+        let exceptionsCount;
+        let notTargetedCount;
+        // targeted node should be frozen
+        protect(() => Node.prototype.replaceChild.call(targetNode, getBadNode(), targetNodeChild), abort, true);
+        protect(() => targetNode.replaceChild(getBadNode(), targetNodeChild), abort, true);
+        if (subtree)
+          protect(() => targetNodeChild.replaceChild(getBadNode(), targetNodeGrandChild), abort, true);
+        assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
+
+        // exception nodes should be allowed
+        if (exceptions)
+        {
+          exceptionsCount = 2;
+          protect(() => Node.prototype.replaceChild.call(targetNode, getExceptionNode(), targetNode.children[1]), abort, false);
+          protect(() => targetNode.replaceChild(getExceptionNode(), targetNode.children[2]), abort, false);
+          if (subtree)
+          {
+            exceptionsCount = 3;
+            protect(() => targetNodeChild.replaceChild(getExceptionNode(), targetNodeGrandChild), abort, false);
+          }
+          assert.strictEqual(queryExceptionNodes().length, exceptionsCount, exceptionMessage);
+        }
+
+        // non-targeted nodes should not be frozen
+        notTargetedCount = 2;
+        protect(() => Node.prototype.replaceChild.call(targetNodeSibling, getGoodNode(), targetNodeSibling.children[1]), abort, false);
+        protect(() => targetNodeSibling.replaceChild(getGoodNode(), targetNodeSibling.children[0]), abort, false);
+        if (!subtree)
+        {
+          notTargetedCount = 3;
+          protect(() => targetNodeChild.replaceChild(getGoodNode(), targetNodeGrandChild), abort, false);
+        }
+        assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage);
+      }
+
+      function testReplaceWith()
+      {
+        // targeted node should be frozen
+        protect(() => Element.prototype[property].call(targetNode, getBadNode()), abort, true);
+        protect(() => targetNode[property](getBadNode()), abort, true);
+        protect(() => targetNodeChild[property](getBadNode()), abort, true);
+        if (subtree)
+          protect(() => targetNodeGrandChild[property](getBadNode()), abort, true);
+        assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
+
+        // exception nodes should be allowed
+        if (exceptions)
+        {
+          if (subtree)
+          {
+            protect(() => targetNodeGrandChild[property](getExceptionNode()), abort, false);
+            assert.strictEqual(queryExceptionNodes().length, 1, exceptionMessage);
+          }
+          protect(() => Element.prototype[property].call(targetNodeChild, getExceptionNode()), abort, false);
+          assert.strictEqual(queryExceptionNodes().length, 1, exceptionMessage);
+          protect(() => targetNode[property](getExceptionNode()), abort, false);
+          assert.strictEqual(queryExceptionNodes().length, 1, exceptionMessage);
+        }
+
+        // non-targeted nodes should not be frozen
+        protect(() => Element.prototype[property].call(targetNodeSibling.children[0], getGoodNode()), abort, false);
+        assert.strictEqual(queryGoodNodes().length, 1, nonTargetMessage);
+        protect(() => targetNodeSibling[property](getGoodNode()), abort, false);
+        assert.strictEqual(queryGoodNodes().length, 1, nonTargetMessage);
+      }
+
+      function testBeforeAndAfter()
+      {
+        let exceptionsCount;
+        let notTargetedCount;
+        // targeted node should be frozen
+        protect(() => Element.prototype[property].call(targetNode, getBadNode()), abort, true);
+        protect(() => targetNode[property](getBadNode()), abort, true);
+        protect(() => targetNodeChild[property](getBadNode()), abort, true);
+        if (subtree)
+          protect(() => targetNodeGrandChild[property](getBadNode()), abort, true);
+        assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
+
+        // exception nodes should be allowed
+        if (exceptions)
+        {
+          exceptionsCount = 2;
+          protect(() => Element.prototype[property].call(targetNode, getExceptionNode()), abort, false);
+          protect(() => targetNodeChild[property](getExceptionNode()), abort, false);
+          if (subtree)
+          {
+            exceptionsCount = 3;
+            protect(() => targetNodeGrandChild[property](getExceptionNode()), abort, false);
+          }
+          assert.strictEqual(queryExceptionNodes().length, exceptionsCount, exceptionMessage);
+        }
+
+        // non-targeted nodes should not be frozen
+        notTargetedCount = 2;
+        protect(() => Element.prototype[property].call(targetNodeParent, getGoodNode()), abort, false);
+        protect(() => targetNodeSibling[property](getGoodNode()), abort, false);
+        if (!subtree)
+        {
+          notTargetedCount = 3;
+          protect(() => targetNodeGrandChild[property](getGoodNode()), abort, false);
+        }
+        assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage);
+      }
+
+      function testInsertAdjacent()
+      {
+        let exceptionsCount;
+        let notTargetedCount;
+        // targeted node should be frozen
+        protect(() => Element.prototype[property].call(targetNode, "afterbegin", getBad()), abort, true);
+        protect(() => targetNode[property]("afterbegin", getBad()), abort, true);
+        protect(() => targetNode[property]("beforeend", getBad()), abort, true);
+        protect(() => targetNodeChild[property]("beforebegin", getBad()), abort, true);
+        protect(() => targetNodeChild[property]("afterend", getBad()), abort, true);
+        if (subtree)
+          protect(() => targetNodeChild[property]("afterbegin", getBad()), abort, true);
+        assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
+
+        // exception nodes should be allowed
+        if (exceptions)
+        {
+          exceptionsCount = 5;
+          protect(() => Element.prototype[property].call(targetNode, "afterbegin", getException()), abort, false);
+          protect(() => targetNode[property]("afterbegin", getException()), abort, false);
+          protect(() => targetNode[property]("beforeend", getException()), abort, false);
+          protect(() => targetNodeChild[property]("beforebegin", getException()), abort, false);
+          protect(() => targetNodeChild[property]("afterend", getException()), abort, false);
+          if (subtree)
+          {
+            exceptionsCount = 6;
+            protect(() => targetNodeChild[property]("afterbegin", getException()), abort, false);
+          }
+          if (property === "insertAdjacentText")
+          {
+            assert.notStrictEqual(targetNodeParent.textContent.match(/\(exception\)/g), null, exceptionMessage);
+            assert.strictEqual(targetNodeParent.textContent.match(/\(exception\)/g).length, exceptionsCount, exceptionMessage);
+          }
+          else
+          { assert.strictEqual(queryExceptionNodes().length, exceptionsCount, exceptionMessage); }
+        }
+
+        // non-targeted nodes should not be frozen
+        notTargetedCount = 5;
+        protect(() => Element.prototype[property].call(targetNode, "beforebegin", getGood()), abort, false);
+        protect(() => targetNode[property]("beforebegin", getGood()), abort, false);
+        protect(() => targetNode[property]("afterend", getGood()), abort, false);
+        protect(() => targetNodeSibling[property]("afterbegin", getGood()), abort, false);
+        protect(() => targetNodeParent[property]("afterbegin", getGood()), abort, false);
+        if (!subtree)
+        {
+          notTargetedCount = 6;
+          protect(() => targetNodeChild[property]("afterbegin", getGood()), abort, false);
+        }
+        if (property === "insertAdjacentText")
+        {
+          assert.notStrictEqual(targetNodeParent.textContent.match(/\(good\)/g), null, nonTargetMessage);
+          assert.strictEqual(targetNodeParent.textContent.match(/\(good\)/g).length, notTargetedCount, nonTargetMessage);
+        }
+        else
+        { assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage); }
+
+        function getBad()
+        {
+          switch (property)
+          {
+            case "insertAdjacentElement":
+              return getBadNode();
+            case "insertAdjacentHTML":
+              return getBadNode().outerHTML;
+            case "insertAdjacentText":
+              return "(bad)";
+          }
+        }
+
+        function getException()
+        {
+          switch (property)
+          {
+            case "insertAdjacentElement":
+              return getExceptionNode();
+            case "insertAdjacentHTML":
+              return getExceptionNode().outerHTML;
+            case "insertAdjacentText":
+              return "(exception)";
+          }
+        }
+
+        function getGood()
+        {
+          switch (property)
+          {
+            case "insertAdjacentElement":
+              return getGoodNode();
+            case "insertAdjacentHTML":
+              return getGoodNode().outerHTML;
+            case "insertAdjacentText":
+              return "(good)";
+          }
+        }
+      }
+
+      function testInnerHTML()
+      {
+        let setter = Object.getOwnPropertyDescriptor(Element.prototype, property).set;
+
+        // targeted node should be frozen
+        protect(() => setter.call(targetNode, getBadNode().outerHTML), abort, true);
+        protect(() => targetNode[property] = getBadNode().outerHTML, abort, true);
+        if (subtree)
+          protect(() => targetNodeChild[property] = getBadNode().outerHTML, abort, true);
+        assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
+
+        // exception nodes should be allowed
+        if (exceptions)
+        {
+          if (subtree)
+          {
+            protect(() => targetNodeChild[property] = getExceptionNode().outerHTML, abort, false);
+            assert.strictEqual(queryExceptionNodes().length, 1, exceptionMessage);
+          }
+          protect(() => targetNode[property] = getExceptionNode().outerHTML, abort, false);
+          assert.strictEqual(queryExceptionNodes().length, 1, exceptionMessage);
+        }
+
+        // non-targeted nodes should not be frozen
+        protect(() => targetNodeSibling[property] = getGoodNode().outerHTML, abort, false);
+        assert.strictEqual(queryGoodNodes().length, 1, nonTargetMessage);
+      }
+
+      function testTextContent()
+      {
+        let setter;
+        switch (property)
+        {
+          case "textContent":
+            setter = Object.getOwnPropertyDescriptor(Node.prototype, property).set;
+            break;
+          case "innerText":
+            setter = Object.getOwnPropertyDescriptor(HTMLElement.prototype, property).set;
+            break;
+          default:
+            break;
+        }
+
+        // targeted node should be frozen
+        protect(() => setter.call(targetNode, "bad"), abort, true);
+        protect(() => targetNode[property] = "bad", abort, true);
+        if (subtree)
+          protect(() => targetNodeChild[property] = "bad", abort, true);
+        assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
+
+        // exception nodes should be allowed
+        if (exceptions)
+        {
+          if (subtree)
+          {
+            protect(() => targetNodeChild[property] = "(exception)", abort, false);
+            assert.strictEqual(targetNodeChild[property], "(exception)", exceptionMessage);
+          }
+          protect(() => targetNode[property] = "(exception)", abort, false);
+          assert.strictEqual(targetNode[property], "(exception)", exceptionMessage);
+        }
+
+        // non-targeted nodes should not be frozen
+        protect(() => targetNodeSibling[property] = "good", abort, false);
+        assert.strictEqual(targetNodeSibling[property], "good", nonTargetMessage);
+        protect(() => targetNodeParent[property] = "good", abort, false);
+        assert.strictEqual(targetNodeSibling[property], "good", nonTargetMessage);
+      }
+
+      function testNodeValue()
+      {
+        let setter = Object.getOwnPropertyDescriptor(Node.prototype, property).set;
+
+        // targeted node should be frozen
+        if (targetNode.nodeType === Node.TEXT_NODE)
+        {
+          protect(() => setter.call(targetNode, "bad"), abort, true);
+          protect(() => targetNode.nodeValue = "bad", abort, true);
+        }
+        let navItem = document.querySelectorAll(".nav-item")[0];
+        if (subtree)
+          protect(() => navItem.childNodes[0].nodeValue = "bad", abort, true);
+        assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
+
+        // exception nodes should be allowed
+        if (exceptions)
+        {
+          protect(() => targetNode.nodeValue = "(exception)", abort, false);
+          if (targetNode.nodeType === Node.TEXT_NODE)
+            assert.strictEqual(targetNode.nodeValue, "(exception)", exceptionMessage);
+          if (subtree)
+          {
+            protect(() => navItem.childNodes[0].nodeValue = "(exception)", abort, false);
+            assert.strictEqual(navItem.childNodes[0].nodeValue, "(exception)", exceptionMessage);
+          }
+        }
+
+        // non-targeted nodes should not be frozen
+        let articleTitle = document.querySelector("#article h2");
+        protect(() => articleTitle.childNodes[0].nodeValue = "good", abort, false);
+        assert.strictEqual(articleTitle.childNodes[0].nodeValue, "good", nonTargetMessage);
+      }
+    }
+
+    testProps("basic", false, false, false, "freeze-element #header");
+    testProps("subtree", true, false, false, "freeze-element #header subtree");
+    testProps("abort", false, true, false, "freeze-element #header abort");
+    testProps("exceptions", false, false, true, "freeze-element #header '' .exception-node /(exception)/");
+    testProps("subtree+abort", true, true, false, "freeze-element #header subtree+abort");
+    testProps("subtree+exceptions", true, false, true, "freeze-element #header subtree .exception-node /(exception)/");
+    testProps("abort+exceptions", false, true, true, "freeze-element #header abort .exception-node /(exception)/");
+    testProps("subtree+abort+exceptions", true, true, true, "freeze-element #header subtree+abort .exception-node /(exception)/");
+  });
 });
