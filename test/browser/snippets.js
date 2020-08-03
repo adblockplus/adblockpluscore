@@ -638,4 +638,109 @@ describe("Snippets", function()
     await runSnippetScript("hide-if-labelled-by 'Sponsored' '#hilb-target-inline [aria-labelledby]' '#hilb-target-inline'");
     expectHidden(target);
   });
+
+  function testPropertyOverride(property, value)
+  {
+    let result = false;
+    let path = property.split(".");
+    let actualValue;
+    let obj = window;
+
+    while (path.length > 1)
+      obj = obj[path.shift()];
+    actualValue = obj[path.shift()];
+
+    if (value === "undefined" && typeof actualValue === value)
+      result = true;
+    else if (value === "false" && actualValue === false)
+      result = true;
+    else if (value === "true" && actualValue === true)
+      result = true;
+    else if (value === "null" && actualValue === null)
+      result = true;
+    else if (value === "noopFunc" && actualValue == `${() => {}}`)
+      result = true;
+    else if (value === "trueFunc" && actualValue == `${() => true}`)
+      result = true;
+    else if (value === "falseFunc" && actualValue == `${() => false}`)
+      result = true;
+    else if (/^\d+$/.test(value) && actualValue == value)
+      result = true;
+    else if (value === "" && actualValue === "")
+      result = true;
+
+    assert.strictEqual(
+      result,
+      true,
+      `The property "${property}" doesn't have the right value: "${value}"`
+    );
+  }
+
+  it("override-property-read", async function()
+  {
+    window.overrideTest = "fortytwo";
+    await runSnippetScript("override-property-read overrideTest undefined");
+    testPropertyOverride("overrideTest", "undefined");
+
+    window.overrideTest2 = {prop1: "fortytwo"};
+    await runSnippetScript("override-property-read overrideTest2.prop1 false");
+    testPropertyOverride("overrideTest2.prop1", "false");
+
+    // Test that we try to catch a property that doesn't exist yet.
+    await runSnippetScript("override-property-read overrideTest3.prop1 true");
+    window.overrideTest3 = {prop1: "fortytwo"};
+    testPropertyOverride("overrideTest3.prop1", "true");
+
+    // Test overwriting the object with another object.
+    window.overrideTest4 = {prop3: {}};
+    await runSnippetScript("override-property-read overrideTest4.prop3.foo null");
+    testPropertyOverride("overrideTest4.prop3.foo", "null");
+    window.overrideTest4.prop3 = {};
+    testPropertyOverride("overrideTest4.prop3.foo", "null");
+
+    // Existing function (from the API).
+    await runSnippetScript("override-property-read Object.fromEntries noopFunc");
+    testPropertyOverride("Object.fromEntries", "noopFunc");
+
+    // Function properties.
+    window.overrideTest6 = function() {};
+    window.overrideTest6.prop1 = function() {};
+    await runSnippetScript("override-property-read overrideTest6.prop1 trueFunc");
+    testPropertyOverride("overrideTest6.prop1", "trueFunc");
+
+    // Function properties, with sub-property set afterwards.
+    window.overrideTest7 = function() {};
+    await runSnippetScript("override-property-read overrideTest7.prop1 falseFunc");
+    window.overrideTest7.prop1 = function() {};
+    testPropertyOverride("overrideTest7.prop1", "falseFunc");
+
+    // Function properties, with base property as function set afterwards.
+    await runSnippetScript("override-property-read overrideTest8.prop1 ''");
+    window.overrideTest8 = function() {};
+    window.overrideTest8.prop1 = function() {};
+    testPropertyOverride("overrideTest8.prop1", "");
+
+    // Arrow function properties.
+    window.overrideTest9 = () => {};
+    await runSnippetScript("override-property-read overrideTest9 0");
+    testPropertyOverride("overrideTest9", "0");
+
+    // Class function properties.
+    window.overrideTest10 = class {};
+    await runSnippetScript("override-property-read overrideTest10 1");
+    testPropertyOverride("overrideTest10", "1");
+
+    // Class function properties with prototype function properties.
+    window.overrideTest11 = class {};
+    window.overrideTest11.prototype.prop1 = function() {};
+    await runSnippetScript("override-property-read overrideTest11.prototype.prop1 2");
+    testPropertyOverride("overrideTest11.prototype.prop1", "2");
+
+    // Class function properties with prototype function properties, with
+    // prototype property set afterwards.
+    window.overrideTest12 = class {};
+    await runSnippetScript("override-property-read overrideTest12.prototype.prop1 3");
+    window.overrideTest12.prototype.prop1 = function() {};
+    testPropertyOverride("overrideTest12.prototype.prop1", "3");
+  });
 });
