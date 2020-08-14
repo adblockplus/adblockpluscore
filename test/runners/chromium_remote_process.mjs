@@ -66,7 +66,7 @@ function startChromium(chromiumPath)
     done: new Promise((resolve, reject) =>
     {
       child = childProcess.execFile(chromiumPath, [
-        "--headless", "--single-process", "--disable-gpu", "--no-sandbox",
+        "--headless", "--disable-gpu", "--no-sandbox",
         "--allow-file-access-from-files", "--remote-debugging-port=9222",
         "--user-data-dir=" + dataDir
       ], error =>
