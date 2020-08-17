@@ -89,12 +89,12 @@ describe("Matcher", function()
 
       assert.equal(result, expected, "combinedMatch(" + location + ", " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
 
-      // Generic whitelisting rules can match for specificOnly searches, so we
-      // can't easily know which rule will match for these whitelisting tests
+      // Generic allowing rules can match for specificOnly searches, so we
+      // can't easily know which rule will match for these allowlisting tests
       if (specificOnly)
         continue;
 
-      // For next run: add whitelisting filters for filters that aren't already
+      // For next run: add allowing filters for filters that aren't already
       filters = filters.map(text => text.substring(0, 2) == "@@" ? text : "@@" + text);
       if (expected && expected.substring(0, 2) != "@@")
         expected = "@@" + expected;
@@ -258,62 +258,62 @@ describe("Matcher", function()
 
     checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com",
                 null, false, "all",
-                {blocking: ["foo"], whitelist: ["@@foo"]});
+                {blocking: ["foo"], allowing: ["@@foo"]});
 
     // Blocking only.
     checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com",
                 null, false, "blocking", {blocking: ["foo"]});
 
-    // Whitelist only.
+    // Allowing only.
     checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com",
-                null, false, "whitelist", {whitelist: ["@@foo"]});
+                null, false, "allowing", {allowing: ["@@foo"]});
 
     // Different URLs.
     checkSearch(filters, "http://example.com/bar", "IMAGE", "example.com",
                 null, false, "all",
-                {blocking: ["bar$domain=example.com"], whitelist: []});
+                {blocking: ["bar$domain=example.com"], allowing: []});
     checkSearch(filters, "http://example.com/foo/bar", "IMAGE",
                 "example.com", null, false, "all", {
                   blocking: ["foo", "bar$domain=example.com"],
-                  whitelist: ["@@foo"]
+                  allowing: ["@@foo"]
                 });
 
     // Non-matching content type.
     checkSearch(filters, "http://example.com/foo", "CSP", "example.com",
-                null, false, "all", {blocking: [], whitelist: []});
+                null, false, "all", {blocking: [], allowing: []});
 
     // Non-matching specificity.
     checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com",
-                null, true, "all", {blocking: [], whitelist: ["@@foo"]});
+                null, true, "all", {blocking: [], allowing: ["@@foo"]});
   });
 
-  it("Whitelisted", function()
+  it("Allowlisted", function()
   {
     let matcher = new CombinedMatcher();
 
-    assert.ok(!matcher.isWhitelisted(parseURL("https://example.com/foo"),
+    assert.ok(!matcher.isAllowlisted(parseURL("https://example.com/foo"),
                                      contentTypes.IMAGE));
-    assert.ok(!matcher.isWhitelisted(parseURL("https://example.com/bar"),
+    assert.ok(!matcher.isAllowlisted(parseURL("https://example.com/bar"),
                                      contentTypes.IMAGE));
-    assert.ok(!matcher.isWhitelisted(parseURL("https://example.com/foo"),
+    assert.ok(!matcher.isAllowlisted(parseURL("https://example.com/foo"),
                                      contentTypes.SUBDOCUMENT));
 
     matcher.add(Filter.fromText("@@/foo^$image"));
 
-    assert.ok(matcher.isWhitelisted(parseURL("https://example.com/foo"),
+    assert.ok(matcher.isAllowlisted(parseURL("https://example.com/foo"),
                                     contentTypes.IMAGE));
-    assert.ok(!matcher.isWhitelisted(parseURL("https://example.com/bar"),
+    assert.ok(!matcher.isAllowlisted(parseURL("https://example.com/bar"),
                                      contentTypes.IMAGE));
-    assert.ok(!matcher.isWhitelisted(parseURL("https://example.com/foo"),
+    assert.ok(!matcher.isAllowlisted(parseURL("https://example.com/foo"),
                                      contentTypes.SUBDOCUMENT));
 
     matcher.remove(Filter.fromText("@@/foo^$image"));
 
-    assert.ok(!matcher.isWhitelisted(parseURL("https://example.com/foo"),
+    assert.ok(!matcher.isAllowlisted(parseURL("https://example.com/foo"),
                                      contentTypes.IMAGE));
-    assert.ok(!matcher.isWhitelisted(parseURL("https://example.com/bar"),
+    assert.ok(!matcher.isAllowlisted(parseURL("https://example.com/bar"),
                                      contentTypes.IMAGE));
-    assert.ok(!matcher.isWhitelisted(parseURL("https://example.com/foo"),
+    assert.ok(!matcher.isAllowlisted(parseURL("https://example.com/foo"),
                                      contentTypes.SUBDOCUMENT));
   });
 

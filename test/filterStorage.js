@@ -218,7 +218,7 @@ describe("Filter storage", function()
     subscription1.defaults = ["blocking"];
 
     let subscription2 = Subscription.fromURL("~exceptions");
-    subscription2.defaults = ["whitelist", "elemhide"];
+    subscription2.defaults = ["allowing", "elemhide"];
 
     let subscription3 = Subscription.fromURL("~other");
 
