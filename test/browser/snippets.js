@@ -597,6 +597,15 @@ describe("Snippets", function()
     expectHidden(target);
   });
 
+  it("hide-if-matches-xpath text", async function()
+  {
+    document.body.innerHTML = '<div id="xpath-text">out<p>in</p></div>';
+    let target = document.getElementById("xpath-text").firstChild;
+    assert.ok(target.textContent === "out");
+    await runSnippetScript("hide-if-matches-xpath //*[@id=\"xpath-text\"]/child::text()[contains(.,\"out\")]");
+    assert.ok(target.textContent === "");
+  });
+
   it("hide-if-labelled-by", async function()
   {
     document.body.innerHTML = `
