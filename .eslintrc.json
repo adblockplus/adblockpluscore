@@ -3,7 +3,7 @@
   "root": true,
   "rules": {
     "curly": ["error", "multi-or-nest", "consistent"],
-    "id-blacklist": [
+    "id-denylist": [
       "error",
       "blacklist", "blackList",
       "_blacklist", "_blackList",
