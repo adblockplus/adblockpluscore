@@ -24,6 +24,7 @@ async function executeScript(driver, name, script, scriptArgs)
                     return f(...arguments).then(() => callback());`;
   try
   {
+    await driver.manage().setTimeouts({script: 100000});
     await driver.executeAsyncScript(realScript, ...scriptArgs);
     let result = await driver.executeScript("return window._consoleLogs;");
 
