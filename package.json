@@ -1,7 +1,7 @@
 {
   "name": "adblockpluscore",
   "version": "0.1.0",
-  "repository": "https://hg.adblockplus.org/adblockpluscore",
+  "repository": "https://gitlab.com/eyeo/adblockplus/adblockpluscore.git",
   "license": "GPL-3.0-only",
   "engines": {
     "node": ">=10.12.0"
