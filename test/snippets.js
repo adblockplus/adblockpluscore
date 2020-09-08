@@ -272,6 +272,10 @@ describe("Snippets", function()
       }
 
       let {hasOwnProperty} = Object.prototype;
+
+      if (hasOwnProperty.call(imports, "prepareInjection"))
+        imports.prepareInjection();
+
       for (let script of scripts)
       {
         for (let [name, ...args] of script)
@@ -284,6 +288,9 @@ describe("Snippets", function()
           }
         }
       }
+
+      if (hasOwnProperty.call(imports, "commitInjection"))
+        imports.commitInjection();
     }
   `;
 
