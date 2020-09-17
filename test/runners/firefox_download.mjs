@@ -15,20 +15,18 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+import {exec} from "child_process";
+import fs from "fs";
+import path from "path";
+import {fileURLToPath} from "url";
 
-const {exec} = require("child_process");
-const fs = require("fs");
-const path = require("path");
+import ncp from "ncp";
 
-const {ncp} = require("ncp");
-
-const {download} = require("./download");
+import {download} from "./download.mjs";
 
 const {platform} = process;
 
-// macOS specific
-const dmg = platform == "darwin" ? require("dmg") : null;
+let dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function extractTar(archive, browserDir)
 {
@@ -50,36 +48,39 @@ function extractDmg(archive, browserDir)
 {
   return new Promise((resolve, reject) =>
   {
-    dmg.mount(archive, (err, mpath) =>
+    import("dmg").then(({default: dmg}) =>
     {
-      if (err)
+      dmg.mount(archive, (err, mpath) =>
       {
-        reject(err);
-      }
-      else
-      {
-        let files = fs.readdirSync(mpath);
-        let target = files.find(file => /\.app/.test(file));
-        let source = path.join(mpath, target);
-        fs.mkdirSync(browserDir);
-        ncp(source, path.join(browserDir, target), ncperr =>
+        if (err)
         {
-          dmg.unmount(mpath, dmgerr =>
+          reject(err);
+        }
+        else
+        {
+          let files = fs.readdirSync(mpath);
+          let target = files.find(file => /\.app/.test(file));
+          let source = path.join(mpath, target);
+          fs.mkdirSync(browserDir);
+          ncp(source, path.join(browserDir, target), ncperr =>
           {
-            if (dmgerr)
-              console.error(`Error unmounting DMG: ${dmgerr}`);
+            dmg.unmount(mpath, dmgerr =>
+            {
+              if (dmgerr)
+                console.error(`Error unmounting DMG: ${dmgerr}`);
+            });
+            if (ncperr)
+            {
+              console.error(`Error copying ${source} to ${browserDir}`);
+              reject(ncperr);
+            }
+            else
+            {
+              resolve();
+            }
           });
-          if (ncperr)
-          {
-            console.error(`Error copying ${source} to ${browserDir}`);
-            reject(ncperr);
-          }
-          else
-          {
-            resolve();
-          }
-        });
-      }
+        }
+      });
     });
   });
 }
@@ -133,7 +134,7 @@ function getFirefoxExecutable(browserDir)
   }
 }
 
-function ensureFirefox(firefoxVersion, unpack = true)
+export function ensureFirefox(firefoxVersion, unpack = true)
 {
   let targetPlatform = platform;
   if (platform == "win32")
@@ -153,7 +154,7 @@ function ensureFirefox(firefoxVersion, unpack = true)
 
   return Promise.resolve().then(() =>
   {
-    let snapshotsDir = path.join(__dirname, "..", "..", "firefox-snapshots");
+    let snapshotsDir = path.join(dirname, "..", "..", "firefox-snapshots");
     let browserDir = path.join(snapshotsDir,
                                 `firefox-${targetPlatform}-${firefoxVersion}`);
     if (fs.existsSync(browserDir))
@@ -189,5 +190,3 @@ function ensureFirefox(firefoxVersion, unpack = true)
       });
   });
 }
-
-module.exports.ensureFirefox = ensureFirefox;

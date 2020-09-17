@@ -15,16 +15,14 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+import childProcess from "child_process";
+import fs from "fs";
+import os from "os";
+import path from "path";
 
-const childProcess = require("child_process");
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
+import remoteInterface from "chrome-remote-interface";
 
-const remoteInterface = require("chrome-remote-interface");
-
-const {ensureChromium} = require("./chromium_download");
+import {ensureChromium} from "./chromium_download.mjs";
 
 // Chromium 60.0.3082.x
 const CHROMIUM_REVISION = 467222;
@@ -194,7 +192,7 @@ function runScript(script, scriptName, scriptArgs)
   });
 }
 
-module.exports = function(script, scriptName, ...scriptArgs)
+export default function(script, scriptName, ...scriptArgs)
 {
   return ensureChromium(CHROMIUM_REVISION).then(chromiumPath =>
   {
@@ -212,4 +210,4 @@ module.exports = function(script, scriptName, ...scriptArgs)
       throw error;
     });
   });
-};
+}

@@ -621,7 +621,7 @@ describe("filterEngine.has()", function()
     assert.strictEqual(filterEngine.has(Filter.fromText("||example.net^")), true);
   });
 
-  // Whitelist filters.
+  // Allowing filters.
   it("should return false for @@||example.com^", function()
   {
     assert.strictEqual(filterEngine.has(Filter.fromText("@@||example.com^")), false);
@@ -642,7 +642,7 @@ describe("filterEngine.has()", function()
     assert.strictEqual(filterEngine.has(Filter.fromText("@@||example.com^")), true);
   });
 
-  // Multiple whitelist filters.
+  // Multiple allowing filters.
   it("should return true for @@||example.com^ after @@||example.com^ and @@||example.net^ are added", function()
   {
     filterEngine.add(Filter.fromText("@@||example.com^"));
@@ -659,7 +659,7 @@ describe("filterEngine.has()", function()
     assert.strictEqual(filterEngine.has(Filter.fromText("@@||example.net^")), true);
   });
 
-  // Blocking and whitelist filters.
+  // Blocking and allowing filters.
   it("should return true for ||example.com^ after ||example.com^ and @@||example.net^ are added", function()
   {
     filterEngine.add(Filter.fromText("||example.com^"));
@@ -962,7 +962,7 @@ describe("filterEngine.has()", function()
     assert.strictEqual(filterEngine.has(Filter.fromText("||example.net^")), false);
   });
 
-  // Whitelist filters.
+  // Allowing filters.
   it("should return false for @@||example.com^ after @@||example.com^ is removed", function()
   {
     filterEngine.remove(Filter.fromText("@@||example.com^"));
@@ -987,7 +987,7 @@ describe("filterEngine.has()", function()
     assert.strictEqual(filterEngine.has(Filter.fromText("@@||example.com^")), false);
   });
 
-  // Multiple whitelist filters.
+  // Multiple allowing filters.
   it("should return false for @@||example.com^ after @@||example.com^ and @@||example.net^ are added and @@||example.com^ is removed", function()
   {
     filterEngine.add(Filter.fromText("@@||example.com^"));
@@ -1024,7 +1024,7 @@ describe("filterEngine.has()", function()
     assert.strictEqual(filterEngine.has(Filter.fromText("@@||example.net^")), false);
   });
 
-  // Blocking and whitelist filters.
+  // Blocking and allowing filters.
   it("should return false for ||example.com^ after ||example.com^ and @@||example.net^ are added and ||example.com^ is removed", function()
   {
     filterEngine.add(Filter.fromText("||example.com^"));
@@ -1489,7 +1489,7 @@ describe("filterEngine.has()", function()
     assert.strictEqual(filterEngine.has(Filter.fromText("||example.net^")), false);
   });
 
-  // Whitelist filters.
+  // Allowing filters.
   it("should return false for @@||example.com^ after all filters are cleared", function()
   {
     filterEngine.clear();
@@ -1514,7 +1514,7 @@ describe("filterEngine.has()", function()
     assert.strictEqual(filterEngine.has(Filter.fromText("@@||example.com^")), false);
   });
 
-  // Multiple whitelist filters.
+  // Multiple allowing filters.
   it("should return false for @@||example.com^ after @@||example.com^ and @@||example.net^ are added and all filters are cleared", function()
   {
     filterEngine.add(Filter.fromText("@@||example.com^"));
@@ -1533,7 +1533,7 @@ describe("filterEngine.has()", function()
     assert.strictEqual(filterEngine.has(Filter.fromText("@@||example.net^")), false);
   });
 
-  // Blocking and whitelist filters.
+  // Blocking and allowing filters.
   it("should return false for ||example.com^ after ||example.com^ and @@||example.net^ are added and all filters are cleared", function()
   {
     filterEngine.add(Filter.fromText("||example.com^"));

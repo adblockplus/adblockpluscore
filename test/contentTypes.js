@@ -24,7 +24,7 @@ const {createSandbox} = require("./_common");
 let contentTypes = null;
 let RESOURCE_TYPES = null;
 let SPECIAL_TYPES = null;
-let WHITELISTING_TYPES = null;
+let ALLOWING_TYPES = null;
 let enumerateTypes = null;
 
 function assertNumerical(n)
@@ -68,7 +68,7 @@ beforeEach(function()
 {
   let sandboxedRequire = createSandbox();
   (
-    {contentTypes, RESOURCE_TYPES, SPECIAL_TYPES, WHITELISTING_TYPES,
+    {contentTypes, RESOURCE_TYPES, SPECIAL_TYPES, ALLOWING_TYPES,
      enumerateTypes} = sandboxedRequire("../lib/contentTypes")
   );
 });
@@ -381,7 +381,7 @@ describe("contentTypes.CSP", function()
   });
 });
 
-// Whitelisting flags.
+// Allowlisting flags.
 describe("contentTypes.DOCUMENT", function()
 {
   it("should be numerical", function()
@@ -500,26 +500,26 @@ describe("SPECIAL_TYPES", function()
   });
 });
 
-describe("WHITELISTING_TYPES", function()
+describe("ALLOWING_TYPES", function()
 {
   it("should be numerical", function()
   {
-    assertNumerical(WHITELISTING_TYPES);
+    assertNumerical(ALLOWING_TYPES);
   });
 
   it("should be positive", function()
   {
-    assertPositive(WHITELISTING_TYPES);
+    assertPositive(ALLOWING_TYPES);
   });
 
   it("should be less than 2 ** 31", function()
   {
-    assertLessThanTwoPowThirtyOne(WHITELISTING_TYPES);
+    assertLessThanTwoPowThirtyOne(ALLOWING_TYPES);
   });
 
   it("should share all bits with SPECIAL_TYPES", function()
   {
-    assertAllBitsShared(WHITELISTING_TYPES, SPECIAL_TYPES);
+    assertAllBitsShared(ALLOWING_TYPES, SPECIAL_TYPES);
   });
 });
 

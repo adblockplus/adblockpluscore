@@ -168,6 +168,19 @@ describe("Filter storage read/write", function()
 
       assert.equal(filterStorage.fileProperties.version, filterStorage.formatVersion, "File format version");
 
+      // Testing for compatibility changes for
+      // https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/140
+      let found = false;
+      filterStorage._knownSubscriptions.forEach(sub =>
+      {
+        if (sub.url == "~user~12345")
+        {
+          found = true;
+          assert.deepEqual(sub.defaults, ["allowing"]);
+        }
+      });
+      assert.ok(found, "Allowlist subscription not found");
+
       let exported = Array.from(filterStorage.exportData());
       assert.deepEqual(canonize(exported), canonize(lines), "Import/export result");
     }

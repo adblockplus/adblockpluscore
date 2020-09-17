@@ -22,14 +22,44 @@
 
 "use strict";
 
-const {promisify} = require("util");
-
-const request = require("request");
+const https = require("https");
 
 const {filterEngine} = require("./lib/filterEngine");
 
 const EASY_LIST = "https://easylist-downloads.adblockplus.org/easylist.txt";
 const AA = "https://easylist-downloads.adblockplus.org/exceptionrules.txt";
+
+function sliceString(str)
+{
+  // Create a new string in V8 to free up the parent string.
+  return JSON.parse(JSON.stringify(str));
+}
+
+function download(url)
+{
+  return new Promise((resolve, reject) =>
+  {
+    let request = https.request(url);
+
+    request.on("error", reject);
+    request.on("response", response =>
+    {
+      let {statusCode} = response;
+      if (statusCode != 200)
+      {
+        reject(`Download failed for ${url} with status ${statusCode}`);
+        return;
+      }
+
+      let body = "";
+
+      response.on("data", data => body += data);
+      response.on("end", () => resolve(body));
+    });
+
+    request.end();
+  });
+}
 
 function toMiB(numBytes)
 {
@@ -44,6 +74,8 @@ function printMemory()
 
   console.log(`Heap (used): ${toMiB(heapUsed)} MiB`);
   console.log(`Heap (total): ${toMiB(heapTotal)} MiB`);
+
+  console.log();
 }
 
 async function main()
@@ -69,11 +101,8 @@ async function main()
     {
       console.debug(`Downloading ${list} ...`);
 
-      let {statusCode, body} = await promisify(request)(list);
-      if (statusCode != 200)
-        throw new Error(`Download failed for ${list}`);
-
-      filters = filters.concat(body.split(/\r?\n/));
+      let content = await download(list);
+      filters = filters.concat(content.split(/\r?\n/).map(sliceString));
     }
 
     console.debug();
@@ -89,11 +118,9 @@ async function main()
     console.timeEnd("Initialization");
     console.log();
 
-    filters = null;
-
-    printMemory();
-
-    console.log();
+    // Call printMemory() asynchronously so GC can clean up any objects from
+    // here.
+    setTimeout(printMemory, 1000);
   }
 }
 

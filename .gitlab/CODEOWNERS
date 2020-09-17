@@ -1,8 +1,8 @@
-* manish@adblockplus.org
+* h.figuiere@eyeo.com a.giammarchi@eyeo.com
 
 # Snippets
-/lib/content/snippets.js h.figuiere@eyeo.com
-/test/browser/snippets.js h.figuiere@eyeo.com
+/lib/content/snippets.js h.figuiere@eyeo.com a.giammarchi@eyeo.com
+/test/browser/snippets.js h.figuiere@eyeo.com a.giammarchi@eyeo.com
 
 # Automation
 /build/ sebastian@adblockplus.org tristan@adblockplus.org

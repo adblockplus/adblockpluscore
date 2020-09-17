@@ -15,14 +15,12 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+import webdriver from "selenium-webdriver";
+import chrome from "selenium-webdriver/chrome.js";
+import "chromedriver";
 
-const {Builder} = require("selenium-webdriver");
-const chrome = require("selenium-webdriver/chrome");
-require("chromedriver");
-
-const {executeScript} = require("./webdriver");
-const {ensureChromium} = require("./chromium_download");
+import {executeScript} from "./webdriver.mjs";
+import {ensureChromium} from "./chromium_download.mjs";
 
 // The Chromium version is a build number, quite obscure.
 // Chromium 63.0.3239.x is 508578
@@ -43,7 +41,7 @@ function runScript(chromiumPath, script, scriptArgs)
       process.env.BROWSER_TEST_HEADLESS != "0")
     options.headless();
 
-  const driver = new Builder()
+  const driver = new webdriver.Builder()
         .forBrowser("chrome")
         .setChromeOptions(options)
         .build();
@@ -51,8 +49,8 @@ function runScript(chromiumPath, script, scriptArgs)
   return executeScript(driver, "Chromium (WebDriver)", script, scriptArgs);
 }
 
-module.exports = function(script, scriptName, ...scriptArgs)
+export default function(script, scriptName, ...scriptArgs)
 {
   return ensureChromium(CHROMIUM_REVISION)
     .then(chromiumPath => runScript(chromiumPath, script, scriptArgs));
-};
+}

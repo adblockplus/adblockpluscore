@@ -35,7 +35,7 @@ describe("Filter listener", function()
   function checkKnownFilters(text, expected)
   {
     let result = {};
-    for (let type of ["blocking", "whitelist"])
+    for (let type of ["blocking", "allowing"])
     {
       let matcher = defaultMatcher["_" + type];
       let filters = [];
@@ -75,7 +75,7 @@ describe("Filter listener", function()
     for (let filter of snippets._filters)
       result.snippets.push(filter.text);
 
-    let types = ["blocking", "whitelist", "elemhide", "elemhideexception",
+    let types = ["blocking", "allowing", "elemhide", "elemhideexception",
                  "elemhideemulation", "snippets"];
     for (let type of types)
     {
@@ -136,7 +136,7 @@ describe("Filter listener", function()
 
     checkKnownFilters("All filters ready", {
       blocking: ["^foo^", "||example.com^", "^bar^"],
-      whitelist: ["@@$domain=example.com"],
+      allowing: ["@@$domain=example.com"],
       elemhide: ["##.foo", "example.com##.bar"],
       elemhideexception: ["example.com#@#.foo"],
       elemhideemulation: ["example.com#?#.foo:-abp-contains(Ad)"],
@@ -164,7 +164,7 @@ describe("Filter listener", function()
       filterStorage.addSubscription(Subscription.fromURL("~user~eh"));
 
       Subscription.fromURL("~user~fl").defaults = ["blocking"];
-      Subscription.fromURL("~user~wl").defaults = ["whitelist"];
+      Subscription.fromURL("~user~wl").defaults = ["allowing"];
       Subscription.fromURL("~user~eh").defaults = ["elemhide"];
     });
 
@@ -181,20 +181,20 @@ describe("Filter listener", function()
       filterStorage.addFilter(filter1);
       checkKnownFilters("add filter1", {blocking: [filter1.text]});
       filterStorage.addFilter(filter2);
-      checkKnownFilters("add @@filter2", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("add @@filter2", {blocking: [filter1.text], allowing: [filter2.text]});
       filterStorage.addFilter(filter3);
-      checkKnownFilters("add ##filter3", {blocking: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text]});
+      checkKnownFilters("add ##filter3", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
       filterStorage.addFilter(filter4);
-      checkKnownFilters("add !filter4", {blocking: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text]});
+      checkKnownFilters("add !filter4", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
       filterStorage.addFilter(filter5);
-      checkKnownFilters("add #@#filter5", {blocking: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text]});
+      checkKnownFilters("add #@#filter5", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text]});
       filterStorage.addFilter(filter6);
-      checkKnownFilters("add example.com##:-abp-properties(filter6)", {blocking: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], elemhideemulation: [filter6.text]});
+      checkKnownFilters("add example.com##:-abp-properties(filter6)", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], elemhideemulation: [filter6.text]});
       filterStorage.addFilter(filter7);
-      checkKnownFilters("add example.com#@#[-abp-properties='filter7']", {blocking: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+      checkKnownFilters("add example.com#@#[-abp-properties='filter7']", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
       filterStorage.removeFilter(filter1);
-      checkKnownFilters("remove filter1", {whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+      checkKnownFilters("remove filter1", {allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
       filter2.disabled = true;
       checkKnownFilters("disable filter2", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
       filterStorage.removeFilter(filter2);
@@ -267,10 +267,10 @@ describe("Filter listener", function()
       checkKnownFilters("add subscription with filter1, @@filter2, ##filter3, !filter4, #@#filter5, example.com#?#:-abp-properties(filter6), example.com#@#[-abp-properties='filter7']", {blocking: [filter1.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
       filter2.disabled = false;
-      checkKnownFilters("enable @@filter2", {blocking: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+      checkKnownFilters("enable @@filter2", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
       filterStorage.addFilter(filter1);
-      checkKnownFilters("add filter1", {blocking: [filter1.text], whitelist: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+      checkKnownFilters("add filter1", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
       filterStorage.updateSubscriptionFilters(subscription, [filter4.text]);
       checkKnownFilters("change subscription filters to filter4", {blocking: [filter1.text]});
@@ -279,18 +279,18 @@ describe("Filter listener", function()
       checkKnownFilters("remove filter1", {});
 
       filterStorage.updateSubscriptionFilters(subscription, [filter1.text, filter2.text]);
-      checkKnownFilters("change subscription filters to filter1, filter2", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("change subscription filters to filter1, filter2", {blocking: [filter1.text], allowing: [filter2.text]});
 
       filter1.disabled = true;
-      checkKnownFilters("disable filter1", {whitelist: [filter2.text]});
+      checkKnownFilters("disable filter1", {allowing: [filter2.text]});
       filter2.disabled = true;
       checkKnownFilters("disable filter2", {});
       filter1.disabled = false;
       filter2.disabled = false;
-      checkKnownFilters("enable filter1, filter2", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("enable filter1, filter2", {blocking: [filter1.text], allowing: [filter2.text]});
 
       filterStorage.addFilter(filter1);
-      checkKnownFilters("add filter1", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("add filter1", {blocking: [filter1.text], allowing: [filter2.text]});
 
       subscription.disabled = true;
       checkKnownFilters("disable subscription", {blocking: [filter1.text]});
@@ -302,19 +302,19 @@ describe("Filter listener", function()
       checkKnownFilters("add subscription", {blocking: [filter1.text]});
 
       subscription.disabled = false;
-      checkKnownFilters("enable subscription", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("enable subscription", {blocking: [filter1.text], allowing: [filter2.text]});
 
       subscription.disabled = true;
       checkKnownFilters("disable subscription", {blocking: [filter1.text]});
 
       filterStorage.addFilter(filter2);
-      checkKnownFilters("add filter2", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("add filter2", {blocking: [filter1.text], allowing: [filter2.text]});
 
       filterStorage.removeFilter(filter2);
       checkKnownFilters("remove filter2", {blocking: [filter1.text]});
 
       subscription.disabled = false;
-      checkKnownFilters("enable subscription", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("enable subscription", {blocking: [filter1.text], allowing: [filter2.text]});
 
       filterStorage.removeSubscription(subscription);
       checkKnownFilters("remove subscription", {blocking: [filter1.text]});
@@ -334,11 +334,11 @@ describe("Filter listener", function()
 
       filterStorage.addSubscription(subscription);
       filterStorage.addFilter(filter1);
-      checkKnownFilters("initial setup", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("initial setup", {blocking: [filter1.text], allowing: [filter2.text]});
 
       let subscription2 = Subscription.fromURL("~user~fl");
       subscription2.disabled = true;
-      checkKnownFilters("disable blocking filters", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("disable blocking filters", {blocking: [filter1.text], allowing: [filter2.text]});
 
       filterStorage.removeSubscription(subscription);
       checkKnownFilters("remove subscription", {});
@@ -351,38 +351,38 @@ describe("Filter listener", function()
       checkKnownFilters("disable exception rules", {blocking: [filter1.text]});
 
       filterStorage.addFilter(filter2);
-      checkKnownFilters("add @@filter2", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("add @@filter2", {blocking: [filter1.text], allowing: [filter2.text]});
       assert.equal([...filterStorage.subscriptions(filter2.text)].length, 1, "@@filter2 subscription count");
       assert.ok([...filterStorage.subscriptions(filter2.text)][0] instanceof SpecialSubscription, "@@filter2 added to a new filter group");
       assert.ok([...filterStorage.subscriptions(filter2.text)][0] != subscription3, "@@filter2 filter group is not the disabled exceptions group");
 
       subscription3.disabled = false;
-      checkKnownFilters("enable exception rules", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("enable exception rules", {blocking: [filter1.text], allowing: [filter2.text]});
 
       filterStorage.removeFilter(filter2);
       filterStorage.addFilter(filter2);
-      checkKnownFilters("re-add @@filter2", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("re-add @@filter2", {blocking: [filter1.text], allowing: [filter2.text]});
       assert.equal([...filterStorage.subscriptions(filter2.text)].length, 1, "@@filter2 subscription count");
       assert.ok([...filterStorage.subscriptions(filter2.text)][0] == subscription3, "@@filter2 added to the default exceptions group");
 
       let subscription4 = Subscription.fromURL("https://test/");
       filterStorage.updateSubscriptionFilters(subscription4, [filter3.text, filter4.text, filter5.text]);
-      checkKnownFilters("update subscription not in the list yet", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("update subscription not in the list yet", {blocking: [filter1.text], allowing: [filter2.text]});
 
       filterStorage.addSubscription(subscription4);
-      checkKnownFilters("add subscription to the list", {blocking: [filter1.text, filter3.text], whitelist: [filter2.text, filter4.text]});
+      checkKnownFilters("add subscription to the list", {blocking: [filter1.text, filter3.text], allowing: [filter2.text, filter4.text]});
 
       filterStorage.updateSubscriptionFilters(subscription4, [filter3.text, filter2.text, filter5.text]);
-      checkKnownFilters("update subscription while in the list", {blocking: [filter1.text, filter3.text], whitelist: [filter2.text]});
+      checkKnownFilters("update subscription while in the list", {blocking: [filter1.text, filter3.text], allowing: [filter2.text]});
 
       subscription3.disabled = true;
-      checkKnownFilters("disable exception rules", {blocking: [filter1.text, filter3.text], whitelist: [filter2.text]});
+      checkKnownFilters("disable exception rules", {blocking: [filter1.text, filter3.text], allowing: [filter2.text]});
 
       filterStorage.removeSubscription(subscription4);
       checkKnownFilters("remove subscription from the list", {blocking: [filter1.text]});
 
       subscription3.disabled = false;
-      checkKnownFilters("enable exception rules", {blocking: [filter1.text], whitelist: [filter2.text]});
+      checkKnownFilters("enable exception rules", {blocking: [filter1.text], allowing: [filter2.text]});
     });
 
     it("Snippet filters", function()

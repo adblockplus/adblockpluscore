@@ -51,8 +51,8 @@ tests:
   cache:
     key: global-cache
     paths:
-      - chromium-snapshots
-      - firefox-snapshots
+      - chromium-snapshots/download-cache/
+      - firefox-snapshots/download-cache/
 
 docs:
   extends: .default_template

@@ -62,6 +62,19 @@ describe("Notifications", function()
     return shownNotifications;
   }
 
+  function showImmediateNotification(notification, options)
+  {
+    let shownNotifications = [];
+    function showListener(shownNotification)
+    {
+      shownNotifications.push(shownNotification);
+    }
+    notifications.addShowListener(showListener);
+    notifications.showNotification(notification, options);
+    notifications.removeShowListener(showListener);
+    return shownNotifications;
+  }
+
   function* pairs(array)
   {
     for (let element1 of array)
@@ -802,6 +815,13 @@ describe("Notifications", function()
     };
 
     notifications.toggleIgnoreCategory("*", true);
+    assert.deepEqual(showImmediateNotification(information, {ignorable: false}), [information], "Non-ignorable notifications are shown");
+    assert.deepEqual(showImmediateNotification(information, {ignorable: true}), [], "Ignorable notifications after ignored after enabling global opt-out");
+    notifications.toggleIgnoreCategory("*", false);
+    assert.deepEqual(showImmediateNotification(information, {ignorable: true}), [information], "Ignorable notifications are shown after disabling global opt-out");
+    assert.deepEqual(showImmediateNotification(information, {ignorable: false}), [information], "Non-ignorable notifications are shown after disabling global opt-out");
+
+    notifications.toggleIgnoreCategory("*", true);
     registerHandler.call(runner, [information]);
     return runner.runScheduledTasks(1).then(() =>
     {
@@ -810,6 +830,50 @@ describe("Notifications", function()
       assert.deepEqual(showNotifications(), [information], "Information notifications are shown after disabling global opt-out");
 
       notifications.toggleIgnoreCategory("*", true);
+      Prefs.notificationdata = {};
+      registerHandler.call(runner, [critical]);
+      return runner.runScheduledTasks(1);
+    }).then(() =>
+    {
+      assert.deepEqual(showNotifications(), [critical], "Critical notifications are not ignored");
+
+      Prefs.notificationdata = {};
+      registerHandler.call(this, [relentless]);
+      return runner.runScheduledTasks(1);
+    }).then(() =>
+    {
+      assert.deepEqual(showNotifications(), [relentless], "Relentless notifications are not ignored");
+    }).catch(unexpectedError.bind(assert));
+  });
+
+  it("Global ignore", function()
+  {
+    let information = {
+      id: 1,
+      type: "information"
+    };
+    let critical = {
+      id: 2,
+      type: "critical"
+    };
+    let relentless = {
+      id: 3,
+      type: "relentless"
+    };
+
+    notifications.ignored = true;
+    assert.deepEqual(showImmediateNotification(information, {ignorable: true}), [], "Ignorable notifications after ignored when ignored flag is set");
+    assert.deepEqual(showImmediateNotification(information, {ignorable: false}), [information], "Non-ignorable notifications are shown when ignored flag is set");
+    notifications.ignored = false;
+    assert.deepEqual(showImmediateNotification(information, {ignorable: true}), [information], "Ignorable notifications are shown");
+    assert.deepEqual(showImmediateNotification(information, {ignorable: false}), [information], "Non-ignorable notifications are shown");
+
+    notifications.ignored = true;
+    registerHandler.call(runner, [information]);
+    return runner.runScheduledTasks(1).then(() =>
+    {
+      assert.deepEqual(showNotifications(), [], "Information notifications are ignored when ignored flag is set");
+
       Prefs.notificationdata = {};
       registerHandler.call(runner, [critical]);
       return runner.runScheduledTasks(1);

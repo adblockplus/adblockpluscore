@@ -15,9 +15,7 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
-
-async function executeScript(driver, name, script, scriptArgs)
+export async function executeScript(driver, name, script, scriptArgs)
 {
   let realScript = `let f = ${script}
                     let callback = arguments[arguments.length - 1];
@@ -40,5 +38,3 @@ async function executeScript(driver, name, script, scriptArgs)
     await driver.quit();
   }
 }
-
-module.exports.executeScript = executeScript;
