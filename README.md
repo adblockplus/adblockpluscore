@@ -5,6 +5,37 @@ This repository contains the generic Adblock Plus code that's shared between
 platforms. This repository is __not designed to be used directly__, but instead
 to serve as a dependency for `adblockpluschrome` and `libadblockplus`.
 
+Resources
+---------
+
+One of the feature of Adblock Plus is to allow redirecting requests to
+inactive versions of a resource (script, image, or media).
+
+To that effect we have some resources generated as data built into
+Adblock Plus.
+
+As there is no "build" for adblockplsucore, if you want to modify
+these resources, you'll need to regenerate the file
+`data/resources.json`.
+
+Adding the new resource for `$redirect`:
+
+* Edit `build/assets/index.json`. The fields are defined as follow:
+  * `name`: The name of the resource as used for the `$rewrite` filter option.
+  * `type`: The MIME type of the content.
+  * `text`: If the resource is pure text, you can use this for the text
+    content. If the resource is binary data, use `file` instead.
+  * `file`: The name of the file in `build/assets/` that will be included
+    in the output as base64. If there is a `text` value, don't include this.
+  * `comment`: an optional comment. This won't be part of the output.
+* Add the binary files referenced in the `file` entry for the new resource in
+  `build/assets/`. They should be checked into the repository.
+* Run the `resources` package script using npm with the command
+  `npm run uppdate-resources`. This will generate the file
+  `data/resources.json`. This file is also managed by the version control
+  system and should be part of the checkin.
+
+
 Running the unit tests
 ----------------------
 

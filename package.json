@@ -44,6 +44,7 @@
     "unit-tests": "c8 --include=lib/*.js --exclude=lib/index.js --exclude=lib/jsbn.js --exclude=lib/rusha.js --all mocha --check-leaks",
     "test": "node test_runner.mjs",
     "posttest": "npm run lint",
+    "update-resources": "node build/updateResources.js",
     "updatepsl": "node build/updatepsl.js",
     "update-subscriptions": "node build/updateSubscriptions.js"
   },
