@@ -678,6 +678,17 @@ describe("Synchronizer", function()
         assert.equal(subscription.title, "foobar", "make sure title was found");
       }).catch(error => unexpectedError.call(assert, error));
     });
+
+    it("Stop scheduled checks", function()
+    {
+      // cast synchronizer._downloader._timeout to avoid trusting
+      // a static value that could be different per env
+      assert.strictEqual(synchronizer._started, true, "Synchronizer started");
+      assert.strictEqual(!!synchronizer._downloader._timeout, true, "Downloader scheduled");
+      synchronizer.stop();
+      assert.strictEqual(synchronizer._started, false, "Synchronizer stopped");
+      assert.strictEqual(!!synchronizer._downloader._timeout, false, "Downloader unscheduled");
+    });
   });
 
   it("Adds subscription without starting", function()

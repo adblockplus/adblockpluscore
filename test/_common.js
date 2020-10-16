@@ -130,6 +130,14 @@ exports.setupTimerAndFetch = function()
       this.callback = callback;
       this.delay = delay;
       this.nextExecution = currentTime + delay;
+      return 1;
+    },
+
+    clearTimeout()
+    {
+      this.callback = null;
+      this.delay = -1;
+      this.nextExecution = 0;
     },
 
     trigger()
@@ -254,6 +262,7 @@ exports.setupTimerAndFetch = function()
 
   return {
     setTimeout: fakeTimer.setTimeout.bind(fakeTimer),
+    clearTimeout: fakeTimer.clearTimeout.bind(fakeTimer),
     fetch,
     Date: Object.assign(
       function(...args) // eslint-disable-line prefer-arrow-callback
