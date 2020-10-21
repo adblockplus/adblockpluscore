@@ -11,7 +11,7 @@ Running the unit tests
 ### Requirements
 
 In order to run the unit test suite you need
-[Node.js 10.12.0 or higher](https://nodejs.org/). Once Node.js is installed
+[Node.js 12.17.0 or higher](https://nodejs.org/). Once Node.js is installed
 please run `npm install` in the repository directory in order to install the
 required dependencies.
 

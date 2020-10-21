@@ -4,7 +4,7 @@
   "repository": "https://gitlab.com/eyeo/adblockplus/adblockpluscore.git",
   "license": "GPL-3.0-only",
   "engines": {
-    "node": ">=10.12.0"
+    "node": ">=12.17.0"
   },
   "dependencies": {},
   "devDependencies": {
@@ -42,7 +42,7 @@
     "docs": "npm run snippet-filter-tutorial && npm run jsdoc",
     "lint": "eslint *.js *.mjs lib test build",
     "unit-tests": "c8 --include=lib/*.js --exclude=lib/index.js --exclude=lib/jsbn.js --exclude=lib/rusha.js --all mocha --check-leaks",
-    "test": "node --experimental-modules test_runner.mjs",
+    "test": "node test_runner.mjs",
     "posttest": "npm run lint",
     "updatepsl": "node build/updatepsl.js",
     "update-subscriptions": "node build/updateSubscriptions.js"
