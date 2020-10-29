@@ -216,6 +216,12 @@ describe("Filter storage read/write", function()
       Prefs.patternsbackups = 2;
       Prefs.patternsbackupinterval = 24;
 
+      let setModifiedTime = (backupFile, lastModified) =>
+      {
+        IO._setModifiedTime(backupFile, lastModified);
+        filterStorage._stats.get(backupFile).lastModified = lastModified;
+      };
+
       let backupFile = filterStorage.getBackupName(1);
       let backupFile2 = filterStorage.getBackupName(2);
       let backupFile3 = filterStorage.getBackupName(3);
@@ -232,26 +238,26 @@ describe("Filter storage read/write", function()
         assert.ok(IO._getFileContents(backupFile), "First backup created");
 
         oldModifiedTime = IO._getModifiedTime(backupFile) - 10000;
-        IO._setModifiedTime(backupFile, oldModifiedTime);
+        setModifiedTime(backupFile, oldModifiedTime);
         await filterStorage.saveToDisk();
 
         assert.equal(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup not overwritten if it is only 10 seconds old");
 
         oldModifiedTime -= 40 * 60 * 60 * 1000;
-        IO._setModifiedTime(backupFile, oldModifiedTime);
+        setModifiedTime(backupFile, oldModifiedTime);
         await filterStorage.saveToDisk();
 
         assert.notEqual(IO._getModifiedTime(backupFile), oldModifiedTime, "Backup overwritten if it is 40 hours old");
 
         assert.ok(IO._getFileContents(backupFile2), "Second backup created when first backup is overwritten");
 
-        IO._setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 20000);
+        setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 20000);
         oldModifiedTime = IO._getModifiedTime(backupFile2);
         await filterStorage.saveToDisk();
 
         assert.equal(IO._getModifiedTime(backupFile2), oldModifiedTime, "Second backup not overwritten if first one is only 20 seconds old");
 
-        IO._setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 25 * 60 * 60 * 1000);
+        setModifiedTime(backupFile, IO._getModifiedTime(backupFile) - 25 * 60 * 60 * 1000);
         oldModifiedTime = IO._getModifiedTime(backupFile2);
         await filterStorage.saveToDisk();
 
