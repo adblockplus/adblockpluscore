@@ -26,7 +26,7 @@
     "memory-fs": "0.4.1",
     "mocha": "^7.1.1",
     "ncp": "2.0.0",
-    "sandboxed-module": "2.0.3",
+    "sandboxed-module": "2.0.4",
     "script-loader": "0.7.0",
     "selenium-webdriver": "^4.0.0-alpha",
     "untar-memory": "^1.2.0",
