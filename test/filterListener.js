@@ -32,6 +32,15 @@ let recommendations = null;
 
 describe("Filter listener", function()
 {
+  // {module:matcher.findKeyword()} will not do what you expect.
+  // This function will get the keyword for a filter using the
+  // internal data.
+  // This is not an API to be used.
+  function keywordForFilter(filter, matcher)
+  {
+    return matcher._keywordByFilter.get(filter);
+  }
+
   function checkKnownFilters(text, expected)
   {
     let result = {};
@@ -46,7 +55,7 @@ describe("Filter listener", function()
         {
           for (let filter of set)
           {
-            assert.equal(matcher.findKeyword(filter), keyword,
+            assert.equal(keywordForFilter(filter, matcher), keyword,
                          "Keyword of filter " + filter.text);
             filters.push(filter.text);
           }
@@ -177,6 +186,7 @@ describe("Filter listener", function()
       let filter5 = Filter.fromText("#@#filter5");
       let filter6 = Filter.fromText("example.com#?#:-abp-properties(filter6')");
       let filter7 = Filter.fromText("example.com#@#[-abp-properties='filter7']");
+      let filter8 = Filter.fromText("||example.com/ad.js");
 
       filterStorage.addFilter(filter1);
       checkKnownFilters("add filter1", {blocking: [filter1.text]});
@@ -192,6 +202,11 @@ describe("Filter listener", function()
       checkKnownFilters("add example.com##:-abp-properties(filter6)", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], elemhideemulation: [filter6.text]});
       filterStorage.addFilter(filter7);
       checkKnownFilters("add example.com#@#[-abp-properties='filter7']", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+      filterStorage.addFilter(filter8);
+      checkKnownFilters("add ||example.com/ad.js", {blocking: [filter1.text, filter8.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+
+      filterStorage.removeFilter(filter8);
+      checkKnownFilters("remove filter8", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
       filterStorage.removeFilter(filter1);
       checkKnownFilters("remove filter1", {allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
