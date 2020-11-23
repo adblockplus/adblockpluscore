@@ -150,6 +150,7 @@ describe("Matcher", function()
     compareKeywords("+asdf-1234=", ["asdf", "1234"]);
     compareKeywords("/123^ad2&ad&", ["123", "ad2"]);
     compareKeywords("/123^ad2&ad$script,domain=example.com", ["123", "ad2"]);
+    compareKeywords("||example.com/ad.js$header=content-type=image/png", ["example", "ad"]);
   });
 
   it("Filter matching", function()
@@ -239,6 +240,12 @@ describe("Matcher", function()
     checkMatch(["||foo.com^$csp=script-src 'none'"], "http://foo.com/bar", "CSP", "foo.com", null, false, "||foo.com^$csp=script-src 'none'");
     checkMatch(["@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", null, false, null, "@@||foo.com^$csp");
     checkMatch(["||foo.com^$csp=script-src 'none'", "@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", null, false, "@@||foo.com^$csp", "||foo.com^$csp=script-src 'none'");
+
+    checkMatch(["||example.com/ad.js$header=content-type:.*image/png"], "http://example.com/ad.js", "HEADER", "example.com", null, false, "||example.com/ad.js$header=content-type:.*image/png");
+    checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", "HEADER", "bar.com", null, true, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
+    checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", "HEADER", "bar.com", null, false, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
+    checkMatch(["@@||example.com/assets/*.js$header"], "http://example.com/assets/logo.js", "HEADER", "example.com", null, false, null, "@@||example.com/assets/*.js$header");
+    checkMatch(["||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com", "@@||example.com/assets/logo.js$header"], "http://example.com/assets/logo.js", "HEADER", "bar.com", null, false, "@@||example.com/assets/logo.js$header", "||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com");
 
     // See #7312.
     checkMatch(["^foo/bar/$script"], "http://foo/bar/", "SCRIPT", "example.com", null, true, null);

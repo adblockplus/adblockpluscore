@@ -381,6 +381,24 @@ describe("contentTypes.CSP", function()
   });
 });
 
+describe("contentTypes.HEADER", function()
+{
+  it("should be numerical", function()
+  {
+    assertNumerical(contentTypes.HEADER);
+  });
+
+  it("should be a positive non-fractional power of 2", function()
+  {
+    assertPositivePowerOfTwo(contentTypes.HEADER);
+  });
+
+  it("should be less than or equal to 2 ** 30", function()
+  {
+    assertLessThanEqualTwoPowThirty(contentTypes.HEADER);
+  });
+});
+
 // Allowlisting flags.
 describe("contentTypes.DOCUMENT", function()
 {

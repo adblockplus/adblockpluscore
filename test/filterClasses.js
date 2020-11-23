@@ -90,6 +90,7 @@ describe("Filter classes", function()
         result.push("sitekeys=" + sitekeys.slice().sort().join("|"));
 
         result.push("thirdParty=" + filter.thirdParty);
+        result.push("header=" + filter.header);
         if (filter instanceof BlockingFilter)
         {
           result.push("csp=" + filter.csp);
@@ -153,6 +154,7 @@ describe("Filter classes", function()
       addProperty("thirdParty", "null");
       addProperty("domains", "");
       addProperty("sitekeys", "");
+      addProperty("header", "null");
     }
     if (type == "blocking")
     {
@@ -291,18 +293,18 @@ describe("Filter classes", function()
     compareFilter("|*asd|f*d**dd*|", ["type=blocking", "text=|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$"]);
     compareFilter("dd[]{}$%<>&()*d", ["type=blocking", "text=dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d"]);
 
-    compareFilter("@@/ddd|f?a[s]d/", ["type=allowing", "text=@@/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d", "contentType=" + RESOURCE_TYPES]);
-    compareFilter("@@*asdf*d**dd*", ["type=allowing", "text=@@*asdf*d**dd*", "regexp=asdf.*d.*dd", "contentType=" + RESOURCE_TYPES]);
-    compareFilter("@@|*asd|f*d**dd*|", ["type=allowing", "text=@@|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$", "contentType=" + RESOURCE_TYPES]);
-    compareFilter("@@dd[]{}$%<>&()*d", ["type=allowing", "text=@@dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d", "contentType=" + RESOURCE_TYPES]);
+    compareFilter("@@/ddd|f?a[s]d/", ["type=allowing", "text=@@/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d", "contentType=" + RESOURCE_TYPES, "header=null"]);
+    compareFilter("@@*asdf*d**dd*", ["type=allowing", "text=@@*asdf*d**dd*", "regexp=asdf.*d.*dd", "contentType=" + RESOURCE_TYPES, "header=null"]);
+    compareFilter("@@|*asd|f*d**dd*|", ["type=allowing", "text=@@|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$", "contentType=" + RESOURCE_TYPES, "header=null"]);
+    compareFilter("@@dd[]{}$%<>&()*d", ["type=allowing", "text=@@dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d", "contentType=" + RESOURCE_TYPES, "header=null"]);
   });
 
   it("Filter options", function()
   {
     compareFilter("bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", ["type=blocking", "text=bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foo", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER | contentTypes.CSP), "thirdParty=true", "domains=foo.com", "sitekeys=FOO", "csp=first csp"]);
     compareFilter("bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=blocking", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER)), "thirdParty=false", "domains=~bar.com"]);
-    compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=allowing", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER | contentTypes.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
-    compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=allowing", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO"]);
+    compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=allowing", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER | contentTypes.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO", "header=null"]);
+    compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", ["type=allowing", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bar.foo.com|~foo.bar.com,sitekey=foo|bar", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=BAR|FOO", "header=null"]);
 
     compareFilter("||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=blocking", "text=||example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (RESOURCE_TYPES), "domains=bar.com|foo.com"]);
     compareFilter("*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", ["type=blocking", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,domain=foo.com|bar.com", "regexp=null", "matchCase=false", "rewrite=noopjs", "contentType=" + (RESOURCE_TYPES), "domains=bar.com|foo.com"]);
@@ -310,21 +312,35 @@ describe("Filter classes", function()
     compareFilter("||content.server.com/files/*.php$rewrite=$1", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite=$1"]);
     compareFilter("||content.server.com/files/*.php$rewrite=", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite="]);
 
+    // header blocking
+    compareFilter("||example.com/ad.js$header=content-type=image/png", ["type=blocking", "text=||example.com/ad.js$header=content-type=image/png", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=image/png"]);
+    compareFilter("||example.com/ad.js$header=x-brick=Everything\\x2c is awesome!", ["type=blocking", "text=||example.com/ad.js$header=x-brick=Everything\\x2c is awesome!", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=x-brick=Everything, is awesome!"]);
+    compareFilter("@@||example.com/ad.js$header=content-type=image/png", ["type=allowing", "text=@@||example.com/ad.js$header=content-type=image/png", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=image/png"]);
+    compareFilter("@@||example.com/ad.js$header", ["type=allowing", "text=@@||example.com/ad.js$header", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=null"]);
+    compareFilter("@@||example.com/ad.js$header=", ["type=allowing", "text=@@||example.com/ad.js$header=", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=null"]);
+    compareFilter("||example.com/ad.js$header", ["type=invalid", "reason=filter_invalid_header", "text=||example.com/ad.js$header"]);
+    compareFilter("||example.com/ad.js$header==value", ["type=invalid", "reason=filter_invalid_header", "text=||example.com/ad.js$header==value"]);
+    compareFilter("||example.com/ad.js$header=x-my-id=/[0-9]/", ["type=invalid", "reason=filter_invalid_header", "text=||example.com/ad.js$header=x-my-id=/[0-9]/"]);
+
+    compareFilter("||example.com/ad.js$header=content-type:.*image/[a-z]{1\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type:.*image/[a-z]{1\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type:.*image/[a-z]{1,3}"]);
+    compareFilter("||example.com/ad.js$header=content-type:.*image/[a-z]{1\\\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type:.*image/[a-z]{1\\\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type:.*image/[a-z]{1\\\\x2c3}"]);
+
+
     // background and image should be the same for backwards compatibility
     compareFilter("bla$image", ["type=blocking", "text=bla$image", "contentType=" + (contentTypes.IMAGE)]);
     compareFilter("bla$background", ["type=blocking", "text=bla$background", "contentType=" + (contentTypes.IMAGE)]);
     compareFilter("bla$~image", ["type=blocking", "text=bla$~image", "contentType=" + (RESOURCE_TYPES & ~contentTypes.IMAGE)]);
     compareFilter("bla$~background", ["type=blocking", "text=bla$~background", "contentType=" + (RESOURCE_TYPES & ~contentTypes.IMAGE)]);
 
-    compareFilter("@@bla$~script,~other", ["type=allowing", "text=@@bla$~script,~other", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
+    compareFilter("@@bla$~script,~other", ["type=allowing", "text=@@bla$~script,~other", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER)), "header=null"]);
     compareFilter("@@http://bla$~script,~other", ["type=allowing", "text=@@http://bla$~script,~other", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
-    compareFilter("@@ftp://bla$~script,~other", ["type=allowing", "text=@@ftp://bla$~script,~other", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
+    compareFilter("@@ftp://bla$~script,~other", ["type=allowing", "text=@@ftp://bla$~script,~other", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER)), "header=null"]);
     compareFilter("@@bla$~script,~other,document", ["type=allowing", "text=@@bla$~script,~other,document", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER) | contentTypes.DOCUMENT)]);
-    compareFilter("@@bla$~script,~other,~document", ["type=allowing", "text=@@bla$~script,~other,~document", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
-    compareFilter("@@bla$document", ["type=allowing", "text=@@bla$document", "contentType=" + contentTypes.DOCUMENT]);
-    compareFilter("@@bla$~script,~other,elemhide", ["type=allowing", "text=@@bla$~script,~other,elemhide", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER) | contentTypes.ELEMHIDE)]);
-    compareFilter("@@bla$~script,~other,~elemhide", ["type=allowing", "text=@@bla$~script,~other,~elemhide", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER))]);
-    compareFilter("@@bla$elemhide", ["type=allowing", "text=@@bla$elemhide", "contentType=" + contentTypes.ELEMHIDE]);
+    compareFilter("@@bla$~script,~other,~document", ["type=allowing", "text=@@bla$~script,~other,~document", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER)), "header=null"]);
+    compareFilter("@@bla$document", ["type=allowing", "text=@@bla$document", "contentType=" + contentTypes.DOCUMENT, "header=null"]);
+    compareFilter("@@bla$~script,~other,elemhide", ["type=allowing", "text=@@bla$~script,~other,elemhide", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER) | contentTypes.ELEMHIDE), "header=null"]);
+    compareFilter("@@bla$~script,~other,~elemhide", ["type=allowing", "text=@@bla$~script,~other,~elemhide", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER)), "header=null"]);
+    compareFilter("@@bla$elemhide", ["type=allowing", "text=@@bla$elemhide", "contentType=" + contentTypes.ELEMHIDE, "header=null"]);
 
     compareFilter("@@bla$~script,~other,donottrack", ["type=invalid", "text=@@bla$~script,~other,donottrack", "reason=filter_unknown_option"]);
     compareFilter("@@bla$~script,~other,~donottrack", ["type=invalid", "text=@@bla$~script,~other,~donottrack", "reason=filter_unknown_option"]);
@@ -566,6 +582,31 @@ describe("Filter classes", function()
     }
   });
 
+  it("Filter header option", function()
+  {
+    let responseHeaders1 = [
+      {name: "Server", value: "None"},
+      {name: "Content-Type", value: "image/jpeg"}
+    ];
+
+    let responseHeaders2 = [
+      {name: "Server", value: "None"},
+      {name: "Content-Type", value: "text/javascriptt"},
+      {name: "Content-Encoding", value: "gzip"}
+    ];
+
+
+    let text1 = "/images/$header=content-type=text/javascript";
+    let filter1 = Filter.fromText(text1);
+    assert.ok(!filter1.filterHeaders(responseHeaders1));
+    assert.ok(filter1.filterHeaders(responseHeaders2));
+
+    let text2 = "/images/$header=content-encoding";
+    let filter2 = Filter.fromText(text2);
+    assert.ok(!filter2.filterHeaders(responseHeaders1));
+    assert.ok(filter2.filterHeaders(responseHeaders2));
+  });
+
   it("Domain map deduplication", function()
   {
     let filter1 = Filter.fromText("foo$domain=blocking.example.com");
@@ -623,31 +664,36 @@ describe("Filter classes", function()
     compareFilter("@@||example.com^$domain=example.*", [
       "type=allowing",
       "text=@@||example.com^$domain=example.*",
-      "domains=example.*"
+      "domains=example.*",
+      "header=null"
     ]);
 
     compareFilter("@@||example.com^$domain=example.*|example.net", [
       "type=allowing",
       "text=@@||example.com^$domain=example.*|example.net",
-      "domains=example.*|example.net"
+      "domains=example.*|example.net",
+      "header=null"
     ]);
 
     compareFilter("@@||example.com^$domain=example.net|example.*", [
       "type=allowing",
       "text=@@||example.com^$domain=example.net|example.*",
-      "domains=example.*|example.net"
+      "domains=example.*|example.net",
+      "header=null"
     ]);
 
     compareFilter("@@||example.com^$domain=~example.net|example.*", [
       "type=allowing",
       "text=@@||example.com^$domain=~example.net|example.*",
-      "domains=example.*|~example.net"
+      "domains=example.*|~example.net",
+      "header=null"
     ]);
 
     compareFilter("@@||example.com^$domain=example.*|~example.net", [
       "type=allowing",
       "text=@@||example.com^$domain=example.*|~example.net",
-      "domains=example.*|~example.net"
+      "domains=example.*|~example.net",
+      "header=null"
     ]);
 
     // Element hiding filters

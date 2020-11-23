@@ -434,5 +434,40 @@ describe("Filter listener", function()
       filterStorage.addSubscription(subscription3);
       checkKnownFilters("add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
     });
+
+    it("HTTP header filters", function()
+    {
+      let filter1 = Filter.fromText("||example.com/ad.js$header=content-type=image/png");
+      let filter2 = Filter.fromText("||example.com/content.js$header=content-type=image/png");
+
+      let subscription1 = Subscription.fromURL("https://test1/");
+      assert.equal(subscription1.type, null);
+
+      subscription1.addFilter(filter1);
+      subscription1.addFilter(filter2);
+
+      filterStorage.addSubscription(subscription1);
+      checkKnownFilters("add subscription with filter1 and filter2", {});
+
+      let {url: circumventionURL} = recommendations.find(
+        ({type}) => type == "circumvention"
+      );
+
+      let subscription2 = Subscription.fromURL(circumventionURL);
+      assert.equal(subscription2.type, "circumvention");
+
+      subscription2.addFilter(filter1);
+
+      filterStorage.addSubscription(subscription2);
+      checkKnownFilters("add subscription of type circumvention with filter1", {blocking: [filter1.text]});
+
+      let subscription3 = Subscription.fromURL("~user~foo");
+      assert.equal(subscription3.type, null);
+
+      subscription3.addFilter(filter2);
+
+      filterStorage.addSubscription(subscription3);
+      checkKnownFilters("add special subscription with filter2", {blocking: [filter1.text, filter2.text]});
+    });
   });
 });
