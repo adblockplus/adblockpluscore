@@ -74,6 +74,11 @@ describe("Synchronizer", function()
       synchronizer.start();
     });
 
+    afterEach(function()
+    {
+      synchronizer.stop();
+    });
+
     it("One subscription downloads", function()
     {
       let subscription = Subscription.fromURL("https://example.com/subscription");
