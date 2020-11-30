@@ -48,6 +48,11 @@ describe("Notifications", function()
     notifications.start();
   });
 
+  after(function()
+  {
+    notifications.stop();
+  });
+
   function showNotifications()
   {
     let shownNotifications = [];
