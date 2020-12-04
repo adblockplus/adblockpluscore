@@ -71,11 +71,14 @@ describe("Matcher", function()
     for (let filter of filters)
       matcher.add(Filter.fromText(filter));
 
-    let result = matcher.match(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
-    if (result)
-      result = result.text;
+    for (let arg of [url, location])
+    {
+      let result = matcher.match(arg, contentTypes[contentType], docDomain, sitekey, specificOnly);
+      if (result)
+        result = result.text;
 
-    assert.equal(result, expectedFirstMatch, "match(" + location + ", " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
+      assert.equal(result, expectedFirstMatch, "match(" + (typeof arg == "string" ? arg : `parseURL(${arg})`) + ", " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
+    }
 
     let combinedMatcher = new CombinedMatcher();
     for (let i = 0; i < 2; i++)
@@ -83,11 +86,11 @@ describe("Matcher", function()
       for (let filter of filters)
         combinedMatcher.add(Filter.fromText(filter));
 
-      result = combinedMatcher.match(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
+      let result = combinedMatcher.match(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
       if (result)
         result = result.text;
 
-      assert.equal(result, expected, "combinedMatch(" + location + ", " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
+      assert.equal(result, expected, "combinedMatch(parseURL(" + location + "), " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
 
       // Generic allowing rules can match for specificOnly searches, so we
       // can't easily know which rule will match for these allowlisting tests
