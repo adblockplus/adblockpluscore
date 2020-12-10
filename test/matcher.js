@@ -113,16 +113,22 @@ describe("Matcher", function()
     for (let filter of filters)
       matcher.add(Filter.fromText(filter));
 
-    let result = matcher.search(url, contentTypes[contentType],
-                                docDomain, sitekey, specificOnly, filterType);
-    for (let key in result)
-      result[key] = result[key].map(filter => filter.text);
+    for (let arg of [url, location])
+    {
+      let result = matcher.search(arg, contentTypes[contentType],
+                                  docDomain, sitekey, specificOnly, filterType);
 
-    assert.deepEqual(result, expected, "search(" + location + ", " +
-                     contentType + ", " + docDomain + ", " +
-                     (sitekey || "no-sitekey") + ", " +
-                     (specificOnly ? "specificOnly" : "not-specificOnly") + ", " +
-                     filterType + ") with:\n" + filters.join("\n"));
+      let converted = {};
+      for (let key in result)
+        converted[key] = result[key].map(filter => filter.text);
+
+      assert.deepEqual(converted, expected, "search(" +
+                       (typeof arg == "string" ? arg : `parseURL(${arg})`) + ", " +
+                       contentType + ", " + docDomain + ", " +
+                       (sitekey || "no-sitekey") + ", " +
+                       (specificOnly ? "specificOnly" : "not-specificOnly") + ", " +
+                       filterType + ") with:\n" + filters.join("\n"));
+    }
   }
 
   it("Class definitions", function()
