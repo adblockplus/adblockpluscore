@@ -194,7 +194,10 @@ describe("Synchronizer", function()
         return runner.runScheduledTasks(50).then(() =>
         {
           assert.deepEqual(requests, [
-            [0, "GET", "/subscription"],
+            // The runner here starts right away from where it left and only
+            // after the first callback it starts from 0 again. however, the 3
+            // requests in 50 hours are expected and meant to happen.
+            [30, "GET", "/subscription"],
             [24 + initialDelay, "GET", "/subscription"],
             [48 + initialDelay, "GET", "/subscription"]
           ], "Requests after 50 hours");
