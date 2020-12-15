@@ -27,16 +27,6 @@ const {assert} = chai;
 
 describe("Snippets", function()
 {
-  before(function()
-  {
-    // We need this stub for the injector.
-    window.browser = {
-      runtime: {
-        getURL: () => ""
-      }
-    };
-  });
-
   function expectHidden(element, id)
   {
     let withId = "";
