@@ -17,17 +17,19 @@
 
 "use strict";
 
-const {promises: {writeFile}} = require("fs");
+const {
+  createReadStream,
+  createWriteStream,
+  promises: {readdir, rmdir, unlink, writeFile}
+} = require("fs");
+
 const path = require("path");
-const {promisify} = require("util");
 const readline = require("readline");
+const https = require("https");
+const tar = require("tar");
 
-const got = require("got");
-const untarToMemory = require("untar-memory");
-
-const root = "/subscriptionlist-default";
-const listUrl = "https://hg.adblockplus.org/subscriptionlist/archive/" +
-                "default.tar.gz";
+const listUrl = "https://gitlab.com/eyeo/filterlists/subscriptionlist/" +
+                "-/archive/master/subscriptionlist-master.tar.gz";
 
 const filename = "data/subscriptions.json";
 const resultingKeys = new Set([
@@ -38,7 +40,30 @@ const resultingKeys = new Set([
   "type"
 ]);
 
-function parseSubscriptionFile(tarfs, file, validLanguages)
+function untar(remoteUrl)
+{
+  return new Promise(resolve =>
+  {
+    let file = path.join(__dirname, path.basename(remoteUrl));
+    let writableStream = createWriteStream(file);
+    https.get(remoteUrl, response =>
+    {
+      response.pipe(writableStream);
+      writableStream.on("close", () =>
+      {
+        tar.x({file, cwd: __dirname}).then(() =>
+        {
+          unlink(file).then(() =>
+          {
+            resolve(file.replace(/\.[^/]+$/, ""));
+          });
+        });
+      });
+    });
+  });
+}
+
+function parseSubscriptionFile(file, validLanguages)
 {
   // Bypass parsing remaining lines in the ReadStream's buffer
   let continuing = true;
@@ -50,7 +75,7 @@ function parseSubscriptionFile(tarfs, file, validLanguages)
     };
 
     let reader = readline.createInterface({
-      input: tarfs.createReadStream(file, {encoding: "utf8"})
+      input: createReadStream(file, {encoding: "utf8"})
     });
 
     reader.on("line", line =>
@@ -181,7 +206,7 @@ function parseSubscriptionFile(tarfs, file, validLanguages)
   });
 }
 
-function parseValidLanguages(tarfs)
+function parseValidLanguages(root)
 {
   return new Promise(resolve =>
   {
@@ -189,7 +214,7 @@ function parseValidLanguages(tarfs)
     let languages = new Set();
 
     let reader = readline.createInterface({
-      input: tarfs.createReadStream(root + "/settings", {encoding: "utf8"})
+      input: createReadStream(root + "/settings", {encoding: "utf8"})
     });
 
     reader.on("line", line =>
@@ -220,13 +245,13 @@ function postProcessSubscription(subscription)
 
 async function main()
 {
-  let tarfs = await untarToMemory(got.stream(listUrl));
-  let languages = await parseValidLanguages(tarfs);
-  let tarfiles = await promisify(tarfs.readdir.bind(tarfs))(root);
+  let root = await untar(listUrl);
+  let languages = await parseValidLanguages(root);
+  let tarFiles = await readdir(root);
 
   let parsed = await Promise.all(
-    tarfiles.filter(file => file.match(".subscription")).map(
-      file => parseSubscriptionFile(tarfs, root + "/" + file, languages)
+    tarFiles.filter(file => file.match(".subscription")).map(
+      file => parseSubscriptionFile(root + "/" + file, languages)
     )
   );
 
@@ -242,6 +267,7 @@ async function main()
     a["title"].localeCompare(b["title"])
   );
   await writeFile(filename, JSON.stringify(parsed, null, 2), "utf8");
+  await rmdir(root, {recursive: true});
 }
 
 if (require.main == module)
