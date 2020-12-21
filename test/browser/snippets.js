@@ -201,6 +201,28 @@ describe("Snippets", function()
     }
   });
 
+  it("abort-on-iframe-property-read", async function()
+  {
+    await runSnippetScript("abort-on-iframe-property-read document.createElement");
+    let iframe = document.createElement("iframe");
+    document.body.appendChild(iframe);
+    assert.throws(() =>
+    {
+      window[0].document.createElement("script");
+    });
+  });
+
+  it("abort-on-iframe-property-write", async function()
+  {
+    await runSnippetScript("abort-on-iframe-property-write adblock");
+    let iframe = document.createElement("iframe");
+    document.body.appendChild(iframe);
+    assert.throws(() =>
+    {
+      window[0].adblock = true;
+    });
+  });
+
   it("abort-curent-inline-script", async function()
   {
     function injectInlineScript(doc, script)
