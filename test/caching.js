@@ -34,7 +34,7 @@ describe("Cache", function()
 
   describe("#constructor()", function()
   {
-    // A capacity must be specificed and it must be coercable to a positive
+    // A capacity must be specified and it must be coercible to a positive
     // number greater than or equal to one.
     it("should throw when capacity is missing", function()
     {

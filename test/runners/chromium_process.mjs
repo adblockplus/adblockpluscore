@@ -26,7 +26,7 @@ import {ensureChromium} from "./chromium_download.mjs";
 // Chromium 63.0.3239.x is 508578
 // Chromium 65.0.3325.0 is 530368
 // We currently want Chromiun 63, as we still support it and that's the
-// loweset version that supports WebDriver.
+// lowest version that supports WebDriver.
 const CHROMIUM_REVISION = 508578;
 
 function runScript(chromiumPath, script, scriptArgs)

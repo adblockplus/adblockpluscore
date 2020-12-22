@@ -820,8 +820,8 @@ describe("getBaseDomain()", function()
     assert.equal(typeof publicSuffixes["africa.com"], "number");
     assert.equal(typeof publicSuffixes["compute.amazonaws.com"], "number");
 
-    // If these sanity checks fail, look for other examles of cascading offsets
-    // from the public suffix list.
+    // If these sanity checks fail, look for other examples of
+    // cascading offsets from the public suffix list.
     assert.equal(typeof publicSuffixes["images.example.s3.dualstack.us-east-1.amazonaws.com"],
                  "undefined");
     assert.equal(typeof publicSuffixes["example.s3.dualstack.us-east-1.amazonaws.com"],

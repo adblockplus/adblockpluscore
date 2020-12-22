@@ -27,7 +27,7 @@ if (typeof window._consoleLogs == "undefined")
 /*
  * Custom reporter for our harness. Reworked from `Spec` to use
  * template string as the chrome remote interface doesn't support
- * mutiple console.log arguments.
+ * multiple console.log arguments.
  */
 function WdReporter(runner, options)
 {
