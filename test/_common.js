@@ -157,7 +157,7 @@ exports.setupTimerAndFetch = function()
 
   let requests = [];
 
-  async function fetch(url)
+  async function fetch(url, initObj = {method: "GET"})
   {
     // Add a dummy resolved promise.
     requests.push(Promise.resolve());
@@ -174,7 +174,7 @@ exports.setupTimerAndFetch = function()
     else if (urlObj.pathname in fetch.requestHandlers)
     {
       result = fetch.requestHandlers[urlObj.pathname]({
-        method: "GET",
+        method: initObj.method,
         path: urlObj.pathname,
         queryString: urlObj.search.substring(1)
       });
@@ -186,9 +186,10 @@ exports.setupTimerAndFetch = function()
       throw new Error("Fetch error");
 
     if (status == 301)
-      return fetch(headers["Location"]);
+      return fetch(headers["Location"], initObj);
 
-    return {status, url: urlObj.href, text: async() => text};
+    return {status, url: urlObj.href, text: async() => text,
+            headers: new Map([["Date", "Thu, 07 Jan 2021 10:05:28 GMT"]])};
   }
 
   fetch.requestHandlers = {};

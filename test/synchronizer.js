@@ -25,6 +25,7 @@ let {
 
 let MILLIS_IN_SECOND = null;
 let MILLIS_IN_HOUR = null;
+let filterNotifier = null;
 let filterStorage = null;
 let Prefs = null;
 let Subscription = null;
@@ -45,6 +46,7 @@ describe("Synchronizer", function()
     let sandboxedRequire = createSandbox({globals});
     (
       {MILLIS_IN_SECOND, MILLIS_IN_HOUR} = sandboxedRequire("../lib/time"),
+      {filterNotifier} = sandboxedRequire("../lib/filterNotifier"),
       {filterStorage} = sandboxedRequire("../lib/filterStorage"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
       {Subscription} = sandboxedRequire("../lib/subscriptionClasses"),
@@ -77,6 +79,127 @@ describe("Synchronizer", function()
     afterEach(function()
     {
       synchronizer.stop();
+    });
+
+    it("A disabled subscription gets a version update", function()
+    {
+      let subscription = Subscription.fromURL("https://example.com/subscription");
+      filterStorage.addSubscription(subscription);
+
+      subscription.disabled = true;
+
+      let requests = [];
+      runner.registerHandler("/subscription", metadata =>
+      {
+        requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
+        return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
+      });
+
+      let notified = false;
+      filterNotifier.on("subscription.updated", sub =>
+      {
+        notified = sub === subscription;
+      });
+
+      return runner.runScheduledTasks(12).then(() =>
+      {
+        assert.equal(notified, true);
+        assert.equal(subscription.version, "202101071005");
+        assert.deepEqual(requests, [
+          [0 + initialDelay, "HEAD", "/subscription"]
+        ], "Requests after 50 hours");
+      }).catch(error => unexpectedError.call(assert, error));
+    });
+
+    it("A disabled subscription does not parse data", function()
+    {
+      let subscription = Subscription.fromURL("https://example.com/subscription");
+      filterStorage.addSubscription(subscription);
+
+      subscription.disabled = true;
+
+      let requests = [];
+      runner.registerHandler("/subscription", metadata =>
+      {
+        requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
+        return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
+      });
+
+      return runner.runScheduledTasks(50).then(() =>
+      {
+        assert.deepEqual(requests, [
+          [0 + initialDelay, "HEAD", "/subscription"],
+          [24 + initialDelay, "HEAD", "/subscription"],
+          [48 + initialDelay, "HEAD", "/subscription"]
+        ], "Requests after 50 hours");
+      }).catch(error => unexpectedError.call(assert, error));
+    });
+
+    it("A disabled subscription updates each day", function()
+    {
+      let subscription = Subscription.fromURL("https://example.com/subscription");
+      filterStorage.addSubscription(subscription);
+
+      subscription.disabled = true;
+
+      let requests = [];
+      runner.registerHandler("/subscription", metadata =>
+      {
+        requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
+        return [200, ""];
+      });
+
+      return runner.runScheduledTasks(130).then(() =>
+      {
+        assert.deepEqual(requests, [
+          [0 + initialDelay, "HEAD", "/subscription"],
+          [24 + initialDelay, "HEAD", "/subscription"],
+          [48 + initialDelay, "HEAD", "/subscription"],
+          [72 + initialDelay, "HEAD", "/subscription"],
+          [96 + initialDelay, "HEAD", "/subscription"],
+          [120 + initialDelay, "HEAD", "/subscription"]
+        ], "Requests after 50 hours");
+      }).catch(error => unexpectedError.call(assert, error));
+    });
+
+    it("A disabled subscription downloads once enabled", function()
+    {
+      let subscription = Subscription.fromURL("https://example.com/subscription");
+      filterStorage.addSubscription(subscription);
+
+      subscription.disabled = true;
+
+      let requests = [];
+      runner.registerHandler("/subscription", metadata =>
+      {
+        requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
+        return [200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
+      });
+
+      return runner.runScheduledTasks(30).then(() =>
+      {
+        assert.deepEqual(requests, [
+          [0 + initialDelay, "HEAD", "/subscription"],
+          [24 + initialDelay, "HEAD", "/subscription"]
+        ], "Requests after 30 hours");
+      }).then(() =>
+      {
+        requests = [];
+        runner.registerHandler("/subscription", metadata =>
+        {
+          requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
+          return [200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
+        });
+        subscription.disabled = false;
+        return runner.runScheduledTasks(50).then(() =>
+        {
+          assert.deepEqual(requests, [
+            [0, "GET", "/subscription"],
+            [24 + initialDelay, "GET", "/subscription"],
+            [48 + initialDelay, "GET", "/subscription"]
+          ], "Requests after 50 hours");
+        });
+      }).catch(error => unexpectedError.call(assert, error));
     });
 
     it("One subscription downloads", function()
