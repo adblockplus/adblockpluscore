@@ -30,7 +30,7 @@ function getChromiumExecutable(chromiumDir)
   switch (process.platform)
   {
     case "win32":
-      return path.join(chromiumDir, "chrome-win32", "chrome.exe");
+      return path.join(chromiumDir, "chrome-win", "chrome.exe");
     case "linux":
       return path.join(chromiumDir, "chrome-linux", "chrome");
     case "darwin":
@@ -49,8 +49,8 @@ export async function ensureChromium(chromiumRevision, unpack = true)
   if (platform == "win32")
     platform += "-" + process.arch;
   let buildTypes = {
-    "win32-ia32": ["Win", "chrome-win32.zip"],
-    "win32-x64": ["Win_x64", "chrome-win32.zip"],
+    "win32-ia32": ["Win", "chrome-win.zip"],
+    "win32-x64": ["Win_x64", "chrome-win.zip"],
     "linux": ["Linux_x64", "chrome-linux.zip"],
     "darwin": ["Mac", "chrome-mac.zip"]
   };
