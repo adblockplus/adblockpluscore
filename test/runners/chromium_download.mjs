@@ -22,15 +22,16 @@ import {fileURLToPath} from "url";
 import {download, unzipArchive} from "./download.mjs";
 
 const MAX_VERSION_DECREMENTS = 200;
+const CHROMIUM_REVISION_LINK_THRESHOLD = 587811;
 
 let dirname = path.dirname(fileURLToPath(import.meta.url));
 
-function getChromiumExecutable(chromiumDir)
+function getChromiumExecutable(chromiumDir, windowsBinary)
 {
   switch (process.platform)
   {
     case "win32":
-      return path.join(chromiumDir, "chrome-win", "chrome.exe");
+      return path.join(chromiumDir, windowsBinary, "chrome.exe");
     case "linux":
       return path.join(chromiumDir, "chrome-linux", "chrome");
     case "darwin":
@@ -48,9 +49,13 @@ export async function ensureChromium(chromiumRevision, unpack = true)
   let {platform} = process;
   if (platform == "win32")
     platform += "-" + process.arch;
+
+  let windowsBinary = revisionInt > CHROMIUM_REVISION_LINK_THRESHOLD ?
+    "chrome-win" : "chrome-win32";
+
   let buildTypes = {
-    "win32-ia32": ["Win", "chrome-win.zip"],
-    "win32-x64": ["Win_x64", "chrome-win.zip"],
+    "win32-ia32": ["Win", `${windowsBinary}.zip`],
+    "win32-x64": ["Win_x64", `${windowsBinary}.zip`],
     "linux": ["Linux_x64", "chrome-linux.zip"],
     "darwin": ["Mac", "chrome-mac.zip"]
   };
@@ -70,7 +75,7 @@ export async function ensureChromium(chromiumRevision, unpack = true)
     if (fs.existsSync(chromiumDir))
     {
       console.info(`Reusing cached executable in ${chromiumDir}`);
-      return getChromiumExecutable(chromiumDir);
+      return getChromiumExecutable(chromiumDir, windowsBinary);
     }
 
     if (!fs.existsSync(path.dirname(chromiumDir)))
@@ -109,5 +114,5 @@ export async function ensureChromium(chromiumRevision, unpack = true)
     return null;
 
   await unzipArchive(archive, chromiumDir);
-  return getChromiumExecutable(chromiumDir);
+  return getChromiumExecutable(chromiumDir, windowsBinary);
 }
