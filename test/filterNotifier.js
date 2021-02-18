@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let filterNotifier = null;
 
@@ -28,7 +28,7 @@ describe("Filter notifier", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {filterNotifier} = sandboxedRequire("../lib/filterNotifier")
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
   });
 

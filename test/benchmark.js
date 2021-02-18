@@ -20,7 +20,8 @@
 const assert = require("assert");
 
 let {
-  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError
+  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
+  LIB_FOLDER
 } = require("./_common");
 
 let filterStorage = null;
@@ -43,10 +44,10 @@ describe("Synchronizer", function()
 
     let sandboxedRequire = createSandbox({globals});
     (
-      {filterStorage} = sandboxedRequire("../lib/filterStorage"),
-      {Subscription} = sandboxedRequire("../lib/subscriptionClasses"),
-      {synchronizer} = sandboxedRequire("../lib/synchronizer"),
-      profiler = sandboxedRequire("../lib/profiler")
+      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
+      {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
+      {synchronizer} = sandboxedRequire(LIB_FOLDER + "/synchronizer"),
+      profiler = sandboxedRequire(LIB_FOLDER + "/profiler")
     );
 
     profiler.enable(true, list =>

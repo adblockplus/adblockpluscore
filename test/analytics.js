@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 describe("analytics", function()
 {
@@ -29,7 +29,7 @@ describe("analytics", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {analytics} = sandboxedRequire("../lib/analytics"),
+      {analytics} = sandboxedRequire(LIB_FOLDER + "/analytics"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs")
     );
   });

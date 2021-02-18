@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 describe("EventEmitter", function()
 {
@@ -28,7 +28,7 @@ describe("EventEmitter", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {EventEmitter} = sandboxedRequire("../lib/events")
+      {EventEmitter} = sandboxedRequire(LIB_FOLDER + "/events")
     );
   });
 

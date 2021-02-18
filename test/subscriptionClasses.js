@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let Subscription = null;
 let SpecialSubscription = null;
@@ -34,8 +34,8 @@ describe("Subscription classes", function()
     (
       {Subscription, SpecialSubscription,
        DownloadableSubscription,
-       RegularSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
-      {Filter} = sandboxedRequire("../lib/filterClasses")
+       RegularSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
+      {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
   });
 
@@ -246,7 +246,7 @@ describe("Subscription.isValidURL()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {Subscription} = sandboxedRequire("../lib/subscriptionClasses")
+      {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
   });
 

@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 describe("Downloader.isValidURL()", function()
 {
@@ -28,7 +28,7 @@ describe("Downloader.isValidURL()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {Downloader} = sandboxedRequire("../lib/downloader")
+      {Downloader} = sandboxedRequire(LIB_FOLDER + "/downloader")
     );
   });
 

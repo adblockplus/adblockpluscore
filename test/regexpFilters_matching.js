@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let contentTypes = null;
 let Filter = null;
@@ -30,9 +30,9 @@ describe("URL filters matching", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {contentTypes} = sandboxedRequire("../lib/contentTypes"),
-      {Filter} = sandboxedRequire("../lib/filterClasses"),
-      {URLRequest} = sandboxedRequire("../lib/url")
+      {contentTypes} = sandboxedRequire(LIB_FOLDER + "/contentTypes"),
+      {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
+      {URLRequest} = sandboxedRequire(LIB_FOLDER + "/url")
     );
   });
 

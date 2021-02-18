@@ -20,7 +20,8 @@
 const assert = require("assert");
 
 let {
-  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError
+  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
+  LIB_FOLDER
 } = require("./_common");
 
 let MILLIS_IN_SECOND = null;
@@ -45,12 +46,12 @@ describe("Synchronizer", function()
 
     let sandboxedRequire = createSandbox({globals});
     (
-      {MILLIS_IN_SECOND, MILLIS_IN_HOUR} = sandboxedRequire("../lib/time"),
-      {filterNotifier} = sandboxedRequire("../lib/filterNotifier"),
-      {filterStorage} = sandboxedRequire("../lib/filterStorage"),
+      {MILLIS_IN_SECOND, MILLIS_IN_HOUR} = sandboxedRequire(LIB_FOLDER + "/time"),
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier"),
+      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {Subscription} = sandboxedRequire("../lib/subscriptionClasses"),
-      {synchronizer, addSubscriptionFilters} = sandboxedRequire("../lib/synchronizer")
+      {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
+      {synchronizer, addSubscriptionFilters} = sandboxedRequire(LIB_FOLDER + "/synchronizer")
     );
   });
 

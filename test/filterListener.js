@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 let sandboxedRequire = null;
 
 let IO = null;
@@ -64,22 +64,22 @@ describe("Filter listener", function()
       result[type] = filters;
     }
 
-    let {elemHide} = sandboxedRequire("../lib/elemHide");
+    let {elemHide} = sandboxedRequire(LIB_FOLDER + "/elemHide");
     result.elemhide = [];
     for (let filter of elemHide._filters)
       result.elemhide.push(filter.text);
 
-    let {elemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions");
+    let {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions");
     result.elemhideexception = [];
     for (let exception of elemHideExceptions._exceptions)
       result.elemhideexception.push(exception.text);
 
-    let {elemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation");
+    let {elemHideEmulation} = sandboxedRequire(LIB_FOLDER + "/elemHideEmulation");
     result.elemhideemulation = [];
     for (let filter of elemHideEmulation)
       result.elemhideemulation.push(filter.text);
 
-    let {snippets} = sandboxedRequire("../lib/snippets");
+    let {snippets} = sandboxedRequire(LIB_FOLDER + "/snippets");
     result.snippets = [];
     for (let filter of snippets._filters)
       result.snippets.push(filter.text);
@@ -104,9 +104,9 @@ describe("Filter listener", function()
 
     (
       {IO} = sandboxedRequire("./stub-modules/io"),
-      {filterStorage} = sandboxedRequire("../lib/filterStorage"),
-      {filterEngine} = sandboxedRequire("../lib/filterEngine"),
-      {defaultMatcher} = sandboxedRequire("../lib/matcher")
+      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
+      {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine"),
+      {defaultMatcher} = sandboxedRequire(LIB_FOLDER + "/matcher")
     );
   });
 
@@ -163,8 +163,8 @@ describe("Filter listener", function()
       await filterEngine.initialize();
 
       (
-        {Subscription, SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
-        {Filter} = sandboxedRequire("../lib/filterClasses"),
+        {Subscription, SpecialSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
+        {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
         recommendations = sandboxedRequire("../data/subscriptions.json")
       );
 

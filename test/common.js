@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 describe("textToRegExp()", function()
 {
@@ -28,7 +28,7 @@ describe("textToRegExp()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {textToRegExp} = sandboxedRequire("../lib/common")
+      {textToRegExp} = sandboxedRequire(LIB_FOLDER + "/common")
     );
   });
 
@@ -83,7 +83,7 @@ describe("filterToRegExp()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {filterToRegExp} = sandboxedRequire("../lib/common")
+      {filterToRegExp} = sandboxedRequire(LIB_FOLDER + "/common")
     );
   });
 
@@ -402,7 +402,7 @@ describe("qualifySelector()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {qualifySelector} = sandboxedRequire("../lib/common")
+      {qualifySelector} = sandboxedRequire(LIB_FOLDER + "/common")
     );
   });
 

@@ -19,7 +19,7 @@
 
 const assert = require("assert");
 
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let contentTypes = null;
 let RESOURCE_TYPES = null;
@@ -69,7 +69,7 @@ beforeEach(function()
   let sandboxedRequire = createSandbox();
   (
     {contentTypes, RESOURCE_TYPES, SPECIAL_TYPES, ALLOWING_TYPES,
-     enumerateTypes} = sandboxedRequire("../lib/contentTypes")
+     enumerateTypes} = sandboxedRequire(LIB_FOLDER + "/contentTypes")
   );
 });
 

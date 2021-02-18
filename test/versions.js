@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 describe("compareVersions()", function()
 {
@@ -56,7 +56,7 @@ describe("compareVersions()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {compareVersions} = sandboxedRequire("../lib/versions.js")
+      {compareVersions} = sandboxedRequire(LIB_FOLDER + "/versions.js")
     );
   });
 

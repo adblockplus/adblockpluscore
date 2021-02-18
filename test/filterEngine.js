@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let filterEngine = null;
 let defaultMatcher = null;
@@ -70,13 +70,13 @@ beforeEach(function()
 {
   let sandboxedRequire = createSandbox();
   (
-    {filterEngine} = sandboxedRequire("../lib/filterEngine.js"),
-    {defaultMatcher} = sandboxedRequire("../lib/matcher.js"),
-    {contentTypes} = sandboxedRequire("../lib/contentTypes.js"),
-    {elemHide} = sandboxedRequire("../lib/elemHide.js"),
-    {elemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation.js"),
-    {snippets} = sandboxedRequire("../lib/snippets.js"),
-    {Filter} = sandboxedRequire("../lib/filterClasses.js")
+    {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine.js"),
+    {defaultMatcher} = sandboxedRequire(LIB_FOLDER + "/matcher.js"),
+    {contentTypes} = sandboxedRequire(LIB_FOLDER + "/contentTypes.js"),
+    {elemHide} = sandboxedRequire(LIB_FOLDER + "/elemHide.js"),
+    {elemHideEmulation} = sandboxedRequire(LIB_FOLDER + "/elemHideEmulation.js"),
+    {snippets} = sandboxedRequire(LIB_FOLDER + "/snippets.js"),
+    {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses.js")
   );
 });
 

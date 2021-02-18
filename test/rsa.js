@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let verifySignature = null;
 
@@ -28,7 +28,7 @@ describe("verifySignature()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {verifySignature} = sandboxedRequire("../lib/rsa")
+      {verifySignature} = sandboxedRequire(LIB_FOLDER + "/rsa")
     );
   });
 

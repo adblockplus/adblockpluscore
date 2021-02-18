@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let elemHide = null;
 let createStyleSheet = null;
@@ -32,15 +32,12 @@ describe("Element hiding", function()
   beforeEach(function()
   {
     let sandboxedRequire = createSandbox({
-      extraExports: {
-        elemHide: ["SELECTOR_GROUP_SIZE"]
-      }
     });
     (
       {elemHide, createStyleSheet, rulesFromStyleSheet,
-       SELECTOR_GROUP_SIZE} = sandboxedRequire("../lib/elemHide"),
-      {elemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions"),
-      {Filter} = sandboxedRequire("../lib/filterClasses")
+       SELECTOR_GROUP_SIZE} = sandboxedRequire(LIB_FOLDER + "/elemHide"),
+      {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions"),
+      {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
   });
 

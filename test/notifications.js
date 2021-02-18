@@ -20,7 +20,8 @@
 const assert = require("assert");
 
 let {
-  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError
+  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
+  LIB_FOLDER
 } = require("./_common");
 
 let Prefs = null;
@@ -42,7 +43,7 @@ describe("Notifications", function()
     let sandboxedRequire = createSandbox({globals});
     (
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {notifications} = sandboxedRequire("../lib/notifications")
+      {notifications} = sandboxedRequire(LIB_FOLDER + "/notifications")
     );
 
     notifications.start();

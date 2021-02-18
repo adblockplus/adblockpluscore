@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let Filter = null;
 
@@ -28,7 +28,7 @@ describe("Domain restrictions", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {Filter} = sandboxedRequire("../lib/filterClasses")
+      {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
   });
 

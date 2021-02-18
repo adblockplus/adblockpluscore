@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let ElemHideEmulationFilter = null;
 let elemHideEmulation = null;
@@ -32,9 +32,9 @@ describe("Element hiding emulation", function()
     let sandboxedRequire = createSandbox();
     (
       {Filter,
-       ElemHideEmulationFilter} = sandboxedRequire("../lib/filterClasses"),
-      {elemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation"),
-      {elemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions")
+       ElemHideEmulationFilter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
+      {elemHideEmulation} = sandboxedRequire(LIB_FOLDER + "/elemHideEmulation"),
+      {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions")
     );
   });
 

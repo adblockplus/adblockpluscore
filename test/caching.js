@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 describe("Cache", function()
 {
@@ -28,7 +28,7 @@ describe("Cache", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {Cache} = sandboxedRequire("../lib/caching")
+      {Cache} = sandboxedRequire(LIB_FOLDER + "/caching")
     );
   });
 

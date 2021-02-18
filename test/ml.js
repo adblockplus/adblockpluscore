@@ -20,7 +20,7 @@
 const assert = require("assert");
 const tf = require("@tensorflow/tfjs");
 const tfn = require("@tensorflow/tfjs-node");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 const MODEL_URL = "data/mlHideIfGraphMatches/model.json";
 const OTHER_MODEL_URL = "data/mlHideIfGraphMatches/otherModel.json";
@@ -33,7 +33,7 @@ describe("ML", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {ML} = sandboxedRequire("../lib/ml")
+      {ML} = sandboxedRequire(LIB_FOLDER + "/ml")
     );
   });
 

@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let Filter = null;
 let filterNotifier = null;
@@ -33,11 +33,11 @@ describe("Filter storage", function()
     let sandboxedRequire = createSandbox();
 
     (
-      {Filter} = sandboxedRequire("../lib/filterClasses"),
-      {filterNotifier} = sandboxedRequire("../lib/filterNotifier"),
-      {filterStorage} = sandboxedRequire("../lib/filterStorage"),
-      {filterEngine} = sandboxedRequire("../lib/filterEngine"),
-      {Subscription} = sandboxedRequire("../lib/subscriptionClasses")
+      {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier"),
+      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
+      {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine"),
+      {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
 
     await filterEngine.initialize();

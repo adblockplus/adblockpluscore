@@ -21,7 +21,7 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const {promisify} = require("util");
-const {createSandbox, unexpectedError} = require("./_common");
+const {LIB_FOLDER, createSandbox, unexpectedError} = require("./_common");
 
 let Filter = null;
 let filterStorage = null;
@@ -35,11 +35,11 @@ describe("Filter storage read/write", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {Filter} = sandboxedRequire("../lib/filterClasses"),
-      {filterStorage} = sandboxedRequire("../lib/filterStorage"),
+      {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
+      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {IO} = sandboxedRequire("./stub-modules/io"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses")
+      {SpecialSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
 
     filterStorage.addFilter(Filter.fromText("foobar"));

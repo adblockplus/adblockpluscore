@@ -17,6 +17,9 @@
 
 "use strict";
 
+const LIB_FOLDER = `../${process.env.LIB_FOLDER || "lib"}`;
+exports.LIB_FOLDER = LIB_FOLDER;
+
 const fs = require("fs");
 const {Module} = require("module");
 const path = require("path");
@@ -26,7 +29,7 @@ const path = require("path");
 // https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/192
 const SandboxedModule = dynamicRequire("sandboxed-module");
 
-const {MILLIS_IN_HOUR} = require("../lib/time");
+const {MILLIS_IN_HOUR} = require(LIB_FOLDER + "/time");
 
 let globals = {
   atob: data => Buffer.from(data, "base64").toString("binary"),
@@ -38,12 +41,13 @@ let globals = {
   },
   navigator: {
   },
+  process,
   URL
 };
 
 let knownModules = new Map();
 for (let dir of [path.join(__dirname, "stub-modules"),
-                 path.join(__dirname, "..", "lib")])
+                 path.join(__dirname, LIB_FOLDER)])
 {
   for (let file of fs.readdirSync(path.resolve(dir)))
   {

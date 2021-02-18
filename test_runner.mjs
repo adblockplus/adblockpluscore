@@ -157,7 +157,7 @@ async function runBrowserTests(processes)
         mocha$: mochaPath,
         chai$: chaiPath
       },
-      modules: [path.resolve(dirname, "lib")]
+      modules: [path.resolve(dirname, process.env.LIB_FOLDER || "lib")]
     },
     optimization:
     {

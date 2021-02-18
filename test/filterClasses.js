@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let contentTypes = null;
 let RESOURCE_TYPES = null;
@@ -42,11 +42,11 @@ describe("Filter classes", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {contentTypes, RESOURCE_TYPES} = sandboxedRequire("../lib/contentTypes"),
+      {contentTypes, RESOURCE_TYPES} = sandboxedRequire(LIB_FOLDER + "/contentTypes"),
       {Filter, InvalidFilter, CommentFilter, ActiveFilter, URLFilter,
        BlockingFilter, AllowingFilter, ContentFilter, ElemHideBase,
        ElemHideFilter, ElemHideException, ElemHideEmulationFilter,
-       SnippetFilter} = sandboxedRequire("../lib/filterClasses")
+       SnippetFilter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
   });
 
@@ -883,7 +883,7 @@ describe("isActiveFilter()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {isActiveFilter, Filter} = sandboxedRequire("../lib/filterClasses")
+      {isActiveFilter, Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
   });
 

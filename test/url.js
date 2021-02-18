@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 const publicSuffixes = require("../data/publicSuffixList.json");
 
@@ -50,7 +50,7 @@ describe("parseURL()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {parseURL} = sandboxedRequire("../lib/url")
+      {parseURL} = sandboxedRequire(LIB_FOLDER + "/url")
     );
   });
 
@@ -538,7 +538,7 @@ describe("isLocalhost()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {isLocalhost} = sandboxedRequire("../lib/url")
+      {isLocalhost} = sandboxedRequire(LIB_FOLDER + "/url")
     );
   });
 
@@ -571,7 +571,7 @@ describe("*domainSuffixes()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {domainSuffixes} = sandboxedRequire("../lib/url")
+      {domainSuffixes} = sandboxedRequire(LIB_FOLDER + "/url")
     );
   });
 
@@ -711,7 +711,7 @@ describe("URLRequest", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {URLRequest} = sandboxedRequire("../lib/url")
+      {URLRequest} = sandboxedRequire(LIB_FOLDER + "/url")
     );
   });
 
@@ -840,7 +840,7 @@ describe("getBaseDomain()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {getBaseDomain} = sandboxedRequire("../lib/url")
+      {getBaseDomain} = sandboxedRequire(LIB_FOLDER + "/url")
     );
   });
 
@@ -1005,7 +1005,7 @@ describe("parseDomains()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {parseDomains} = sandboxedRequire("../lib/url")
+      {parseDomains} = sandboxedRequire(LIB_FOLDER + "/url")
     );
   });
 
@@ -1085,7 +1085,7 @@ describe("isValidHostname()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {isValidHostname} = sandboxedRequire("../lib/url")
+      {isValidHostname} = sandboxedRequire(LIB_FOLDER + "/url")
     );
   });
 

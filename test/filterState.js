@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let filterNotifier = null;
 let filterState = null;
@@ -27,8 +27,8 @@ beforeEach(function()
 {
   let sandboxedRequire = createSandbox();
   (
-    {filterNotifier} = sandboxedRequire("../lib/filterNotifier"),
-    {filterState} = sandboxedRequire("../lib/filterState")
+    {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier"),
+    {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState")
   );
 });
 
@@ -461,8 +461,8 @@ describe("filterState.setEnabled()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire("../lib/filterState"),
-      {filterNotifier} = sandboxedRequire("../lib/filterNotifier")
+      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
     filterNotifier.on("filterState.enabled", (...args) => events.push(args));
@@ -709,8 +709,8 @@ describe("filterState.toggleEnabled()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire("../lib/filterState"),
-      {filterNotifier} = sandboxedRequire("../lib/filterNotifier")
+      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
     filterNotifier.on("filterState.enabled", (...args) => events.push(args));
@@ -933,8 +933,8 @@ describe("filterState.resetEnabled()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire("../lib/filterState"),
-      {filterNotifier} = sandboxedRequire("../lib/filterNotifier")
+      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
     filterNotifier.on("filterState.enabled", (...args) => events.push(args));
@@ -1555,8 +1555,8 @@ describe("filterState.setHitCount()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire("../lib/filterState"),
-      {filterNotifier} = sandboxedRequire("../lib/filterNotifier")
+      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
     filterNotifier.on("filterState.hitCount", (...args) => events.push(args));
@@ -1803,8 +1803,8 @@ describe("filterState.resetHitCount()", function()
   {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire("../lib/filterState"),
-      {filterNotifier} = sandboxedRequire("../lib/filterNotifier")
+      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
     filterNotifier.on("filterState.hitCount", (...args) => events.push(args));

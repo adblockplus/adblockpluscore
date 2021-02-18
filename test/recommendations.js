@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 const data = require("../data/subscriptions.json");
 
@@ -30,7 +30,7 @@ describe("Recommendations", function()
   {
     let sandboxedRequire = createSandbox({});
     (
-      {recommendations} = sandboxedRequire("../lib/recommendations")
+      {recommendations} = sandboxedRequire(LIB_FOLDER + "/recommendations")
     );
   });
 

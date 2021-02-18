@@ -1,6 +1,8 @@
 "use strict";
 
-const {EventEmitter} = require("../../lib/events");
+const {LIB_FOLDER} = require("../_common");
+
+const {EventEmitter} = require(`../${LIB_FOLDER}/events`);
 
 let listeners = [];
 let eventEmitter = new EventEmitter();

@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let MILLIS_IN_SECOND = null;
 let MILLIS_IN_MINUTE = null;
@@ -30,7 +30,7 @@ beforeEach(function()
   let sandboxedRequire = createSandbox();
   (
     {MILLIS_IN_SECOND, MILLIS_IN_MINUTE, MILLIS_IN_HOUR,
-     MILLIS_IN_DAY} = sandboxedRequire("../lib/time")
+     MILLIS_IN_DAY} = sandboxedRequire(LIB_FOLDER + "/time")
   );
 });
 
