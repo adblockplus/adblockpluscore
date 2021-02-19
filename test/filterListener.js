@@ -32,6 +32,15 @@ let recommendations = null;
 
 describe("Filter listener", function()
 {
+  // {module:matcher.findKeyword()} will not do what you expect.
+  // This function will get the keyword for a filter using the
+  // internal data.
+  // This is not an API to be used.
+  function keywordForFilter(filter, matcher)
+  {
+    return matcher._keywordByFilter.get(filter);
+  }
+
   function checkKnownFilters(text, expected)
   {
     let result = {};
@@ -46,7 +55,7 @@ describe("Filter listener", function()
         {
           for (let filter of set)
           {
-            assert.equal(matcher.findKeyword(filter), keyword,
+            assert.equal(keywordForFilter(filter, matcher), keyword,
                          "Keyword of filter " + filter.text);
             filters.push(filter.text);
           }
@@ -67,7 +76,7 @@ describe("Filter listener", function()
 
     let {elemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation");
     result.elemhideemulation = [];
-    for (let filter of elemHideEmulation._filters)
+    for (let filter of elemHideEmulation)
       result.elemhideemulation.push(filter.text);
 
     let {snippets} = sandboxedRequire("../lib/snippets");
@@ -177,6 +186,7 @@ describe("Filter listener", function()
       let filter5 = Filter.fromText("#@#filter5");
       let filter6 = Filter.fromText("example.com#?#:-abp-properties(filter6')");
       let filter7 = Filter.fromText("example.com#@#[-abp-properties='filter7']");
+      let filter8 = Filter.fromText("||example.com/ad.js");
 
       filterStorage.addFilter(filter1);
       checkKnownFilters("add filter1", {blocking: [filter1.text]});
@@ -192,6 +202,11 @@ describe("Filter listener", function()
       checkKnownFilters("add example.com##:-abp-properties(filter6)", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text], elemhideemulation: [filter6.text]});
       filterStorage.addFilter(filter7);
       checkKnownFilters("add example.com#@#[-abp-properties='filter7']", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+      filterStorage.addFilter(filter8);
+      checkKnownFilters("add ||example.com/ad.js", {blocking: [filter1.text, filter8.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
+
+      filterStorage.removeFilter(filter8);
+      checkKnownFilters("remove filter8", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
 
       filterStorage.removeFilter(filter1);
       checkKnownFilters("remove filter1", {allowing: [filter2.text], elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
@@ -418,6 +433,41 @@ describe("Filter listener", function()
 
       filterStorage.addSubscription(subscription3);
       checkKnownFilters("add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
+    });
+
+    it("HTTP header filters", function()
+    {
+      let filter1 = Filter.fromText("||example.com/ad.js$header=content-type=image/png");
+      let filter2 = Filter.fromText("||example.com/content.js$header=content-type=image/png");
+
+      let subscription1 = Subscription.fromURL("https://test1/");
+      assert.equal(subscription1.type, null);
+
+      subscription1.addFilter(filter1);
+      subscription1.addFilter(filter2);
+
+      filterStorage.addSubscription(subscription1);
+      checkKnownFilters("add subscription with filter1 and filter2", {});
+
+      let {url: circumventionURL} = recommendations.find(
+        ({type}) => type == "circumvention"
+      );
+
+      let subscription2 = Subscription.fromURL(circumventionURL);
+      assert.equal(subscription2.type, "circumvention");
+
+      subscription2.addFilter(filter1);
+
+      filterStorage.addSubscription(subscription2);
+      checkKnownFilters("add subscription of type circumvention with filter1", {blocking: [filter1.text]});
+
+      let subscription3 = Subscription.fromURL("~user~foo");
+      assert.equal(subscription3.type, null);
+
+      subscription3.addFilter(filter2);
+
+      filterStorage.addSubscription(subscription3);
+      checkKnownFilters("add special subscription with filter2", {blocking: [filter1.text, filter2.text]});
     });
   });
 });

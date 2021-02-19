@@ -1,0 +1,55 @@
+[
+  {
+    "name": "blank-text",
+    "type": "text/plain",
+    "text": ""
+  },
+  {
+    "name": "blank-css",
+    "type": "text/css",
+    "text": ""
+  },
+  {
+    "name": "blank-js",
+    "type": "application/javascript",
+    "text": ""
+  },
+  {
+    "name": "blank-html",
+    "type": "text/html",
+    "text": "<!DOCTYPE html><html><head></head><body></body></html>"
+  },
+  {
+    "name": "blank-mp3",
+    "type": "audio/mpeg",
+    "file": "noopmp3-0.1s.mp3",
+    "comment": "Generate with: ffmpeg -ar 48000 -t 0.1 -f s16le -acodec pcm_s16le -ac 2 -i /dev/zero -acodec libmp3lame -aq 4 noopmp3-0.1s.mp3"
+  },
+  {
+    "name": "blank-mp4",
+    "type": "video/mp4",
+    "file": "noopmp4.mp4",
+    "comment": "Single black frame generated with ffmpeg."
+  },
+  {
+    "name": "1x1-transparent-gif",
+    "type": "image/gif",
+    "file": "1x1-transparent.gif"
+  },
+  {
+    "name": "2x2-transparent-png",
+    "type": "image/png",
+    "file": "2x2-transparent.png"
+  },
+  {
+    "name": "3x2-transparent-png",
+    "type": "image/png",
+    "file": "3x2-transparent.png"
+  },
+  {
+    "name": "32x32-transparent-png",
+    "type": "image/png",
+    "file": "32x32-transparent.png"
+  }
+]
+

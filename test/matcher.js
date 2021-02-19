@@ -71,11 +71,14 @@ describe("Matcher", function()
     for (let filter of filters)
       matcher.add(Filter.fromText(filter));
 
-    let result = matcher.match(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
-    if (result)
-      result = result.text;
+    for (let arg of [url, location])
+    {
+      let result = matcher.match(arg, contentTypes[contentType], docDomain, sitekey, specificOnly);
+      if (result)
+        result = result.text;
 
-    assert.equal(result, expectedFirstMatch, "match(" + location + ", " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
+      assert.equal(result, expectedFirstMatch, "match(" + (typeof arg == "string" ? arg : `parseURL(${arg})`) + ", " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
+    }
 
     let combinedMatcher = new CombinedMatcher();
     for (let i = 0; i < 2; i++)
@@ -83,11 +86,11 @@ describe("Matcher", function()
       for (let filter of filters)
         combinedMatcher.add(Filter.fromText(filter));
 
-      result = combinedMatcher.match(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
+      let result = combinedMatcher.match(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
       if (result)
         result = result.text;
 
-      assert.equal(result, expected, "combinedMatch(" + location + ", " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
+      assert.equal(result, expected, "combinedMatch(parseURL(" + location + "), " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
 
       // Generic allowing rules can match for specificOnly searches, so we
       // can't easily know which rule will match for these allowlisting tests
@@ -110,16 +113,22 @@ describe("Matcher", function()
     for (let filter of filters)
       matcher.add(Filter.fromText(filter));
 
-    let result = matcher.search(url, contentTypes[contentType],
-                                docDomain, sitekey, specificOnly, filterType);
-    for (let key in result)
-      result[key] = result[key].map(filter => filter.text);
+    for (let arg of [url, location])
+    {
+      let result = matcher.search(arg, contentTypes[contentType],
+                                  docDomain, sitekey, specificOnly, filterType);
 
-    assert.deepEqual(result, expected, "search(" + location + ", " +
-                     contentType + ", " + docDomain + ", " +
-                     (sitekey || "no-sitekey") + ", " +
-                     (specificOnly ? "specificOnly" : "not-specificOnly") + ", " +
-                     filterType + ") with:\n" + filters.join("\n"));
+      let converted = {};
+      for (let key in result)
+        converted[key] = result[key].map(filter => filter.text);
+
+      assert.deepEqual(converted, expected, "search(" +
+                       (typeof arg == "string" ? arg : `parseURL(${arg})`) + ", " +
+                       contentType + ", " + docDomain + ", " +
+                       (sitekey || "no-sitekey") + ", " +
+                       (specificOnly ? "specificOnly" : "not-specificOnly") + ", " +
+                       filterType + ") with:\n" + filters.join("\n"));
+    }
   }
 
   it("Class definitions", function()
@@ -150,6 +159,7 @@ describe("Matcher", function()
     compareKeywords("+asdf-1234=", ["asdf", "1234"]);
     compareKeywords("/123^ad2&ad&", ["123", "ad2"]);
     compareKeywords("/123^ad2&ad$script,domain=example.com", ["123", "ad2"]);
+    compareKeywords("||example.com/ad.js$header=content-type=image/png", ["example", "ad"]);
   });
 
   it("Filter matching", function()
@@ -239,6 +249,12 @@ describe("Matcher", function()
     checkMatch(["||foo.com^$csp=script-src 'none'"], "http://foo.com/bar", "CSP", "foo.com", null, false, "||foo.com^$csp=script-src 'none'");
     checkMatch(["@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", null, false, null, "@@||foo.com^$csp");
     checkMatch(["||foo.com^$csp=script-src 'none'", "@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", null, false, "@@||foo.com^$csp", "||foo.com^$csp=script-src 'none'");
+
+    checkMatch(["||example.com/ad.js$header=content-type:.*image/png"], "http://example.com/ad.js", "HEADER", "example.com", null, false, "||example.com/ad.js$header=content-type:.*image/png");
+    checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", "HEADER", "bar.com", null, true, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
+    checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", "HEADER", "bar.com", null, false, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
+    checkMatch(["@@||example.com/assets/*.js$header"], "http://example.com/assets/logo.js", "HEADER", "example.com", null, false, null, "@@||example.com/assets/*.js$header");
+    checkMatch(["||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com", "@@||example.com/assets/logo.js$header"], "http://example.com/assets/logo.js", "HEADER", "bar.com", null, false, "@@||example.com/assets/logo.js$header", "||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com");
 
     // See #7312.
     checkMatch(["^foo/bar/$script"], "http://foo/bar/", "SCRIPT", "example.com", null, true, null);

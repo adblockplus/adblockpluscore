@@ -76,6 +76,11 @@ describe("Synchronizer", function()
       synchronizer.start();
     });
 
+    afterEach(function()
+    {
+      synchronizer.stop();
+    });
+
     it("A disabled subscription gets a version update", function()
     {
       let subscription = Subscription.fromURL("https://example.com/subscription");
@@ -189,7 +194,10 @@ describe("Synchronizer", function()
         return runner.runScheduledTasks(50).then(() =>
         {
           assert.deepEqual(requests, [
-            [0, "GET", "/subscription"],
+            // The runner here starts right away from where it left and only
+            // after the first callback it starts from 0 again. however, the 3
+            // requests in 50 hours are expected and meant to happen.
+            [30, "GET", "/subscription"],
             [24 + initialDelay, "GET", "/subscription"],
             [48 + initialDelay, "GET", "/subscription"]
           ], "Requests after 50 hours");
@@ -800,6 +808,17 @@ describe("Synchronizer", function()
       {
         assert.equal(subscription.title, "foobar", "make sure title was found");
       }).catch(error => unexpectedError.call(assert, error));
+    });
+
+    it("Stop scheduled checks", function()
+    {
+      // cast synchronizer._downloader._timeout to avoid trusting
+      // a static value that could be different per env
+      assert.strictEqual(synchronizer._started, true, "Synchronizer started");
+      assert.strictEqual(!!synchronizer._downloader._timeout, true, "Downloader scheduled");
+      synchronizer.stop();
+      assert.strictEqual(synchronizer._started, false, "Synchronizer stopped");
+      assert.strictEqual(!!synchronizer._downloader._timeout, false, "Downloader unscheduled");
     });
   });
 

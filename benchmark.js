@@ -24,6 +24,9 @@
 
 const https = require("https");
 
+const profiler = require("./lib/profiler");
+profiler.enable(true);
+
 const {filterEngine} = require("./lib/filterEngine");
 
 const EASY_LIST = "https://easylist-downloads.adblockplus.org/easylist.txt";
@@ -113,9 +116,7 @@ async function main()
     console.log("# " + process.argv[2]);
     console.log();
 
-    console.time("Initialization");
     await filterEngine.initialize(filters);
-    console.timeEnd("Initialization");
     console.log();
 
     // Call printMemory() asynchronously so GC can clean up any objects from

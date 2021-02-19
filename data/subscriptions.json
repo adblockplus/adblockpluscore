@@ -224,6 +224,18 @@
     "homepage": "https://github.com/abp-filters/abp-filters-anti-cv"
   },
   {
+    "type": "cookies",
+    "title": "I don't care about cookies",
+    "url": "https://easylist-downloads.adblockplus.org/i_dont_care_about_cookies.txt",
+    "homepage": "https://www.i-dont-care-about-cookies.eu/"
+  },
+  {
+    "type": "notifications",
+    "title": "Fanboy's Notifications Blocking List",
+    "url": "https://easylist-downloads.adblockplus.org/fanboy-notifications.txt",
+    "homepage": "https://easylist.to/"
+  },
+  {
     "type": "privacy",
     "title": "EasyPrivacy",
     "url": "https://easylist-downloads.adblockplus.org/easyprivacy.txt",
