@@ -418,6 +418,7 @@ describe("Filter classes", function()
       let filter = Filter.fromText(filterText);
       assert.ok(filter instanceof InvalidFilter);
       assert.equal(filter.reason, "filter_invalid_domain");
+      assert.equal(filter.option, null);
     }
   });
 
@@ -556,6 +557,16 @@ describe("Filter classes", function()
                  "||content.server.com/files/*.php$rewrite=$1");
   });
 
+  it("InvalidFilter option propagated", function()
+  {
+    let text = "/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$nope=$1";
+    let filter = Filter.fromText(text);
+    assert.ok(filter instanceof InvalidFilter);
+    assert.equal(filter.type, "invalid");
+    assert.equal(filter.reason, "filter_unknown_option");
+    assert.equal(filter.option, "nope");
+  });
+
   it("Filter rewrite option", function()
   {
     let text = "/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=$1";
@@ -563,12 +574,14 @@ describe("Filter classes", function()
     assert.ok(filter instanceof InvalidFilter);
     assert.equal(filter.type, "invalid");
     assert.equal(filter.reason, "filter_invalid_rewrite");
+    assert.equal(filter.option, null);
 
     text = "||/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=blank-text,domains=content.server";
     filter = Filter.fromText(text);
     assert.ok(filter instanceof InvalidFilter);
     assert.equal(filter.type, "invalid");
     assert.equal(filter.reason, "filter_invalid_rewrite");
+    assert.equal(filter.option, null);
 
     const rewriteTestCases = require("./data/rewrite.json");
     for (let {resource, expected} of rewriteTestCases)
