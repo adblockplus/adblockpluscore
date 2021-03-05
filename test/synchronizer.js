@@ -65,6 +65,7 @@ describe("Synchronizer", function()
     subscription.errors = 0;
     subscription.downloadStatus = null;
     subscription.requiredVersion = null;
+    subscription.abtest = null;
   }
 
   let initialDelay = 1 / 60;
@@ -458,6 +459,30 @@ describe("Synchronizer", function()
           }).catch(error => unexpectedError.call(assert, error));
         });
       }
+
+      it("! Abtest: bar", function()
+      {
+        let comment = "! Abtest: bar";
+        let check = subscription =>
+        {
+          assert.equal(subscription.abtest, "bar", "ABTest comment");
+        };
+
+        // We have to check a url from subscriptions.json, hence the use of non-"example.com" url.
+        let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easyprivacy.txt");
+        filterStorage.addSubscription(subscription);
+
+        runner.registerHandler("/easyprivacy.txt", metadata =>
+        {
+          return [200, "[Adblock]\n" + comment + "\nfoo\nbar"];
+        });
+
+        return runner.runScheduledTasks(2).then(() =>
+        {
+          check(subscription);
+          assert.deepEqual([...subscription.filterText()], ["foo", "bar"], "Special comment not added to filters");
+        }).catch(error => unexpectedError.call(assert, error));
+      });
     });
 
     it("HTTPS", async function()
