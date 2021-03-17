@@ -25,32 +25,26 @@ const {timeout} = require("./_utils");
 
 const {assert} = chai;
 
-describe("Snippets", function()
-{
-  function expectHidden(element, id)
-  {
+describe("Snippets", function() {
+  function expectHidden(element, id) {
     let withId = "";
     if (typeof id != "undefined")
       withId = ` with ID '${id}'`;
 
     assert.equal(
-      window.getComputedStyle(element).display, "none",
-      `The element${withId}'s display property should be set to 'none'`);
+      window.getComputedStyle(element).display, "none", `The element${withId}'s display property should be set to 'none'`);
   }
 
-  function expectVisible(element, id)
-  {
+  function expectVisible(element, id) {
     let withId = "";
     if (typeof id != "undefined")
       withId = ` with ID '${id}'`;
 
     assert.notEqual(
-      window.getComputedStyle(element).display, "none",
-      `The element${withId}'s display property should not be set to 'none'`);
+      window.getComputedStyle(element).display, "none", `The element${withId}'s display property should not be set to 'none'`);
   }
 
-  async function runSnippetScript(script)
-  {
+  async function runSnippetScript(script) {
     new Function(compileScript(script, [libraryText]))();
 
     // For snippets that run in the context of the document via a <script>
@@ -59,22 +53,19 @@ describe("Snippets", function()
     await timeout(100);
   }
 
-  function testProperty(property, result = true, errorName = "ReferenceError")
-  {
+  function testProperty(property, result = true, errorName = "ReferenceError") {
     let path = property.split(".");
 
     let exceptionCaught = false;
     let value = 1;
 
-    try
-    {
+    try {
       let obj = window;
       while (path.length > 1)
         obj = obj[path.shift()];
       value = obj[path.shift()];
     }
-    catch (e)
-    {
+    catch (e) {
       assert.equal(e.name, errorName);
       exceptionCaught = true;
     }
@@ -91,8 +82,7 @@ describe("Snippets", function()
     );
   }
 
-  it("abort-property-read", async function()
-  {
+  it("abort-property-read", async function() {
     window.abpTest = "fortytwo";
     await runSnippetScript("abort-on-property-read abpTest");
     testProperty("abpTest");
@@ -176,47 +166,38 @@ describe("Snippets", function()
     testProperty("abpTest12.prototype.prop1");
   });
 
-  it("abort-on-propery-write", async function()
-  {
-    try
-    {
+  it("abort-on-propery-write", async function() {
+    try {
       await runSnippetScript("abort-on-property-write document.createElement");
 
       let element = document.createElement("script");
       assert.ok(!!element);
     }
-    catch (error)
-    {
+    catch (error) {
       assert.fail(error);
     }
   });
 
-  it("abort-on-iframe-property-read", async function()
-  {
+  it("abort-on-iframe-property-read", async function() {
     await runSnippetScript("abort-on-iframe-property-read document.createElement");
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
-    assert.throws(() =>
-    {
+    assert.throws(() => {
       window[0].document.createElement("script");
     });
   });
 
-  it("abort-on-iframe-property-write", async function()
-  {
+  it("abort-on-iframe-property-write", async function() {
     await runSnippetScript("abort-on-iframe-property-write adblock");
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
-    assert.throws(() =>
-    {
+    assert.throws(() => {
       window[0].adblock = true;
     });
   });
 
-  it("abort-curent-inline-script", async function()
-  {
-    function injectInlineScript(doc, script)
-    {
+  it("abort-curent-inline-script", async function() {
+    function injectInlineScript(doc, script) {
       let scriptElement = doc.createElement("script");
       scriptElement.type = "application/javascript";
       scriptElement.async = false;
@@ -254,11 +235,9 @@ describe("Snippets", function()
     let msg = document.getElementById("message1");
     assert.ok(msg, "Element 'message1' was not found");
 
-    if (element && msg)
-    {
+    if (element && msg) {
       assert.equal(element.textContent, "", "Result element should be empty");
-      assert.equal(msg.textContent, "ReferenceError",
-                   "There should have been an error");
+      assert.equal(msg.textContent, "ReferenceError", "There should have been an error");
     }
 
     script = `
@@ -282,16 +261,13 @@ describe("Snippets", function()
     msg = document.getElementById("message2");
     assert.ok(msg, "Element 'message2' was not found");
 
-    if (element && msg)
-    {
+    if (element && msg) {
       assert.equal(element.textContent, "", "Result element should be empty");
-      assert.equal(msg.textContent, "ReferenceError",
-                   "There should have been an error");
+      assert.equal(msg.textContent, "ReferenceError", "There should have been an error");
     }
   });
 
-  it("json-prune", async function()
-  {
+  it("json-prune", async function() {
     // ensure the JSON object is the window one, not one
     // the testing environment is providing
     let {JSON} = window;
@@ -320,8 +296,7 @@ describe("Snippets", function()
     assert.equal(JSON.stringify(testProp3), JSON.stringify(result3));
   });
 
-  it("hide-if-contains-visible-text", async function()
-  {
+  it("hide-if-contains-visible-text", async function() {
     document.body.innerHTML = `
       <style type="text/css">
         body {
@@ -442,8 +417,7 @@ describe("Snippets", function()
     expectVisible(element.children[1], "#pseudo div");
   });
 
-  it("hide-if-contains-image-hash", async function()
-  {
+  it("hide-if-contains-image-hash", async function() {
     let onloadTiemout = 25;
 
     document.body.innerHTML = "<img id=\"img-1\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9ba0WqDnZQcchQnSyIijhqFYpQIdQKrTqYXPoFTRqSFBdHwbXg4Mdi1cHFWVcHV0EQ/ABxcXVSdJES/5cUWsR4cNyPd/ced+8Af73MVLNjHFA1y0gl4kImuyqEXhFEJ0IYRK/ETH1OFJPwHF/38PH1LsazvM/9OXqUnMkAn0A8y3TDIt4gnt60dM77xBFWlBTic+Ixgy5I/Mh12eU3zgWH/TwzYqRT88QRYqHQxnIbs6KhEk8RRxVVo3x/xmWF8xZntVxlzXvyF4Zz2soy12kOI4FFLEGEABlVlFCGhRitGikmUrQf9/APOX6RXDK5SmDkWEAFKiTHD/4Hv7s185MTblI4DgRfbPtjBAjtAo2abX8f23bjBAg8A1day1+pAzOfpNdaWvQI6NsGLq5bmrwHXO4AA0+6ZEiOFKDpz+eB9zP6pizQfwt0r7m9Nfdx+gCkqavkDXBwCIwWKHvd491d7b39e6bZ3w/1+HJ1S9l56wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFBgcZNA50WAgAAAAMSURBVAjXY/j//z8ABf4C/tzMWecAAAAASUVORK5CYII=\" /><img id=\"img-2\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9bS0tpdbCDiEOG6mRBVMRRq1CECqFWaNXB5NIvaGJIUlwcBdeCgx+LVQcXZ10dXAVB8APExdVJ0UVK/F9SaBHjwXE/3t173L0D/M0aU82eMUDVLCObTgn5wooQekUQYcQQQa/ETH1WFDPwHF/38PH1LsmzvM/9OWJK0WSATyCeYbphEa8TT21aOud94jirSArxOfGoQRckfuS67PIb57LDfp4ZN3LZOeI4sVDuYrmLWcVQiSeJE4qqUb4/77LCeYuzWquz9j35C6NFbXmJ6zSHkMYCFiFCgIw6qqjBQpJWjRQTWdpPefgHHb9ILplcVTByzGMDKiTHD/4Hv7s1SxPjblI0BQRfbPtjGAjtAq2GbX8f23brBAg8A1dax7/RBKY/SW90tMQR0LcNXFx3NHkPuNwBBp50yZAcKUDTXyoB72f0TQWg/xaIrLq9tfdx+gDkqKvMDXBwCIyUKXvN493h7t7+PdPu7wfkk3Juqb5bhwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+MFCA0KNmzdilMAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12NgYGAAAAAEAAEnNCcKAAAAAElFTkSuQmCC\" />";
@@ -520,17 +494,14 @@ describe("Snippets", function()
     expectHidden(document.getElementById("img-1"), "img-1");
   });
 
-  it("does not leak snippets to the global scope", async function()
-  {
+  it("does not leak snippets to the global scope", async function() {
     assert.ok(typeof window.log === "undefined", "The window has no log function");
     await runSnippetScript("trace OK");
     assert.ok(typeof window.log === "undefined", "The window was not polluted");
   });
 
-  it("debug flag", async function()
-  {
-    function injectInlineScript(doc, script)
-    {
+  it("debug flag", async function() {
+    function injectInlineScript(doc, script) {
       let scriptElement = doc.createElement("script");
       scriptElement.type = "application/javascript";
       scriptElement.async = false;
@@ -542,8 +513,7 @@ describe("Snippets", function()
 
     // Type 1 test: no debug
     let {log} = console;
-    console.log = (...args) =>
-    {
+    console.log = (...args) => {
       console.log = log;
       logArgs = args.join(",");
     };
@@ -561,19 +531,16 @@ describe("Snippets", function()
       }
     })();`);
     await runSnippetScript("trace 1 2");
-    assert.strictEqual(document.log, "1,2",
-                       "type 2 debug flag should be false");
+    assert.strictEqual(document.log, "1,2", "type 2 debug flag should be false");
 
 
     // Type 1 test: debug flag enabled
-    console.log = (...args) =>
-    {
+    console.log = (...args) => {
       console.log = log;
       logArgs = args.join(",");
     };
     await runSnippetScript("debug; log 1 2");
-    assert.strictEqual(logArgs, "%c DEBUG,font-weight: bold,1,2",
-                       "type 1 debug flag should be true");
+    assert.strictEqual(logArgs, "%c DEBUG,font-weight: bold,1,2", "type 1 debug flag should be true");
 
     // Type 2 test: debug flag enabled
     injectInlineScript(document, `(() =>
@@ -586,14 +553,12 @@ describe("Snippets", function()
       }
     })();`);
     await runSnippetScript("debug; trace 1 2");
-    assert.strictEqual(document.log, "%c DEBUG,font-weight: bold,1,2",
-                       "type 2 debug flag should be true");
+    assert.strictEqual(document.log, "%c DEBUG,font-weight: bold,1,2", "type 2 debug flag should be true");
 
     delete document.log;
   });
 
-  it("hide-if-matches-xpath", async function()
-  {
+  it("hide-if-matches-xpath", async function() {
     document.body.innerHTML = '<div id="xpath-target"></div>';
     let target = document.getElementById("xpath-target");
     expectVisible(target);
@@ -601,8 +566,7 @@ describe("Snippets", function()
     expectHidden(target);
   });
 
-  it("hide-if-matches-xpath lazily", async function()
-  {
+  it("hide-if-matches-xpath lazily", async function() {
     await runSnippetScript("hide-if-matches-xpath //*[@id=\"xpath-lazily\"]");
     document.body.innerHTML = '<div id="xpath-lazily"></div>';
     let target = document.getElementById("xpath-lazily");
@@ -611,8 +575,7 @@ describe("Snippets", function()
     expectHidden(target);
   });
 
-  it("hide-if-matches-xpath text", async function()
-  {
+  it("hide-if-matches-xpath text", async function() {
     document.body.innerHTML = '<div id="xpath-text">out<p>in</p></div>';
     let target = document.getElementById("xpath-text").firstChild;
     assert.ok(target.textContent === "out");
@@ -620,8 +583,7 @@ describe("Snippets", function()
     assert.ok(target.textContent === "");
   });
 
-  it("hide-if-labelled-by", async function()
-  {
+  it("hide-if-labelled-by", async function() {
     document.body.innerHTML = `
       <div id="hilb-label">Sponsored</div>
       <div id="hilb-target">
@@ -634,8 +596,7 @@ describe("Snippets", function()
     expectHidden(target);
   });
 
-  it("hide-if-labelled-by lazily", async function()
-  {
+  it("hide-if-labelled-by lazily", async function() {
     await runSnippetScript("hide-if-labelled-by 'Sponsored' '#hilb-target-lazy [aria-labelledby]' '#hilb-target-lazy'");
     document.body.innerHTML = `
       <div id="hilb-label-lazy">Sponsored</div>
@@ -649,8 +610,7 @@ describe("Snippets", function()
     expectHidden(target);
   });
 
-  it("hide-if-labelled-by inline", async function()
-  {
+  it("hide-if-labelled-by inline", async function() {
     document.body.innerHTML = `
       <div id="hilb-target-inline">
         <div aria-labelledby="hilb-label-nope" aria-label="Sponsored">Content</div>
@@ -662,8 +622,7 @@ describe("Snippets", function()
     expectHidden(target);
   });
 
-  describe("freeze-element", function()
-  {
+  describe("freeze-element", function() {
     let {freeze} = window.Object;
     let {WeakMap} = window;
     let snippetWM = new WeakMap();
@@ -720,8 +679,7 @@ describe("Snippets", function()
       "nodeValue"
     ];
 
-    async function resetAndRun(script)
-    {
+    async function resetAndRun(script) {
       document.body.innerHTML = domTree;
       domContent = document.body.innerHTML;
       attachToWeakMap();
@@ -736,27 +694,21 @@ describe("Snippets", function()
       targetNodeSibling = document.querySelector("#content");
     }
 
-    function attachToWeakMap()
-    {
-      WeakMap.prototype.has = function(x)
-      {
+    function attachToWeakMap() {
+      WeakMap.prototype.has = function(x) {
         if (x !== document)
           return has.call(this, x);
-        this.set = function(key, value)
-        {
+        this.set = function(key, value) {
           snippetWM.set(key, value);
         };
-        this.get = function(key)
-        {
+        this.get = function(key) {
           return snippetWM.get(key);
         };
-        this.has = function(key)
-        {
+        this.has = function(key) {
           return snippetWM.has(key);
         };
         WeakMap.prototype.has = has;
-        if (!snippetWM.has(x))
-        {
+        if (!snippetWM.has(x)) {
           snippetWM.set(x, true);
           return false;
         }
@@ -778,26 +730,20 @@ describe("Snippets", function()
     let queryExceptionNodes = () => document.querySelectorAll(".exception-node");
     let getExceptionNode = () => exceptionNode.cloneNode();
 
-    function protect(cb, abort, shouldThrow)
-    {
+    function protect(cb, abort, shouldThrow) {
       if (!abort)
         cb();
       else
         shouldThrow ? assert.throws(cb) : assert.doesNotThrow(cb);
     }
 
-    async function testProps(title, subtree, abort, exceptions, script)
-    {
-      describe(title, function()
-      {
-        beforeEach(async function()
-        {
+    async function testProps(title, subtree, abort, exceptions, script) {
+      describe(title, function() {
+        beforeEach(async function() {
           await resetAndRun(script);
         });
-        for (let property of propertiesList)
-        {
-          it(property, function()
-          {
+        for (let property of propertiesList) {
+          it(property, function() {
             testProp(property, subtree, abort, exceptions);
           });
         }
@@ -808,10 +754,8 @@ describe("Snippets", function()
     let exceptionMessage = "exception nodes should be allowed";
     let nonTargetMessage = "non-targeted node should not be frozen";
 
-    function testProp(property, subtree, abort, exceptions)
-    {
-      switch (property)
-      {
+    function testProp(property, subtree, abort, exceptions) {
+      switch (property) {
         case "appendChild":
         case "append":
         case "prepend":
@@ -839,28 +783,24 @@ describe("Snippets", function()
           return testNodeValue();
       }
 
-      function testAppendChild()
-      {
+      function testAppendChild() {
         let exceptionsCount;
         let notTargetedCount;
         // targeted node should be frozen
         protect(() => Element.prototype[property].call(targetNode, getBadNode()), abort, true);
         protect(() => targetNode[property](getBadNode()), abort, true);
-        if (subtree)
-        {
+        if (subtree) {
           protect(() => targetNodeChild[property](getBadNode()), abort, true);
           protect(() => targetNodeGrandChild[property](getBadNode()), abort, true);
         }
         assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
 
         // exception nodes should be allowed
-        if (exceptions)
-        {
+        if (exceptions) {
           exceptionsCount = 2;
           protect(() => Element.prototype[property].call(targetNode, getExceptionNode()), abort, false);
           protect(() => targetNode[property](getExceptionNode()), abort, false);
-          if (subtree)
-          {
+          if (subtree) {
             exceptionsCount = 4;
             protect(() => targetNodeChild[property](getExceptionNode()), abort, false);
             protect(() => targetNodeGrandChild[property](getExceptionNode()), abort, false);
@@ -873,36 +813,31 @@ describe("Snippets", function()
         protect(() => Element.prototype[property].call(targetNodeParent, getGoodNode()), abort, false);
         protect(() => targetNodeParent[property](getGoodNode()), abort, false);
         protect(() => targetNodeSibling[property](getGoodNode()), abort, false);
-        if (!subtree)
-        {
+        if (!subtree) {
           notTargetedCount = 4;
           protect(() => targetNodeChild[property](getGoodNode()), abort, false);
         }
         assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage);
       }
 
-      function testInsertBefore()
-      {
+      function testInsertBefore() {
         let exceptionsCount;
         let notTargetedCount;
         // targeted node should be frozen
         protect(() => Node.prototype.insertBefore.call(targetNode, getBadNode(), targetNodeChild), abort, true);
         protect(() => targetNode.insertBefore(getBadNode(), targetNodeChild), abort, true);
-        if (subtree)
-        {
+        if (subtree) {
           protect(() => targetNodeChild.insertBefore(getBadNode(), null), abort, true);
           protect(() => targetNodeGrandChild.insertBefore(getBadNode(), null), abort, true);
         }
         assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
 
         // exception nodes should be allowed
-        if (exceptions)
-        {
+        if (exceptions) {
           exceptionsCount = 2;
           protect(() => Node.prototype.insertBefore.call(targetNode, getExceptionNode(), targetNodeChild), abort, false);
           protect(() => targetNode.insertBefore(getExceptionNode(), targetNodeChild), abort, false);
-          if (subtree)
-          {
+          if (subtree) {
             exceptionsCount = 4;
             protect(() => targetNodeChild.insertBefore(getExceptionNode(), null), abort, false);
             protect(() => targetNodeGrandChild.insertBefore(getExceptionNode(), null), abort, false);
@@ -915,16 +850,14 @@ describe("Snippets", function()
         protect(() => Node.prototype.insertBefore.call(targetNodeParent, getGoodNode(), null), abort, false);
         protect(() => targetNodeParent.insertBefore(getGoodNode(), null), abort, false);
         protect(() => targetNodeSibling.insertBefore(getGoodNode(), null), abort, false);
-        if (!subtree)
-        {
+        if (!subtree) {
           notTargetedCount = 4;
           protect(() => targetNodeChild.insertBefore(getGoodNode(), null), abort, false);
         }
         assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage);
       }
 
-      function testReplaceChild()
-      {
+      function testReplaceChild() {
         let exceptionsCount;
         let notTargetedCount;
         // targeted node should be frozen
@@ -935,13 +868,11 @@ describe("Snippets", function()
         assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
 
         // exception nodes should be allowed
-        if (exceptions)
-        {
+        if (exceptions) {
           exceptionsCount = 2;
           protect(() => Node.prototype.replaceChild.call(targetNode, getExceptionNode(), targetNode.children[1]), abort, false);
           protect(() => targetNode.replaceChild(getExceptionNode(), targetNode.children[2]), abort, false);
-          if (subtree)
-          {
+          if (subtree) {
             exceptionsCount = 3;
             protect(() => targetNodeChild.replaceChild(getExceptionNode(), targetNodeGrandChild), abort, false);
           }
@@ -952,16 +883,14 @@ describe("Snippets", function()
         notTargetedCount = 2;
         protect(() => Node.prototype.replaceChild.call(targetNodeSibling, getGoodNode(), targetNodeSibling.children[1]), abort, false);
         protect(() => targetNodeSibling.replaceChild(getGoodNode(), targetNodeSibling.children[0]), abort, false);
-        if (!subtree)
-        {
+        if (!subtree) {
           notTargetedCount = 3;
           protect(() => targetNodeChild.replaceChild(getGoodNode(), targetNodeGrandChild), abort, false);
         }
         assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage);
       }
 
-      function testReplaceWith()
-      {
+      function testReplaceWith() {
         // targeted node should be frozen
         protect(() => Element.prototype[property].call(targetNode, getBadNode()), abort, true);
         protect(() => targetNode[property](getBadNode()), abort, true);
@@ -971,10 +900,8 @@ describe("Snippets", function()
         assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
 
         // exception nodes should be allowed
-        if (exceptions)
-        {
-          if (subtree)
-          {
+        if (exceptions) {
+          if (subtree) {
             protect(() => targetNodeGrandChild[property](getExceptionNode()), abort, false);
             assert.strictEqual(queryExceptionNodes().length, 1, exceptionMessage);
           }
@@ -991,8 +918,7 @@ describe("Snippets", function()
         assert.strictEqual(queryGoodNodes().length, 1, nonTargetMessage);
       }
 
-      function testBeforeAndAfter()
-      {
+      function testBeforeAndAfter() {
         let exceptionsCount;
         let notTargetedCount;
         // targeted node should be frozen
@@ -1004,13 +930,11 @@ describe("Snippets", function()
         assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
 
         // exception nodes should be allowed
-        if (exceptions)
-        {
+        if (exceptions) {
           exceptionsCount = 2;
           protect(() => Element.prototype[property].call(targetNode, getExceptionNode()), abort, false);
           protect(() => targetNodeChild[property](getExceptionNode()), abort, false);
-          if (subtree)
-          {
+          if (subtree) {
             exceptionsCount = 3;
             protect(() => targetNodeGrandChild[property](getExceptionNode()), abort, false);
           }
@@ -1021,16 +945,14 @@ describe("Snippets", function()
         notTargetedCount = 2;
         protect(() => Element.prototype[property].call(targetNodeParent, getGoodNode()), abort, false);
         protect(() => targetNodeSibling[property](getGoodNode()), abort, false);
-        if (!subtree)
-        {
+        if (!subtree) {
           notTargetedCount = 3;
           protect(() => targetNodeGrandChild[property](getGoodNode()), abort, false);
         }
         assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage);
       }
 
-      function testInsertAdjacent()
-      {
+      function testInsertAdjacent() {
         let exceptionsCount;
         let notTargetedCount;
         // targeted node should be frozen
@@ -1044,26 +966,24 @@ describe("Snippets", function()
         assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
 
         // exception nodes should be allowed
-        if (exceptions)
-        {
+        if (exceptions) {
           exceptionsCount = 5;
           protect(() => Element.prototype[property].call(targetNode, "afterbegin", getException()), abort, false);
           protect(() => targetNode[property]("afterbegin", getException()), abort, false);
           protect(() => targetNode[property]("beforeend", getException()), abort, false);
           protect(() => targetNodeChild[property]("beforebegin", getException()), abort, false);
           protect(() => targetNodeChild[property]("afterend", getException()), abort, false);
-          if (subtree)
-          {
+          if (subtree) {
             exceptionsCount = 6;
             protect(() => targetNodeChild[property]("afterbegin", getException()), abort, false);
           }
-          if (property === "insertAdjacentText")
-          {
+          if (property === "insertAdjacentText") {
             assert.notStrictEqual(targetNodeParent.textContent.match(/\(exception\)/g), null, exceptionMessage);
             assert.strictEqual(targetNodeParent.textContent.match(/\(exception\)/g).length, exceptionsCount, exceptionMessage);
           }
-          else
-          { assert.strictEqual(queryExceptionNodes().length, exceptionsCount, exceptionMessage); }
+          else {
+            assert.strictEqual(queryExceptionNodes().length, exceptionsCount, exceptionMessage);
+          }
         }
 
         // non-targeted nodes should not be frozen
@@ -1073,23 +993,20 @@ describe("Snippets", function()
         protect(() => targetNode[property]("afterend", getGood()), abort, false);
         protect(() => targetNodeSibling[property]("afterbegin", getGood()), abort, false);
         protect(() => targetNodeParent[property]("afterbegin", getGood()), abort, false);
-        if (!subtree)
-        {
+        if (!subtree) {
           notTargetedCount = 6;
           protect(() => targetNodeChild[property]("afterbegin", getGood()), abort, false);
         }
-        if (property === "insertAdjacentText")
-        {
+        if (property === "insertAdjacentText") {
           assert.notStrictEqual(targetNodeParent.textContent.match(/\(good\)/g), null, nonTargetMessage);
           assert.strictEqual(targetNodeParent.textContent.match(/\(good\)/g).length, notTargetedCount, nonTargetMessage);
         }
-        else
-        { assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage); }
+        else {
+          assert.strictEqual(queryGoodNodes().length, notTargetedCount, nonTargetMessage);
+        }
 
-        function getBad()
-        {
-          switch (property)
-          {
+        function getBad() {
+          switch (property) {
             case "insertAdjacentElement":
               return getBadNode();
             case "insertAdjacentHTML":
@@ -1099,10 +1016,8 @@ describe("Snippets", function()
           }
         }
 
-        function getException()
-        {
-          switch (property)
-          {
+        function getException() {
+          switch (property) {
             case "insertAdjacentElement":
               return getExceptionNode();
             case "insertAdjacentHTML":
@@ -1112,10 +1027,8 @@ describe("Snippets", function()
           }
         }
 
-        function getGood()
-        {
-          switch (property)
-          {
+        function getGood() {
+          switch (property) {
             case "insertAdjacentElement":
               return getGoodNode();
             case "insertAdjacentHTML":
@@ -1126,8 +1039,7 @@ describe("Snippets", function()
         }
       }
 
-      function testInnerHTML()
-      {
+      function testInnerHTML() {
         let setter = Object.getOwnPropertyDescriptor(Element.prototype, property).set;
 
         // targeted node should be frozen
@@ -1138,10 +1050,8 @@ describe("Snippets", function()
         assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
 
         // exception nodes should be allowed
-        if (exceptions)
-        {
-          if (subtree)
-          {
+        if (exceptions) {
+          if (subtree) {
             protect(() => targetNodeChild[property] = getExceptionNode().outerHTML, abort, false);
             assert.strictEqual(queryExceptionNodes().length, 1, exceptionMessage);
           }
@@ -1154,11 +1064,9 @@ describe("Snippets", function()
         assert.strictEqual(queryGoodNodes().length, 1, nonTargetMessage);
       }
 
-      function testTextContent()
-      {
+      function testTextContent() {
         let setter;
-        switch (property)
-        {
+        switch (property) {
           case "textContent":
             setter = Object.getOwnPropertyDescriptor(Node.prototype, property).set;
             break;
@@ -1177,10 +1085,8 @@ describe("Snippets", function()
         assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
 
         // exception nodes should be allowed
-        if (exceptions)
-        {
-          if (subtree)
-          {
+        if (exceptions) {
+          if (subtree) {
             protect(() => targetNodeChild[property] = "(exception)", abort, false);
             assert.strictEqual(targetNodeChild[property], "(exception)", exceptionMessage);
           }
@@ -1195,13 +1101,11 @@ describe("Snippets", function()
         assert.strictEqual(targetNodeSibling[property], "good", nonTargetMessage);
       }
 
-      function testNodeValue()
-      {
+      function testNodeValue() {
         let setter = Object.getOwnPropertyDescriptor(Node.prototype, property).set;
 
         // targeted node should be frozen
-        if (targetNode.nodeType === Node.TEXT_NODE)
-        {
+        if (targetNode.nodeType === Node.TEXT_NODE) {
           protect(() => setter.call(targetNode, "bad"), abort, true);
           protect(() => targetNode.nodeValue = "bad", abort, true);
         }
@@ -1211,13 +1115,11 @@ describe("Snippets", function()
         assert.strictEqual(document.body.innerHTML, domContent, targetMessage);
 
         // exception nodes should be allowed
-        if (exceptions)
-        {
+        if (exceptions) {
           protect(() => targetNode.nodeValue = "(exception)", abort, false);
           if (targetNode.nodeType === Node.TEXT_NODE)
             assert.strictEqual(targetNode.nodeValue, "(exception)", exceptionMessage);
-          if (subtree)
-          {
+          if (subtree) {
             protect(() => navItem.childNodes[0].nodeValue = "(exception)", abort, false);
             assert.strictEqual(navItem.childNodes[0].nodeValue, "(exception)", exceptionMessage);
           }
@@ -1240,8 +1142,7 @@ describe("Snippets", function()
     testProps("subtree+abort+exceptions", true, true, true, "freeze-element #header subtree+abort .exception-node /(exception)/");
   });
 
-  function testPropertyOverride(property, value)
-  {
+  function testPropertyOverride(property, value) {
     let result = false;
     let path = property.split(".");
     let actualValue;
@@ -1277,8 +1178,7 @@ describe("Snippets", function()
     );
   }
 
-  it("override-property-read", async function()
-  {
+  it("override-property-read", async function() {
     window.overrideTest = "fortytwo";
     await runSnippetScript("override-property-read overrideTest undefined");
     testPropertyOverride("overrideTest", "undefined");

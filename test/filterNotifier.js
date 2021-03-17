@@ -22,10 +22,8 @@ const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let filterNotifier = null;
 
-describe("Filter notifier", function()
-{
-  beforeEach(function()
-  {
+describe("Filter notifier", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
@@ -39,21 +37,17 @@ describe("Filter notifier", function()
     (...args) => triggeredListeners.push(["listener3", ...args])
   ];
 
-  function addListener(listener)
-  {
+  function addListener(listener) {
     filterNotifier.on("foo", listener);
   }
 
-  function removeListener(listener)
-  {
+  function removeListener(listener) {
     filterNotifier.off("foo", listener);
   }
 
-  function compareListeners(testDescription, list)
-  {
+  function compareListeners(testDescription, list) {
     assert.equal(filterNotifier.hasListeners(), list.length > 0, testDescription);
-    assert.equal(filterNotifier.hasListeners("foo"), list.length > 0,
-                 testDescription);
+    assert.equal(filterNotifier.hasListeners("foo"), list.length > 0, testDescription);
 
     assert.equal(filterNotifier.hasListeners("bar"), false, testDescription);
 
@@ -67,8 +61,7 @@ describe("Filter notifier", function()
     assert.deepEqual(result1, result2, testDescription);
   }
 
-  it("Adding/removing listeners", function()
-  {
+  it("Adding/removing listeners", function() {
     let [listener1, listener2, listener3] = listeners;
 
     compareListeners("No listeners", []);
@@ -104,10 +97,8 @@ describe("Filter notifier", function()
     compareListeners("removeListener(listener2)", []);
   });
 
-  it("Removing listeners while being called", function()
-  {
-    let listener1 = function(...args)
-    {
+  it("Removing listeners while being called", function() {
+    let listener1 = function(...args) {
       listeners[0](...args);
       removeListener(listener1);
     };

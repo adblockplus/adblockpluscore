@@ -24,10 +24,8 @@ let contentTypes = null;
 let Filter = null;
 let URLRequest = null;
 
-describe("URL filters matching", function()
-{
-  beforeEach(function()
-  {
+describe("URL filters matching", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {contentTypes} = sandboxedRequire(LIB_FOLDER + "/contentTypes"),
@@ -36,13 +34,11 @@ describe("URL filters matching", function()
     );
   });
 
-  function testMatch(text, location, contentType, docDomain, thirdParty, sitekey, expected)
-  {
+  function testMatch(text, location, contentType, docDomain, thirdParty, sitekey, expected) {
     if (thirdParty && docDomain == null)
       docDomain = "some-other-domain";
 
-    function testMatchInternal(filterText)
-    {
+    function testMatchInternal(filterText) {
       let filter = Filter.fromText(filterText);
       let request = URLRequest.from(location, docDomain);
       let result = filter.matches(request, contentTypes[contentType], sitekey);
@@ -54,8 +50,7 @@ describe("URL filters matching", function()
       testMatchInternal("@@" + text);
   }
 
-  it("Basic filters", function()
-  {
+  it("Basic filters", function() {
     testMatch("abc", "http://abc/adf", "IMAGE", null, false, null, true);
     testMatch("abc", "http://ABC/adf", "IMAGE", null, false, null, true);
     testMatch("abc", "http://abd/adf", "IMAGE", null, false, null, false);
@@ -72,8 +67,7 @@ describe("URL filters matching", function()
     testMatch("||example.com/foo|", "http://example.com/foo/bar", "IMAGE", null, false, null, false);
   });
 
-  it("Separator placeholders", function()
-  {
+  it("Separator placeholders", function() {
     testMatch("abc^d", "http://abc/def", "IMAGE", null, false, null, true);
     testMatch("abc^e", "http://abc/def", "IMAGE", null, false, null, false);
     testMatch("def^", "http://abc/def", "IMAGE", null, false, null, true);
@@ -99,8 +93,7 @@ describe("URL filters matching", function()
     testMatch("||пример.ру^foo", "http://пример.ру/foo/bar", "IMAGE", null, false, null, true);
   });
 
-  it("Wildcard matching", function()
-  {
+  it("Wildcard matching", function() {
     testMatch("abc*d", "http://abc/adf", "IMAGE", null, false, null, true);
     testMatch("abc*d", "http://abcd/af", "IMAGE", null, false, null, true);
     testMatch("abc*d", "http://abc/d/af", "IMAGE", null, false, null, true);
@@ -112,8 +105,7 @@ describe("URL filters matching", function()
     testMatch("abc***d", "http://abc/adf", "IMAGE", null, false, null, true);
   });
 
-  it("Type options", function()
-  {
+  it("Type options", function() {
     testMatch("abc$image", "http://abc/adf", "IMAGE", null, false, null, true);
     testMatch("abc$other", "http://abc/adf", "IMAGE", null, false, null, false);
     testMatch("abc$other", "http://abc/adf", "OTHER", null, false, null, true);
@@ -202,8 +194,7 @@ describe("URL filters matching", function()
     testMatch("abc$~image,~third-party", "http://abc/adf", "IMAGE", null, false, null, false);
   });
 
-  it("Regular expressions", function()
-  {
+  it("Regular expressions", function() {
     testMatch("/abc/", "http://abc/adf", "IMAGE", null, false, null, true);
     testMatch("/abc/", "http://abcd/adf", "IMAGE", null, false, null, true);
     testMatch("*/abc/", "http://abc/adf", "IMAGE", null, false, null, true);
@@ -214,8 +205,7 @@ describe("URL filters matching", function()
     testMatch("/a\\wc/", "http://a%c/adf", "IMAGE", null, false, null, false);
   });
 
-  it("Regular expressions with type options", function()
-  {
+  it("Regular expressions with type options", function() {
     testMatch("/abc/$image", "http://abc/adf", "IMAGE", null, false, null, true);
     testMatch("/abc/$image", "http://aBc/adf", "IMAGE", null, false, null, true);
     testMatch("/abc/$script", "http://abc/adf", "IMAGE", null, false, null, false);
@@ -237,8 +227,7 @@ describe("URL filters matching", function()
     testMatch("/ab{2}c/$~match-case", "http://aBc/adf", "IMAGE", null, true, null, false);
   });
 
-  it("Domain restrictions", function()
-  {
+  it("Domain restrictions", function() {
     testMatch("abc$domain=foo.com", "http://abc/def", "IMAGE", "foo.com", true, null, true);
     testMatch("abc$domain=foo.com", "http://abc/def", "IMAGE", "foo.com.", true, null, true);
     testMatch("abc$domain=foo.com", "http://abc/def", "IMAGE", "www.foo.com", true, null, true);
@@ -315,8 +304,7 @@ describe("URL filters matching", function()
     testMatch("abc$domain=foo.com,~image", "http://abc/def", "OBJECT", "bar.com", true, null, false);
   });
 
-  it("Sitekey restrictions", function()
-  {
+  it("Sitekey restrictions", function() {
     testMatch("abc$sitekey=foo-publickey", "http://abc/def", "IMAGE", "foo.com", true, "foo-publickey", true);
     testMatch("abc$sitekey=foo-publickey", "http://abc/def", "IMAGE", "foo.com", true, null, false);
     testMatch("abc$sitekey=foo-publickey", "http://abc/def", "IMAGE", "foo.com", true, "bar-publickey", false);
@@ -330,8 +318,7 @@ describe("URL filters matching", function()
     testMatch("abc$domain=~foo.com,sitekey=foo-publickey", "http://abc/def", "IMAGE", "bar.com", true, "foo-publickey", true);
   });
 
-  it("Exception rules", function()
-  {
+  it("Exception rules", function() {
     testMatch("@@test", "http://test/", "DOCUMENT", null, false, null, false);
     testMatch("@@http://test*", "http://test/", "DOCUMENT", null, false, null, false);
     testMatch("@@ftp://test*", "ftp://test/", "DOCUMENT", null, false, null, false);

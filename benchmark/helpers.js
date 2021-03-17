@@ -31,15 +31,12 @@ const fs = require("fs");
 const https = require("https");
 let dataToSave = {};
 
-function loadBenchmarkData(pathToLoad)
-{
+function loadBenchmarkData(pathToLoad) {
   let benchmarkData = {};
-  try
-  {
+  try {
     benchmarkData = require(pathToLoad);
   }
-  catch (e)
-  {
+  catch (e) {
     if (e.code !== "MODULE_NOT_FOUND")
       throw e;
   }
@@ -47,22 +44,18 @@ function loadBenchmarkData(pathToLoad)
 }
 
 exports.saveToFile = async function
-saveToFile(data, fileCleanup = false, pathToFile)
-{
+saveToFile(data, fileCleanup = false, pathToFile) {
   if (fileCleanup)
     await this.deleteFile(BENCHMARK_RESULTS);
   let json = JSON.stringify(data);
   fs.promises.writeFile(pathToFile, json, "utf8");
 };
 
-exports.loadFile = async function loadFile(list)
-{
-  try
-  {
+exports.loadFile = async function loadFile(list) {
+  try {
     return await fs.promises.readFile(list.path, "utf8");
   }
-  catch (error)
-  {
+  catch (error) {
     console.log(`Hey, we're downloading the file once, 
     hold on for a second. Downloading from url: ${list.url}`);
     let data = await download(list.url);
@@ -72,44 +65,38 @@ exports.loadFile = async function loadFile(list)
   }
 };
 
-function download(url)
-{
-  return new Promise((resolve, reject) =>
-  {
+function download(url) {
+  return new Promise((resolve, reject) => {
     let request = https.request(url);
 
     request.on("error", reject);
-    request.on("response", response =>
-    {
+    request.on("response", response => {
       let {statusCode} = response;
-      if (statusCode != 200)
-      {
+      if (statusCode != 200) {
         reject(`Download failed for ${url} with status ${statusCode}`);
         return;
       }
 
       let body = [];
       response.on("data", body.push.bind(body));
-      response.on("end", () => { resolve(body.join("")); });
+      response.on("end", () => {
+        resolve(body.join(""));
+      });
     });
 
     request.end();
   });
 }
 
-function deepMerge(object1, object2)
-{
-  for (let key of Object.keys(object2))
-  {
-    try
-    {
+function deepMerge(object1, object2) {
+  for (let key of Object.keys(object2)) {
+    try {
       if (object2[key] instanceof Object)
         object1[key] = deepMerge(object1[key], object2[key]);
       else
         object1[key] = object2[key];
     }
-    catch (e)
-    {
+    catch (e) {
       object1[key] = object2[key];
     }
   }
@@ -118,16 +105,14 @@ function deepMerge(object1, object2)
 
 exports.mergeToBenchmarkResults = function mergeToBenchmarkResults(
   dataToMege,
-  pathForData)
-{
+  pathForData) {
   let benchmarkData = {};
   benchmarkData = loadBenchmarkData(pathForData);
   return deepMerge(benchmarkData, dataToMege);
 };
 
 
-exports.cleanBenchmarkData = async function cleanBenchmarkData()
-{
+exports.cleanBenchmarkData = async function cleanBenchmarkData() {
   console.log("Wait a sec, I am cleaning benchmark Data... ");
 
   let heapTotalMin = Number.MAX_SAFE_INTEGER;
@@ -144,50 +129,41 @@ exports.cleanBenchmarkData = async function cleanBenchmarkData()
   let filterList = ["EasyList+AA", "EasyList", "All"];
   let dataToAnalyze = loadBenchmarkData(BENCHMARK_RESULTS);
 
-  for (let i = 0; i < filterList.length; i++)
-  {
+  for (let i = 0; i < filterList.length; i++) {
     let filter = filterList[i];
-    for (let timestamp in dataToAnalyze)
-    {
+    for (let timestamp in dataToAnalyze) {
       if (typeof (dataToAnalyze[timestamp][filter]) == "undefined")
         continue;
-      for (let key in dataToAnalyze[timestamp][filter])
-      {
+      for (let key in dataToAnalyze[timestamp][filter]) {
         let valueToCompare =
           parseFloat(dataToAnalyze[timestamp][filter][key]);
-        switch (key)
-        {
+        switch (key) {
           case "HeapUsed":
-            if (heapUsedMin > valueToCompare)
-            {
+            if (heapUsedMin > valueToCompare) {
               heapUsedMinTimestamp = timestamp;
               heapUsedMin = valueToCompare;
             }
             break;
           case "HeapTotal":
-            if (heapTotalMin > valueToCompare)
-            {
+            if (heapTotalMin > valueToCompare) {
               heapTotalMinTimestamp = timestamp;
               heapTotalMin = valueToCompare;
             }
             break;
           case "FilterEngine:download_done_measure":
-            if (filterEngDownloadMin > valueToCompare)
-            {
+            if (filterEngDownloadMin > valueToCompare) {
               filterEngDownloadTime = timestamp;
               filterEngDownloadMin = valueToCompare;
             }
             break;
           case "FilterEngine:initialize_measure":
-            if (filterEngInitMin > valueToCompare)
-            {
+            if (filterEngInitMin > valueToCompare) {
               filterEngInitTime = timestamp;
               filterEngInitMin = valueToCompare;
             }
             break;
           case "FilterEngine:startup":
-            if (filterEngStartupMin > valueToCompare)
-            {
+            if (filterEngStartupMin > valueToCompare) {
               filterEngStartupTime = timestamp;
               filterEngStartupMin = valueToCompare;
             }
@@ -213,18 +189,15 @@ exports.cleanBenchmarkData = async function cleanBenchmarkData()
   await this.saveToFile(dataToSave, true, BENCHMARK_RESULTS);
 };
 
-function printTableSeparator(separator, startSign = "┣", endSign = "┫")
-{
+function printTableSeparator(separator, startSign = "┣", endSign = "┫") {
   console.log(`${startSign}${"━".repeat(35)}${separator}${"━".repeat(14)}${separator}${"━".repeat(14)}${separator}${"━".repeat(21)}${endSign}`);
 }
 
-function fillTab(col1, col2, col3, col4)
-{
+function fillTab(col1, col2, col3, col4) {
   console.log(`┃ ${col1.padEnd(34, " ")}┃ ${col2.padEnd(13, " ")}┃ ${col3.padEnd(13, " ")}┃${col4.padStart(19, " ")}% ┃ `);
 }
 
-exports.compareResults = function compareResults(currentRunTimestamp)
-{
+exports.compareResults = function compareResults(currentRunTimestamp) {
   let keys = [
     "HeapUsed",
     "HeapTotal",
@@ -236,8 +209,7 @@ exports.compareResults = function compareResults(currentRunTimestamp)
 
   console.log(`┏${"━".repeat(87)}┓`);
 
-  for (let j = 0; j < keys.length; j++)
-  {
+  for (let j = 0; j < keys.length; j++) {
     let key = keys[j];
 
     console.log(`┃${" ".repeat(33)}${key.padEnd(54, " ")}┃`);
@@ -245,14 +217,12 @@ exports.compareResults = function compareResults(currentRunTimestamp)
     fillTab(" ", "Current", "Min", "Diff");
     printTableSeparator("╋");
 
-    for (let i = 0; i < filterList.length; i++)
-    {
+    for (let i = 0; i < filterList.length; i++) {
       let filter = filterList[i];
       let valueMin = Number.MAX_SAFE_INTEGER;
       let dataToAnalyze = loadBenchmarkData(BENCHMARK_RESULTS);
       let currentRunData = loadBenchmarkData(TEMP_BENCHMARK_RESULTS);
-      for (let timestamp of Object.keys(dataToAnalyze))
-      {
+      for (let timestamp of Object.keys(dataToAnalyze)) {
         if (timestamp == currentRunTimestamp)
           continue;
         if (typeof (dataToAnalyze[timestamp][filter]) == "undefined")
@@ -265,8 +235,7 @@ exports.compareResults = function compareResults(currentRunTimestamp)
         if (valueMin > valueToCompare)
           valueMin = valueToCompare;
       }
-      if (valueMin == Number.MAX_SAFE_INTEGER)
-      {
+      if (valueMin == Number.MAX_SAFE_INTEGER) {
         console.log(` Missing historical data to compare,
           please run 'npm benchmark-save' to create one`);
         this.deleteFile(TEMP_BENCHMARK_RESULTS)
@@ -284,8 +253,7 @@ exports.compareResults = function compareResults(currentRunTimestamp)
         diff.toFixed(3)
       );
 
-      if (j == (keys.length - 1) && i == (filterList.length - 1))
-      {
+      if (j == (keys.length - 1) && i == (filterList.length - 1)) {
         printTableSeparator("┻", "┗", "┛");
         continue;
       }
@@ -294,14 +262,11 @@ exports.compareResults = function compareResults(currentRunTimestamp)
   }
 };
 
-exports.deleteFile = async function deleteFile(pathToDelete)
-{
-  try
-  {
+exports.deleteFile = async function deleteFile(pathToDelete) {
+  try {
     return await fs.promises.unlink(pathToDelete);
   }
-  catch (error)
-  {
+  catch (error) {
     console.log("Looks like there is no file to delete, skipping");
   }
 };

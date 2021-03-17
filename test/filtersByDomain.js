@@ -24,10 +24,8 @@ let Filter = null;
 let FiltersByDomain = null;
 let FilterMap = null;
 
-describe("Filters by domain", function()
-{
-  beforeEach(function()
-  {
+describe("Filters by domain", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
@@ -35,8 +33,7 @@ describe("Filters by domain", function()
     );
   });
 
-  it("Filters by domain", function()
-  {
+  it("Filters by domain", function() {
     let filtersByDomain = new FiltersByDomain();
 
     assert.equal(filtersByDomain.size, 0);

@@ -23,8 +23,7 @@ const {LIB_FOLDER, createSandbox} = require("./_common");
 let filterNotifier = null;
 let filterState = null;
 
-beforeEach(function()
-{
+beforeEach(function() {
   let sandboxedRequire = createSandbox();
   (
     {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier"),
@@ -32,39 +31,32 @@ beforeEach(function()
   );
 });
 
-describe("filterState.isEnabled()", function()
-{
-  context("No state", function()
-  {
-    it("should return true for enabled filter", function()
-    {
+describe("filterState.isEnabled()", function() {
+  context("No state", function() {
+    it("should return true for enabled filter", function() {
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter's enabled state is reset", function()
-    {
+    it("should return true after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter is disabled", function()
-    {
+    it("should return false after filter is disabled", function() {
       filterState.setEnabled("||example.com^", false);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter is re-enabled", function()
-    {
+    it("should return true after filter is re-enabled", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.setEnabled("||example.com^", true);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter is re-disabled", function()
-    {
+    it("should return false after filter is re-disabled", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.setEnabled("||example.com^", true);
       filterState.setEnabled("||example.com^", false);
@@ -72,61 +64,53 @@ describe("filterState.isEnabled()", function()
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter is disabled and filter's enabled state is reset", function()
-    {
+    it("should return true after filter is disabled and filter's enabled state is reset", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.resetEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter's enabled state is toggled", function()
-    {
+    it("should return false after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter's enabled state is re-toggled", function()
-    {
+    it("should return true after filter's enabled state is re-toggled", function() {
       filterState.toggleEnabled("||example.com^");
       filterState.toggleEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter's enabled state is toggled and reset", function()
-    {
+    it("should return true after filter's enabled state is toggled and reset", function() {
       filterState.toggleEnabled("||example.com^");
       filterState.resetEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter's hit count is reset", function()
-    {
+    it("should return true after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter's hit count is set to 1", function()
-    {
+    it("should return true after filter's hit count is set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter's hit count is set to 1 and filter is disabled", function()
-    {
+    it("should return false after filter's hit count is set to 1 and filter is disabled", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.setEnabled("||example.com^", false);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return false after filter's hit count is set to 1, filter is disabled, and filter's hit count is reset", function()
-    {
+    it("should return false after filter's hit count is set to 1, filter is disabled, and filter's hit count is reset", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.setEnabled("||example.com^", false);
       filterState.resetHitCount("||example.com^");
@@ -134,30 +118,26 @@ describe("filterState.isEnabled()", function()
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter's last hit time is reset", function()
-    {
+    it("should return true after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter's last hit time is set to 946684800000", function()
-    {
+    it("should return true after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter's last hit time is set to 946684800000 and filter is disabled", function()
-    {
+    it("should return false after filter's last hit time is set to 946684800000 and filter is disabled", function() {
       filterState.setLastHit("||example.com^", 946684800000);
       filterState.setEnabled("||example.com^", false);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return false after filter's last hit time is set to 946684800000, filter is disabled, and filter's last hit time is reset", function()
-    {
+    it("should return false after filter's last hit time is set to 946684800000, filter is disabled, and filter's last hit time is reset", function() {
       filterState.setLastHit("||example.com^", 946684800000);
       filterState.setEnabled("||example.com^", false);
       filterState.resetLastHit("||example.com^");
@@ -165,30 +145,26 @@ describe("filterState.isEnabled()", function()
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter hits are reset", function()
-    {
+    it("should return true after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter hit is registered", function()
-    {
+    it("should return true after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter hit is registered and filter is disabled", function()
-    {
+    it("should return false after filter hit is registered and filter is disabled", function() {
       filterState.registerHit("||example.com^");
       filterState.setEnabled("||example.com^", false);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return false after filter hit is registered, filter is disabled, and filter hits are reset", function()
-    {
+    it("should return false after filter hit is registered, filter is disabled, and filter hits are reset", function() {
       filterState.registerHit("||example.com^");
       filterState.setEnabled("||example.com^", false);
       filterState.resetHits("||example.com^");
@@ -196,38 +172,33 @@ describe("filterState.isEnabled()", function()
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter state is reset", function()
-    {
+    it("should return true after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter is disabled and filter state is reset", function()
-    {
+    it("should return true after filter is disabled and filter state is reset", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.reset("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter state is serialized", function()
-    {
+    it("should return true after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter is disabled and filter state is serialized", function()
-    {
+    it("should return false after filter is disabled and filter state is serialized", function() {
       filterState.setEnabled("||example.com^", false);
       [...filterState.serialize("||example.com^")];
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter state is serialized and filter is re-enabled", function()
-    {
+    it("should return true after filter state is serialized and filter is re-enabled", function() {
       filterState.setEnabled("||example.com^", false);
       [...filterState.serialize("||example.com^")];
       filterState.setEnabled("||example.com^", true);
@@ -236,42 +207,35 @@ describe("filterState.isEnabled()", function()
     });
   });
 
-  context("State: disabled = true", function()
-  {
-    beforeEach(function()
-    {
+  context("State: disabled = true", function() {
+    beforeEach(function() {
       filterState.fromObject("||example.com^", {disabled: true});
     });
 
-    it("should return false for disabled filter", function()
-    {
+    it("should return false for disabled filter", function() {
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter's enabled state is reset", function()
-    {
+    it("should return true after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter is enabled", function()
-    {
+    it("should return true after filter is enabled", function() {
       filterState.setEnabled("||example.com^", true);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter is re-disabled", function()
-    {
+    it("should return false after filter is re-disabled", function() {
       filterState.setEnabled("||example.com^", true);
       filterState.setEnabled("||example.com^", false);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter is re-enabled", function()
-    {
+    it("should return true after filter is re-enabled", function() {
       filterState.setEnabled("||example.com^", true);
       filterState.setEnabled("||example.com^", false);
       filterState.setEnabled("||example.com^", true);
@@ -279,61 +243,53 @@ describe("filterState.isEnabled()", function()
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter is enabled and filter's enabled state is reset", function()
-    {
+    it("should return true after filter is enabled and filter's enabled state is reset", function() {
       filterState.setEnabled("||example.com^", true);
       filterState.resetEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter's enabled state is toggled", function()
-    {
+    it("should return true after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter's enabled state is re-toggled", function()
-    {
+    it("should return false after filter's enabled state is re-toggled", function() {
       filterState.toggleEnabled("||example.com^");
       filterState.toggleEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter's enabled state is toggled and reset", function()
-    {
+    it("should return true after filter's enabled state is toggled and reset", function() {
       filterState.toggleEnabled("||example.com^");
       filterState.resetEnabled("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter's hit count is reset", function()
-    {
+    it("should return false after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return false after filter's hit count is set to 1", function()
-    {
+    it("should return false after filter's hit count is set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter's hit count is set to 1 and filter is enabled", function()
-    {
+    it("should return true after filter's hit count is set to 1 and filter is enabled", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.setEnabled("||example.com^", true);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter's hit count is set to 1, filter is enabled, and filter's hit count is reset", function()
-    {
+    it("should return true after filter's hit count is set to 1, filter is enabled, and filter's hit count is reset", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.setEnabled("||example.com^", true);
       filterState.resetHitCount("||example.com^");
@@ -341,30 +297,26 @@ describe("filterState.isEnabled()", function()
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter's last hit time is reset", function()
-    {
+    it("should return false after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return false after filter's last hit time is set to 946684800000", function()
-    {
+    it("should return false after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter's last hit time is set to 946684800000 and filter is enabled", function()
-    {
+    it("should return true after filter's last hit time is set to 946684800000 and filter is enabled", function() {
       filterState.setLastHit("||example.com^", 946684800000);
       filterState.setEnabled("||example.com^", true);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter's last hit time is set to 946684800000, filter is enabled, and filter's last hit time is reset", function()
-    {
+    it("should return true after filter's last hit time is set to 946684800000, filter is enabled, and filter's last hit time is reset", function() {
       filterState.setLastHit("||example.com^", 946684800000);
       filterState.setEnabled("||example.com^", true);
       filterState.resetLastHit("||example.com^");
@@ -372,30 +324,26 @@ describe("filterState.isEnabled()", function()
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter hits are reset", function()
-    {
+    it("should return false after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return false after filter hit is registered", function()
-    {
+    it("should return false after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter hit is registered and filter is enabled", function()
-    {
+    it("should return true after filter hit is registered and filter is enabled", function() {
       filterState.registerHit("||example.com^");
       filterState.setEnabled("||example.com^", true);
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter hit is registered, filter is enabled, and filter hits are reset", function()
-    {
+    it("should return true after filter hit is registered, filter is enabled, and filter hits are reset", function() {
       filterState.registerHit("||example.com^");
       filterState.setEnabled("||example.com^", true);
       filterState.resetHits("||example.com^");
@@ -403,38 +351,33 @@ describe("filterState.isEnabled()", function()
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter state is reset", function()
-    {
+    it("should return true after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return true after filter is enabled and filter state is reset", function()
-    {
+    it("should return true after filter is enabled and filter state is reset", function() {
       filterState.setEnabled("||example.com^", true);
       filterState.reset("||example.com^");
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter state is serialized", function()
-    {
+    it("should return false after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
 
-    it("should return true after filter is enabled and filter state is serialized", function()
-    {
+    it("should return true after filter is enabled and filter state is serialized", function() {
       filterState.setEnabled("||example.com^", true);
       [...filterState.serialize("||example.com^")];
 
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
     });
 
-    it("should return false after filter state is serialized and filter is re-disabled", function()
-    {
+    it("should return false after filter state is serialized and filter is re-disabled", function() {
       filterState.setEnabled("||example.com^", true);
       [...filterState.serialize("||example.com^")];
       filterState.setEnabled("||example.com^", false);
@@ -444,12 +387,10 @@ describe("filterState.isEnabled()", function()
   });
 });
 
-describe("filterState.setEnabled()", function()
-{
+describe("filterState.setEnabled()", function() {
   let events = null;
 
-  function checkEvents(func, expectedEvents = [])
-  {
+  function checkEvents(func, expectedEvents = []) {
     events = [];
 
     func();
@@ -457,8 +398,7 @@ describe("filterState.setEnabled()", function()
     assert.deepEqual(events, expectedEvents);
   }
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
@@ -468,29 +408,24 @@ describe("filterState.setEnabled()", function()
     filterNotifier.on("filterState.enabled", (...args) => events.push(args));
   });
 
-  context("No state", function()
-  {
-    it("should emit filterState.enabled when filter is disabled", function()
-    {
+  context("No state", function() {
+    it("should emit filterState.enabled when filter is disabled", function() {
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should not emit filterState.enabled when filter is enabled", function()
-    {
+    it("should not emit filterState.enabled when filter is enabled", function() {
       checkEvents(() => filterState.setEnabled("||example.com^", true));
     });
 
-    it("should emit filterState.enabled when filter is re-enabled", function()
-    {
+    it("should emit filterState.enabled when filter is re-enabled", function() {
       filterState.setEnabled("||example.com^", false);
 
       checkEvents(() => filterState.setEnabled("||example.com^", true),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter is re-disabled", function()
-    {
+    it("should emit filterState.enabled when filter is re-disabled", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.setEnabled("||example.com^", true);
 
@@ -498,79 +433,69 @@ describe("filterState.setEnabled()", function()
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter is disabled after filter's enabled state is reset", function()
-    {
+    it("should emit filterState.enabled when filter is disabled after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should not emit filterState.enabled when filter is disabled after filter's enabled state is toggled", function()
-    {
+    it("should not emit filterState.enabled when filter is disabled after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", false));
     });
 
-    it("should emit filterState.enabled when filter is disabled after filter's hit count is set to 1", function()
-    {
+    it("should emit filterState.enabled when filter is disabled after filter's hit count is set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter is disabled after filter's hit count is reset", function()
-    {
+    it("should emit filterState.enabled when filter is disabled after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter is disabled after filter's last hit time is set to 946684800000", function()
-    {
+    it("should emit filterState.enabled when filter is disabled after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter is disabled after filter's last hit time is reset", function()
-    {
+    it("should emit filterState.enabled when filter is disabled after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter is disabled after filter hit is registered", function()
-    {
+    it("should emit filterState.enabled when filter is disabled after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter is disabled after filter hits are reset", function()
-    {
+    it("should emit filterState.enabled when filter is disabled after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter is disabled after filter state is reset", function()
-    {
+    it("should emit filterState.enabled when filter is disabled after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter is disabled after filter state is serialized", function()
-    {
+    it("should emit filterState.enabled when filter is disabled after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
@@ -578,34 +503,28 @@ describe("filterState.setEnabled()", function()
     });
   });
 
-  context("State: disabled = true", function()
-  {
-    beforeEach(function()
-    {
+  context("State: disabled = true", function() {
+    beforeEach(function() {
       filterState.fromObject("||example.com^", {disabled: true});
     });
 
-    it("should emit filterState.enabled when filter is enabled", function()
-    {
+    it("should emit filterState.enabled when filter is enabled", function() {
       checkEvents(() => filterState.setEnabled("||example.com^", true),
                   [["||example.com^", true, false]]);
     });
 
-    it("should not emit filterState.enabled when filter is disabled", function()
-    {
+    it("should not emit filterState.enabled when filter is disabled", function() {
       checkEvents(() => filterState.setEnabled("||example.com^", false));
     });
 
-    it("should emit filterState.enabled when filter is re-disabled", function()
-    {
+    it("should emit filterState.enabled when filter is re-disabled", function() {
       filterState.setEnabled("||example.com^", true);
 
       checkEvents(() => filterState.setEnabled("||example.com^", false),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter is re-enabled", function()
-    {
+    it("should emit filterState.enabled when filter is re-enabled", function() {
       filterState.setEnabled("||example.com^", true);
       filterState.setEnabled("||example.com^", false);
 
@@ -613,77 +532,67 @@ describe("filterState.setEnabled()", function()
                   [["||example.com^", true, false]]);
     });
 
-    it("should not emit filterState.enabled when filter is enabled after filter's enabled state is reset", function()
-    {
+    it("should not emit filterState.enabled when filter is enabled after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", true));
     });
 
-    it("should not emit filterState.enabled when filter is enabled after filter's enabled state is toggled", function()
-    {
+    it("should not emit filterState.enabled when filter is enabled after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", true));
     });
 
-    it("should emit filterState.enabled when filter is enabled after filter's hit count is set to 1", function()
-    {
+    it("should emit filterState.enabled when filter is enabled after filter's hit count is set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       checkEvents(() => filterState.setEnabled("||example.com^", true),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter is enabled after filter's hit count is reset", function()
-    {
+    it("should emit filterState.enabled when filter is enabled after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", true),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter is enabled after filter's last hit time is set to 946684800000", function()
-    {
+    it("should emit filterState.enabled when filter is enabled after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       checkEvents(() => filterState.setEnabled("||example.com^", true),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter is enabled after filter's last hit time is reset", function()
-    {
+    it("should emit filterState.enabled when filter is enabled after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", true),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter is enabled after filter hit is registered", function()
-    {
+    it("should emit filterState.enabled when filter is enabled after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", true),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter is enabled after filter hits are reset", function()
-    {
+    it("should emit filterState.enabled when filter is enabled after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", true),
                   [["||example.com^", true, false]]);
     });
 
-    it("should not emit filterState.enabled when filter is enabled after filter state is reset", function()
-    {
+    it("should not emit filterState.enabled when filter is enabled after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       checkEvents(() => filterState.setEnabled("||example.com^", true));
     });
 
-    it("should emit filterState.enabled when filter is enabled after filter state is serialized", function()
-    {
+    it("should emit filterState.enabled when filter is enabled after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       checkEvents(() => filterState.setEnabled("||example.com^", true),
@@ -692,12 +601,10 @@ describe("filterState.setEnabled()", function()
   });
 });
 
-describe("filterState.toggleEnabled()", function()
-{
+describe("filterState.toggleEnabled()", function() {
   let events = null;
 
-  function checkEvents(func, expectedEvents = [])
-  {
+  function checkEvents(func, expectedEvents = []) {
     events = [];
 
     func();
@@ -705,8 +612,7 @@ describe("filterState.toggleEnabled()", function()
     assert.deepEqual(events, expectedEvents);
   }
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
@@ -716,96 +622,83 @@ describe("filterState.toggleEnabled()", function()
     filterNotifier.on("filterState.enabled", (...args) => events.push(args));
   });
 
-  context("No state", function()
-  {
-    it("should emit filterState.enabled when filter's enabled state is toggled", function()
-    {
+  context("No state", function() {
+    it("should emit filterState.enabled when filter's enabled state is toggled", function() {
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is re-toggled", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is re-toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter is disabled", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter is disabled", function() {
       filterState.setEnabled("||example.com^", false);
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's enabled state is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's hit count is set to 1", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's hit count is set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's hit count is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's last hit time is set to 946684800000", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's last hit time is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter hit is registered", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter hits are reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter state is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter state is serialized", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
@@ -813,101 +706,87 @@ describe("filterState.toggleEnabled()", function()
     });
   });
 
-  context("State: disabled = true", function()
-  {
-    beforeEach(function()
-    {
+  context("State: disabled = true", function() {
+    beforeEach(function() {
       filterState.fromObject("||example.com^", {disabled: true});
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled", function() {
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is re-toggled", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is re-toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter is enabled", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter is enabled", function() {
       filterState.setEnabled("||example.com^", true);
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's enabled state is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's hit count is set to 1", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's hit count is set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's hit count is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's last hit time is set to 946684800000", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter's last hit time is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter hit is registered", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter hits are reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter state is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", false, true]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is toggled after filter state is serialized", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is toggled after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
@@ -916,12 +795,10 @@ describe("filterState.toggleEnabled()", function()
   });
 });
 
-describe("filterState.resetEnabled()", function()
-{
+describe("filterState.resetEnabled()", function() {
   let events = null;
 
-  function checkEvents(func, expectedEvents = [])
-  {
+  function checkEvents(func, expectedEvents = []) {
     events = [];
 
     func();
@@ -929,8 +806,7 @@ describe("filterState.resetEnabled()", function()
     assert.deepEqual(events, expectedEvents);
   }
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
@@ -940,184 +816,157 @@ describe("filterState.resetEnabled()", function()
     filterNotifier.on("filterState.enabled", (...args) => events.push(args));
   });
 
-  context("No state", function()
-  {
-    it("should not emit filterState.enabled when filter's enabled state is reset", function()
-    {
+  context("No state", function() {
+    it("should not emit filterState.enabled when filter's enabled state is reset", function() {
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is re-reset", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is re-reset", function() {
       filterState.resetEnabled("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset after filter is disabled", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset after filter is disabled", function() {
       filterState.setEnabled("||example.com^", false);
 
       checkEvents(() => filterState.resetEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset after filter's enabled state is toggled", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter's hit count is set to 1", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's hit count is set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter's hit count is reset", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter's last hit time is set to 946684800000", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter's last hit time is reset", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter hit is registered", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter hits are reset", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter state is reset", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter state is serialized", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
   });
 
-  context("State: disabled = true", function()
-  {
-    beforeEach(function()
-    {
+  context("State: disabled = true", function() {
+    beforeEach(function() {
       filterState.fromObject("||example.com^", {disabled: true});
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset", function() {
       checkEvents(() => filterState.resetEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is re-reset", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is re-reset", function() {
       filterState.resetEnabled("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter is enabled", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter is enabled", function() {
       filterState.setEnabled("||example.com^", true);
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter's enabled state is toggled", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset after filter's hit count is set to 1", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's hit count is set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       checkEvents(() => filterState.resetEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset after filter's hit count is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset after filter's last hit time is set to 946684800000", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       checkEvents(() => filterState.resetEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset after filter's last hit time is reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset after filter hit is registered", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset after filter hits are reset", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
     });
 
-    it("should not emit filterState.enabled when filter's enabled state is reset after filter state is reset", function()
-    {
+    it("should not emit filterState.enabled when filter's enabled state is reset after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       checkEvents(() => filterState.resetEnabled("||example.com^"), []);
     });
 
-    it("should emit filterState.enabled when filter's enabled state is reset after filter state is serialized", function()
-    {
+    it("should emit filterState.enabled when filter's enabled state is reset after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       checkEvents(() => filterState.resetEnabled("||example.com^"),
@@ -1126,39 +975,32 @@ describe("filterState.resetEnabled()", function()
   });
 });
 
-describe("filterState.getHitCount()", function()
-{
-  context("No state", function()
-  {
-    it("should return 0 for filter with no hits", function()
-    {
+describe("filterState.getHitCount()", function() {
+  context("No state", function() {
+    it("should return 0 for filter with no hits", function() {
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter's hit count is reset", function()
-    {
+    it("should return 0 after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter's hit count is set to 1", function()
-    {
+    it("should return 1 after filter's hit count is set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter's hit count is re-set to 0", function()
-    {
+    it("should return 0 after filter's hit count is re-set to 0", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.setHitCount("||example.com^", 0);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter's hit count is re-set to 1", function()
-    {
+    it("should return 1 after filter's hit count is re-set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.setHitCount("||example.com^", 0);
       filterState.setHitCount("||example.com^", 1);
@@ -1166,68 +1008,59 @@ describe("filterState.getHitCount()", function()
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter's hit count is set to 1 and then reset", function()
-    {
+    it("should return 0 after filter's hit count is set to 1 and then reset", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.resetHitCount("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter hits are reset", function()
-    {
+    it("should return 0 after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter hit is registered", function()
-    {
+    it("should return 1 after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 2 after two filter hits are registered", function()
-    {
+    it("should return 2 after two filter hits are registered", function() {
       filterState.registerHit("||example.com^");
       filterState.registerHit("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 2);
     });
 
-    it("should return 0 after filter hit is registered and filter hits are reset", function()
-    {
+    it("should return 0 after filter hit is registered and filter hits are reset", function() {
       filterState.registerHit("||example.com^");
       filterState.resetHits("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter's enabled state is reset", function()
-    {
+    it("should return 0 after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter is disabled", function()
-    {
+    it("should return 0 after filter is disabled", function() {
       filterState.setEnabled("||example.com^", false);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter is disabled and filter's hit count is set to 1", function()
-    {
+    it("should return 1 after filter is disabled and filter's hit count is set to 1", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.setHitCount("||example.com^", 1);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 1 after filter is disabled, filter's hit count is set to 1, and filter's enabled state is reset", function()
-    {
+    it("should return 1 after filter is disabled, filter's hit count is set to 1, and filter's enabled state is reset", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.setHitCount("||example.com^", 1);
       filterState.resetEnabled("||example.com^");
@@ -1235,23 +1068,20 @@ describe("filterState.getHitCount()", function()
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter's enabled state is toggled", function()
-    {
+    it("should return 0 after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter's enabled state is toggled and filter's hit count is set to 1", function()
-    {
+    it("should return 1 after filter's enabled state is toggled and filter's hit count is set to 1", function() {
       filterState.toggleEnabled("||example.com^");
       filterState.setHitCount("||example.com^", 1);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 1 after filter's enabled state is toggled, filter's hit count is set to 1, and filter's enabled state is reset", function()
-    {
+    it("should return 1 after filter's enabled state is toggled, filter's hit count is set to 1, and filter's enabled state is reset", function() {
       filterState.toggleEnabled("||example.com^");
       filterState.setHitCount("||example.com^", 1);
       filterState.resetEnabled("||example.com^");
@@ -1259,30 +1089,26 @@ describe("filterState.getHitCount()", function()
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter's last hit time is reset", function()
-    {
+    it("should return 0 after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter's last hit time is set to 946684800000", function()
-    {
+    it("should return 0 after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter's last hit time is set to 946684800000 and filter's hit count is set to 1", function()
-    {
+    it("should return 1 after filter's last hit time is set to 946684800000 and filter's hit count is set to 1", function() {
       filterState.setLastHit("||example.com^", 946684800000);
       filterState.setHitCount("||example.com^", 1);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 1 after filter's last hit time is set to 946684800000, filter's hit count is set to 1, and filter's last hit time is reset", function()
-    {
+    it("should return 1 after filter's last hit time is set to 946684800000, filter's hit count is set to 1, and filter's last hit time is reset", function() {
       filterState.setLastHit("||example.com^", 946684800000);
       filterState.setHitCount("||example.com^", 1);
       filterState.resetLastHit("||example.com^");
@@ -1290,38 +1116,33 @@ describe("filterState.getHitCount()", function()
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter state is reset", function()
-    {
+    it("should return 0 after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter's hit count is set to 1 and filter state is reset", function()
-    {
+    it("should return 0 after filter's hit count is set to 1 and filter state is reset", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.reset("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter state is serialized", function()
-    {
+    it("should return 0 after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter's hit count is set to 1 and filter state is serialized", function()
-    {
+    it("should return 1 after filter's hit count is set to 1 and filter state is serialized", function() {
       filterState.setHitCount("||example.com^", 1);
       [...filterState.serialize("||example.com^")];
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter state is serialized and filter's hit count is re-set to 0", function()
-    {
+    it("should return 0 after filter state is serialized and filter's hit count is re-set to 0", function() {
       filterState.setHitCount("||example.com^", 1);
       [...filterState.serialize("||example.com^")];
       filterState.setHitCount("||example.com^", 0);
@@ -1330,42 +1151,35 @@ describe("filterState.getHitCount()", function()
     });
   });
 
-  context("State: hitCount = 1", function()
-  {
-    beforeEach(function()
-    {
+  context("State: hitCount = 1", function() {
+    beforeEach(function() {
       filterState.fromObject("||example.com^", {hitCount: 1});
     });
 
-    it("should return 1 for filter with one hit", function()
-    {
+    it("should return 1 for filter with one hit", function() {
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter's hit count is reset", function()
-    {
+    it("should return 0 after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter's hit count is set to 0", function()
-    {
+    it("should return 0 after filter's hit count is set to 0", function() {
       filterState.setHitCount("||example.com^", 0);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter's hit count is re-set to 1", function()
-    {
+    it("should return 1 after filter's hit count is re-set to 1", function() {
       filterState.setHitCount("||example.com^", 0);
       filterState.setHitCount("||example.com^", 1);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter's hit count is re-set to 0", function()
-    {
+    it("should return 0 after filter's hit count is re-set to 0", function() {
       filterState.setHitCount("||example.com^", 0);
       filterState.setHitCount("||example.com^", 1);
       filterState.setHitCount("||example.com^", 0);
@@ -1373,68 +1187,59 @@ describe("filterState.getHitCount()", function()
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter's hit count is set to 0 and then reset", function()
-    {
+    it("should return 0 after filter's hit count is set to 0 and then reset", function() {
       filterState.setHitCount("||example.com^", 0);
       filterState.resetHitCount("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter hits are reset", function()
-    {
+    it("should return 0 after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 2 after filter hit is registered", function()
-    {
+    it("should return 2 after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 2);
     });
 
-    it("should return 3 after two filter hits are registered", function()
-    {
+    it("should return 3 after two filter hits are registered", function() {
       filterState.registerHit("||example.com^");
       filterState.registerHit("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 3);
     });
 
-    it("should return 0 after filter hit is registered and filter hits are reset", function()
-    {
+    it("should return 0 after filter hit is registered and filter hits are reset", function() {
       filterState.registerHit("||example.com^");
       filterState.resetHits("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter's enabled state is reset", function()
-    {
+    it("should return 1 after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 1 after filter is disabled", function()
-    {
+    it("should return 1 after filter is disabled", function() {
       filterState.setEnabled("||example.com^", false);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter is disabled and filter's hit count is set to 0", function()
-    {
+    it("should return 0 after filter is disabled and filter's hit count is set to 0", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.setHitCount("||example.com^", 0);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter is disabled, filter's hit count is set to 0, and filter's enabled state is reset", function()
-    {
+    it("should return 0 after filter is disabled, filter's hit count is set to 0, and filter's enabled state is reset", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.setHitCount("||example.com^", 0);
       filterState.resetEnabled("||example.com^");
@@ -1442,23 +1247,20 @@ describe("filterState.getHitCount()", function()
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter's enabled state is toggled", function()
-    {
+    it("should return 1 after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter's enabled state is toggled and filter's hit count is set to 0", function()
-    {
+    it("should return 0 after filter's enabled state is toggled and filter's hit count is set to 0", function() {
       filterState.toggleEnabled("||example.com^");
       filterState.setHitCount("||example.com^", 0);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter's enabled state is toggled, filter's hit count is set to 0, and filter's enabled state is reset", function()
-    {
+    it("should return 0 after filter's enabled state is toggled, filter's hit count is set to 0, and filter's enabled state is reset", function() {
       filterState.toggleEnabled("||example.com^");
       filterState.setHitCount("||example.com^", 0);
       filterState.resetEnabled("||example.com^");
@@ -1466,30 +1268,26 @@ describe("filterState.getHitCount()", function()
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter's last hit time is reset", function()
-    {
+    it("should return 1 after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 1 after filter's last hit time is set to 946684800000", function()
-    {
+    it("should return 1 after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter's last hit time is set to 946684800000 and filter's hit count is set to 0", function()
-    {
+    it("should return 0 after filter's last hit time is set to 946684800000 and filter's hit count is set to 0", function() {
       filterState.setLastHit("||example.com^", 946684800000);
       filterState.setHitCount("||example.com^", 0);
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter's last hit time is set to 946684800000, filter's hit count is set to 0, and filter's last hit time is reset", function()
-    {
+    it("should return 0 after filter's last hit time is set to 946684800000, filter's hit count is set to 0, and filter's last hit time is reset", function() {
       filterState.setLastHit("||example.com^", 946684800000);
       filterState.setHitCount("||example.com^", 0);
       filterState.resetLastHit("||example.com^");
@@ -1497,38 +1295,33 @@ describe("filterState.getHitCount()", function()
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter state is reset", function()
-    {
+    it("should return 0 after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 0 after filter's hit count is set to 0 and filter state is reset", function()
-    {
+    it("should return 0 after filter's hit count is set to 0 and filter state is reset", function() {
       filterState.setHitCount("||example.com^", 0);
       filterState.reset("||example.com^");
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter state is serialized", function()
-    {
+    it("should return 1 after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 1);
     });
 
-    it("should return 0 after filter's hit count is set to 0 and filter state is serialized", function()
-    {
+    it("should return 0 after filter's hit count is set to 0 and filter state is serialized", function() {
       filterState.setHitCount("||example.com^", 0);
       [...filterState.serialize("||example.com^")];
 
       assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
     });
 
-    it("should return 1 after filter state is serialized and filter's hit count is re-set to 1", function()
-    {
+    it("should return 1 after filter state is serialized and filter's hit count is re-set to 1", function() {
       filterState.setHitCount("||example.com^", 0);
       [...filterState.serialize("||example.com^")];
       filterState.setHitCount("||example.com^", 1);
@@ -1538,12 +1331,10 @@ describe("filterState.getHitCount()", function()
   });
 });
 
-describe("filterState.setHitCount()", function()
-{
+describe("filterState.setHitCount()", function() {
   let events = null;
 
-  function checkEvents(func, expectedEvents = [])
-  {
+  function checkEvents(func, expectedEvents = []) {
     events = [];
 
     func();
@@ -1551,8 +1342,7 @@ describe("filterState.setHitCount()", function()
     assert.deepEqual(events, expectedEvents);
   }
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
@@ -1562,29 +1352,24 @@ describe("filterState.setHitCount()", function()
     filterNotifier.on("filterState.hitCount", (...args) => events.push(args));
   });
 
-  context("No state", function()
-  {
-    it("should emit filterState.hitCount when filter's hit count is set to 1", function()
-    {
+  context("No state", function() {
+    it("should emit filterState.hitCount when filter's hit count is set to 1", function() {
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is set to 0", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is set to 0", function() {
       checkEvents(() => filterState.setHitCount("||example.com^", 0));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is re-set to 0", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is re-set to 0", function() {
       filterState.setHitCount("||example.com^", 1);
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is re-set to 1", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is re-set to 1", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.setHitCount("||example.com^", 0);
 
@@ -1592,79 +1377,69 @@ describe("filterState.setHitCount()", function()
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's hit count is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is set to 1 after filter hit is registered", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is set to 1 after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter hits are reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter is disabled", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter is disabled", function() {
       filterState.setEnabled("||example.com^", false);
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's enabled state is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's enabled state is toggled", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's last hit time is set to 946684800000", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's last hit time is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter state is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter state is serialized", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 1 after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
@@ -1672,34 +1447,28 @@ describe("filterState.setHitCount()", function()
     });
   });
 
-  context("State: hitCount = 1", function()
-  {
-    beforeEach(function()
-    {
+  context("State: hitCount = 1", function() {
+    beforeEach(function() {
       filterState.fromObject("||example.com^", {hitCount: 1});
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 0", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 0", function() {
       checkEvents(() => filterState.setHitCount("||example.com^", 0),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is set to 1", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is set to 1", function() {
       checkEvents(() => filterState.setHitCount("||example.com^", 1));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is re-set to 1", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is re-set to 1", function() {
       filterState.setHitCount("||example.com^", 0);
 
       checkEvents(() => filterState.setHitCount("||example.com^", 1),
                   [["||example.com^", 1, 0]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is re-set to 0", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is re-set to 0", function() {
       filterState.setHitCount("||example.com^", 0);
       filterState.setHitCount("||example.com^", 1);
 
@@ -1707,77 +1476,67 @@ describe("filterState.setHitCount()", function()
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is set to 0 after filter's hit count is reset", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is set to 0 after filter's hit count is reset", function() {
       filterState.resetHitCount("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter hit is registered", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0),
                   [["||example.com^", 0, 2]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is set to 0 after filter hits are reset", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is set to 0 after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter is disabled", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter is disabled", function() {
       filterState.setEnabled("||example.com^", false);
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's enabled state is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's enabled state is toggled", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's last hit time is set to 946684800000", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's last hit time is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is set to 0 after filter state is reset", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is set to 0 after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter state is serialized", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is set to 0 after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       checkEvents(() => filterState.setHitCount("||example.com^", 0),
@@ -1786,12 +1545,10 @@ describe("filterState.setHitCount()", function()
   });
 });
 
-describe("filterState.resetHitCount()", function()
-{
+describe("filterState.resetHitCount()", function() {
   let events = null;
 
-  function checkEvents(func, expectedEvents = [])
-  {
+  function checkEvents(func, expectedEvents = []) {
     events = [];
 
     func();
@@ -1799,8 +1556,7 @@ describe("filterState.resetHitCount()", function()
     assert.deepEqual(events, expectedEvents);
   }
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
@@ -1810,46 +1566,39 @@ describe("filterState.resetHitCount()", function()
     filterNotifier.on("filterState.hitCount", (...args) => events.push(args));
   });
 
-  context("No state", function()
-  {
-    it("should not emit filterState.hitCount when filter's hit count is reset", function()
-    {
+  context("No state", function() {
+    it("should not emit filterState.hitCount when filter's hit count is reset", function() {
       checkEvents(() => filterState.resetHitCount("||example.com^"));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset from 1", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset from 1", function() {
       filterState.setHitCount("||example.com^", 1);
 
       checkEvents(() => filterState.resetHitCount("||example.com^"),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is re-reset from 1", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is re-reset from 1", function() {
       filterState.setHitCount("||example.com^", 1);
       filterState.resetHitCount("||example.com^");
 
       checkEvents(() => filterState.resetHitCount("||example.com^"));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset after filter hit is registered", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.resetHitCount("||example.com^"),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is reset after filter hits are reset", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is reset after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.resetHitCount("||example.com^"));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter is disabled", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter is disabled", function() {
       filterState.setEnabled("||example.com^", false);
       filterState.setHitCount("||example.com^", 1);
 
@@ -1857,8 +1606,7 @@ describe("filterState.resetHitCount()", function()
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter's enabled state is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
       filterState.setHitCount("||example.com^", 1);
 
@@ -1866,8 +1614,7 @@ describe("filterState.resetHitCount()", function()
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter's enabled state is toggled", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
       filterState.setHitCount("||example.com^", 1);
 
@@ -1875,8 +1622,7 @@ describe("filterState.resetHitCount()", function()
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter's last hit time is set to 946684800000", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
       filterState.setHitCount("||example.com^", 1);
 
@@ -1884,8 +1630,7 @@ describe("filterState.resetHitCount()", function()
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter's last hit time is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
       filterState.setHitCount("||example.com^", 1);
 
@@ -1893,8 +1638,7 @@ describe("filterState.resetHitCount()", function()
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter state is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter state is reset", function() {
       filterState.reset("||example.com^");
       filterState.setHitCount("||example.com^", 1);
 
@@ -1902,8 +1646,7 @@ describe("filterState.resetHitCount()", function()
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter state is serialized", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset from 1 after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
       filterState.setHitCount("||example.com^", 1);
 
@@ -1912,90 +1655,77 @@ describe("filterState.resetHitCount()", function()
     });
   });
 
-  context("State: hitCount = 1", function()
-  {
-    beforeEach(function()
-    {
+  context("State: hitCount = 1", function() {
+    beforeEach(function() {
       filterState.fromObject("||example.com^", {hitCount: 1});
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset", function() {
       checkEvents(() => filterState.resetHitCount("||example.com^"),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is reset from 0", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is reset from 0", function() {
       filterState.setHitCount("||example.com^", 0);
 
       checkEvents(() => filterState.resetHitCount("||example.com^"));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset after filter hit is registered", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset after filter hit is registered", function() {
       filterState.registerHit("||example.com^");
 
       checkEvents(() => filterState.resetHitCount("||example.com^"),
                   [["||example.com^", 0, 2]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is reset after filter hits are reset", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is reset after filter hits are reset", function() {
       filterState.resetHits("||example.com^");
 
       checkEvents(() => filterState.resetHitCount("||example.com^"));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset after filter is disabled", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset after filter is disabled", function() {
       filterState.setEnabled("||example.com^", false);
 
       checkEvents(() => filterState.resetHitCount("||example.com^"),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset after filter's enabled state is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
       checkEvents(() => filterState.resetHitCount("||example.com^"),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset after filter's enabled state is toggled", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset after filter's enabled state is toggled", function() {
       filterState.toggleEnabled("||example.com^");
 
       checkEvents(() => filterState.resetHitCount("||example.com^"),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset after filter's last hit time is set to 946684800000", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset after filter's last hit time is set to 946684800000", function() {
       filterState.setLastHit("||example.com^", 946684800000);
 
       checkEvents(() => filterState.resetHitCount("||example.com^"),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset after filter's last hit time is reset", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset after filter's last hit time is reset", function() {
       filterState.resetLastHit("||example.com^");
 
       checkEvents(() => filterState.resetHitCount("||example.com^"),
                   [["||example.com^", 0, 1]]);
     });
 
-    it("should not emit filterState.hitCount when filter's hit count is reset after filter state is reset", function()
-    {
+    it("should not emit filterState.hitCount when filter's hit count is reset after filter state is reset", function() {
       filterState.reset("||example.com^");
 
       checkEvents(() => filterState.resetHitCount("||example.com^"));
     });
 
-    it("should emit filterState.hitCount when filter's hit count is reset after filter state is serialized", function()
-    {
+    it("should emit filterState.hitCount when filter's hit count is reset after filter state is serialized", function() {
       [...filterState.serialize("||example.com^")];
 
       checkEvents(() => filterState.resetHitCount("||example.com^"),

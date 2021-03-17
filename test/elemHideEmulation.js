@@ -25,10 +25,8 @@ let elemHideEmulation = null;
 let elemHideExceptions = null;
 let Filter = null;
 
-describe("Element hiding emulation", function()
-{
-  beforeEach(function()
-  {
+describe("Element hiding emulation", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {Filter,
@@ -38,12 +36,9 @@ describe("Element hiding emulation", function()
     );
   });
 
-  it("Domain restrictions", function()
-  {
-    function testSelectorMatches(description, filters, domain, expectedMatches)
-    {
-      for (let filter of filters)
-      {
+  it("Domain restrictions", function() {
+    function testSelectorMatches(description, filters, domain, expectedMatches) {
+      for (let filter of filters) {
         filter = Filter.fromText(filter);
         if (filter instanceof ElemHideEmulationFilter)
           elemHideEmulation.add(filter);
@@ -106,10 +101,8 @@ describe("Element hiding emulation", function()
     );
   });
 
-  it("Filters container", function()
-  {
-    function compareFilters(description, domain, expectedMatches)
-    {
+  it("Filters container", function() {
+    function compareFilters(description, domain, expectedMatches) {
       let result = elemHideEmulation.getFilters(domain)
           .map(filter => filter.text);
       expectedMatches = expectedMatches.map(filter => filter.text);

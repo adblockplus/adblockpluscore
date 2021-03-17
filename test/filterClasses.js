@@ -36,10 +36,8 @@ let ElemHideException = null;
 let ElemHideEmulationFilter = null;
 let SnippetFilter = null;
 
-describe("Filter classes", function()
-{
-  beforeEach(function()
-  {
+describe("Filter classes", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {contentTypes, RESOURCE_TYPES} = sandboxedRequire(LIB_FOLDER + "/contentTypes"),
@@ -50,38 +48,31 @@ describe("Filter classes", function()
     );
   });
 
-  function serializeFilter(filter)
-  {
+  function serializeFilter(filter) {
     // Filter serialization only writes out essential properties, need to do a full serialization here
     let result = [];
     result.push("text=" + filter.text);
     result.push("type=" + filter.type);
-    if (filter instanceof InvalidFilter)
-    {
+    if (filter instanceof InvalidFilter) {
       result.push("reason=" + filter.reason);
     }
-    else if (filter instanceof CommentFilter)
-    {
+    else if (filter instanceof CommentFilter) {
     }
-    else if (filter instanceof ActiveFilter)
-    {
+    else if (filter instanceof ActiveFilter) {
       result.push("disabled=" + filter.disabled);
       result.push("lastHit=" + filter.lastHit);
       result.push("hitCount=" + filter.hitCount);
 
       let domains = [];
-      if (filter.domains)
-      {
-        for (let [domain, isIncluded] of filter.domains)
-        {
+      if (filter.domains) {
+        for (let [domain, isIncluded] of filter.domains) {
           if (domain != "")
             domains.push(isIncluded ? domain : "~" + domain);
         }
       }
       result.push("domains=" + domains.sort().join("|"));
 
-      if (filter instanceof URLFilter)
-      {
+      if (filter instanceof URLFilter) {
         result.push("regexp=" + (filter.regexp ? filter.regexp.source : null));
         result.push("contentType=" + filter.contentType);
         result.push("matchCase=" + filter.matchCase);
@@ -91,25 +82,21 @@ describe("Filter classes", function()
 
         result.push("thirdParty=" + filter.thirdParty);
         result.push("header=" + filter.header);
-        if (filter instanceof BlockingFilter)
-        {
+        if (filter instanceof BlockingFilter) {
           result.push("csp=" + filter.csp);
           result.push("rewrite=" + filter.rewrite);
         }
-        else if (filter instanceof AllowingFilter)
-        {
+        else if (filter instanceof AllowingFilter) {
         }
       }
-      else if (filter instanceof ElemHideBase)
-      {
+      else if (filter instanceof ElemHideBase) {
         result.push("selectorDomains=" +
                     [...filter.domains || []]
                     .filter(([domain, isIncluded]) => isIncluded)
                     .map(([domain]) => domain.toLowerCase()));
         result.push("selector=" + filter.selector);
       }
-      else if (filter instanceof SnippetFilter)
-      {
+      else if (filter instanceof SnippetFilter) {
         result.push("scriptDomains=" +
                     [...filter.domains || []]
                     .filter(([domain, isIncluded]) => isIncluded)
@@ -120,34 +107,29 @@ describe("Filter classes", function()
     return result;
   }
 
-  function addDefaults(expected)
-  {
+  function addDefaults(expected) {
     let type = null;
     let hasProperty = {};
-    for (let entry of expected)
-    {
+    for (let entry of expected) {
       if (/^type=(.*)/.test(entry))
         type = RegExp.$1;
       else if (/^(\w+)/.test(entry))
         hasProperty[RegExp.$1] = true;
     }
 
-    function addProperty(prop, value)
-    {
+    function addProperty(prop, value) {
       if (!(prop in hasProperty))
         expected.push(prop + "=" + value);
     }
 
     if (type == "allowing" || type == "blocking" || type == "elemhide" ||
         type == "elemhideexception" || type == "elemhideemulation" ||
-        type == "snippet")
-    {
+        type == "snippet") {
       addProperty("disabled", "false");
       addProperty("lastHit", "0");
       addProperty("hitCount", "0");
     }
-    if (type == "allowing" || type == "blocking")
-    {
+    if (type == "allowing" || type == "blocking") {
       addProperty("contentType", RESOURCE_TYPES);
       addProperty("regexp", "null");
       addProperty("matchCase", "false");
@@ -156,26 +138,22 @@ describe("Filter classes", function()
       addProperty("sitekeys", "");
       addProperty("header", "null");
     }
-    if (type == "blocking")
-    {
+    if (type == "blocking") {
       addProperty("csp", "null");
       addProperty("rewrite", "null");
     }
     if (type == "elemhide" || type == "elemhideexception" ||
-        type == "elemhideemulation")
-    {
+        type == "elemhideemulation") {
       addProperty("selectorDomains", "");
       addProperty("domains", "");
     }
-    if (type == "snippet")
-    {
+    if (type == "snippet") {
       addProperty("scriptDomains", "");
       addProperty("domains", "");
     }
   }
 
-  function compareFilter(text, expected, postInit)
-  {
+  function compareFilter(text, expected, postInit) {
     addDefaults(expected);
 
     let filter = Filter.fromText(text);
@@ -187,26 +165,22 @@ describe("Filter classes", function()
     // Test round-trip
     let filter2;
     let buffer = [...filter.serialize()];
-    if (buffer.length)
-    {
+    if (buffer.length) {
       let map = Object.create(null);
-      for (let line of buffer.slice(1))
-      {
+      for (let line of buffer.slice(1)) {
         if (/(.*?)=(.*)/.test(line))
           map[RegExp.$1] = RegExp.$2;
       }
       filter2 = Filter.fromObject(map);
     }
-    else
-    {
+    else {
       filter2 = Filter.fromText(filter.text);
     }
 
     assert.equal(serializeFilter(filter).join("\n"), serializeFilter(filter2).join("\n"), text + " deserialization");
   }
 
-  it("Definitions", function()
-  {
+  it("Definitions", function() {
     assert.equal(typeof Filter, "function", "typeof Filter");
     assert.equal(typeof InvalidFilter, "function", "typeof InvalidFilter");
     assert.equal(typeof CommentFilter, "function", "typeof CommentFilter");
@@ -218,20 +192,17 @@ describe("Filter classes", function()
     assert.equal(typeof ElemHideBase, "function", "typeof ElemHideBase");
     assert.equal(typeof ElemHideFilter, "function", "typeof ElemHideFilter");
     assert.equal(typeof ElemHideException, "function", "typeof ElemHideException");
-    assert.equal(typeof ElemHideEmulationFilter, "function",
-                 "typeof ElemHideEmulationFilter");
+    assert.equal(typeof ElemHideEmulationFilter, "function", "typeof ElemHideEmulationFilter");
     assert.equal(typeof SnippetFilter, "function", "typeof SnippetFilter");
   });
 
-  it("Comments", function()
-  {
+  it("Comments", function() {
     compareFilter("!asdf", ["type=comment", "text=!asdf"]);
     compareFilter("!foo#bar", ["type=comment", "text=!foo#bar"]);
     compareFilter("!foo##bar", ["type=comment", "text=!foo##bar"]);
   });
 
-  it("Invalid filters", function()
-  {
+  it("Invalid filters", function() {
     compareFilter("/??/", ["type=invalid", "text=/??/", "reason=filter_invalid_regexp"]);
     compareFilter("asd$foobar", ["type=invalid", "text=asd$foobar", "reason=filter_unknown_option"]);
 
@@ -245,8 +216,7 @@ describe("Filter classes", function()
     // $~third-party requires ||
     compareFilter("*example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", ["type=invalid", "text=*example.com/ad.js$rewrite=abp-resource:noopjs,~third-party", "reason=filter_invalid_rewrite"]);
 
-    function checkElemHideEmulationFilterInvalid(domains)
-    {
+    function checkElemHideEmulationFilterInvalid(domains) {
       let filterText = domains + "#?#:-abp-properties(abc)";
       compareFilter(
         filterText, [
@@ -262,13 +232,10 @@ describe("Filter classes", function()
     checkElemHideEmulationFilterInvalid("~foo.com,bar");
   });
 
-  it("Filters with state", function()
-  {
+  it("Filters with state", function() {
     compareFilter("blabla", ["type=blocking", "text=blabla"]);
     compareFilter(
-      "blabla_default", ["type=blocking", "text=blabla_default"],
-      filter =>
-      {
+      "blabla_default", ["type=blocking", "text=blabla_default"], filter => {
         filter.disabled = false;
         filter.hitCount = 0;
         filter.lastHit = 0;
@@ -277,8 +244,7 @@ describe("Filter classes", function()
     compareFilter(
       "blabla_non_default",
       ["type=blocking", "text=blabla_non_default", "disabled=true", "hitCount=12", "lastHit=20"],
-      filter =>
-      {
+      filter => {
         filter.disabled = true;
         filter.hitCount = 12;
         filter.lastHit = 20;
@@ -286,8 +252,7 @@ describe("Filter classes", function()
     );
   });
 
-  it("Special characters", function()
-  {
+  it("Special characters", function() {
     compareFilter("/ddd|f?a[s]d/", ["type=blocking", "text=/ddd|f?a[s]d/", "regexp=ddd|f?a[s]d"]);
     compareFilter("*asdf*d**dd*", ["type=blocking", "text=*asdf*d**dd*", "regexp=asdf.*d.*dd"]);
     compareFilter("|*asd|f*d**dd*|", ["type=blocking", "text=|*asd|f*d**dd*|", "regexp=^.*asd\\|f.*d.*dd.*$"]);
@@ -299,8 +264,7 @@ describe("Filter classes", function()
     compareFilter("@@dd[]{}$%<>&()*d", ["type=allowing", "text=@@dd[]{}$%<>&()*d", "regexp=dd\\[\\]\\{\\}\\$\\%\\<\\>\\&\\(\\).*d", "contentType=" + RESOURCE_TYPES, "header=null"]);
   });
 
-  it("Filter options", function()
-  {
+  it("Filter options", function() {
     compareFilter("bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foO", ["type=blocking", "text=bla$match-case,csp=first csp,script,other,third-party,domain=FOO.cOm,sitekey=foO", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER | contentTypes.CSP), "thirdParty=true", "domains=foo.com", "sitekeys=foO", "csp=first csp"]);
     compareFilter("bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", ["type=blocking", "text=bla$~match-case,~csp=csp,~script,~other,~third-party,domain=~bAr.coM", "contentType=" + (RESOURCE_TYPES & ~(contentTypes.SCRIPT | contentTypes.OTHER)), "thirdParty=false", "domains=~bar.com"]);
     compareFilter("@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", ["type=allowing", "text=@@bla$match-case,script,other,third-party,domain=foo.com|bar.com|~bAR.foO.Com|~Foo.Bar.com,csp=c s p,sitekey=foo|bar", "matchCase=true", "contentType=" + (contentTypes.SCRIPT | contentTypes.OTHER | contentTypes.CSP), "thirdParty=true", "domains=bar.com|foo.com|~bar.foo.com|~foo.bar.com", "sitekeys=bar|foo", "header=null"]);
@@ -364,8 +328,7 @@ describe("Filter classes", function()
     compareFilter("bla$csp=foo,csp=ReFeRReR", ["type=invalid", "text=bla$csp=foo,csp=ReFeRReR", "reason=filter_invalid_csp"]);
   });
 
-  it("Element hiding rules", function()
-  {
+  it("Element hiding rules", function() {
     compareFilter("##ddd", ["type=elemhide", "text=##ddd", "selector=ddd"]);
     compareFilter("##body > div:first-child", ["type=elemhide", "text=##body > div:first-child", "selector=body > div:first-child"]);
     compareFilter("fOO##ddd", ["type=elemhide", "text=fOO##ddd", "selectorDomains=foo", "selector=ddd", "domains=foo"]);
@@ -374,8 +337,7 @@ describe("Filter classes", function()
     compareFilter("foo,~baz,bar##ddd", ["type=elemhide", "text=foo,~baz,bar##ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo|~baz"]);
   });
 
-  it("Element hiding exceptions", function()
-  {
+  it("Element hiding exceptions", function() {
     compareFilter("#@#ddd", ["type=elemhideexception", "text=#@#ddd", "selector=ddd"]);
     compareFilter("#@#body > div:first-child", ["type=elemhideexception", "text=#@#body > div:first-child", "selector=body > div:first-child"]);
     compareFilter("fOO#@#ddd", ["type=elemhideexception", "text=fOO#@#ddd", "selectorDomains=foo", "selector=ddd", "domains=foo"]);
@@ -384,8 +346,7 @@ describe("Filter classes", function()
     compareFilter("foo,~baz,bar#@#ddd", ["type=elemhideexception", "text=foo,~baz,bar#@#ddd", "selectorDomains=foo,bar", "selector=ddd", "domains=bar|foo|~baz"]);
   });
 
-  it("Element hiding emulation filters", function()
-  {
+  it("Element hiding emulation filters", function() {
     // Check valid domain combinations
     compareFilter("fOO.cOm#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=fOO.cOm#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com"]);
     compareFilter("Foo.com,~bAr.com#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=Foo.com,~bAr.com#?#:-abp-properties(abc)", "selectorDomains=foo.com", "selector=:-abp-properties(abc)", "domains=foo.com|~bar.com"]);
@@ -405,16 +366,14 @@ describe("Filter classes", function()
     compareFilter("~www.localhost,localhost#?#:-abp-properties(abc)", ["type=elemhideemulation", "text=~www.localhost,localhost#?#:-abp-properties(abc)", "selectorDomains=localhost", "selector=:-abp-properties(abc)", "domains=localhost|~www.localhost"]);
   });
 
-  it("Empty element hiding domains", function()
-  {
+  it("Empty element hiding domains", function() {
     let emptyDomainFilters = [
       ",##selector", ",,,##selector", "~,foo.com##selector", "foo.com,##selector",
       ",foo.com##selector", "foo.com,~##selector",
       "foo.com,,bar.com##selector", "foo.com,~,bar.com##selector"
     ];
 
-    for (let filterText of emptyDomainFilters)
-    {
+    for (let filterText of emptyDomainFilters) {
       let filter = Filter.fromText(filterText);
       assert.ok(filter instanceof InvalidFilter);
       assert.equal(filter.reason, "filter_invalid_domain");
@@ -422,8 +381,7 @@ describe("Filter classes", function()
     }
   });
 
-  it("Element hiding rules with braces", function()
-  {
+  it("Element hiding rules with braces", function() {
     compareFilter(
       "###foo{color: red}", [
         "type=elemhide",
@@ -444,16 +402,14 @@ describe("Filter classes", function()
     );
   });
 
-  it("Snippet filters", function()
-  {
+  it("Snippet filters", function() {
     compareFilter("foo.com#$#abc", ["type=snippet", "text=foo.com#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com"]);
     compareFilter("foo.com,~bar.com#$#abc", ["type=snippet", "text=foo.com,~bar.com#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com|~bar.com"]);
     compareFilter("foo.com,~bar#$#abc", ["type=snippet", "text=foo.com,~bar#$#abc", "scriptDomains=foo.com", "script=abc", "domains=foo.com|~bar"]);
     compareFilter("~foo.com,bar.com#$#abc", ["type=snippet", "text=~foo.com,bar.com#$#abc", "scriptDomains=bar.com", "script=abc", "domains=bar.com|~foo.com"]);
   });
 
-  it("Filter normalization", function()
-  {
+  it("Filter normalization", function() {
     // Line breaks etc
     assert.equal(Filter.normalize("\n\t\nad\ns"),
                  "ads");
@@ -557,8 +513,7 @@ describe("Filter classes", function()
                  "||content.server.com/files/*.php$rewrite=$1");
   });
 
-  it("InvalidFilter option propagated", function()
-  {
+  it("InvalidFilter option propagated", function() {
     let text = "/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$nope=$1";
     let filter = Filter.fromText(text);
     assert.ok(filter instanceof InvalidFilter);
@@ -567,8 +522,7 @@ describe("Filter classes", function()
     assert.equal(filter.option, "nope");
   });
 
-  it("Filter rewrite option", function()
-  {
+  it("Filter rewrite option", function() {
     let text = "/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=$1";
     let filter = Filter.fromText(text);
     assert.ok(filter instanceof InvalidFilter);
@@ -584,8 +538,7 @@ describe("Filter classes", function()
     assert.equal(filter.option, null);
 
     const rewriteTestCases = require("./data/rewrite.json");
-    for (let {resource, expected} of rewriteTestCases)
-    {
+    for (let {resource, expected} of rewriteTestCases) {
       text = `||/(content\\.server\\/file\\/.*\\.txt)\\?.*$/$rewrite=abp-resource:${resource},domain=content.server`;
       filter = Filter.fromText(text);
       assert.equal(filter.rewriteUrl("http://content.server/file/foo.txt"),
@@ -595,8 +548,7 @@ describe("Filter classes", function()
     }
   });
 
-  it("Filter header option", function()
-  {
+  it("Filter header option", function() {
     let responseHeaders1 = [
       {name: "Server", value: "None"},
       {name: "Content-Type", value: "image/jpeg"}
@@ -620,8 +572,7 @@ describe("Filter classes", function()
     assert.ok(filter2.filterHeaders(responseHeaders2));
   });
 
-  it("Domain map deduplication", function()
-  {
+  it("Domain map deduplication", function() {
     let filter1 = Filter.fromText("foo$domain=blocking.example.com");
     let filter2 = Filter.fromText("bar$domain=blocking.example.com");
     let filter3 = Filter.fromText("elemhide.example.com##.foo");
@@ -640,8 +591,7 @@ describe("Filter classes", function()
     assert.notEqual(filter4.domains, filter6.domains);
   });
 
-  it("Filters with wildcard domains", function()
-  {
+  it("Filters with wildcard domains", function() {
     // Blocking filters
     compareFilter("||example.com^$domain=example.*", [
       "type=blocking",
@@ -875,12 +825,10 @@ describe("Filter classes", function()
   });
 });
 
-describe("isActiveFilter()", function()
-{
+describe("isActiveFilter()", function() {
   let isActiveFilter = null;
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {isActiveFilter, Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
@@ -888,108 +836,89 @@ describe("isActiveFilter()", function()
   });
 
   // Blocking filters.
-  it("should return true for example", function()
-  {
+  it("should return true for example", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("example")), true);
   });
 
-  it("should return true for ||example.com^", function()
-  {
+  it("should return true for ||example.com^", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("||example.com^")), true);
   });
 
-  it("should return true for |https://example.com/foo/", function()
-  {
+  it("should return true for |https://example.com/foo/", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("|https://example.com/foo/")), true);
   });
 
-  it("should return true for ||example.com/foo/$domain=example.net", function()
-  {
+  it("should return true for ||example.com/foo/$domain=example.net", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("||example.com/foo/$domain=example.net")), true);
   });
 
   // Allowing filters.
-  it("should return true for @@example", function()
-  {
+  it("should return true for @@example", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("@@example")), true);
   });
 
-  it("should return true for @@||example.com^", function()
-  {
+  it("should return true for @@||example.com^", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("@@||example.com^")), true);
   });
 
-  it("should return true for @@|https://example.com/foo/", function()
-  {
+  it("should return true for @@|https://example.com/foo/", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("@@|https://example.com/foo/")), true);
   });
 
-  it("should return true for @@||example.com/foo/$domain=example.net", function()
-  {
+  it("should return true for @@||example.com/foo/$domain=example.net", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("@@||example.com/foo/$domain=example.net")), true);
   });
 
   // Element hiding filters.
-  it("should return true for ##.foo", function()
-  {
+  it("should return true for ##.foo", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("##.foo")), true);
   });
 
-  it("should return true for example.com##.foo", function()
-  {
+  it("should return true for example.com##.foo", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("example.com##.foo")), true);
   });
 
   // Element hiding exceptions.
-  it("should return true for #@#.foo", function()
-  {
+  it("should return true for #@#.foo", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("#@#.foo")), true);
   });
 
-  it("should return true for example.com#@#.foo", function()
-  {
+  it("should return true for example.com#@#.foo", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("example.com#@#.foo")), true);
   });
 
   // Element hiding emulation filters.
-  it("should return false for #?#.foo", function()
-  {
+  it("should return false for #?#.foo", function() {
     // Element hiding emulation filters require a domain.
     assert.strictEqual(isActiveFilter(Filter.fromText("#?#.foo")), false);
   });
 
-  it("should return true for example.com#?#.foo", function()
-  {
+  it("should return true for example.com#?#.foo", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("example.com#?#.foo")), true);
   });
 
   // Snippet filters.
-  it("should return false for #$#log 'Hello, world'", function()
-  {
+  it("should return false for #$#log 'Hello, world'", function() {
     // Snippet filters require a domain.
     assert.strictEqual(isActiveFilter(Filter.fromText("#$#log 'Hello, world'")), false);
   });
 
-  it("should return true for example.com#$#log 'Hello, world'", function()
-  {
+  it("should return true for example.com#$#log 'Hello, world'", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("example.com#$#log 'Hello, world'")), true);
   });
 
   // Comment filters.
-  it("should return false for ! example.com filters", function()
-  {
+  it("should return false for ! example.com filters", function() {
     assert.strictEqual(isActiveFilter(Filter.fromText("! example.com filters")), false);
   });
 
   // Invalid filters.
-  it("should return false for ||example.com/foo/$domains=example.net|example.org", function()
-  {
+  it("should return false for ||example.com/foo/$domains=example.net|example.org", function() {
     // $domain, not $domains
     assert.strictEqual(isActiveFilter(Filter.fromText("||example.com/foo/$domains=example.net|example.org")), false);
   });
 
-  it("should return false for example.com,,example.net##.foo", function()
-  {
+  it("should return false for example.com,,example.net##.foo", function() {
     // There must be no blank domain in the list.
     assert.strictEqual(isActiveFilter(Filter.fromText("example.com,,example.net##.foo")), false);
   });

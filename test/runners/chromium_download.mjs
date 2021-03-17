@@ -26,24 +26,20 @@ const CHROMIUM_REVISION_LINK_THRESHOLD = 587811;
 
 let dirname = path.dirname(fileURLToPath(import.meta.url));
 
-function getChromiumExecutable(chromiumDir, windowsBinary)
-{
-  switch (process.platform)
-  {
+function getChromiumExecutable(chromiumDir, windowsBinary) {
+  switch (process.platform) {
     case "win32":
       return path.join(chromiumDir, windowsBinary, "chrome.exe");
     case "linux":
       return path.join(chromiumDir, "chrome-linux", "chrome");
     case "darwin":
-      return path.join(chromiumDir, "chrome-mac", "Chromium.app", "Contents",
-                       "MacOS", "Chromium");
+      return path.join(chromiumDir, "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium");
     default:
       throw new Error("Unexpected platform");
   }
 }
 
-export async function ensureChromium(chromiumRevision, unpack = true)
-{
+export async function ensureChromium(chromiumRevision, unpack = true) {
   let revisionInt = parseInt(chromiumRevision, 10);
   let startingRevision = revisionInt;
   let {platform} = process;
@@ -68,12 +64,10 @@ export async function ensureChromium(chromiumRevision, unpack = true)
   let chromiumDir = null;
   let snapshotsDir = path.join(dirname, "..", "..", "chromium-snapshots");
 
-  while (true)
-  {
+  while (true) {
     chromiumDir = path.join(snapshotsDir,
                             `chromium-${platform}-${revisionInt}`);
-    if (fs.existsSync(chromiumDir))
-    {
+    if (fs.existsSync(chromiumDir)) {
       console.info(`Reusing cached executable in ${chromiumDir}`);
       return getChromiumExecutable(chromiumDir, windowsBinary);
     }
@@ -81,26 +75,21 @@ export async function ensureChromium(chromiumRevision, unpack = true)
     if (!fs.existsSync(path.dirname(chromiumDir)))
       fs.mkdirSync(path.dirname(chromiumDir));
 
-    archive = path.join(snapshotsDir, "download-cache",
-                            `${revisionInt}-${fileName}`);
+    archive = path.join(snapshotsDir, "download-cache", `${revisionInt}-${fileName}`);
 
-    try
-    {
-      if (!fs.existsSync(archive))
-      {
+    try {
+      if (!fs.existsSync(archive)) {
         console.info("Downloading Chromium...");
         await download(
           `https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/${dir}%2F${revisionInt}%2F${fileName}?alt=media`,
           archive);
       }
-      else
-      {
+      else {
         console.info(`Reusing cached archive ${archive}`);
       }
       break;
     }
-    catch (e)
-    {
+    catch (e) {
       // The Chromium authors advise us to try decrementing
       // the branch_base_position when no matching build was found. See
       // https://www.chromium.org/getting-involved/download-chromium

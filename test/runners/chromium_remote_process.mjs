@@ -27,50 +27,41 @@ import {ensureChromium} from "./chromium_download.mjs";
 // Chromium 60.0.3082.x
 const CHROMIUM_REVISION = 467222;
 
-function rmdir(dirPath)
-{
-  for (let file of fs.readdirSync(dirPath))
-  {
+function rmdir(dirPath) {
+  for (let file of fs.readdirSync(dirPath)) {
     let filePath = path.join(dirPath, file);
-    try
-    {
+    try {
       if (fs.statSync(filePath).isDirectory())
         rmdir(filePath);
       else
         fs.unlinkSync(filePath);
     }
-    catch (error)
-    {
+    catch (error) {
       console.error(error);
     }
   }
 
-  try
-  {
+  try {
     fs.rmdirSync(dirPath);
   }
-  catch (error)
-  {
+  catch (error) {
     console.error(error);
   }
 }
 
-function startChromium(chromiumPath)
-{
+function startChromium(chromiumPath) {
   fs.chmodSync(chromiumPath, fs.constants.S_IRWXU);
 
   let dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "chromium-data"));
   let child = null;
   return {
     kill: () => child && child.kill(),
-    done: new Promise((resolve, reject) =>
-    {
+    done: new Promise((resolve, reject) => {
       child = childProcess.execFile(chromiumPath, [
         "--headless", "--disable-gpu", "--no-sandbox",
         "--allow-file-access-from-files", "--remote-debugging-port=9222",
         "--user-data-dir=" + dataDir
-      ], error =>
-      {
+      ], error => {
         rmdir(dataDir);
         if (error)
           reject(error);
@@ -81,11 +72,9 @@ function startChromium(chromiumPath)
   };
 }
 
-function throwException(details, url)
-{
+function throwException(details, url) {
   let text = details.exception ? details.exception.description : details.text;
-  if (!details.stackTrace)
-  {
+  if (!details.stackTrace) {
     // ExceptionDetails uses zero-based line and column numbers.
     text += `\n    at ${details.url || url}:` +
             (details.lineNumber + 1) + ":" +
@@ -94,8 +83,7 @@ function throwException(details, url)
   throw text;
 }
 
-function reportMessage(text, level)
-{
+function reportMessage(text, level) {
   let method = {
     log: "log",
     warning: "warn",
@@ -106,41 +94,32 @@ function reportMessage(text, level)
   console[method](text);
 }
 
-function connectRemoteInterface(attempt)
-{
+function connectRemoteInterface(attempt) {
   // We use a Chrome version that is too old and doesn't support the
   // protocol command, so we  have to pass the option `local`
   // https://www.npmjs.com/package/chrome-remote-interface#chrome-debugging-protocol-versions
-  return remoteInterface({local: true}).catch(error =>
-  {
+  return remoteInterface({local: true}).catch(error => {
     attempt = attempt || 1;
-    if (attempt > 50)
-    {
+    if (attempt > 50) {
       // Stop trying to connect after 10 seconds
       throw error;
     }
 
-    return new Promise((resolve, reject) =>
-    {
-      setTimeout(() =>
-      {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
         connectRemoteInterface(attempt + 1).then(resolve).catch(reject);
       }, 200);
     });
   });
 }
 
-function runScript(script, scriptName, scriptArgs)
-{
-  return connectRemoteInterface().then(async client =>
-  {
-    try
-    {
+function runScript(script, scriptName, scriptArgs) {
+  return connectRemoteInterface().then(async client => {
+    try {
       let {Runtime, Log} = client;
 
       await Log.enable();
-      Log.entryAdded(({entry}) =>
-      {
+      Log.entryAdded(({entry}) => {
         reportMessage(entry.text, entry.level);
       });
 
@@ -185,27 +164,22 @@ function runScript(script, scriptName, scriptArgs)
       if (result.result.value.failures != 0)
         throw "Chromium (Remote Interface)";
     }
-    finally
-    {
+    finally {
       client.close();
     }
   });
 }
 
-export default function(script, scriptName, ...scriptArgs)
-{
-  return ensureChromium(CHROMIUM_REVISION).then(chromiumPath =>
-  {
+export default function(script, scriptName, ...scriptArgs) {
+  return ensureChromium(CHROMIUM_REVISION).then(chromiumPath => {
     let child = startChromium(chromiumPath);
     return Promise.race([
       child.done,
       runScript(script, scriptName, scriptArgs)
-    ]).then(result =>
-    {
+    ]).then(result => {
       child.kill();
       return result;
-    }).catch(error =>
-    {
+    }).catch(error => {
       child.kill();
       throw error;
     });

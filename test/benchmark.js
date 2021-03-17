@@ -30,17 +30,14 @@ let synchronizer = null;
 let profiler = null;
 
 
-describe("Synchronizer", function()
-{
+describe("Synchronizer", function() {
   let runner = {};
   let events = [];
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     runner = {};
 
-    let globals = Object.assign({}, setupTimerAndFetch.call(runner),
-                                setupRandomResult.call(runner));
+    let globals = Object.assign({}, setupTimerAndFetch.call(runner), setupRandomResult.call(runner));
 
     let sandboxedRequire = createSandbox({globals});
     (
@@ -50,43 +47,35 @@ describe("Synchronizer", function()
       profiler = sandboxedRequire(LIB_FOLDER + "/profiler")
     );
 
-    profiler.enable(true, list =>
-    {
+    profiler.enable(true, list => {
       for (let entry of list.getEntriesByType("measure"))
         events.push(entry);
     }, false);
   });
 
-  afterEach(function()
-  {
+  afterEach(function() {
     profiler.enable(false);
   });
 
-  describe("It starts the synchronizer", function()
-  {
-    beforeEach(function()
-    {
+  describe("It starts the synchronizer", function() {
+    beforeEach(function() {
       events = [];
       synchronizer.start();
     });
 
-    afterEach(function()
-    {
+    afterEach(function() {
       synchronizer.stop();
     });
 
-    it("Benchmarking events are fired", function()
-    {
-      runner.registerHandler("/subscription", metadata =>
-      {
+    it("Benchmarking events are fired", function() {
+      runner.registerHandler("/subscription", metadata => {
         return [200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
       });
 
       let subscription = Subscription.fromURL("https://example.com/subscription");
       filterStorage.addSubscription(subscription);
 
-      return runner.runScheduledTasks(1).then(() =>
-      {
+      return runner.runScheduledTasks(1).then(() => {
         assert.equal(events.length, 7, "Benchmarking events count");
         const eventTypes = events.map(event =>
           event.name.slice(event.name.lastIndexOf(":") + 1));

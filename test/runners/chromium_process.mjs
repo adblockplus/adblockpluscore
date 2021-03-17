@@ -29,8 +29,7 @@ import {ensureChromium} from "./chromium_download.mjs";
 // lowest version that supports WebDriver.
 const CHROMIUM_REVISION = 508578;
 
-function runScript(chromiumPath, script, scriptArgs)
-{
+function runScript(chromiumPath, script, scriptArgs) {
   const options = new chrome.Options()
         // Disabling sandboxing is needed on some system configurations
         // like Debian 9.
@@ -49,8 +48,7 @@ function runScript(chromiumPath, script, scriptArgs)
   return executeScript(driver, "Chromium (WebDriver)", script, scriptArgs);
 }
 
-export default function(script, scriptName, ...scriptArgs)
-{
+export default function(script, scriptName, ...scriptArgs) {
   return ensureChromium(CHROMIUM_REVISION)
     .then(chromiumPath => runScript(chromiumPath, script, scriptArgs));
 }

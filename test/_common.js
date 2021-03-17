@@ -47,31 +47,24 @@ let globals = {
 
 let knownModules = new Map();
 for (let dir of [path.join(__dirname, "stub-modules"),
-                 path.join(__dirname, LIB_FOLDER)])
-{
-  for (let file of fs.readdirSync(path.resolve(dir)))
-  {
+                 path.join(__dirname, LIB_FOLDER)]) {
+  for (let file of fs.readdirSync(path.resolve(dir))) {
     if (path.extname(file) == ".js")
       knownModules.set(path.basename(file, ".js"), path.resolve(dir, file));
   }
 }
 
-function dynamicRequire(id)
-{
+function dynamicRequire(id) {
   let module = new Module(id);
   module.load(require.resolve(id));
   return module.exports;
 }
 
-function addExports(exports)
-{
-  return function(source)
-  {
+function addExports(exports) {
+  return function(source) {
     let extraExports = exports[path.basename(this.filename, ".js")];
-    if (extraExports)
-    {
-      for (let name of extraExports)
-      {
+    if (extraExports) {
+      for (let name of extraExports) {
         source += `
           Object.defineProperty(exports, "${name}", {get: () => ${name}});`;
       }
@@ -80,23 +73,19 @@ function addExports(exports)
   };
 }
 
-function rewriteRequires(source)
-{
-  function escapeString(str)
-  {
+function rewriteRequires(source) {
+  function escapeString(str) {
     return str.replace(/(["'\\])/g, "\\$1");
   }
 
-  return source.replace(/(\brequire\(["'])([^"']+)/g, (match, prefix, request) =>
-  {
+  return source.replace(/(\brequire\(["'])([^"']+)/g, (match, prefix, request) => {
     if (knownModules.has(request))
       return prefix + escapeString(knownModules.get(request));
     return match;
   });
 }
 
-exports.createSandbox = function(options)
-{
+exports.createSandbox = function(options) {
   if (!options)
     options = {};
 
@@ -112,8 +101,7 @@ exports.createSandbox = function(options)
   }).require;
 };
 
-exports.setupTimerAndFetch = function()
-{
+exports.setupTimerAndFetch = function() {
   let currentTime = 100000 * MILLIS_IN_HOUR;
   let startTime = currentTime;
 
@@ -122,8 +110,7 @@ exports.setupTimerAndFetch = function()
     delay: -1,
     nextExecution: 0,
 
-    setTimeout(callback, delay)
-    {
+    setTimeout(callback, delay) {
       // The fake timer implementation is a holdover from the legacy extension.
       // Due to the way it works, it is safer to allow only one callback at a
       // time.
@@ -137,23 +124,19 @@ exports.setupTimerAndFetch = function()
       return 1;
     },
 
-    clearTimeout()
-    {
+    clearTimeout() {
       this.callback = null;
       this.delay = -1;
       this.nextExecution = 0;
     },
 
-    trigger()
-    {
+    trigger() {
       if (currentTime < this.nextExecution)
         currentTime = this.nextExecution;
-      try
-      {
+      try {
         this.callback();
       }
-      finally
-      {
+      finally {
         this.nextExecution = currentTime + this.delay;
       }
     }
@@ -161,8 +144,7 @@ exports.setupTimerAndFetch = function()
 
   let requests = [];
 
-  async function fetch(url, initObj = {method: "GET"})
-  {
+  async function fetch(url, initObj = {method: "GET"}) {
     // Add a dummy resolved promise.
     requests.push(Promise.resolve());
 
@@ -170,13 +152,11 @@ exports.setupTimerAndFetch = function()
 
     let result = [404, ""];
 
-    if (urlObj.protocol == "data:")
-    {
+    if (urlObj.protocol == "data:") {
       let data = decodeURIComponent(urlObj.pathname.replace(/^[^,]+,/, ""));
       result = [200, data];
     }
-    else if (urlObj.pathname in fetch.requestHandlers)
-    {
+    else if (urlObj.pathname in fetch.requestHandlers) {
       result = fetch.requestHandlers[urlObj.pathname]({
         method: initObj.method,
         path: urlObj.pathname,
@@ -197,37 +177,31 @@ exports.setupTimerAndFetch = function()
   }
 
   fetch.requestHandlers = {};
-  this.registerHandler = (requestPath, handler) =>
-  {
+  this.registerHandler = (requestPath, handler) => {
     fetch.requestHandlers[requestPath] = handler;
   };
 
-  async function waitForRequests()
-  {
+  async function waitForRequests() {
     if (requests.length == 0)
       return;
 
     let result = Promise.all(requests);
     requests = [];
 
-    try
-    {
+    try {
       await result;
     }
-    catch (error)
-    {
+    catch (error) {
       console.error(error);
     }
 
     await waitForRequests();
   }
 
-  async function runScheduledTasks(maxMillis)
-  {
+  async function runScheduledTasks(maxMillis) {
     let endTime = currentTime + maxMillis;
 
-    if (fakeTimer.nextExecution < 0 || fakeTimer.nextExecution > endTime)
-    {
+    if (fakeTimer.nextExecution < 0 || fakeTimer.nextExecution > endTime) {
       currentTime = endTime;
       return;
     }
@@ -238,21 +212,18 @@ exports.setupTimerAndFetch = function()
     await runScheduledTasks(endTime - currentTime);
   }
 
-  this.runScheduledTasks = async(maxHours, initial = 0, skip = 0) =>
-  {
+  this.runScheduledTasks = async(maxHours, initial = 0, skip = 0) => {
     if (typeof maxHours != "number")
       throw new Error("Numerical parameter expected");
 
     startTime = currentTime;
 
-    if (initial >= 0)
-    {
+    if (initial >= 0) {
       maxHours -= initial;
       await runScheduledTasks(initial * MILLIS_IN_HOUR);
     }
 
-    if (skip >= 0)
-    {
+    if (skip >= 0) {
       maxHours -= skip;
       currentTime += skip * MILLIS_IN_HOUR;
     }
@@ -270,8 +241,8 @@ exports.setupTimerAndFetch = function()
     clearTimeout: fakeTimer.clearTimeout.bind(fakeTimer),
     fetch,
     Date: Object.assign(
-      function(...args) // eslint-disable-line prefer-arrow-callback
-      {
+      // eslint-disable-line prefer-arrow-callback
+      function(...args) {
         return new Date(...args);
       },
       {
@@ -283,16 +254,13 @@ exports.setupTimerAndFetch = function()
 
 console.warn = console.log;
 
-exports.setupRandomResult = function()
-{
+exports.setupRandomResult = function() {
   let randomResult = 0.5;
   Object.defineProperty(this, "randomResult", {
-    get()
-    {
+    get() {
       return randomResult;
     },
-    set(value)
-    {
+    set(value) {
       randomResult = value;
     }
   });
@@ -306,8 +274,7 @@ exports.setupRandomResult = function()
   };
 };
 
-exports.unexpectedError = function(error)
-{
+exports.unexpectedError = function(error) {
   console.error(error);
   this.ifError(error);
 };

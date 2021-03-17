@@ -2,7 +2,9 @@
   "extends": "eslint-config-eyeo",
   "root": true,
   "rules": {
+    "brace-style": ["error", "stroustrup"],
     "curly": ["error", "multi-or-nest", "consistent"],
+    "function-call-argument-newline": ["error", "consistent"],
     "id-denylist": [
       "error",
       "blacklist", "blackList",

@@ -26,10 +26,8 @@ let filterStorage = null;
 let filterEngine = null;
 let Subscription = null;
 
-describe("Filter storage", function()
-{
-  beforeEach(async function()
-  {
+describe("Filter storage", function() {
+  beforeEach(async function() {
     let sandboxedRequire = createSandbox();
 
     (
@@ -43,8 +41,7 @@ describe("Filter storage", function()
     await filterEngine.initialize();
   });
 
-  function addListener(listener)
-  {
+  function addListener(listener) {
     let makeWrapper = name => (...args) => listener(name, ...args);
 
     filterNotifier.on("subscription.added", makeWrapper("subscription.added"));
@@ -60,43 +57,39 @@ describe("Filter storage", function()
   }
 
   function compareSubscriptionList(testMessage, list,
-                                   knownSubscriptions = null)
-  {
+                                   knownSubscriptions = null) {
     let result = [...filterStorage._knownSubscriptions.keys()];
     let expected = list.map(subscription => subscription.url);
     assert.deepEqual(result, expected, testMessage);
 
-    if (knownSubscriptions)
-    {
+    if (knownSubscriptions) {
       assert.deepEqual([...Subscription.knownSubscriptions.values()],
-                       knownSubscriptions, testMessage);
+                       knownSubscriptions,
+                       testMessage);
     }
   }
 
-  function compareFiltersList(testMessage, list)
-  {
+  function compareFiltersList(testMessage, list) {
     let result = [...filterStorage.subscriptions()].map(
       subscription => [...subscription.filterText()]);
     assert.deepEqual(result, list, testMessage);
   }
 
-  function compareFilterSubscriptions(testMessage, filter, list)
-  {
+  function compareFilterSubscriptions(testMessage, filter, list) {
     let result = [...filterStorage.subscriptions(filter.text)].map(subscription => subscription.url);
     let expected = list.map(subscription => subscription.url);
     assert.deepEqual(result, expected, testMessage);
     assert.equal(filterStorage.getSubscriptionCount(filter.text),
-                 expected.length, testMessage + " (getSubscriptionCount)");
+                 expected.length,
+                 testMessage + " (getSubscriptionCount)");
   }
 
-  it("Adding subscriptions", function()
-  {
+  it("Adding subscriptions", function() {
     let subscription1 = Subscription.fromURL("https://test1/");
     let subscription2 = Subscription.fromURL("https://test2/");
 
     let changes = [];
-    function listener(action, subscription)
-    {
+    function listener(action, subscription) {
       if (action.indexOf("subscription.") == 0)
         changes.push(action + " " + subscription.url);
     }
@@ -129,48 +122,40 @@ describe("Filter storage", function()
     assert.deepEqual(changes, ["subscription.added https://test1/"], "Received changes");
   });
 
-  it("Removing subscriptions", function()
-  {
+  it("Removing subscriptions", function() {
     let subscription1 = Subscription.fromURL("https://test1/");
     let subscription2 = Subscription.fromURL("https://test2/");
 
-    assert.equal(Subscription.fromURL(subscription1.url), subscription1,
-                 "Subscription known before addition");
+    assert.equal(Subscription.fromURL(subscription1.url), subscription1, "Subscription known before addition");
 
     filterStorage.addSubscription(subscription1);
     filterStorage.addSubscription(subscription2);
 
     let changes = [];
-    function listener(action, subscription)
-    {
+    function listener(action, subscription) {
       if (action.indexOf("subscription.") == 0)
         changes.push(action + " " + subscription.url);
     }
     addListener(listener);
 
-    compareSubscriptionList("Initial state", [subscription1, subscription2],
-                            [subscription1, subscription2]);
+    compareSubscriptionList("Initial state", [subscription1, subscription2], [subscription1, subscription2]);
     assert.deepEqual(changes, [], "Received changes");
 
-    assert.equal(Subscription.fromURL(subscription1.url), subscription1,
-                 "Subscription known after addition");
+    assert.equal(Subscription.fromURL(subscription1.url), subscription1, "Subscription known after addition");
 
     changes = [];
     filterStorage.removeSubscription(subscription1);
-    compareSubscriptionList("Removing first subscription", [subscription2],
-                            [subscription2]);
+    compareSubscriptionList("Removing first subscription", [subscription2], [subscription2]);
     assert.deepEqual(changes, ["subscription.removed https://test1/"], "Received changes");
 
     // Once a subscription has been removed, it is forgotten; a new object is
     // created for the previously known subscription URL.
-    assert.notEqual(Subscription.fromURL(subscription1.url), subscription1,
-                    "Subscription forgotten upon removal");
+    assert.notEqual(Subscription.fromURL(subscription1.url), subscription1, "Subscription forgotten upon removal");
     Subscription.knownSubscriptions.delete(subscription1.url);
 
     changes = [];
     filterStorage.removeSubscription(subscription1);
-    compareSubscriptionList("Removing already removed subscription", [subscription2],
-                            [subscription2]);
+    compareSubscriptionList("Removing already removed subscription", [subscription2], [subscription2]);
     assert.deepEqual(changes, [], "Received changes");
 
     changes = [];
@@ -187,8 +172,7 @@ describe("Filter storage", function()
     assert.deepEqual(changes, ["subscription.removed https://test1/"], "Received changes");
   });
 
-  it("Moving subscriptions", function()
-  {
+  it("Moving subscriptions", function() {
     let subscription1 = Subscription.fromURL("https://test1/");
     let subscription2 = Subscription.fromURL("https://test2/");
     let subscription3 = Subscription.fromURL("https://test3/");
@@ -198,8 +182,7 @@ describe("Filter storage", function()
     filterStorage.addSubscription(subscription3);
 
     let changes = [];
-    function listener(action, subscription)
-    {
+    function listener(action, subscription) {
       if (action.indexOf("subscription.") == 0)
         changes.push(action + " " + subscription.url);
     }
@@ -212,8 +195,7 @@ describe("Filter storage", function()
     compareSubscriptionList("Remove", [subscription1, subscription3]);
   });
 
-  it("Adding filters", function()
-  {
+  it("Adding filters", function() {
     let subscription1 = Subscription.fromURL("~blocking");
     subscription1.defaults = ["blocking"];
 
@@ -227,8 +209,7 @@ describe("Filter storage", function()
     filterStorage.addSubscription(subscription3);
 
     let changes = [];
-    function listener(action, filter)
-    {
+    function listener(action, filter) {
       if (action.indexOf("filter.") == 0)
         changes.push(action + " " + filter.text);
     }
@@ -290,8 +271,7 @@ describe("Filter storage", function()
     assert.deepEqual(changes, ["filter.added example.com#$#foobar"], "Received changes");
   });
 
-  it("Removing filters", function()
-  {
+  it("Removing filters", function() {
     let subscription1 = Subscription.fromURL("~foo");
     subscription1.addFilter(Filter.fromText("foo"));
     subscription1.addFilter(Filter.fromText("foo"));
@@ -311,8 +291,7 @@ describe("Filter storage", function()
     filterStorage.addSubscription(subscription3);
 
     let changes = [];
-    function listener(action, filter)
-    {
+    function listener(action, filter) {
       if (action.indexOf("filter.") == 0)
         changes.push(action + " " + filter.text);
     }
@@ -352,8 +331,7 @@ describe("Filter storage", function()
     assert.deepEqual(changes, [], "Received changes");
   });
 
-  it("Moving filters", function()
-  {
+  it("Moving filters", function() {
     let subscription1 = Subscription.fromURL("~foo");
     subscription1.addFilter(Filter.fromText("foo"));
     subscription1.addFilter(Filter.fromText("bar"));
@@ -368,8 +346,7 @@ describe("Filter storage", function()
     filterStorage.addSubscription(subscription2);
 
     let changes = [];
-    function listener(action, filter)
-    {
+    function listener(action, filter) {
       if (action.indexOf("filter.") == 0)
         changes.push(action + " " + filter.text);
     }
@@ -404,11 +381,9 @@ describe("Filter storage", function()
     assert.deepEqual(changes, ["filter.moved bar"], "Received changes");
   });
 
-  it("Hit counts", function()
-  {
+  it("Hit counts", function() {
     let changes = [];
-    function listener(action, filter)
-    {
+    function listener(action, filter) {
       if (action.indexOf("filterState." == 0))
         changes.push(action + " " + filter);
     }
@@ -449,8 +424,7 @@ describe("Filter storage", function()
     assert.deepEqual(changes, ["filterState.hitCount filter2", "filterState.lastHit filter2"], "Received changes");
   });
 
-  it("Filter-subscription relationship", function()
-  {
+  it("Filter-subscription relationship", function() {
     let filter1 = Filter.fromText("filter1");
     let filter2 = Filter.fromText("filter2");
     let filter3 = Filter.fromText("filter3");

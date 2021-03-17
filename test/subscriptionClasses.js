@@ -26,10 +26,8 @@ let DownloadableSubscription = null;
 let RegularSubscription = null;
 let Filter = null;
 
-describe("Subscription classes", function()
-{
-  beforeEach(function()
-  {
+describe("Subscription classes", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {Subscription, SpecialSubscription,
@@ -39,8 +37,7 @@ describe("Subscription classes", function()
     );
   });
 
-  function compareSubscription(url, expected, postInit)
-  {
+  function compareSubscription(url, expected, postInit) {
     expected.push("[Subscription]");
     let subscription = Subscription.fromURL(url);
     if (postInit)
@@ -49,8 +46,7 @@ describe("Subscription classes", function()
     assert.equal(result.sort().join("\n"), expected.sort().join("\n"), url);
 
     let map = Object.create(null);
-    for (let line of result.slice(1))
-    {
+    for (let line of result.slice(1)) {
       if (/(.*?)=(.*)/.test(line))
         map[RegExp.$1] = RegExp.$2;
     }
@@ -58,8 +54,7 @@ describe("Subscription classes", function()
     assert.equal(subscription.toString(), subscription2.toString(), url + " deserialization");
   }
 
-  function compareSubscriptionFilters(subscription, expected)
-  {
+  function compareSubscriptionFilters(subscription, expected) {
     assert.deepEqual([...subscription.filterText()], expected);
 
     assert.equal(subscription.filterCount, expected.length);
@@ -71,22 +66,18 @@ describe("Subscription classes", function()
     assert.ok(!subscription.filterTextAt(-1));
   }
 
-  it("Definitions", function()
-  {
+  it("Definitions", function() {
     assert.equal(typeof Subscription, "function", "typeof Subscription");
     assert.equal(typeof SpecialSubscription, "function", "typeof SpecialSubscription");
     assert.equal(typeof RegularSubscription, "function", "typeof RegularSubscription");
     assert.equal(typeof DownloadableSubscription, "function", "typeof DownloadableSubscription");
   });
 
-  it("Subscriptions with state", function()
-  {
+  it("Subscriptions with state", function() {
     compareSubscription("~fl~", ["url=~fl~"]);
     compareSubscription("https://test/default", ["url=https://test/default", "title=https://test/default"]);
     compareSubscription(
-      "https://test/default_titled", ["url=https://test/default_titled", "title=test"],
-      subscription =>
-      {
+      "https://test/default_titled", ["url=https://test/default_titled", "title=test"], subscription => {
         subscription.title = "test";
       }
     );
@@ -98,8 +89,7 @@ describe("Subscription classes", function()
         "expires=20", "downloadStatus=foo", "errors=3", "version=24",
         "requiredVersion=0.6"
       ],
-      subscription =>
-      {
+      subscription => {
         subscription.title = "test";
         subscription.disabled = true;
         subscription.lastSuccess = 8;
@@ -114,17 +104,14 @@ describe("Subscription classes", function()
       }
     );
     compareSubscription(
-      "~wl~", ["url=~wl~", "disabled=true", "title=Test group"],
-      subscription =>
-      {
+      "~wl~", ["url=~wl~", "disabled=true", "title=Test group"], subscription => {
         subscription.title = "Test group";
         subscription.disabled = true;
       }
     );
   });
 
-  it("Filter management", function()
-  {
+  it("Filter management", function() {
     let subscription = Subscription.fromURL("https://example.com/");
 
     compareSubscriptionFilters(subscription, []);
@@ -204,8 +191,7 @@ describe("Subscription classes", function()
     assert.equal(subscription.findFilterIndex(Filter.fromText("##.lambda")), 0);
   });
 
-  it("Subscrition delta", function()
-  {
+  it("Subscrition delta", function() {
     let subscription = Subscription.fromURL("https://example.com/");
 
     subscription.addFilter(Filter.fromText("##.foo"));
@@ -240,143 +226,115 @@ describe("Subscription classes", function()
   });
 });
 
-describe("Subscription.isValidURL()", function()
-{
-  beforeEach(function()
-  {
+describe("Subscription.isValidURL()", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
   });
 
-  it("should return true for ~user~982682", function()
-  {
+  it("should return true for ~user~982682", function() {
     assert.strictEqual(Subscription.isValidURL("~user~982682"), true);
   });
 
-  it("should return false for ~invalid~135692", function()
-  {
+  it("should return false for ~invalid~135692", function() {
     assert.strictEqual(Subscription.isValidURL("~invalid~135692"), false);
   });
 
-  it("should return true for https://example.com/", function()
-  {
+  it("should return true for https://example.com/", function() {
     assert.strictEqual(Subscription.isValidURL("https://example.com/"), true);
   });
 
-  it("should return true for https://example.com/list.txt", function()
-  {
+  it("should return true for https://example.com/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("https://example.com/list.txt"), true);
   });
 
-  it("should return true for https://example.com:8080/", function()
-  {
+  it("should return true for https://example.com:8080/", function() {
     assert.strictEqual(Subscription.isValidURL("https://example.com:8080/"), true);
   });
 
-  it("should return true for https://example.com:8080/list.txt", function()
-  {
+  it("should return true for https://example.com:8080/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("https://example.com:8080/list.txt"), true);
   });
 
-  it("should return false for http://example.com/", function()
-  {
+  it("should return false for http://example.com/", function() {
     assert.strictEqual(Subscription.isValidURL("http://example.com/"), false);
   });
 
-  it("should return false for http://example.com/list.txt", function()
-  {
+  it("should return false for http://example.com/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("http://example.com/list.txt"), false);
   });
 
-  it("should return false for http://example.com:8080/", function()
-  {
+  it("should return false for http://example.com:8080/", function() {
     assert.strictEqual(Subscription.isValidURL("http://example.com:8080/"), false);
   });
 
-  it("should return false for http://example.com:8080/list.txt", function()
-  {
+  it("should return false for http://example.com:8080/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("http://example.com:8080/list.txt"), false);
   });
 
-  it("should return true for https:example.com/", function()
-  {
+  it("should return true for https:example.com/", function() {
     assert.strictEqual(Subscription.isValidURL("https:example.com/"), true);
   });
 
-  it("should return true for https:example.com/list.txt", function()
-  {
+  it("should return true for https:example.com/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("https:example.com/list.txt"), true);
   });
 
-  it("should return false for http:example.com/", function()
-  {
+  it("should return false for http:example.com/", function() {
     assert.strictEqual(Subscription.isValidURL("http:example.com/"), false);
   });
 
-  it("should return false for http:example.com/list.txt", function()
-  {
+  it("should return false for http:example.com/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("http:example.com/list.txt"), false);
   });
 
-  it("should return true for http://localhost/", function()
-  {
+  it("should return true for http://localhost/", function() {
     assert.strictEqual(Subscription.isValidURL("http://localhost/"), true);
   });
 
-  it("should return true for http://localhost/list.txt", function()
-  {
+  it("should return true for http://localhost/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("http://localhost/list.txt"), true);
   });
 
-  it("should return true for http://127.0.0.1/", function()
-  {
+  it("should return true for http://127.0.0.1/", function() {
     assert.strictEqual(Subscription.isValidURL("http://127.0.0.1/"), true);
   });
 
-  it("should return true for http://127.0.0.1/list.txt", function()
-  {
+  it("should return true for http://127.0.0.1/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("http://127.0.0.1/list.txt"), true);
   });
 
-  it("should return true for http://[::1]/", function()
-  {
+  it("should return true for http://[::1]/", function() {
     assert.strictEqual(Subscription.isValidURL("http://[::1]/"), true);
   });
 
-  it("should return true for http://[::1]/list.txt", function()
-  {
+  it("should return true for http://[::1]/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("http://[::1]/list.txt"), true);
   });
 
-  it("should return true for http://0x7f000001/", function()
-  {
+  it("should return true for http://0x7f000001/", function() {
     assert.strictEqual(Subscription.isValidURL("http://0x7f000001/"), true);
   });
 
-  it("should return true for http://0x7f000001/list.txt", function()
-  {
+  it("should return true for http://0x7f000001/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("http://0x7f000001/list.txt"), true);
   });
 
-  it("should return true for http://[0:0:0:0:0:0:0:1]/", function()
-  {
+  it("should return true for http://[0:0:0:0:0:0:0:1]/", function() {
     assert.strictEqual(Subscription.isValidURL("http://[0:0:0:0:0:0:0:1]/"), true);
   });
 
-  it("should return true for http://[0:0:0:0:0:0:0:1]/list.txt", function()
-  {
+  it("should return true for http://[0:0:0:0:0:0:0:1]/list.txt", function() {
     assert.strictEqual(Subscription.isValidURL("http://[0:0:0:0:0:0:0:1]/list.txt"), true);
   });
 
-  it("should return true for data:,Hello%2C%20World!", function()
-  {
+  it("should return true for data:,Hello%2C%20World!", function() {
     assert.strictEqual(Subscription.isValidURL("data:,Hello%2C%20World!"), true);
   });
 
-  it("should return true for data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==", function()
-  {
+  it("should return true for data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==", function() {
     assert.strictEqual(Subscription.isValidURL("data:text/plain;base64,SGVsbG8sIFdvcmxkIQ=="), true);
   });
 });

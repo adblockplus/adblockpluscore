@@ -81,21 +81,17 @@ dataToSaveForTimestamp[filterListName] = {};
 let filterBenchmarkData = dataToSaveForTimestamp[filterListName];
 let benchmarkDataToSave;
 
-function sliceString(str)
-{
+function sliceString(str) {
   // Create a new string in V8 to free up the parent string.
   return JSON.parse(JSON.stringify(str));
 }
 
-function toMiB(numBytes)
-{
+function toMiB(numBytes) {
   return new Intl.NumberFormat().format(numBytes / 1024 / 1024);
 }
 
-function mergeAndSaveData(dataToMerge)
-{
-  if (saveData)
-  {
+function mergeAndSaveData(dataToMerge) {
+  if (saveData) {
     benchmarkDataToSave =
     helpers.mergeToBenchmarkResults(dataToMerge, BENCHMARK_RESULTS);
     helpers.saveToFile(benchmarkDataToSave, false, BENCHMARK_RESULTS);
@@ -106,8 +102,7 @@ function mergeAndSaveData(dataToMerge)
   helpers.saveToFile(tempBenchmarkDataToSave, false, TEMP_BENCHMARK_RESULTS);
 }
 
-function printMemory()
-{
+function printMemory() {
   gc();
   let {heapUsed, heapTotal} = process.memoryUsage();
   console.log(`Heap (used): ${toMiB(heapUsed)} MiB`);
@@ -126,10 +121,8 @@ function printMemory()
   console.log();
 }
 
-function profilerReporter(list)
-{
-  for (let entry of list.getEntriesByType("measure"))
-  {
+function profilerReporter(list) {
+  for (let entry of list.getEntriesByType("measure")) {
     console.log(`${entry.name}: ${entry.duration}ms`);
     filterBenchmarkData[entry.name] = entry.duration;
     mergeAndSaveData(benchmarkResults);
@@ -137,12 +130,10 @@ function profilerReporter(list)
 }
 
 
-async function main()
-{
+async function main() {
   if (process.argv.some(arg => /^--cleanup$/.test(arg)))
     await helpers.cleanBenchmarkData();
-  if (process.argv.some(arg => /^--save$/.test(arg)))
-  {
+  if (process.argv.some(arg => /^--save$/.test(arg))) {
     saveData = true;
     // Saving data that was initialized at the begining
     mergeAndSaveData(benchmarkResults);
@@ -150,8 +141,7 @@ async function main()
 
   let lists = [];
   console.log("## " + filterListName);
-  switch (filterListName)
-  {
+  switch (filterListName) {
     case "EasyList":
       lists.push(EASY_LIST);
       break;
@@ -169,17 +159,14 @@ async function main()
 
   let filters = [];
 
-  if (lists.length > 0)
-  {
-    for (let list of lists)
-    {
+  if (lists.length > 0) {
+    for (let list of lists) {
       let content = await helpers.loadFile(list);
       filters = filters.concat(content.split(/\r?\n/).map(sliceString));
     }
   }
 
-  if (filters.length > 0)
-  {
+  if (filters.length > 0) {
     await filterEngine.initialize(filters);
     // Call printMemory() asynchronously so GC can clean up any objects from
     // here.

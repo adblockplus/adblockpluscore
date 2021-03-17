@@ -19,7 +19,6 @@
 
 let fs = require("fs");
 
-exports["include"] = function include(path)
-{
+exports["include"] = function include(path) {
   return fs.readFileSync(path);
 };

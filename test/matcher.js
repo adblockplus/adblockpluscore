@@ -28,10 +28,8 @@ let Matcher = null;
 let parseURL = null;
 
 
-describe("Matcher", function()
-{
-  beforeEach(function()
-  {
+describe("Matcher", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {contentTypes} = sandboxedRequire(LIB_FOLDER + "/contentTypes"),
@@ -41,18 +39,14 @@ describe("Matcher", function()
     );
   });
 
-  function compareKeywords(text, expected)
-  {
-    for (let filter of [Filter.fromText(text), Filter.fromText("@@" + text)])
-    {
+  function compareKeywords(text, expected) {
+    for (let filter of [Filter.fromText(text), Filter.fromText("@@" + text)]) {
       let matcher = new Matcher();
       let result = [];
-      for (let i = 0; i < expected.length; i++)
-      {
+      for (let i = 0; i < expected.length; i++) {
         let keyword = matcher.findKeyword(filter);
         result.push(keyword);
-        if (keyword)
-        {
+        if (keyword) {
           let dummyFilter = Filter.fromText("^" + keyword + "^");
           dummyFilter.filterCount = Infinity;
           matcher.add(dummyFilter);
@@ -63,16 +57,14 @@ describe("Matcher", function()
     }
   }
 
-  function checkMatch(filters, location, contentType, docDomain, sitekey, specificOnly, expected, expectedFirstMatch = expected)
-  {
+  function checkMatch(filters, location, contentType, docDomain, sitekey, specificOnly, expected, expectedFirstMatch = expected) {
     let url = parseURL(location);
 
     let matcher = new Matcher();
     for (let filter of filters)
       matcher.add(Filter.fromText(filter));
 
-    for (let arg of [url, location])
-    {
+    for (let arg of [url, location]) {
       let result = matcher.match(arg, contentTypes[contentType], docDomain, sitekey, specificOnly);
       if (result)
         result = result.text;
@@ -81,8 +73,7 @@ describe("Matcher", function()
     }
 
     let combinedMatcher = new CombinedMatcher();
-    for (let i = 0; i < 2; i++)
-    {
+    for (let i = 0; i < 2; i++) {
       for (let filter of filters)
         combinedMatcher.add(Filter.fromText(filter));
 
@@ -105,18 +96,15 @@ describe("Matcher", function()
   }
 
   function checkSearch(filters, location, contentType, docDomain,
-                       sitekey, specificOnly, filterType, expected)
-  {
+                       sitekey, specificOnly, filterType, expected) {
     let url = parseURL(location);
 
     let matcher = new CombinedMatcher();
     for (let filter of filters)
       matcher.add(Filter.fromText(filter));
 
-    for (let arg of [url, location])
-    {
-      let result = matcher.search(arg, contentTypes[contentType],
-                                  docDomain, sitekey, specificOnly, filterType);
+    for (let arg of [url, location]) {
+      let result = matcher.search(arg, contentTypes[contentType], docDomain, sitekey, specificOnly, filterType);
 
       let converted = {};
       for (let key in result)
@@ -131,16 +119,14 @@ describe("Matcher", function()
     }
   }
 
-  it("Class definitions", function()
-  {
+  it("Class definitions", function() {
     assert.equal(typeof Matcher, "function", "typeof Matcher");
     assert.equal(typeof CombinedMatcher, "function", "typeof CombinedMatcher");
     assert.equal(typeof defaultMatcher, "object", "typeof defaultMatcher");
     assert.ok(defaultMatcher instanceof CombinedMatcher, "defaultMatcher is a CombinedMatcher instance");
   });
 
-  it("Keyword extraction", function()
-  {
+  it("Keyword extraction", function() {
     compareKeywords("*", []);
     compareKeywords("asdf", []);
     compareKeywords("/asdf/", []);
@@ -162,8 +148,7 @@ describe("Matcher", function()
     compareKeywords("||example.com/ad.js$header=content-type=image/png", ["example", "ad"]);
   });
 
-  it("Filter matching", function()
-  {
+  it("Filter matching", function() {
     checkMatch([], "http://abc/def", "IMAGE", null, null, false, null);
     checkMatch(["abc"], "http://abc/def", "IMAGE", null, null, false, "abc");
     checkMatch(["abc", "ddd"], "http://abc/def", "IMAGE", null, null, false, "abc");
@@ -267,44 +252,33 @@ describe("Matcher", function()
     checkMatch(["@@||*$document"], "http://foo/bar/", "DOCUMENT", "example.com", null, false, "@@||*$document");
   });
 
-  it("Filter search", function()
-  {
+  it("Filter search", function() {
     // Start with three filters: foo, bar$domain=example.com, and @@foo
     let filters = ["foo", "bar$domain=example.com", "@@foo"];
 
-    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com",
-                null, false, "all",
-                {blocking: ["foo"], allowing: ["@@foo"]});
+    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com", null, false, "all", {blocking: ["foo"], allowing: ["@@foo"]});
 
     // Blocking only.
-    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com",
-                null, false, "blocking", {blocking: ["foo"]});
+    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com", null, false, "blocking", {blocking: ["foo"]});
 
     // Allowing only.
-    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com",
-                null, false, "allowing", {allowing: ["@@foo"]});
+    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com", null, false, "allowing", {allowing: ["@@foo"]});
 
     // Different URLs.
-    checkSearch(filters, "http://example.com/bar", "IMAGE", "example.com",
-                null, false, "all",
-                {blocking: ["bar$domain=example.com"], allowing: []});
-    checkSearch(filters, "http://example.com/foo/bar", "IMAGE",
-                "example.com", null, false, "all", {
-                  blocking: ["foo", "bar$domain=example.com"],
-                  allowing: ["@@foo"]
-                });
+    checkSearch(filters, "http://example.com/bar", "IMAGE", "example.com", null, false, "all", {blocking: ["bar$domain=example.com"], allowing: []});
+    checkSearch(filters, "http://example.com/foo/bar", "IMAGE", "example.com", null, false, "all", {
+      blocking: ["foo", "bar$domain=example.com"],
+      allowing: ["@@foo"]
+    });
 
     // Non-matching content type.
-    checkSearch(filters, "http://example.com/foo", "CSP", "example.com",
-                null, false, "all", {blocking: [], allowing: []});
+    checkSearch(filters, "http://example.com/foo", "CSP", "example.com", null, false, "all", {blocking: [], allowing: []});
 
     // Non-matching specificity.
-    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com",
-                null, true, "all", {blocking: [], allowing: ["@@foo"]});
+    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com", null, true, "all", {blocking: [], allowing: ["@@foo"]});
   });
 
-  it("Allowlisted", function()
-  {
+  it("Allowlisted", function() {
     let matcher = new CombinedMatcher();
 
     assert.ok(!matcher.isAllowlisted(parseURL("https://example.com/foo"),
@@ -333,8 +307,7 @@ describe("Matcher", function()
                                      contentTypes.SUBDOCUMENT));
   });
 
-  it("Add/remove by keyword", function()
-  {
+  it("Add/remove by keyword", function() {
     let matcher = new CombinedMatcher();
 
     matcher.add(Filter.fromText("||example.com/foo/bar/ad.jpg^"));
@@ -357,15 +330,15 @@ describe("Matcher", function()
 
     assert.equal(matcher._blocking._filterDomainMapsByKeyword.size, 1);
 
-    for (let [key, value] of matcher._blocking._filterDomainMapsByKeyword)
-    {
+    for (let [key, value] of matcher._blocking._filterDomainMapsByKeyword) {
       assert.equal(key, "example");
       assert.deepEqual(value, Filter.fromText("||example.com^$~third-party,image"));
       break;
     }
 
     assert.ok(!!matcher.match(parseURL("https://example.com/example/ad.jpg"),
-                              contentTypes.IMAGE, "example.com"));
+                              contentTypes.IMAGE,
+                              "example.com"));
 
     // Map {
     //   "example" => Map {
@@ -379,8 +352,7 @@ describe("Matcher", function()
 
     assert.equal(matcher._blocking._filterDomainMapsByKeyword.size, 1);
 
-    for (let [key, value] of matcher._blocking._filterDomainMapsByKeyword)
-    {
+    for (let [key, value] of matcher._blocking._filterDomainMapsByKeyword) {
       assert.equal(key, "example");
       assert.equal(value.size, 1);
 
@@ -393,22 +365,23 @@ describe("Matcher", function()
     }
 
     assert.ok(!!matcher.match(parseURL("https://example.com/example/ad.jpg"),
-                              contentTypes.IMAGE, "example.com"));
+                              contentTypes.IMAGE,
+                              "example.com"));
 
     // Map { "example" => { text: "/example/*$~third-party,image" } }
     matcher.remove(Filter.fromText("||example.com^$~third-party,image"));
 
     assert.equal(matcher._blocking._filterDomainMapsByKeyword.size, 1);
 
-    for (let [key, value] of matcher._blocking._filterDomainMapsByKeyword)
-    {
+    for (let [key, value] of matcher._blocking._filterDomainMapsByKeyword) {
       assert.equal(key, "example");
       assert.deepEqual(value, Filter.fromText("/example/*$~third-party,image"));
       break;
     }
 
     assert.ok(!!matcher.match(parseURL("https://example.com/example/ad.jpg"),
-                              contentTypes.IMAGE, "example.com"));
+                              contentTypes.IMAGE,
+                              "example.com"));
 
     // Map {}
     matcher.remove(Filter.fromText("/example/*$~third-party,image"));
@@ -416,11 +389,11 @@ describe("Matcher", function()
     assert.equal(matcher._blocking._filterDomainMapsByKeyword.size, 0);
 
     assert.ok(!matcher.match(parseURL("https://example.com/example/ad.jpg"),
-                             contentTypes.IMAGE, "example.com"));
+                             contentTypes.IMAGE,
+                             "example.com"));
   });
 
-  it("Quick check", function()
-  {
+  it("Quick check", function() {
     let matcher = new CombinedMatcher();
 
     // Keywords "example" and "foo".
@@ -433,14 +406,17 @@ describe("Matcher", function()
     matcher.add(Filter.fromText("/\\bbar\\b/$match-case"));
 
     assert.ok(!!matcher.match(parseURL("https://example/foo/"),
-                              contentTypes.IMAGE, "example"));
+                              contentTypes.IMAGE,
+                              "example"));
 
     // The request URL contains neither "example" nor "foo", therefore it should
     // get to the filters associated with the blank keyword.
     // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/13
     assert.ok(!!matcher.match(parseURL("https://adblockplus/bar/"),
-                              contentTypes.IMAGE, "adblockplus"));
+                              contentTypes.IMAGE,
+                              "adblockplus"));
     assert.ok(!matcher.match(parseURL("https://adblockplus/Bar/"),
-                             contentTypes.IMAGE, "adblockplus"));
+                             contentTypes.IMAGE,
+                             "adblockplus"));
   });
 });

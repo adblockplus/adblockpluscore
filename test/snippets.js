@@ -28,10 +28,8 @@ let compileScript = null;
 let Filter = null;
 let SnippetFilter = null;
 
-describe("Snippets", function()
-{
-  beforeEach(function()
-  {
+describe("Snippets", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {Filter, SnippetFilter} = sandboxedRequire("../lib/filterClasses"),
@@ -39,12 +37,9 @@ describe("Snippets", function()
     );
   });
 
-  it("Domain restrictions", function()
-  {
-    function testScriptMatches(description, filters, domain, expectedMatches)
-    {
-      for (let filter of filters.map(Filter.fromText))
-      {
+  it("Domain restrictions", function() {
+    function testScriptMatches(description, filters, domain, expectedMatches) {
+      for (let filter of filters.map(Filter.fromText)) {
         if (filter instanceof SnippetFilter)
           snippets.add(filter);
       }
@@ -83,17 +78,14 @@ describe("Snippets", function()
     );
   });
 
-  it("Filters container", function()
-  {
+  it("Filters container", function() {
     let events = [];
 
-    function eventHandler(...args)
-    {
+    function eventHandler(...args) {
       events.push([...args]);
     }
 
-    function compareRules(description, domain, expectedMatches)
-    {
+    function compareRules(description, domain, expectedMatches) {
       let result = snippets.getFilters(domain);
       assert.deepEqual(result.sort(), expectedMatches.sort(), description);
     }
@@ -139,23 +131,19 @@ describe("Snippets", function()
         ["snippets.filterAdded", otherDomainFilter],
         ["snippets.filterRemoved", domainFilter],
         ["snippets.filtersCleared"]
-      ],
-      "Event log"
+      ], "Event log"
     );
   });
 
-  it("Script parsing", function()
-  {
-    function checkParsedScript(description, script, expectedTree)
-    {
+  it("Script parsing", function() {
+    function checkParsedScript(description, script, expectedTree) {
       let tree = parseScript(script);
       assert.deepEqual(tree, expectedTree, description);
     }
 
     checkParsedScript("Script with no arguments", "foo", [["foo"]]);
     checkParsedScript("Script with one argument", "foo 1", [["foo", "1"]]);
-    checkParsedScript("Script with two arguments", "foo 1 Hello",
-                      [["foo", "1", "Hello"]]);
+    checkParsedScript("Script with two arguments", "foo 1 Hello", [["foo", "1", "Hello"]]);
     checkParsedScript("Script with argument containing an escaped space",
                       "foo Hello\\ world",
                       [["foo", "Hello world"]]);
@@ -177,18 +165,19 @@ describe("Snippets", function()
                       [["foo", "yin\tyang\n"]]);
     checkParsedScript("Script with argument containing Unicode escape sequences",
                       "foo \\u0062\\ud83d\\ude42r " +
-                      "'l\\ud83d\\ude02mbd\\ud83d\\ude02'", [
+                      "'l\\ud83d\\ude02mbd\\ud83d\\ude02'",
+                      [
                         ["foo", "b\ud83d\ude42r", "l\ud83d\ude02mbd\ud83d\ude02"]
                       ]);
-    checkParsedScript("Script with multiple commands", "foo; bar",
-                      [["foo"], ["bar"]]);
+    checkParsedScript("Script with multiple commands", "foo; bar", [["foo"], ["bar"]]);
     checkParsedScript("Script with multiple commands and multiple arguments each",
                       "foo 1 Hello; bar world! #",
                       [["foo", "1", "Hello"], ["bar", "world!", "#"]]);
     checkParsedScript("Script with multiple commands and multiple " +
                       "escaped and quoted arguments each",
                       "foo 1 'Hello, \\'Tommy\\'!' ;" +
-                      "bar Hi!\\ How\\ are\\ you? http://example.com", [
+                      "bar Hi!\\ How\\ are\\ you? http://example.com",
+                      [
                         ["foo", "1", "Hello, 'Tommy'!"],
                         ["bar", "Hi! How are you?", "http://example.com"]
                       ]);
@@ -200,18 +189,13 @@ describe("Snippets", function()
     checkParsedScript("Script containing Unicode composite characters",
                       "f\ud83d\ude42\ud83d\ude42 b\ud83d\ude02r",
                       [["f\ud83d\ude42\ud83d\ude42", "b\ud83d\ude02r"]]);
-    checkParsedScript("Script with no-op commands", "foo; ;;; ;  ; bar 1",
-                      [["foo"], ["bar", "1"]]);
-    checkParsedScript("Script with blank argument in the middle", "foo '' Hello",
-                      [["foo", "", "Hello"]]);
-    checkParsedScript("Script with blank argument at the end", "foo Hello ''",
-                      [["foo", "Hello", ""]]);
-    checkParsedScript("Script with consecutive blank arguments", "foo '' ''",
-                      [["foo", "", ""]]);
+    checkParsedScript("Script with no-op commands", "foo; ;;; ;  ; bar 1", [["foo"], ["bar", "1"]]);
+    checkParsedScript("Script with blank argument in the middle", "foo '' Hello", [["foo", "", "Hello"]]);
+    checkParsedScript("Script with blank argument at the end", "foo Hello ''", [["foo", "Hello", ""]]);
+    checkParsedScript("Script with consecutive blank arguments", "foo '' ''", [["foo", "", ""]]);
 
     // Undocumented quirks (#6853).
-    checkParsedScript("Script with quotes within an argument", "foo Hello''world",
-                      [["foo", "Helloworld"]]);
+    checkParsedScript("Script with quotes within an argument", "foo Hello''world", [["foo", "Helloworld"]]);
     checkParsedScript("Script with quotes within an argument containing whitespace",
                       "foo Hello' 'world",
                       [["foo", "Hello world"]]);
@@ -228,8 +212,7 @@ describe("Snippets", function()
                       "foo Hello,' world'",
                       [["foo", "Hello, world"]]);
 
-    checkParsedScript("Script with closing quote missing", "foo 'Hello, world",
-                      []);
+    checkParsedScript("Script with closing quote missing", "foo 'Hello, world", []);
     checkParsedScript("Script with closing quote missing in last command",
                       "foo Hello; bar 'How are you?",
                       [["foo", "Hello"]]);
@@ -238,8 +221,7 @@ describe("Snippets", function()
                       [["foo", "Hello"]]);
   });
 
-  it("Script compilation", function()
-  {
+  it("Script compilation", function() {
     let libraries = [
       `
         let foo = "foo" in environment ? environment.foo : 0;
@@ -294,8 +276,7 @@ describe("Snippets", function()
     }
   `;
 
-    function verifyExecutable(script)
-    {
+    function verifyExecutable(script) {
       let actual = compileScript(script, libraries);
       let parsed = [].concat(script).map(parseScript);
       let expected = template.replace("{{{script}}}", JSON.stringify(parsed));

@@ -48,21 +48,17 @@ const terserOptions = {
   toplevel: false
 };
 
-const parse = async(source, dest) =>
-{
-  for (const file of await readdir(source))
-  {
+const parse = async(source, dest) => {
+  for (const file of await readdir(source)) {
     const ext = extname(file);
     const target = join(source, file);
-    if (ext === ".js")
-    {
+    if (ext === ".js") {
       console.log("\x1b[1mminifying\x1b[0m ." + target.replace(__dirname, ""));
       const js = await readFile(target);
       const {code} = await minify(js.toString(), terserOptions);
       writeFile(join(dest, file), LICENSE.concat(code));
     }
-    else if (!ext)
-    {
+    else if (!ext) {
       await mkdir(join(dest, file), {recursive: true});
       parse(target, join(dest, file));
     }

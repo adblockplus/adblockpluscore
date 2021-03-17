@@ -27,10 +27,8 @@ let elemHideExceptions = null;
 let Filter = null;
 let SELECTOR_GROUP_SIZE = null;
 
-describe("Element hiding", function()
-{
-  beforeEach(function()
-  {
+describe("Element hiding", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox({
     });
     (
@@ -41,19 +39,16 @@ describe("Element hiding", function()
     );
   });
 
-  function normalizeSelectors(selectors)
-  {
+  function normalizeSelectors(selectors) {
     // getStyleSheet is currently allowed to return duplicate
     // selectors for performance reasons, so we need to remove duplicates here.
-    return selectors.slice().sort().filter((selector, index, sortedSelectors) =>
-    {
+    return selectors.slice().sort().filter((selector, index, sortedSelectors) => {
       return index == 0 || selector != sortedSelectors[index - 1];
     });
   }
 
   function testResult(domain, expectedSelectors,
-                      {specificOnly = false, expectedExceptions = []} = {})
-  {
+                      {specificOnly = false, expectedExceptions = []} = {}) {
     let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
 
     let {code, selectors, exceptions} =
@@ -73,15 +68,13 @@ describe("Element hiding", function()
     assert.deepEqual(exceptions.map(({text}) => text), expectedExceptions);
 
     // Make sure each expected selector is in the actual CSS code.
-    for (let selector of normalizedExpectedSelectors)
-    {
+    for (let selector of normalizedExpectedSelectors) {
       assert.ok(code.includes(selector + ", ") ||
                 code.includes(selector + " {display: none !important;}\n"));
     }
   }
 
-  it("Generate style sheet for domain", function()
-  {
+  it("Generate style sheet for domain", function() {
     let addFilter = filterText => elemHide.add(Filter.fromText(filterText));
     let removeFilter = filterText => elemHide.remove(Filter.fromText(filterText));
     let addException =
@@ -265,16 +258,14 @@ describe("Element hiding", function()
     testResult("foo.com", []);
   });
 
-  it("Zero filter key", function()
-  {
+  it("Zero filter key", function() {
     elemHide.add(Filter.fromText("##test"));
     elemHideExceptions.add(Filter.fromText("foo.com#@#test"));
     testResult("foo.com", [], {expectedExceptions: ["foo.com#@#test"]});
     testResult("bar.com", ["test"]);
   });
 
-  it("Filters by domain", function()
-  {
+  it("Filters by domain", function() {
     assert.equal(elemHide._filtersByDomain.size, 0);
 
     elemHide.add(Filter.fromText("##test"));
@@ -293,10 +284,8 @@ describe("Element hiding", function()
     assert.equal(elemHide._filtersByDomain.size, 0);
   });
 
-  describe("Create style sheet", function()
-  {
-    it("Basic creation", function()
-    {
+  describe("Create style sheet", function() {
+    it("Basic creation", function() {
       assert.equal(
         createStyleSheet([
           "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
@@ -308,8 +297,7 @@ describe("Element hiding", function()
       );
     });
 
-    it("Splitting", function()
-    {
+    it("Splitting", function() {
       let selectors = new Array(50000).fill().map((element, index) => ".s" + index);
 
       assert.equal((createStyleSheet(selectors).match(/\n/g) || []).length,
@@ -318,8 +306,7 @@ describe("Element hiding", function()
                    SELECTOR_GROUP_SIZE + " selectors each");
     });
 
-    it("Escaping", function()
-    {
+    it("Escaping", function() {
       assert.equal(
         createStyleSheet([
           "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
@@ -331,8 +318,7 @@ describe("Element hiding", function()
       );
     });
 
-    it("Custom CSS", function()
-    {
+    it("Custom CSS", function() {
       assert.equal(
         createStyleSheet([
           "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
@@ -345,8 +331,7 @@ describe("Element hiding", function()
     });
   });
 
-  it("Rules from style sheet", function()
-  {
+  it("Rules from style sheet", function() {
     // Note: The rulesFromStyleSheet function assumes that each rule will be
     // terminated with a newline character, including the last rule. If this is
     // not the case, the function goes into an infinite loop. It should only be

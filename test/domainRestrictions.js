@@ -22,29 +22,22 @@ const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let Filter = null;
 
-describe("Domain restrictions", function()
-{
-  beforeEach(function()
-  {
+describe("Domain restrictions", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
       {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
   });
 
-  function testActive(text, domain, expectedActive, expectedOnlyDomain)
-  {
+  function testActive(text, domain, expectedActive, expectedOnlyDomain) {
     let filter = Filter.fromText(text);
-    assert.equal(filter.isActiveOnDomain(domain), expectedActive,
-                 text + " active on " + domain);
-    assert.equal(filter.isActiveOnlyOnDomain(domain), expectedOnlyDomain,
-                 text + " only active on " + domain);
+    assert.equal(filter.isActiveOnDomain(domain), expectedActive, text + " active on " + domain);
+    assert.equal(filter.isActiveOnlyOnDomain(domain), expectedOnlyDomain, text + " only active on " + domain);
   }
 
-  describe("Unrestricted", function()
-  {
-    it("Blocking filters", function()
-    {
+  describe("Unrestricted", function() {
+    it("Blocking filters", function() {
       testActive("foo", null, true, false);
       testActive("foo", "com", true, false);
       testActive("foo", "example.com", true, false);
@@ -53,8 +46,7 @@ describe("Domain restrictions", function()
       testActive("foo", "mple.com", true, false);
     });
 
-    it("Hiding rules", function()
-    {
+    it("Hiding rules", function() {
       testActive("##foo", null, true, false);
       testActive("##foo", "com", true, false);
       testActive("##foo", "example.com", true, false);
@@ -64,10 +56,8 @@ describe("Domain restrictions", function()
     });
   });
 
-  describe("Domain restricted", function()
-  {
-    it("Blocking filters", function()
-    {
+  describe("Domain restricted", function() {
+    it("Blocking filters", function() {
       testActive("foo$domain=example.com", null, false, false);
       testActive("foo$domain=example.com", "com", false, true);
       testActive("foo$domain=example.com", "example.com", true, true);
@@ -78,8 +68,7 @@ describe("Domain restrictions", function()
       testActive("foo$domain=example.com", "mple.com", false, false);
     });
 
-    it("Hiding rules", function()
-    {
+    it("Hiding rules", function() {
       testActive("example.com##foo", null, false, false);
       testActive("example.com##foo", "com", false, true);
       testActive("example.com##foo", "example.com", true, true);
@@ -91,10 +80,8 @@ describe("Domain restrictions", function()
     });
   });
 
-  describe("Restricted to domain and its subdomain", function()
-  {
-    it("Blocking filters", function()
-    {
+  describe("Restricted to domain and its subdomain", function() {
+    it("Blocking filters", function() {
       testActive("foo$domain=example.com|foo.example.com", null, false, false);
       testActive("foo$domain=example.com|foo.example.com", "com", false, true);
       testActive("foo$domain=example.com|foo.example.com", "example.com", true, true);
@@ -103,8 +90,7 @@ describe("Domain restrictions", function()
       testActive("foo$domain=example.com|foo.example.com", "mple.com", false, false);
     });
 
-    it("Hiding rules", function()
-    {
+    it("Hiding rules", function() {
       testActive("example.com,foo.example.com##foo", null, false, false);
       testActive("example.com,foo.example.com##foo", "com", false, true);
       testActive("example.com,foo.example.com##foo", "example.com", true, true);
@@ -114,10 +100,8 @@ describe("Domain restrictions", function()
     });
   });
 
-  describe("With exception for a subdomain", function()
-  {
-    it("Blocking filters", function()
-    {
+  describe("With exception for a subdomain", function() {
+    it("Blocking filters", function() {
       testActive("foo$domain=~foo.example.com", null, true, false);
       testActive("foo$domain=~foo.example.com", "com", true, false);
       testActive("foo$domain=~foo.example.com", "example.com", true, false);
@@ -126,8 +110,7 @@ describe("Domain restrictions", function()
       testActive("foo$domain=~foo.example.com", "mple.com", true, false);
     });
 
-    it("Hiding rules", function()
-    {
+    it("Hiding rules", function() {
       testActive("~foo.example.com##foo", null, true, false);
       testActive("~foo.example.com##foo", "com", true, false);
       testActive("~foo.example.com##foo", "example.com", true, false);
@@ -137,10 +120,8 @@ describe("Domain restrictions", function()
     });
   });
 
-  describe("For domain but not its subdomain", function()
-  {
-    it("Blocking filters", function()
-    {
+  describe("For domain but not its subdomain", function() {
+    it("Blocking filters", function() {
       testActive("foo$domain=example.com|~foo.example.com", null, false, false);
       testActive("foo$domain=example.com|~foo.example.com", "com", false, true);
       testActive("foo$domain=example.com|~foo.example.com", "example.com", true, true);
@@ -149,8 +130,7 @@ describe("Domain restrictions", function()
       testActive("foo$domain=example.com|~foo.example.com", "mple.com", false, false);
     });
 
-    it("Hiding rules", function()
-    {
+    it("Hiding rules", function() {
       testActive("example.com,~foo.example.com##foo", null, false, false);
       testActive("example.com,~foo.example.com##foo", "com", false, true);
       testActive("example.com,~foo.example.com##foo", "example.com", true, true);
@@ -160,10 +140,8 @@ describe("Domain restrictions", function()
     });
   });
 
-  describe("For domain but not its TLD", function()
-  {
-    it("Blocking filters", function()
-    {
+  describe("For domain but not its TLD", function() {
+    it("Blocking filters", function() {
       testActive("foo$domain=example.com|~com", null, false, false);
       testActive("foo$domain=example.com|~com", "com", false, true);
       testActive("foo$domain=example.com|~com", "example.com", true, true);
@@ -172,8 +150,7 @@ describe("Domain restrictions", function()
       testActive("foo$domain=example.com|~com", "mple.com", false, false);
     });
 
-    it("Hiding rules", function()
-    {
+    it("Hiding rules", function() {
       testActive("example.com,~com##foo", null, false, false);
       testActive("example.com,~com##foo", "com", false, true);
       testActive("example.com,~com##foo", "example.com", true, true);
@@ -183,10 +160,8 @@ describe("Domain restrictions", function()
     });
   });
 
-  describe("Restricted to an unrelated domain", function()
-  {
-    it("Blocking filters", function()
-    {
+  describe("Restricted to an unrelated domain", function() {
+    it("Blocking filters", function() {
       testActive("foo$domain=nnnnnnn.nnn", null, false, false);
       testActive("foo$domain=nnnnnnn.nnn", "com", false, false);
       testActive("foo$domain=nnnnnnn.nnn", "example.com", false, false);
@@ -195,8 +170,7 @@ describe("Domain restrictions", function()
       testActive("foo$domain=nnnnnnn.nnn", "mple.com", false, false);
     });
 
-    it("Hiding rules", function()
-    {
+    it("Hiding rules", function() {
       testActive("nnnnnnn.nnn##foo", null, false, false);
       testActive("nnnnnnn.nnn##foo", "com", false, false);
       testActive("nnnnnnn.nnn##foo", "example.com", false, false);

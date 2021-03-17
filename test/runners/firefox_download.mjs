@@ -28,14 +28,11 @@ const {platform} = process;
 
 let dirname = path.dirname(fileURLToPath(import.meta.url));
 
-function extractTar(archive, browserDir)
-{
-  return new Promise((resolve, reject) =>
-  {
+function extractTar(archive, browserDir) {
+  return new Promise((resolve, reject) => {
     fs.mkdirSync(browserDir);
     exec(["tar", "-jxf", archive, "-C", browserDir].join(" "),
-         err =>
-         {
+         err => {
            if (err)
              reject(err);
            else
@@ -44,38 +41,28 @@ function extractTar(archive, browserDir)
   });
 }
 
-function extractDmg(archive, browserDir)
-{
-  return new Promise((resolve, reject) =>
-  {
-    import("dmg").then(({default: dmg}) =>
-    {
-      dmg.mount(archive, (err, mpath) =>
-      {
-        if (err)
-        {
+function extractDmg(archive, browserDir) {
+  return new Promise((resolve, reject) => {
+    import("dmg").then(({default: dmg}) => {
+      dmg.mount(archive, (err, mpath) => {
+        if (err) {
           reject(err);
         }
-        else
-        {
+        else {
           let files = fs.readdirSync(mpath);
           let target = files.find(file => /\.app/.test(file));
           let source = path.join(mpath, target);
           fs.mkdirSync(browserDir);
-          ncp(source, path.join(browserDir, target), ncperr =>
-          {
-            dmg.unmount(mpath, dmgerr =>
-            {
+          ncp(source, path.join(browserDir, target), ncperr => {
+            dmg.unmount(mpath, dmgerr => {
               if (dmgerr)
                 console.error(`Error unmounting DMG: ${dmgerr}`);
             });
-            if (ncperr)
-            {
+            if (ncperr) {
               console.error(`Error copying ${source} to ${browserDir}`);
               reject(ncperr);
             }
-            else
-            {
+            else {
               resolve();
             }
           });
@@ -85,16 +72,13 @@ function extractDmg(archive, browserDir)
   });
 }
 
-function runWinInstaller(archive, browserDir)
-{
+function runWinInstaller(archive, browserDir) {
   // Procedure inspired from mozinstall:
   // https://hg.mozilla.org/mozilla-central/file/tip/testing/mozbase/mozinstall/mozinstall/mozinstall.py
   // Also uninstaller will need to be run.
-  return new Promise((resolve, reject) =>
-  {
+  return new Promise((resolve, reject) => {
     exec(`"${archive}" /extractdir=${browserDir}`,
-         err =>
-         {
+         err => {
            if (err)
              reject(err);
            else
@@ -103,10 +87,8 @@ function runWinInstaller(archive, browserDir)
   });
 }
 
-function extractArchive(archive, browserDir)
-{
-  switch (platform)
-  {
+function extractArchive(archive, browserDir) {
+  switch (platform) {
     case "win32":
       return runWinInstaller(archive, browserDir);
     case "linux":
@@ -118,24 +100,20 @@ function extractArchive(archive, browserDir)
   }
 }
 
-function getFirefoxExecutable(browserDir)
-{
-  switch (platform)
-  {
+function getFirefoxExecutable(browserDir) {
+  switch (platform) {
     case "win32":
       return path.join(browserDir, "core", "firefox.exe");
     case "linux":
       return path.join(browserDir, "firefox", "firefox");
     case "darwin":
-      return path.join(browserDir, "Firefox.app", "Contents",
-                       "MacOS", "firefox");
+      return path.join(browserDir, "Firefox.app", "Contents", "MacOS", "firefox");
     default:
       throw new Error("Unexpected platform");
   }
 }
 
-export function ensureFirefox(firefoxVersion, unpack = true)
-{
+export function ensureFirefox(firefoxVersion, unpack = true) {
   let targetPlatform = platform;
   if (platform == "win32")
     targetPlatform += "-" + process.arch;
@@ -146,19 +124,16 @@ export function ensureFirefox(firefoxVersion, unpack = true)
     "darwin": ["mac-EME-free", `Firefox ${firefoxVersion}.dmg`]
   };
 
-  if (!Object.prototype.hasOwnProperty.call(buildTypes, targetPlatform))
-  {
+  if (!Object.prototype.hasOwnProperty.call(buildTypes, targetPlatform)) {
     let err = new Error(`Cannot run browser tests, ${targetPlatform} is unsupported`);
     return Promise.reject(err);
   }
 
-  return Promise.resolve().then(() =>
-  {
+  return Promise.resolve().then(() => {
     let snapshotsDir = path.join(dirname, "..", "..", "firefox-snapshots");
     let browserDir = path.join(snapshotsDir,
                                 `firefox-${targetPlatform}-${firefoxVersion}`);
-    if (fs.existsSync(browserDir))
-    {
+    if (fs.existsSync(browserDir)) {
       console.info(`Reusing cached executable from ${browserDir}`);
       return getFirefoxExecutable(browserDir);
     }
@@ -170,18 +145,15 @@ export function ensureFirefox(firefoxVersion, unpack = true)
     let archive = path.join(snapshotsDir, "download-cache", fileName);
 
     return Promise.resolve()
-      .then(() =>
-      {
-        if (!fs.existsSync(archive))
-        {
+      .then(() => {
+        if (!fs.existsSync(archive)) {
           let url = `https://archive.mozilla.org/pub/firefox/releases/${firefoxVersion}/${buildPlatform}/en-US/${fileName}`;
           console.info("Downloading Firefox...");
           return download(url, archive);
         }
         console.info(`Reusing cached archive ${archive}`);
       })
-      .then(async() =>
-      {
+      .then(async() => {
         if (!unpack)
           return null;
 

@@ -20,16 +20,13 @@ let Prefs = exports.Prefs = {
   show_statsinpopup: true
 };
 
-for (let key of Object.keys(Prefs))
-{
+for (let key of Object.keys(Prefs)) {
   let value = Prefs[key];
   Object.defineProperty(Prefs, key, {
-    get()
-    {
+    get() {
       return value;
     },
-    set(newValue)
-    {
+    set(newValue) {
       if (newValue == value)
         return;
 
@@ -42,14 +39,12 @@ for (let key of Object.keys(Prefs))
   });
 }
 
-Prefs.addListener = function(listener)
-{
+Prefs.addListener = function(listener) {
   if (listeners.indexOf(listener) < 0)
     listeners.push(listener);
 };
 
-Prefs.removeListener = function(listener)
-{
+Prefs.removeListener = function(listener) {
   let index = listeners.indexOf(listener);
   if (index >= 0)
     listeners.splice(index, 1);
