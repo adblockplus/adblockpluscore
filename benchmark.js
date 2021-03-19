@@ -22,15 +22,64 @@
 
 "use strict";
 
-const https = require("https");
+const fs = require("fs");
 
+const path = require("path");
+
+const helpers = require("./benchmark/helpers.js");
+let saveData = false;
 const profiler = require("./lib/profiler");
-profiler.enable(true);
+profiler.enable(true, profilerReporter);
 
 const {filterEngine} = require("./lib/filterEngine");
 
-const EASY_LIST = "https://easylist-downloads.adblockplus.org/easylist.txt";
-const AA = "https://easylist-downloads.adblockplus.org/exceptionrules.txt";
+const EASY_LIST = {
+  path: "benchmark/easylist.txt",
+  url: "https://easylist-downloads.adblockplus.org/easylist.txt"
+};
+const AA = {
+  path: "benchmark/exceptionrules.txt",
+  url: "https://easylist-downloads.adblockplus.org/exceptionrules.txt"
+};
+const EASYPRIVACY = {
+  path: "benchmark/easyprivacy.txt",
+  url: "https://easylist.to/easylist/easyprivacy.txt"
+};
+const TESTPAGES = {
+  path: "benchmark/testpages.txt",
+  url: "https://testpages.adblockplus.org/en/abp-testcase-subscription.txt"
+};
+
+const BENCHMARK_RESULTS = path.join(
+  __dirname,
+  "/benchmark/benchmarkresults.json"
+);
+const TEMP_BENCHMARK_RESULTS = path.join(
+  __dirname,
+  "/benchmark/tempresults.json"
+);
+
+let filterListName = process.argv[2];
+let benchmarkDate = process.argv[3];
+
+// Holds benchmark results that will be merged into json file
+let benchmarkResults = {};
+benchmarkResults[benchmarkDate] = {};
+
+let dataToSaveForTimestamp = benchmarkResults[benchmarkDate];
+
+// Get git data about branch and commit
+const rev = fs.readFileSync(".git/HEAD").toString().replace(/\n/g, "");
+let refs = rev;
+let commitHash = rev;
+if (rev.includes(":"))
+  commitHash = fs.readFileSync(".git/" + rev.substring(5).replace(/\n/g, "")).toString().replace(/\n/g, "");
+dataToSaveForTimestamp["Refs"] = refs;
+dataToSaveForTimestamp["CommitHash"] = commitHash;
+dataToSaveForTimestamp[filterListName] = {};
+
+let filterBenchmarkData = dataToSaveForTimestamp[filterListName];
+let benchmarkDataToSave;
 
 function sliceString(str)
 {
@@ -38,54 +87,70 @@ function sliceString(str)
   return JSON.parse(JSON.stringify(str));
 }
 
-function download(url)
-{
-  return new Promise((resolve, reject) =>
-  {
-    let request = https.request(url);
-
-    request.on("error", reject);
-    request.on("response", response =>
-    {
-      let {statusCode} = response;
-      if (statusCode != 200)
-      {
-        reject(`Download failed for ${url} with status ${statusCode}`);
-        return;
-      }
-
-      let body = "";
-
-      response.on("data", data => body += data);
-      response.on("end", () => resolve(body));
-    });
-
-    request.end();
-  });
-}
-
 function toMiB(numBytes)
 {
   return new Intl.NumberFormat().format(numBytes / 1024 / 1024);
 }
 
+function mergeAndSaveData(dataToMerge)
+{
+  if (saveData)
+  {
+    benchmarkDataToSave =
+    helpers.mergeToBenchmarkResults(dataToMerge, BENCHMARK_RESULTS);
+    helpers.saveToFile(benchmarkDataToSave, false, BENCHMARK_RESULTS);
+  }
+  // saving data to temporary file only
+  let tempBenchmarkDataToSave =
+    helpers.mergeToBenchmarkResults(dataToMerge, TEMP_BENCHMARK_RESULTS);
+  helpers.saveToFile(tempBenchmarkDataToSave, false, TEMP_BENCHMARK_RESULTS);
+}
+
 function printMemory()
 {
   gc();
-
   let {heapUsed, heapTotal} = process.memoryUsage();
-
   console.log(`Heap (used): ${toMiB(heapUsed)} MiB`);
   console.log(`Heap (total): ${toMiB(heapTotal)} MiB`);
 
   console.log();
+
+  filterBenchmarkData["HeapUsed"] = toMiB(heapUsed);
+  filterBenchmarkData["HeapTotal"] = toMiB(heapTotal);
+  mergeAndSaveData(benchmarkResults);
+  if (process.argv.some(arg => /^--compare$/.test(arg)))
+    helpers.compareResults(benchmarkDate);
+  // deleting temporary file to keep it clean
+  if (process.argv.some(arg => /^--dt$/.test(arg)))
+    helpers.deleteFile(TEMP_BENCHMARK_RESULTS);
+  console.log();
 }
+
+function profilerReporter(list)
+{
+  for (let entry of list.getEntriesByType("measure"))
+  {
+    console.log(`${entry.name}: ${entry.duration}ms`);
+    filterBenchmarkData[entry.name] = entry.duration;
+    mergeAndSaveData(benchmarkResults);
+  }
+}
+
 
 async function main()
 {
-  let lists = [];
+  if (process.argv.some(arg => /^--cleanup$/.test(arg)))
+    await helpers.cleanBenchmarkData();
+  if (process.argv.some(arg => /^--save$/.test(arg)))
+  {
+    saveData = true;
+    // Saving data that was initialized at the begining
+    mergeAndSaveData(benchmarkResults);
+  }
 
-  switch (process.argv[2])
+  let lists = [];
+  console.log("## " + filterListName);
+  switch (filterListName)
   {
     case "EasyList":
       lists.push(EASY_LIST);
@@ -93,6 +158,12 @@ async function main()
     case "EasyList+AA":
       lists.push(EASY_LIST);
       lists.push(AA);
+      break;
+    case "All":
+      lists.push(EASY_LIST);
+      lists.push(AA);
+      lists.push(EASYPRIVACY);
+      lists.push(TESTPAGES);
       break;
   }
 
@@ -102,23 +173,14 @@ async function main()
   {
     for (let list of lists)
     {
-      console.debug(`Downloading ${list} ...`);
-
-      let content = await download(list);
+      let content = await helpers.loadFile(list);
       filters = filters.concat(content.split(/\r?\n/).map(sliceString));
     }
-
-    console.debug();
   }
 
   if (filters.length > 0)
   {
-    console.log("# " + process.argv[2]);
-    console.log();
-
     await filterEngine.initialize(filters);
-    console.log();
-
     // Call printMemory() asynchronously so GC can clean up any objects from
     // here.
     setTimeout(printMemory, 1000);
@@ -127,3 +189,4 @@ async function main()
 
 if (require.main == module)
   main();
+

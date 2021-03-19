@@ -4,4 +4,7 @@
 /build/docs/tutorials/snippet-filter-tutorial.md
 /coverage/
 /docs/
+benchmark/*.txt
+benchmark/benchmarkresults.json
 /dist/
+benchmark/tempresults.json

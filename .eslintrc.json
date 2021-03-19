@@ -9,6 +9,14 @@
       "_blacklist", "_blackList",
       "Blacklist", "BlackList",
       "BLACKLIST", "BLACK_LIST"
+    ],
+    "max-len": [
+      "error", 80,
+      {
+        "ignoreUrls": true,
+        "ignoreRegExpLiterals": true,
+        "ignoreTemplateLiterals": true
+      }
     ]
   },
   "overrides": [
