@@ -82,6 +82,85 @@ Linting
 You can lint the code using [ESLint](http://eslint.org) by running
 `npm run lint`.
 
+Benchmarking
+------------
+
+We do care about performance, and we want to keep an eye on changes that might
+degrade the previous state.
+
+Our package has a few helpers, `npm run ...` commands, to do so, based on most
+popular filters lists used out there, focused on both bootstrap and heap
+consumption.
+
+### Bootstrapping benchmarks
+
+Each machine is different, so we decided to not pollute the repository with
+files that could be meaningless across different hardware.
+
+This means that the very first time benchmarking is needed, we should save the
+current results, so that we can incrementally monitor changes in the branch.
+
+To store, at any time, benchmarks references, we need to run the following:
+
+```sh
+npm run benchmark-save
+```
+
+This snapshot will contain the latest performance improvements we'd like to
+match against, while changing code in our own branch.
+
+#### Benchmark cleanup
+
+If benchmark results are polluted with too many data, you can run
+
+```sh
+npm run benchmark-all-cleanup
+```
+
+This command performs benchmark (without saving it) and cleans benchmark
+results file - saving only efficient runs (for each filters set and for each
+parameter).
+
+#### Benchmark reset
+
+If the best results are not satisfying, or impossible to reach, due new
+requirements - remove benchmarkresults.json manually. Next run with
+"*-save*" flag will create new files.
+
+#### Benchmark cache
+
+By default, if filters files are not found, these are downloaded in the
+`./benchmark` folder to avoid downloading different files to compare per each
+consecutive run.
+
+However, from time to time, or after a cleanup, it is recommended to remove
+these files manually, and download latest.
+
+
+### Benchmarking
+
+The `npm run benchmark` command will visually show, in console, what is the
+current *heap* memory state, and *bootstrap* time.
+
+This operations does *not* store results in the benchmark history, so it can
+be executed incrementally, while we code.
+
+### Benchmark results
+
+If we'd like to compare current changes with *heap* and *bootstrap* we had
+before, `npm run benchmark-compare` would take care of that, producing a
+table with differences between the previous, stored, state, and the current
+one.
+
+Please note that the comparison is always against most efficient results
+generated via all previous saved benchmarks.
+
+**Please note**, as benchmarks results might be compromised by various factors,
+such as your computer dedicating CPU for other tasks while running, there is a
+threshold margin to consider, where only multiple, repeated, better scores can
+be considered an effective improvement, as running the same benchmark twice,
+might produce diversions between scores itself, without changing code at all.
+
 Help center documentation generation
 ------------------------------------
 
