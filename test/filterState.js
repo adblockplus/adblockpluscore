@@ -1733,3 +1733,556 @@ describe("filterState.resetHitCount()", function() {
     });
   });
 });
+
+describe("filterState.reset()", function() {
+  let events = null;
+
+  function argsFor(name) {
+    return (...args) => {
+      events.push([name, ...args]);
+    };
+  }
+
+  function checkEvents(func, expectedEvents = []) {
+    events = [];
+    func();
+    assert.deepEqual(events.splice(0), expectedEvents);
+  }
+
+
+  context("No state", function() {
+    it("should not emit filterState.disabled when filter is reset", function() {
+      filterNotifier.on("filterState.disabled", argsFor("filterState.disabled"));
+
+      checkEvents(() => filterState.reset("||example.com^"));
+    });
+
+    it("should not emit filterState.hitCount when filter is reset", function() {
+      filterNotifier.on("filterState.hitCount", argsFor("filterState.hitCount"));
+
+      checkEvents(() => filterState.reset("||example.com^"));
+    });
+
+    it("should not emit filterState.lastHit when filter is reset", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      checkEvents(() => filterState.reset("||example.com^"));
+    });
+  });
+
+  context("State: disabled = false", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabled: false});
+    });
+
+    it("should not emit filterState.disabled when filter is reset", function() {
+      filterNotifier.on("filterState.disabled", argsFor("filterState.disabled"));
+      checkEvents(() => filterState.reset("||example.com^"));
+    });
+  });
+
+  context("State: disabled = true", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabled: true});
+    });
+
+    it("should emit filterState.disabled when filter is reset", function() {
+      filterNotifier.on("filterState.disabled", argsFor("filterState.disabled"));
+      checkEvents(
+        () => filterState.reset("||example.com^"),
+        [["filterState.disabled", "||example.com^", false, true]]
+      );
+    });
+  });
+
+  context("State: hitCount = 0", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {hitCount: 0});
+    });
+
+    it("should not emit filterState.hitCount when filter is reset", function() {
+      filterNotifier.on("filterState.hitCount", argsFor("filterState.hitCount"));
+      checkEvents(() => filterState.reset("||example.com^"));
+    });
+  });
+
+  context("State: hitCount = 1", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {hitCount: 1});
+    });
+
+    it("should emit filterState.hitCount when filter is reset", function() {
+      filterNotifier.on("filterState.hitCount", argsFor("filterState.hitCount"));
+      checkEvents(
+        () => filterState.reset("||example.com^"),
+        [["filterState.hitCount", "||example.com^", 0, 1]]
+      );
+    });
+
+    it("should delete state when filter is reset", function() {
+      filterState.reset("||example.com^");
+      assert.strictEqual(filterState.map.size, 0);
+    });
+  });
+
+  context("State: lastHit = 0", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {lastHit: 0});
+    });
+
+    it("should not emit filterState.lastHit when filter is reset", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+      checkEvents(() => filterState.reset("||example.com^"));
+    });
+  });
+
+  context("State: lastHit = 1", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {lastHit: 1});
+    });
+
+    it("should emit filterState.lastHit when filter is reset", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+      checkEvents(
+        () => filterState.reset("||example.com^"),
+        [["filterState.lastHit", "||example.com^", 0, 1]]
+      );
+    });
+  });
+});
+
+describe("filterState.resetHits()", function() {
+  let events = null;
+
+  function argsFor(name) {
+    return (...args) => {
+      events.push([name, ...args]);
+    };
+  }
+
+  function checkEvents(func, expectedEvents = []) {
+    events = [];
+    func();
+    assert.deepEqual(events.splice(0), expectedEvents);
+  }
+
+  context("No state", function() {
+    it("should not emit filterState.hitCount when hits are reset", function() {
+      filterNotifier.on("filterState.hitCount", argsFor("filterState.hitCount"));
+
+      checkEvents(() => filterState.resetHits("||example.com^"));
+    });
+
+    it("should not emit filterState.lastHit when hits are reset", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      checkEvents(() => filterState.resetHits("||example.com^"));
+    });
+  });
+
+  context("State: disabled = false", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabled: false, hitCount: 1, lastHit: 1});
+    });
+
+    it("should delete state when hits are reset", function() {
+      filterState.resetHits("||example.com^");
+      assert.strictEqual(filterState.map.size, 0);
+    });
+  });
+
+  context("State: disabled = true", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabled: true, hitCount: 1, lastHit: 1});
+    });
+
+    it("should not delete state when hits are reset", function() {
+      filterState.resetHits("||example.com^");
+      assert.strictEqual(filterState.map.size, 1);
+    });
+
+    it("should reset hitCount when hits are reset", function() {
+      filterState.resetHits("||example.com^");
+      assert.strictEqual(filterState.getHitCount("||example.com^"), 0);
+    });
+
+    it("should reset lastHit when hits are reset", function() {
+      filterState.resetHits("||example.com^");
+      assert.strictEqual(filterState.getLastHit("||example.com^"), 0);
+    });
+  });
+
+  context("State: hitCount = 0", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {hitCount: 0});
+    });
+
+    it("should not emit filterState.hitCount when hits are reset", function() {
+      filterNotifier.on("filterState.hitCount", argsFor("filterState.hitCount"));
+
+      checkEvents(() => filterState.resetHits("||example.com^"));
+    });
+  });
+
+  context("State: hitCount = 1", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {hitCount: 1});
+    });
+
+    it("should emit filterState.hitCount when hits are reset", function() {
+      filterNotifier.on("filterState.hitCount", argsFor("filterState.hitCount"));
+
+      checkEvents(
+        () => filterState.resetHits("||example.com^"),
+        [["filterState.hitCount", "||example.com^", 0, 1]]
+      );
+    });
+  });
+
+  context("State: lastHit = 0", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {lastHit: 0});
+    });
+
+    it("should not emit filterState.lastHit when hits are reset", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      checkEvents(() => filterState.resetHits("||example.com^"));
+    });
+  });
+
+  context("State: lastHit = 1", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {lastHit: 1});
+    });
+
+    it("should emit filterState.lastHit when hits are reset", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      checkEvents(
+        () => filterState.resetHits("||example.com^"),
+        [["filterState.lastHit", "||example.com^", 0, 1]]);
+    });
+  });
+});
+
+describe("filterState.registerHit()", function() {
+  let events = null;
+
+  function argsFor(name) {
+    return (...args) => {
+      events.push([name, ...args]);
+    };
+  }
+
+  function checkEvents(func, expectedEvents = []) {
+    events = [];
+    func();
+    if (expectedEvents !== null)
+      assert.deepEqual(events.splice(0), expectedEvents);
+
+    return events.splice(0);
+  }
+
+  context("No state", function() {
+    it("should update state when a hit is registered", function() {
+      let now = Date.now();
+      filterState.registerHit("||example.com^");
+      let state = filterState.map.get("||example.com^");
+      assert.strictEqual(state.hitCount, 1);
+      assert.strictEqual(state.lastHit, now);
+    });
+
+    it("should emit filterState.hitCount when a hit is registered", function() {
+      filterNotifier.on("filterState.hitCount", argsFor("filterState.hitCount"));
+
+      checkEvents(
+        () => filterState.registerHit("||example.com^"),
+        [["filterState.hitCount", "||example.com^", 1, 0]]
+      );
+    });
+
+    it("should emit filterState.lastHit when a hit is registered", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      let now = Date.now();
+      checkEvents(
+        () => filterState.registerHit("||example.com^"),
+        [["filterState.lastHit", "||example.com^", now, 0]]
+      );
+    });
+  });
+
+  context("State: hitCount = 1, lastHit = 1", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {hitCount: 1, lastHit: 1});
+    });
+
+    it("should update state when a hit is registered", function() {
+      let now = Date.now();
+      filterState.registerHit("||example.com^");
+      let state = filterState.map.get("||example.com^");
+      assert.strictEqual(state.hitCount, 2);
+      assert.strictEqual(state.lastHit, now);
+    });
+
+    it("should emit filterState.hitCount when a hit is registered", function() {
+      filterNotifier.on("filterState.hitCount", argsFor("filterState.hitCount"));
+
+      checkEvents(
+        () => filterState.registerHit("||example.com^"),
+        [["filterState.hitCount", "||example.com^", 2, 1]]
+      );
+    });
+
+    it("should emit filterState.lastHit when a hit is registered", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      let [event] = checkEvents(
+        () => filterState.registerHit("||example.com^"),
+        null
+      );
+      assert.strictEqual(event[0], "filterState.lastHit");
+      assert.strictEqual(event[1], "||example.com^");
+      assert.notStrictEqual(event[2], 1);
+      assert.strictEqual(event[3], 1);
+    });
+
+    it("should not emit filterState.lastHit when a hit is registered at the same time as lastHit", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      filterState.registerHit("||example.com^");
+      checkEvents(() => filterState.registerHit("||example.com^"));
+    });
+  });
+});
+
+describe("filterState.getLastHit()", function() {
+  context("No state", function() {
+    it("should return 0", function() {
+      assert.strictEqual(filterState.getLastHit("||example.com^"), 0);
+    });
+  });
+
+  context("State: lastHit = 1", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {hitCount: 1, lastHit: 1});
+    });
+
+    it("should return lastHit", function() {
+      assert.strictEqual(filterState.getLastHit("||example.com^"), 1);
+    });
+  });
+});
+
+describe("filterState.setLastHit()", function() {
+  let events = null;
+
+  function argsFor(name) {
+    return (...args) => {
+      events.push([name, ...args]);
+    };
+  }
+
+  function checkEvents(func, expectedEvents = []) {
+    events = [];
+    func();
+    assert.deepEqual(events.splice(0), expectedEvents);
+  }
+
+
+  context("No state", function() {
+    it("should update state when lastHit is set", function() {
+      filterState.setLastHit("||example.com^", 1);
+      let state = filterState.map.get("||example.com^");
+      assert.strictEqual(state.disabled, false);
+      assert.strictEqual(state.hitCount, 0);
+      assert.strictEqual(state.lastHit, 1);
+    });
+
+    it("should emit filterState.lastHit when lastHit is set", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      checkEvents(
+        () => filterState.setLastHit("||example.com^", 1),
+        [["filterState.lastHit", "||example.com^", 1, 0]]
+      );
+    });
+
+    it("should not update state when lastHit is set to 0", function() {
+      filterState.setLastHit("||example.com^", 0);
+      let state = filterState.map.get("||example.com^");
+      assert.strictEqual(state, undefined);
+    });
+
+    it("should not emit filterState.lastHit when lastHit is set to 0", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      checkEvents(() => filterState.setLastHit("||example.com^", 0));
+    });
+  });
+
+  context("State: lastHit = 1", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {hitCount: 1, lastHit: 1});
+    });
+
+    it("should emit filterState.lastHit when lastHit is set to 2", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      checkEvents(
+        () => filterState.setLastHit("||example.com^", 2),
+        [["filterState.lastHit", "||example.com^", 2, 1]]
+      );
+    });
+
+    it("should not emit filterState.lastHit when lastHit is set to 1", function() {
+      filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
+
+      checkEvents(() => filterState.setLastHit("||example.com^", 1));
+    });
+  });
+
+  context("State: lastHit = 1, disabled = false, hitCount = 0", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabled: false, lastHit: 1, hitCount: 0});
+    });
+
+    it("should delete state when lastHit is set to 0", function() {
+      filterState.setLastHit("||example.com^", 0);
+      let state = filterState.map.get("||example.com^");
+      assert.strictEqual(state, undefined);
+    });
+
+    it("should update state when lastHit is set to 2", function() {
+      filterState.setLastHit("||example.com^", 2);
+      let state = filterState.map.get("||example.com^");
+      assert.strictEqual(state.hitCount, 0);
+      assert.strictEqual(state.lastHit, 2);
+    });
+  });
+});
+
+describe("filterState.resetLastHit()", function() {
+  it("should call setLastHit when lastHit is reset", function() {
+    let calls = [];
+    let originalFunc = filterState.setLastHit;
+    let wrapperFunc = function(...args) {
+      calls.push(args);
+      return originalFunc(...args);
+    };
+    filterState.setLastHit = wrapperFunc.bind(filterState);
+
+    filterState.resetLastHit("||example.com^");
+    assert.strictEqual(calls.length, 1);
+    assert.strictEqual(calls[0][0], "||example.com^");
+    assert.strictEqual(calls[0][1], 0);
+  });
+});
+
+describe("filterState.fromObject()", function() {
+  it("does not set state when called without any known properties", function() {
+    filterState.fromObject("||example.com^", {});
+    let state = filterState.map.get("||example.com^");
+    assert.strictEqual(state, undefined);
+  });
+
+  it("sets state.disabled from boolean", function() {
+    filterState.fromObject("||example.com^", {disabled: true});
+    let state = filterState.map.get("||example.com^");
+    assert.strictEqual(state.disabled, true);
+  });
+
+  it("sets state.disabled from string", function() {
+    filterState.fromObject("||example.com^", {disabled: "true"});
+    let state = filterState.map.get("||example.com^");
+    assert.strictEqual(state.disabled, true);
+  });
+
+  it("sets state.hitCount", function() {
+    filterState.fromObject("||example.com^", {hitCount: 1});
+    let state = filterState.map.get("||example.com^");
+    assert.strictEqual(state.hitCount, 1);
+  });
+
+  it("sets state.lastHit", function() {
+    filterState.fromObject("||example.com^", {lastHit: 1});
+    let state = filterState.map.get("||example.com^");
+    assert.strictEqual(state.lastHit, 1);
+  });
+
+  it("sets state from arguments, discarding unknown properties", function() {
+    filterState.fromObject("||example.com^", {disabled: true, lastHit: 1, hitCount: 1, unknown: 1});
+    let state = filterState.map.get("||example.com^");
+    assert.strictEqual(state.disabled, true);
+    assert.strictEqual(state.hitCount, 1);
+    assert.strictEqual(state.lastHit, 1);
+    assert.strictEqual(state.unknown, undefined);
+  });
+
+  it("deletes state when it is reset", function() {
+    filterState.fromObject("||example.com^", {disabled: false, lastHit: 0, hitCount: 0});
+    let state = filterState.map.get("||example.com^");
+    assert.strictEqual(state, undefined);
+  });
+});
+
+describe("filterState.serialize()", function() {
+  context("No state", function() {
+    it("returns undefined when serialized", function() {
+      assert.strictEqual(filterState.serialize("||example.com^").next().done, true);
+    });
+  });
+
+  context("With state", function() {
+    it("returns header", function() {
+      filterState.fromObject("||example.com^", {disabled: true});
+
+      let expectedResults = ["[Filter]", "text=||example.com^", "disabled=true"];
+      for (let line of filterState.serialize("||example.com^"))
+        assert.strictEqual(line, expectedResults.shift());
+
+      assert.strictEqual(expectedResults.length, 0);
+    });
+
+    it("returns disabled, hitCount and lastHit if they are not set to false, 0, 0 respectively", function() {
+      filterState.fromObject("||example.com^", {disabled: true, lastHit: 1, hitCount: 1});
+
+      let expectedResults = ["[Filter]", "text=||example.com^", "disabled=true", "hitCount=1", "lastHit=1"];
+      for (let line of filterState.serialize("||example.com^"))
+        assert.strictEqual(line, expectedResults.shift());
+
+      assert.strictEqual(expectedResults.length, 0);
+    });
+
+    it("omits disabled if set to false", function() {
+      filterState.fromObject("||example.com^", {disabled: false, lastHit: 1, hitCount: 1});
+
+      let expectedResults = ["[Filter]", "text=||example.com^", "hitCount=1", "lastHit=1"];
+      for (let line of filterState.serialize("||example.com^"))
+        assert.strictEqual(line, expectedResults.shift());
+
+      assert.strictEqual(expectedResults.length, 0);
+    });
+
+    it("omits hitCount if set to 0", function() {
+      filterState.fromObject("||example.com^", {disabled: true, lastHit: 1, hitCount: 0});
+
+      let expectedResults = ["[Filter]", "text=||example.com^", "disabled=true", "lastHit=1"];
+      for (let line of filterState.serialize("||example.com^"))
+        assert.strictEqual(line, expectedResults.shift());
+
+      assert.strictEqual(expectedResults.length, 0);
+    });
+
+    it("omits lastHit if set to 0", function() {
+      filterState.fromObject("||example.com^", {disabled: true, lastHit: 0, hitCount: 1});
+
+      let expectedResults = ["[Filter]", "text=||example.com^", "disabled=true", "hitCount=1"];
+      for (let line of filterState.serialize("||example.com^"))
+        assert.strictEqual(line, expectedResults.shift());
+
+      assert.strictEqual(expectedResults.length, 0);
+    });
+  });
+});
