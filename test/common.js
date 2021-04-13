@@ -150,14 +150,14 @@ describe("filterToRegExp()", function() {
   });
 
   // Extended anchor.
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?' for '||'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?' for '||'", function() {
     assert.strictEqual(filterToRegExp("||"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?");
   });
 
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a' for '||a'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a' for '||a'", function() {
     assert.strictEqual(filterToRegExp("||a"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a");
   });
 
   it("should return 'a\\|$' for 'a||'", function() {
@@ -169,24 +169,24 @@ describe("filterToRegExp()", function() {
   });
 
   // Extended anchor with anchors.
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?$' for '|||'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?$' for '|||'", function() {
     assert.strictEqual(filterToRegExp("|||"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?$");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?$");
   });
 
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?\\|$' for '||||'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?\\|$' for '||||'", function() {
     assert.strictEqual(filterToRegExp("||||"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?\\|$");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?\\|$");
   });
 
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a$' for '||a|'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a$' for '||a|'", function() {
     assert.strictEqual(filterToRegExp("||a|"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a$");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a$");
   });
 
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?\\|a' for '|||a'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?\\|a' for '|||a'", function() {
     assert.strictEqual(filterToRegExp("|||a"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?\\|a");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?\\|a");
   });
 
   // Separator placeholders.
@@ -246,9 +246,9 @@ describe("filterToRegExp()", function() {
                        "^(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
   });
 
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '||^'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '||^'", function() {
     assert.strictEqual(filterToRegExp("||^"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
   });
 
   it("should return '^a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '|a^'", function() {
@@ -266,19 +266,19 @@ describe("filterToRegExp()", function() {
                        "^a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b$");
   });
 
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '||a^'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '||a^'", function() {
     assert.strictEqual(filterToRegExp("||a^"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
   });
 
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b' for '||a^b'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b' for '||a^b'", function() {
     assert.strictEqual(filterToRegExp("||a^b"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b");
   });
 
-  it("should return '^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b$' for '||a^b|'", function() {
+  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b$' for '||a^b|'", function() {
     assert.strictEqual(filterToRegExp("||a^b|"),
-                       "^[\\w\\-]+:\\/+(?!\\/)(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b$");
+                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b$");
   });
 
   // Special characters.
