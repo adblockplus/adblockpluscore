@@ -1968,6 +1968,8 @@ describe("filterState.resetHits()", function() {
 
 describe("filterState.registerHit()", function() {
   let events = null;
+  let originalNow = Date.now;
+  let nowValue = 9;
 
   function argsFor(name) {
     return (...args) => {
@@ -1984,13 +1986,20 @@ describe("filterState.registerHit()", function() {
     return events.splice(0);
   }
 
+  before(function() {
+    Date.now = () => nowValue;
+  });
+
+  after(function() {
+    Date.now = originalNow.bind(Date);
+  });
+
   context("No state", function() {
     it("should update state when a hit is registered", function() {
-      let now = Date.now();
       filterState.registerHit("||example.com^");
       let state = filterState.map.get("||example.com^");
       assert.strictEqual(state.hitCount, 1);
-      assert.strictEqual(state.lastHit, now);
+      assert.strictEqual(state.lastHit, nowValue);
     });
 
     it("should emit filterState.hitCount when a hit is registered", function() {
@@ -2005,10 +2014,9 @@ describe("filterState.registerHit()", function() {
     it("should emit filterState.lastHit when a hit is registered", function() {
       filterNotifier.on("filterState.lastHit", argsFor("filterState.lastHit"));
 
-      let now = Date.now();
       checkEvents(
         () => filterState.registerHit("||example.com^"),
-        [["filterState.lastHit", "||example.com^", now, 0]]
+        [["filterState.lastHit", "||example.com^", nowValue, 0]]
       );
     });
   });
@@ -2019,11 +2027,10 @@ describe("filterState.registerHit()", function() {
     });
 
     it("should update state when a hit is registered", function() {
-      let now = Date.now();
       filterState.registerHit("||example.com^");
       let state = filterState.map.get("||example.com^");
       assert.strictEqual(state.hitCount, 2);
-      assert.strictEqual(state.lastHit, now);
+      assert.strictEqual(state.lastHit, nowValue);
     });
 
     it("should emit filterState.hitCount when a hit is registered", function() {
