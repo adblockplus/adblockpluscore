@@ -467,6 +467,14 @@ describe("Filter classes", function() {
     assert.equal(Filter.normalize("   domain.*#$#  sni pp  et   "),
                  "domain.*#$#sni pp  et");
 
+    // All lines that are purely whitespace are the same
+    assert.equal(Filter.normalize(""),
+                 "");
+    assert.equal(Filter.normalize("     \t\n"),
+                 "");
+    assert.equal(Filter.normalize(" \xA0    \t\n  ", true),
+                 "");
+
     // Regular filters
     let normalized = Filter.normalize(
       "    b$l 	 a$sitekey=  foo  ,domain= do main.com |foo   .com,c sp= c   s p  "
@@ -546,6 +554,15 @@ describe("Filter classes", function() {
       assert.equal(filter.rewriteUrl("http://content.server/file/foo.txt?bar"),
                    expected);
     }
+  });
+
+  it("Empty strings are invalid filters", function() {
+    let text = "";
+    let filter = Filter.fromText(text);
+    assert.ok(filter instanceof InvalidFilter);
+    assert.equal(filter.type, "invalid");
+    assert.equal(filter.reason, "filter_empty");
+    assert.equal(filter.option, null);
   });
 
   it("Filter header option", function() {
