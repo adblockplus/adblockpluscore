@@ -25,15 +25,13 @@ let createStyleSheet = null;
 let rulesFromStyleSheet = null;
 let elemHideExceptions = null;
 let Filter = null;
-let SELECTOR_GROUP_SIZE = null;
 
 describe("Element hiding", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox({
     });
     (
-      {elemHide, createStyleSheet, rulesFromStyleSheet,
-       SELECTOR_GROUP_SIZE} = sandboxedRequire(LIB_FOLDER + "/elemHide"),
+      {elemHide, createStyleSheet, rulesFromStyleSheet} = sandboxedRequire(LIB_FOLDER + "/elemHide"),
       {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions"),
       {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
@@ -68,10 +66,8 @@ describe("Element hiding", function() {
     assert.deepEqual(exceptions.map(({text}) => text), expectedExceptions);
 
     // Make sure each expected selector is in the actual CSS code.
-    for (let selector of normalizedExpectedSelectors) {
-      assert.ok(code.includes(selector + ", ") ||
-                code.includes(selector + " {display: none !important;}\n"));
-    }
+    for (let selector of normalizedExpectedSelectors)
+      assert.ok(code.includes(selector + " {display: none !important;}\n"));
   }
 
   it("Generate style sheet for domain", function() {
@@ -291,29 +287,29 @@ describe("Element hiding", function() {
           "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
           "#foo[data-bar='bar']"
         ]),
-        "html, #foo, .bar, #foo .bar, #foo > .bar, #foo[data-bar='bar'] " +
-          "{display: none !important;}\n",
+        "html {display: none !important;}\n" +
+          "#foo {display: none !important;}\n" +
+          ".bar {display: none !important;}\n" +
+          "#foo .bar {display: none !important;}\n" +
+          "#foo > .bar {display: none !important;}\n" +
+          "#foo[data-bar='bar'] {display: none !important;}\n",
         "Style sheet creation should work"
       );
     });
 
     it("Splitting", function() {
-      let selectors = new Array(50000).fill().map((element, index) => ".s" + index);
+      let selectorCount = 50000;
+      let selectors = new Array(selectorCount).fill().map((element, index) => ".s" + index);
 
-      assert.equal((createStyleSheet(selectors).match(/\n/g) || []).length,
-                   Math.ceil(50000 / SELECTOR_GROUP_SIZE),
-                   "Style sheet should be split up into rules with at most " +
-                   SELECTOR_GROUP_SIZE + " selectors each");
+      assert.equal((createStyleSheet(selectors).match(/\n/g) || []).length, selectorCount, "Style sheet should have a separate rule for each selector");
     });
 
     it("Escaping", function() {
       assert.equal(
         createStyleSheet([
-          "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
           "#foo[data-bar='{foo: 1}']"
         ]),
-        "html, #foo, .bar, #foo .bar, #foo > .bar, " +
-          "#foo[data-bar='\\7B foo: 1\\7D '] {display: none !important;}\n",
+        "#foo[data-bar='\\7B foo: 1\\7D '] {display: none !important;}\n",
         "Braces should be escaped"
       );
     });
@@ -324,8 +320,12 @@ describe("Element hiding", function() {
           "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
           "#foo[data-bar='bar']"
         ], "{outline: 2px solid red;}"),
-        "html, #foo, .bar, #foo .bar, #foo > .bar, #foo[data-bar='bar'] " +
-          "{outline: 2px solid red;}\n",
+        "html {outline: 2px solid red;}\n" +
+          "#foo {outline: 2px solid red;}\n" +
+          ".bar {outline: 2px solid red;}\n" +
+          "#foo .bar {outline: 2px solid red;}\n" +
+          "#foo > .bar {outline: 2px solid red;}\n" +
+          "#foo[data-bar='bar'] {outline: 2px solid red;}\n",
         "Custom CSS should be used"
       );
     });
