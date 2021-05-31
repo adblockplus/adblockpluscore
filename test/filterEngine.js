@@ -362,6 +362,30 @@ describe("filterEngine.add()", function() {
     filterEngine.remove(Filter.fromText("^foo."));
     checkFilters({type: "blocking", resource: "/foo.js", expected: null});
   });
+
+  it("should do nothing for empty filter", function() {
+    checkFilters({type: "blocking", resource: "/foo.js", expected: null});
+
+    filterEngine.add(Filter.fromText(""));
+    checkFilters(
+      {
+        type: "blocking",
+        resource: "",
+        expected: null
+      },
+      {
+        type: "elemhide",
+        expected: []
+      },
+      {
+        type: "elemhideemulation",
+        expected: []
+      },
+      {
+        type: "snippet",
+        expected: []
+      });
+  });
 });
 
 describe("filterEngine.remove()", function() {
