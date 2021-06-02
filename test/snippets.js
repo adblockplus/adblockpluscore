@@ -290,6 +290,10 @@ describe("Snippets", function() {
     new Function(compileScript("assertFoo 0", libraries))();
     new Function(compileScript("setFoo 123; assertFoo 123", libraries))();
 
+    // Test compileScript signature
+    let libsAsString = JSON.stringify(libraries);
+    new Function(compileScript("setFoo 456; assertFoo 456", libsAsString))();
+
     // Override setFoo in a second library, without overriding assertFoo. A
     // couple of things to note here: (1) each library has its own variables;
     // (2) script execution is stateless, i.e. the values are not retained
