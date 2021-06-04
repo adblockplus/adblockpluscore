@@ -113,15 +113,16 @@ function getFirefoxExecutable(browserDir) {
   }
 }
 
-export function ensureFirefox(firefoxVersion, unpack = true) {
+export function ensureFirefox(firefoxVersion, unpack = true, emeFree = true) {
   let targetPlatform = platform;
   if (platform == "win32")
     targetPlatform += "-" + process.arch;
+  let emeText = emeFree ? "-EME-free" : "";
   let buildTypes = {
-    "win32-ia32": ["win32-EME-free", `Firefox Setup ${firefoxVersion}.exe`],
-    "win32-x64": ["win64-EME-free", `Firefox Setup ${firefoxVersion}.exe`],
+    "win32-ia32": [`win32${emeText}`, `Firefox Setup ${firefoxVersion}.exe`],
+    "win32-x64": [`win64${emeText}`, `Firefox Setup ${firefoxVersion}.exe`],
     "linux": ["linux-x86_64", `firefox-${firefoxVersion}.tar.bz2`],
-    "darwin": ["mac-EME-free", `Firefox ${firefoxVersion}.dmg`]
+    "darwin": [`mac${emeText}`, `Firefox ${firefoxVersion}.dmg`]
   };
 
   if (!Object.prototype.hasOwnProperty.call(buildTypes, targetPlatform)) {
