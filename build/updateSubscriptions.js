@@ -74,7 +74,16 @@ function parseSubscriptionFile(file, validLanguages) {
       if (!line.match(/\S/g) || !continuing)
         return;
 
-      let [key, value] = line.split("=", 2);
+      let index = line.indexOf("=");
+      let key;
+      let value;
+      if (index > 0) {
+        key = line.substring(0, index);
+        value = line.substring(index + 1);
+      }
+      else {
+        key = line;
+      }
       key = key.trim();
 
       if (key == "unavailable" || key == "deprecated") {
