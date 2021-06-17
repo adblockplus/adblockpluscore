@@ -37,7 +37,8 @@
       "is",
       "fo",
       "kl",
-      "sv"
+      "sv",
+      "fi"
     ],
     "title": "Dandelion Sprout's Nordic Filters+EasyList",
     "url": "https://easylist-downloads.adblockplus.org/dandelion_sprouts_nordic_filters+easylist.txt",
@@ -59,7 +60,7 @@
     ],
     "title": "EasyList China+EasyList",
     "url": "https://easylist-downloads.adblockplus.org/easylistchina+easylist.txt",
-    "homepage": "http://abpchina.org/forum/"
+    "homepage": "https://github.com/easylist/easylistchina"
   },
   {
     "type": "ads",
@@ -114,7 +115,7 @@
     ],
     "title": "EasyList Lithuania+EasyList",
     "url": "https://easylist-downloads.adblockplus.org/easylistlithuania+easylist.txt",
-    "homepage": "http://margevicius.lt/"
+    "homepage": "https://github.com/EasyList-Lithuania/easylist_lithuania"
   },
   {
     "type": "ads",
@@ -188,7 +189,7 @@
     ],
     "title": "Liste AR+Liste FR+EasyList",
     "url": "https://easylist-downloads.adblockplus.org/liste_ar+liste_fr+easylist.txt",
-    "homepage": "https://code.google.com/p/liste-ar-adblock/"
+    "homepage": "https://forums.lanik.us/viewforum.php?f=98"
   },
   {
     "type": "ads",
@@ -197,7 +198,7 @@
     ],
     "title": "Liste FR+EasyList",
     "url": "https://easylist-downloads.adblockplus.org/liste_fr+easylist.txt",
-    "homepage": "https://forums.lanik.us/viewforum.php?f"
+    "homepage": "https://forums.lanik.us/viewforum.php?f=91"
   },
   {
     "type": "ads",
@@ -216,7 +217,7 @@
     ],
     "title": "RuAdList+EasyList",
     "url": "https://easylist-downloads.adblockplus.org/ruadlist+easylist.txt",
-    "homepage": "https://forums.lanik.us/viewforum.php?f"
+    "homepage": "https://forums.lanik.us/viewforum.php?f=102"
   },
   {
     "type": "circumvention",
