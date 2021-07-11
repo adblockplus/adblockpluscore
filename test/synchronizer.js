@@ -242,7 +242,8 @@ describe("Synchronizer", function() {
         {header: "[Adblock Plus]", downloadStatus: "synchronize_ok", requiredVersion: null},
         {header: "(something)[Adblock]", downloadStatus: "synchronize_ok", requiredVersion: null},
         {header: "[Adblock Plus 0.0.1]", downloadStatus: "synchronize_ok", requiredVersion: "0.0.1"},
-        {header: "[Adblock Plus 99.9]", downloadStatus: "synchronize_ok", requiredVersion: "99.9"},
+        {header: "[Adblock  Plus 99.9]", downloadStatus: "synchronize_ok", requiredVersion: "99.9"},
+        {header: "[Adblock 99.9]", downloadStatus: "synchronize_invalid_data", requiredVersion: null},
         {header: "[Foo]", downloadStatus: "synchronize_invalid_data", requiredVersion: null}
       ]) {
         it(currentTest.header, function() {
