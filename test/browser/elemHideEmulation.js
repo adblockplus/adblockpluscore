@@ -303,6 +303,13 @@ describe("Element hiding emulation", function() {
       expectVisible(toHide);
   });
 
+  it("Pseudo-class: has selector: short", async function() {
+    let toHide = createElementWithStyle("{}");
+
+    if (await applyElemHideEmulation(["div:has(div)"]))
+      expectVisible(toHide);
+  });
+
   it("Pseudo-class: has selector: with prefix", async function() {
     let parent = createElementWithStyle("{}");
     let child = createElementWithStyle("{}", parent);
@@ -534,6 +541,19 @@ describe("Element hiding emulation", function() {
     };
     return runTestPseudoClassContains(
       "#parent div:-abp-contains(to hide)", expectations);
+  });
+
+  it("Pseudo-class: contains selector: has text", function() {
+    let expectations = {
+      parent: true,
+      middle: true,
+      inside: true,
+      sibling: false,
+      sibling2: true,
+      toHide: true
+    };
+    return runTestPseudoClassContains(
+      "#parent div:has-text(to hide)", expectations);
   });
 
   it("Pseudo-class: contains selector: regexp", function() {
