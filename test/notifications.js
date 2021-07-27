@@ -389,6 +389,8 @@ describe("Notifications", function() {
   });
 
   it("First version", async function() {
+    let downloadCount;
+
     let checkDownload = async(payload, {queryParam,
                                         state: {firstVersion, currentVersion},
                                         eFlag = ""}) => {
@@ -415,11 +417,13 @@ describe("Notifications", function() {
 
       assert.equal(Prefs.analytics.data.firstVersion, firstVersion + eFlag);
       assert.equal(Prefs.analytics.data.currentVersion, currentVersion);
+      assert.equal(notifications.getDownloadCount(), ++downloadCount);
     };
 
     async function testIt({eFlag} = {}) {
       Prefs.analytics = {trustedHosts: ["example.com"]};
       Prefs.notificationdata = {};
+      downloadCount = 0;
 
       if (typeof eFlag != "undefined") {
         // Set the data property to an empty object to simulate an already
@@ -492,6 +496,7 @@ describe("Notifications", function() {
       // Repeat tests with hour-level precision.
       Prefs.analytics = {trustedHosts: ["example.com"]};
       Prefs.notificationdata = {};
+      downloadCount = 0;
 
       if (typeof eFlag != "undefined")
         Prefs.notificationdata.data = {};
@@ -561,6 +566,7 @@ describe("Notifications", function() {
       // Repeat tests with day-level precision.
       Prefs.analytics = {trustedHosts: ["example.com"]};
       Prefs.notificationdata = {};
+      downloadCount = 0;
 
       if (typeof eFlag != "undefined")
         Prefs.notificationdata.data = {};
@@ -733,17 +739,17 @@ describe("Notifications", function() {
 
   it("Global opt-out", function() {
     notifications.toggleIgnoreCategory("*", true);
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") != -1, "Force enable global opt-out");
     notifications.toggleIgnoreCategory("*", true);
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out (again)");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") != -1, "Force enable global opt-out (again)");
     notifications.toggleIgnoreCategory("*", false);
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") == -1, "Force disable global opt-out");
     notifications.toggleIgnoreCategory("*", false);
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out (again)");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") == -1, "Force disable global opt-out (again)");
     notifications.toggleIgnoreCategory("*");
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Toggle enable global opt-out");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") != -1, "Toggle enable global opt-out");
     notifications.toggleIgnoreCategory("*");
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Toggle disable global opt-out");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") == -1, "Toggle disable global opt-out");
 
     notifications.toggleIgnoreCategory("*", false);
 
