@@ -48,6 +48,7 @@ tests:
   extends: .default_template
   script:
     - npm test
+    - npm run test:dist
   cache:
     key: global-cache
     paths:
