@@ -81,7 +81,15 @@ describe("Filter classes", function() {
         result.push("sitekeys=" + sitekeys.slice().sort().join("|"));
 
         result.push("thirdParty=" + filter.thirdParty);
-        result.push("header=" + filter.header);
+        if (filter.header) {
+          if (filter.header.value)
+            result.push("header=" + filter.header.name + "=" + filter.header.value);
+          else
+            result.push("header=" + filter.header.name);
+        }
+        else {
+          result.push("header=null");
+        }
         if (filter instanceof BlockingFilter) {
           result.push("csp=" + filter.csp);
           result.push("rewrite=" + filter.rewrite);
@@ -278,7 +286,8 @@ describe("Filter classes", function() {
 
     // header blocking
     compareFilter("||example.com/ad.js$header=content-type=image/png", ["type=blocking", "text=||example.com/ad.js$header=content-type=image/png", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=image/png"]);
-    compareFilter("||example.com/ad.js$header=x-brick=Everything\\x2c is awesome!", ["type=blocking", "text=||example.com/ad.js$header=x-brick=Everything\\x2c is awesome!", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=x-brick=Everything, is awesome!"]);
+    compareFilter("||example.com/ad.js$header=x-brick=Everything\\x2c is\\x2c awesome!", ["type=blocking", "text=||example.com/ad.js$header=x-brick=Everything\\x2c is\\x2c awesome!", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=x-brick=Everything, is, awesome!"]);
+    compareFilter("||example.com/ad.js$header=x-brick=Everything\\\\x2c is\\\\x2c awesome!", ["type=blocking", "text=||example.com/ad.js$header=x-brick=Everything\\\\x2c is\\\\x2c awesome!", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=x-brick=Everything\\x2c is\\x2c awesome!"]);
     compareFilter("@@||example.com/ad.js$header=content-type=image/png", ["type=allowing", "text=@@||example.com/ad.js$header=content-type=image/png", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=image/png"]);
     compareFilter("@@||example.com/ad.js$header", ["type=allowing", "text=@@||example.com/ad.js$header", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=null"]);
     compareFilter("@@||example.com/ad.js$header=", ["type=allowing", "text=@@||example.com/ad.js$header=", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=null"]);
@@ -286,8 +295,10 @@ describe("Filter classes", function() {
     compareFilter("||example.com/ad.js$header==value", ["type=invalid", "reason=filter_invalid_header", "text=||example.com/ad.js$header==value"]);
     compareFilter("||example.com/ad.js$header=x-my-id=/[0-9]/", ["type=invalid", "reason=filter_invalid_header", "text=||example.com/ad.js$header=x-my-id=/[0-9]/"]);
 
-    compareFilter("||example.com/ad.js$header=content-type:.*image/[a-z]{1\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type:.*image/[a-z]{1\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type:.*image/[a-z]{1,3}"]);
-    compareFilter("||example.com/ad.js$header=content-type:.*image/[a-z]{1\\\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type:.*image/[a-z]{1\\\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type:.*image/[a-z]{1\\\\x2c3}"]);
+    compareFilter("||example.com/ad.js$header=content-type=.*image/[a-z]{1\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type=.*image/[a-z]{1\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=.*image/[a-z]{1,3}"]);
+    compareFilter("||example.com/ad.js$header=content-type=.*image/[a-z]{1\\\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type=.*image/[a-z]{1\\\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=.*image/[a-z]{1\\x2c3}"]);
+    compareFilter("||example.com/ad.js$header=content-type=", ["type=blocking", "text=||example.com/ad.js$header=content-type=", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type"]);
+    compareFilter("||example.com/ad.js$header=Content-Type", ["type=blocking", "text=||example.com/ad.js$header=Content-Type", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type"]);
 
 
     // background and image should be the same for backwards compatibility
