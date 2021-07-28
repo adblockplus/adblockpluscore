@@ -171,14 +171,18 @@ that contains the markdown text as suited for our CMS. The content is the same
 as the tutorial included as part of the JSDoc.
 
 Node.js module
------------------------------
+--------------
 
-There is now __experimental__ support for this repository to be used directly
-as a Node.js module.
+adblockpluscore is available as an npm module for Node.js. See:
+    https://www.npmjs.com/package/adblockpluscore
+
+You can install it with:
 
 ```
-npm install git+https://gitlab.com/eyeo/adblockplus/adblockpluscore
+npm install adblockpluscore
 ```
+
+Or you can simply add it to your `package.json`.
 
 ```javascript
 let {contentTypes, filterEngine} = require("adblockpluscore");
