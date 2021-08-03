@@ -307,9 +307,9 @@ describe("Element hiding", function() {
     it("Escaping", function() {
       assert.equal(
         createStyleSheet([
-          "#foo[data-bar='{foo: 1}']"
+          "#foo[data-bar='{{foo: 1}}']"
         ]),
-        "#foo[data-bar='\\7B foo: 1\\7D '] {display: none !important;}\n",
+        "#foo[data-bar='\\7b \\7b foo: 1\\7d \\7d '] {display: none !important;}\n",
         "Braces should be escaped"
       );
     });
