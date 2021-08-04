@@ -364,6 +364,17 @@ describe("Element hiding emulation", function() {
     }
   });
 
+  it("Pseudo-class: other pseudoclass selectors: match as expected", async function() {
+    let toNotHide = createElement(null, "div", "dont-hide");
+    let toHide = createElement(null, "div");
+
+    if (await applyElemHideEmulation(["div:not(#dont-hide)"])) {
+      expectVisible(toNotHide);
+      expectHidden(toHide);
+    }
+  });
+
+
   async function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(selector, expectations) {
     testDocument.body.innerHTML = `<div id="parent">
         <div id="middle">
