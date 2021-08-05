@@ -167,6 +167,27 @@ describe("Element hiding emulation", function() {
     }
   });
 
+  it("XPath selectors: can hide with xpath selectors", async function() {
+    let toHide = createElement(null, "div");
+    let selectors = [":xpath(//div)"];
+    if (await applyElemHideEmulation(selectors)) {
+      expectHidden(toHide);
+      let newElement = createElement(null, "div");
+      await timeout(REFRESH_INTERVAL);
+      expectHidden(newElement);
+    }
+  });
+
+  it("XPath selectors: can hide with chained xpath selectors", async function() {
+    let toHide = createElement(createElement(null, "div", "target"), "p");
+    let notToHide = createElement(createElement(null, "div"), "p");
+    let selectors = ["#target:xpath(./p)"];
+    if (await applyElemHideEmulation(selectors)) {
+      expectHidden(toHide);
+      expectVisible(notToHide);
+    }
+  });
+
   it("Verbatim property selector: regular", async function() {
     let toHide = createElementWithStyle("{background-color: #000}");
     let selectors = [":-abp-properties(background-color: rgb(0, 0, 0))"];
