@@ -156,6 +156,17 @@ describe("Element hiding emulation", function() {
     }
   }
 
+  it("Plain selectors: can hide with simple selectors", async function() {
+    let toHide = createElement(null, "div");
+    let selectors = ["div"];
+    if (await applyElemHideEmulation(selectors)) {
+      expectHidden(toHide);
+      let newElement = createElement(null, "div");
+      await timeout(REFRESH_INTERVAL);
+      expectHidden(newElement);
+    }
+  });
+
   it("Verbatim property selector: regular", async function() {
     let toHide = createElementWithStyle("{background-color: #000}");
     let selectors = [":-abp-properties(background-color: rgb(0, 0, 0))"];
