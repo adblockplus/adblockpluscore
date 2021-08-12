@@ -184,6 +184,21 @@ threshold margin to consider, where only multiple, repeated, better scores can
 be considered an effective improvement, as running the same benchmark twice,
 might produce diversions between scores itself, without changing code at all.
 
+Documentation
+-------------
+
+The module documentation is generated with `jsdoc`. To generate the
+documentation use:
+
+```
+npm run docs
+```
+
+CI will generate the documentation for `master` and `next` branches. It is available at:
+
+- For `next` (the development branch): [https://eyeo.gitlab.io/adblockplus/abc/adblockpluscore/next/docs/]
+- For `master` (the release branch): [https://eyeo.gitlab.io/adblockplus/abc/adblockpluscore/master/docs/]
+
 Node.js module
 --------------
 

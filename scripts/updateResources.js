@@ -23,7 +23,7 @@ const process = require("process");
 
 const FILENAME = "data/resources.json";
 
-let resourceDir = path.join("build", "assets");
+let resourceDir = path.join("data", "resources");
 let index = require(path.join("..", resourceDir, "index.json"));
 
 

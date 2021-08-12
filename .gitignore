@@ -2,9 +2,9 @@
 /chromium-snapshots/
 /firefox-snapshots/
 /coverage/
-/docs/
 benchmark/*.txt
 benchmark/benchmarkresults.json
+/build/docs/
 /dist/
 benchmark/tempresults.json
 .DS_Store
