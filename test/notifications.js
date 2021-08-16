@@ -26,6 +26,7 @@ let {
 
 let Prefs = null;
 let notifications = null;
+let TimeoutScheduler = null;
 
 describe("Notifications", function() {
   let runner = {};
@@ -41,9 +42,11 @@ describe("Notifications", function() {
     let sandboxedRequire = createSandbox({globals});
     (
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {notifications} = sandboxedRequire(LIB_FOLDER + "/notifications")
+      {notifications} = sandboxedRequire(LIB_FOLDER + "/notifications"),
+      {TimeoutScheduler} = sandboxedRequire("../lib/scheduler")
     );
 
+    notifications.setScheduler(new TimeoutScheduler());
     notifications.start();
   });
 

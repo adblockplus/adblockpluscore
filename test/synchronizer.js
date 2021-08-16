@@ -746,10 +746,10 @@ describe("Synchronizer", function() {
       // cast synchronizer._downloader._timeout to avoid trusting
       // a static value that could be different per env
       assert.strictEqual(synchronizer._started, true, "Synchronizer started");
-      assert.strictEqual(!!synchronizer._downloader._timeout, true, "Downloader scheduled");
+      assert.strictEqual(!!synchronizer._scheduler._timeout, true, "Downloader scheduled");
       synchronizer.stop();
       assert.strictEqual(synchronizer._started, false, "Synchronizer stopped");
-      assert.strictEqual(!!synchronizer._downloader._timeout, false, "Downloader unscheduled");
+      assert.strictEqual(!!synchronizer._scheduler._timeout, false, "Downloader unscheduled");
     });
   });
 
