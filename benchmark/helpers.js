@@ -31,16 +31,16 @@ const fs = require("fs");
 const https = require("https");
 let dataToSave = {};
 
-function loadBenchmarkData(pathToLoad) {
-  let benchmarkData = {};
+function loadDataFromFile(pathToLoad) {
+  let data = {};
   try {
-    benchmarkData = require(pathToLoad);
+    data = require(pathToLoad);
   }
   catch (e) {
     if (e.code !== "MODULE_NOT_FOUND")
       throw e;
   }
-  return benchmarkData;
+  return data;
 }
 
 exports.saveToFile = async function
@@ -107,28 +107,31 @@ exports.mergeToBenchmarkResults = function mergeToBenchmarkResults(
   dataToMege,
   pathForData) {
   let benchmarkData = {};
-  benchmarkData = loadBenchmarkData(pathForData);
+  benchmarkData = loadDataFromFile(pathForData);
   return deepMerge(benchmarkData, dataToMege);
 };
 
 
 exports.cleanBenchmarkData = async function cleanBenchmarkData() {
   console.log("Wait a sec, I am cleaning benchmark Data... ");
+  let keys = [
+    "FilterEngine:startup",
+    "FilterEngine:initialize_measure",
+    "FilterEngine:download_done_measure",
+    "HeapUsed",
+    "HeapTotal"
+  ];
 
-  let heapTotalMin = Number.MAX_SAFE_INTEGER;
-  let heapTotalMinTimestamp;
-  let heapUsedMin = Number.MAX_SAFE_INTEGER;
-  let heapUsedMinTimestamp;
-  let filterEngStartupMin = Number.MAX_SAFE_INTEGER;
-  let filterEngStartupTime;
-  let filterEngDownloadMin = Number.MAX_SAFE_INTEGER;
-  let filterEngDownloadTime;
-  let filterEngInitMin = Number.MAX_SAFE_INTEGER;
-  let filterEngInitTime;
+  let minValues = {};
+
+  for (let key of keys) {
+    minValues[`${key}Min`] = Number.MAX_SAFE_INTEGER;
+    minValues[`${key}Timestamp`] = null;
+  }
+
   let timestampsToSave = [];
-  let filterList = ["EasyList+AA", "EasyList", "All"];
-  let dataToAnalyze = loadBenchmarkData(BENCHMARK_RESULTS);
-
+  let dataToAnalyze = loadDataFromFile(BENCHMARK_RESULTS);
+  let filterList = await getValuesKeys(dataToAnalyze);
   for (let i = 0; i < filterList.length; i++) {
     let filter = filterList[i];
     for (let timestamp in dataToAnalyze) {
@@ -137,56 +140,28 @@ exports.cleanBenchmarkData = async function cleanBenchmarkData() {
       for (let key in dataToAnalyze[timestamp][filter]) {
         let valueToCompare =
           parseFloat(dataToAnalyze[timestamp][filter][key]);
-        switch (key) {
-          case "HeapUsed":
-            if (heapUsedMin > valueToCompare) {
-              heapUsedMinTimestamp = timestamp;
-              heapUsedMin = valueToCompare;
-            }
-            break;
-          case "HeapTotal":
-            if (heapTotalMin > valueToCompare) {
-              heapTotalMinTimestamp = timestamp;
-              heapTotalMin = valueToCompare;
-            }
-            break;
-          case "FilterEngine:download_done_measure":
-            if (filterEngDownloadMin > valueToCompare) {
-              filterEngDownloadTime = timestamp;
-              filterEngDownloadMin = valueToCompare;
-            }
-            break;
-          case "FilterEngine:initialize_measure":
-            if (filterEngInitMin > valueToCompare) {
-              filterEngInitTime = timestamp;
-              filterEngInitMin = valueToCompare;
-            }
-            break;
-          case "FilterEngine:startup":
-            if (filterEngStartupMin > valueToCompare) {
-              filterEngStartupTime = timestamp;
-              filterEngStartupMin = valueToCompare;
-            }
-            break;
+        if (minValues[`${key}Min`] == null) {
+          continue;
+        }
+        else if (minValues[`${key}Min`] > valueToCompare) {
+          minValues[`${key}Timestamp`] = timestamp;
+          minValues[`${key}Min`] = valueToCompare;
+          continue;
         }
       }
     }
-    if (!timestampsToSave.includes(heapTotalMinTimestamp))
-      timestampsToSave.push(heapTotalMinTimestamp);
-    if (!timestampsToSave.includes(heapUsedMinTimestamp))
-      timestampsToSave.push(heapUsedMinTimestamp);
-    if (!timestampsToSave.includes(filterEngDownloadTime))
-      timestampsToSave.push(filterEngDownloadTime);
-    if (!timestampsToSave.includes(filterEngInitTime))
-      timestampsToSave.push(filterEngInitTime);
-    if (!timestampsToSave.includes(filterEngStartupTime))
-      timestampsToSave.push(filterEngStartupTime);
+  }
+  console.log("Min Values", minValues);
+  for (let key of keys) {
+    if (!timestampsToSave.includes(minValues[`${key}Timestamp`]))
+      timestampsToSave.push(minValues[`${key}Timestamp`]);
   }
 
   for (let timestamp of timestampsToSave)
     dataToSave[timestamp] = dataToAnalyze[timestamp];
 
   await this.saveToFile(dataToSave, true, BENCHMARK_RESULTS);
+  console.log("Data is cleaned.");
 };
 
 function printTableSeparator(separator, startSign = "┣", endSign = "┫") {
@@ -197,16 +172,28 @@ function fillTab(col1, col2, col3, col4) {
   console.log(`┃ ${col1.padEnd(34, " ")}┃ ${col2.padEnd(13, " ")}┃ ${col3.padEnd(13, " ")}┃${col4.padStart(19, " ")}% ┃ `);
 }
 
-exports.compareResults = function compareResults(currentRunTimestamp) {
-  let keys = [
-    "HeapUsed",
-    "HeapTotal",
-    "FilterEngine:download_done_measure",
-    "FilterEngine:initialize_measure",
-    "FilterEngine:download_done_measure"
-  ];
-  let filterList = ["EasyList+AA", "EasyList", "All"];
+function getValuesKeys(obj) {
+  let valueKeys = [];
+  for (let timestamp in obj)
+    valueKeys = Object.keys(obj[timestamp]);
 
+  let uniqueWithoutGitKeys = valueKeys.filter(
+    word => (word !== "Refs" & word !== "CommitHash"));
+  return uniqueWithoutGitKeys;
+}
+
+exports.compareResults = async function compareResults(currentRunTimestamp) {
+  let keys = [
+    "FilterEngine:startup",
+    "FilterEngine:initialize_measure",
+    "FilterEngine:download_done_measure",
+    "HeapUsed",
+    "HeapTotal"
+  ];
+
+  let currentRunData = loadDataFromFile(TEMP_BENCHMARK_RESULTS);
+  let dataToAnalyze = loadDataFromFile(BENCHMARK_RESULTS);
+  let filterList = await getValuesKeys(dataToAnalyze);
   console.log(`┏${"━".repeat(87)}┓`);
 
   for (let j = 0; j < keys.length; j++) {
@@ -219,9 +206,11 @@ exports.compareResults = function compareResults(currentRunTimestamp) {
 
     for (let i = 0; i < filterList.length; i++) {
       let filter = filterList[i];
+      if (!key.includes("Heap")) {
+        if (filter.includes("Matching"))
+          continue;
+      }
       let valueMin = Number.MAX_SAFE_INTEGER;
-      let dataToAnalyze = loadBenchmarkData(BENCHMARK_RESULTS);
-      let currentRunData = loadBenchmarkData(TEMP_BENCHMARK_RESULTS);
       for (let timestamp of Object.keys(dataToAnalyze)) {
         if (timestamp == currentRunTimestamp)
           continue;
@@ -242,6 +231,12 @@ exports.compareResults = function compareResults(currentRunTimestamp) {
             .finally(() => process.exit(1));
         process.exit(1);
       }
+      // eslint-disable-next-line max-len
+      if ((typeof (currentRunData[currentRunTimestamp][filter]) == "undefined") ||
+        // eslint-disable-next-line max-len
+        typeof (currentRunData[currentRunTimestamp][filter][key]) == "undefined")
+        continue;
+
       let currentRunValue =
         parseFloat(currentRunData[currentRunTimestamp][filter][key]);
       let diff = ((currentRunValue - valueMin) / valueMin) * 100;
@@ -267,6 +262,38 @@ exports.deleteFile = async function deleteFile(pathToDelete) {
     return await fs.promises.unlink(pathToDelete);
   }
   catch (error) {
-    console.log("Looks like there is no file to delete, skipping");
   }
 };
+
+async function extractHeapDataFromMatchingResults(matchResults, parameter) {
+  let resultsArray = [];
+  for (let result in matchResults) {
+    if (result.includes(parameter))
+      resultsArray.push(matchResults[result]);
+  }
+  return resultsArray;
+}
+
+function getMargin(array, mean) {
+  let marginToMaxValue = (Math.max(...array)) - mean;
+  let marginToMinValue = mean - (Math.min(...array));
+  let margin = Math.max(marginToMaxValue, marginToMinValue);
+
+  return margin;
+}
+
+exports.countStatisticsOfRuns =
+  async function countStatisticsOfRuns(matchResults, parameter) {
+    let heap =
+    await extractHeapDataFromMatchingResults(matchResults, parameter);
+    let sum = 0;
+    for (let i = 0; i < heap.length; i++)
+      sum += parseFloat(heap[i], 10);
+
+    let average = parseInt(sum / heap.length, 10).toFixed(3);
+    let margin = parseFloat(getMargin(heap, average)).toFixed(3);
+    return {
+      average,
+      margin
+    };
+  };

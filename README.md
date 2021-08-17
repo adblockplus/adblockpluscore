@@ -103,7 +103,7 @@ current results, so that we can incrementally monitor changes in the branch.
 To store, at any time, benchmarks references, we need to run the following:
 
 ```sh
-npm run benchmark-save
+npm run benchmark:save
 ```
 
 This snapshot will contain the latest performance improvements we'd like to
@@ -114,7 +114,7 @@ match against, while changing code in our own branch.
 If benchmark results are polluted with too many data, you can run
 
 ```sh
-npm run benchmark-all-cleanup
+npm run benchmark:cleanup
 ```
 
 This command performs benchmark (without saving it) and cleans benchmark
@@ -125,7 +125,23 @@ parameter).
 
 If the best results are not satisfying, or impossible to reach, due new
 requirements - remove benchmarkresults.json manually. Next run with
-"*-save*" flag will create new files.
+"*:save*" flag will create new files.
+
+#### Benchmark - filter lists
+
+Both Matching & Filtering measurements requires filters to measure against.
+You can manipulate which set of filter lists to use by  setting proper flags:
+``` --filter-list=All ``` for filter lists 
+supported flags:
+- All for all filter lists (Easylist, Easylist+AA, Testpages, Easyprivacy)
+- EasyList+AA for Easylist +AA
+- EasyList for Easylist only
+
+```  --match-list=slowlist ``` for matching filter lists
+supported flags: 
+- slowlist (for list of slow filters)
+- unitlist (for list used in unit tests)
+- all (for combination of slowfilters & unittests)
 
 #### Benchmark cache
 
@@ -136,19 +152,26 @@ consecutive run.
 However, from time to time, or after a cleanup, it is recommended to remove
 these files manually, and download latest.
 
-
+*Please note:* downloading doesn't work for Matching filter lists. 
 ### Benchmarking
 
 The `npm run benchmark` command will visually show, in console, what is the
-current *heap* memory state, and *bootstrap* time.
+current *heap* memory state, and *bootstrap* time for both filter engine & matching.
 
 This operations does *not* store results in the benchmark history, so it can
 be executed incrementally, while we code.
 
+#### Benchmark - matching
+Part of benchmark measurement is Matching against various filters. 
+When benchmark is run with flag: --match then by default it will run
+3 rounds of same matching per filters.
+Number of rounds can be adjusted by changing ```--rounds``` argument in benchmark run: 
+`node --expose-gc benchmark.js --matchList=slowlist --match --rounds=23 --dt`
+
 ### Benchmark results
 
 If we'd like to compare current changes with *heap* and *bootstrap* we had
-before, `npm run benchmark-compare` would take care of that, producing a
+before, `npm run benchmark:compare` would take care of that, producing a
 table with differences between the previous, stored, state, and the current
 one.
 
