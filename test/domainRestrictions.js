@@ -38,12 +38,12 @@ describe("Domain restrictions", function() {
 
   describe("Unrestricted", function() {
     it("Blocking filters", function() {
-      testActive("foo", null, true, false);
-      testActive("foo", "com", true, false);
-      testActive("foo", "example.com", true, false);
-      testActive("foo", "example.com.", true, false);
-      testActive("foo", "foo.example.com", true, false);
-      testActive("foo", "mple.com", true, false);
+      testActive("foobar", null, true, false);
+      testActive("foobar", "com", true, false);
+      testActive("foobar", "example.com", true, false);
+      testActive("foobar", "example.com.", true, false);
+      testActive("foobar", "foobar.example.com", true, false);
+      testActive("foobar", "mple.com", true, false);
     });
 
     it("Hiding rules", function() {

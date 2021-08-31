@@ -150,16 +150,16 @@ describe("Matcher", function() {
 
   it("Filter matching", function() {
     checkMatch([], "http://abc/def", "IMAGE", null, null, false, null);
-    checkMatch(["abc"], "http://abc/def", "IMAGE", null, null, false, "abc");
-    checkMatch(["abc", "ddd"], "http://abc/def", "IMAGE", null, null, false, "abc");
-    checkMatch(["ddd", "abc"], "http://abc/def", "IMAGE", null, null, false, "abc");
-    checkMatch(["ddd", "abd"], "http://abc/def", "IMAGE", null, null, false, null);
-    checkMatch(["abc", "://abc/d"], "http://abc/def", "IMAGE", null, null, false, "://abc/d");
-    checkMatch(["://abc/d", "abc"], "http://abc/def", "IMAGE", null, null, false, "://abc/d");
+    checkMatch(["abcd"], "http://abcd/def", "IMAGE", null, null, false, "abcd");
+    checkMatch(["abcd", "dddd"], "http://abcd/def", "IMAGE", null, null, false, "abcd");
+    checkMatch(["dddd", "abcd"], "http://abcd/def", "IMAGE", null, null, false, "abcd");
+    checkMatch(["dddd", "abdd"], "http://abcd/def", "IMAGE", null, null, false, null);
+    checkMatch(["abcd", "://abcd/d"], "http://abcd/def", "IMAGE", null, null, false, "://abcd/d");
+    checkMatch(["://abcd/d", "abcd"], "http://abcd/def", "IMAGE", null, null, false, "://abcd/d");
     checkMatch(["|http://"], "http://abc/def", "IMAGE", null, null, false, "|http://");
     checkMatch(["|http://abc"], "http://abc/def", "IMAGE", null, null, false, "|http://abc");
-    checkMatch(["|abc"], "http://abc/def", "IMAGE", null, null, false, null);
-    checkMatch(["|/abc/def"], "http://abc/def", "IMAGE", null, null, false, null);
+    checkMatch(["|abcd"], "http://abcd/def", "IMAGE", null, null, false, null);
+    checkMatch(["|/abcd/def"], "http://abcd/def", "IMAGE", null, null, false, null);
     checkMatch(["/def|"], "http://abc/def", "IMAGE", null, null, false, "/def|");
     checkMatch(["/abc/def|"], "http://abc/def", "IMAGE", null, null, false, "/abc/def|");
     checkMatch(["/abc/|"], "http://abc/def", "IMAGE", null, null, false, null);
@@ -179,27 +179,27 @@ describe("Matcher", function() {
     checkMatch(["||example.com/abc/def|"], "http://example.com/abc/def", "IMAGE", null, null, false, "||example.com/abc/def|");
     checkMatch(["||com/abc/def|"], "http://example.com/abc/def", "IMAGE", null, null, false, "||com/abc/def|");
     checkMatch(["||example.com/abc|"], "http://example.com/abc/def", "IMAGE", null, null, false, null);
-    checkMatch(["abc", "://abc/d", "asdf1234"], "http://abc/def", "IMAGE", null, null, false, "://abc/d");
+    checkMatch(["abcd", "://abcd/d", "asdf1234"], "http://abcd/def", "IMAGE", null, null, false, "://abcd/d");
     checkMatch(["foo*://abc/d", "foo*//abc/de", "://abc/de", "asdf1234"], "http://abc/def", "IMAGE", null, null, false, "://abc/de");
-    checkMatch(["abc$third-party", "abc$~third-party", "ddd"], "http://abc/def", "IMAGE", null, null, false, "abc$~third-party");
-    checkMatch(["abc$third-party", "abc$~third-party", "ddd"], "http://abc/def", "IMAGE", "other-domain", null, false, "abc$third-party");
+    checkMatch(["abcd$third-party", "abcd$~third-party", "dddd"], "http://abcd/def", "IMAGE", null, null, false, "abcd$~third-party");
+    checkMatch(["abcd$third-party", "abcd$~third-party", "dddd"], "http://abcd/def", "IMAGE", "other-domain", null, false, "abcd$third-party");
     checkMatch(["//abc/def$third-party", "//abc/def$~third-party", "//abc_def"], "http://abc/def", "IMAGE", null, null, false, "//abc/def$~third-party");
     checkMatch(["//abc/def$third-party", "//abc/def$~third-party", "//abc_def"], "http://abc/def", "IMAGE", "other-domain", null, false, "//abc/def$third-party");
-    checkMatch(["abc$third-party", "abc$~third-party", "//abc/def"], "http://abc/def", "IMAGE", "other-domain", null, false, "//abc/def");
-    checkMatch(["//abc/def", "abc$third-party", "abc$~third-party"], "http://abc/def", "IMAGE", "other-domain", null, false, "//abc/def");
-    checkMatch(["abc$third-party", "abc$~third-party", "//abc/def$third-party"], "http://abc/def", "IMAGE", "other-domain", null, false, "//abc/def$third-party");
-    checkMatch(["abc$third-party", "abc$~third-party", "//abc/def$third-party"], "http://abc/def", "IMAGE", null, null, false, "abc$~third-party");
-    checkMatch(["abc$third-party", "abc$~third-party", "//abc/def$~third-party"], "http://abc/def", "IMAGE", "other-domain", null, false, "abc$third-party");
-    checkMatch(["abc$image", "abc$script", "abc$~image"], "http://abc/def", "IMAGE", null, null, false, "abc$image");
-    checkMatch(["abc$image", "abc$script", "abc$~script"], "http://abc/def", "SCRIPT", null, null, false, "abc$script");
-    checkMatch(["abc$image", "abc$script", "abc$~image"], "http://abc/def", "OTHER", null, null, false, "abc$~image");
+    checkMatch(["abcd$third-party", "abcd$~third-party", "//abcd/def"], "http://abcd/def", "IMAGE", "other-domain", null, false, "//abcd/def");
+    checkMatch(["//abcd/def", "abcd$third-party", "abcd$~third-party"], "http://abcd/def", "IMAGE", "other-domain", null, false, "//abcd/def");
+    checkMatch(["abcd$third-party", "abcd$~third-party", "//abcd/def$third-party"], "http://abcd/def", "IMAGE", "other-domain", null, false, "//abcd/def$third-party");
+    checkMatch(["abcd$third-party", "abcd$~third-party", "//abcd/def$third-party"], "http://abcd/def", "IMAGE", null, null, false, "abcd$~third-party");
+    checkMatch(["abcd$third-party", "abcd$~third-party", "//abcd/def$~third-party"], "http://abcd/def", "IMAGE", "other-domain", null, false, "abcd$third-party");
+    checkMatch(["abcd$image", "abcd$script", "abcd$~image"], "http://abcd/def", "IMAGE", null, null, false, "abcd$image");
+    checkMatch(["abcd$image", "abcd$script", "abcd$~script"], "http://abcd/def", "SCRIPT", null, null, false, "abcd$script");
+    checkMatch(["abcd$image", "abcd$script", "abcd$~image"], "http://abcd/def", "OTHER", null, null, false, "abcd$~image");
     checkMatch(["//abc/def$image", "//abc/def$script", "//abc/def$~image"], "http://abc/def", "IMAGE", null, null, false, "//abc/def$image");
     checkMatch(["//abc/def$image", "//abc/def$script", "//abc/def$~script"], "http://abc/def", "SCRIPT", null, null, false, "//abc/def$script");
     checkMatch(["//abc/def$image", "//abc/def$script", "//abc/def$~image"], "http://abc/def", "OTHER", null, null, false, "//abc/def$~image");
-    checkMatch(["abc$image", "abc$~image", "//abc/def"], "http://abc/def", "IMAGE", null, null, false, "//abc/def");
-    checkMatch(["//abc/def", "abc$image", "abc$~image"], "http://abc/def", "IMAGE", null, null, false, "//abc/def");
-    checkMatch(["abc$image", "abc$~image", "//abc/def$image"], "http://abc/def", "IMAGE", null, null, false, "//abc/def$image");
-    checkMatch(["abc$image", "abc$~image", "//abc/def$script"], "http://abc/def", "IMAGE", null, null, false, "abc$image");
+    checkMatch(["abcd$image", "abcd$~image", "//abcd/def"], "http://abcd/def", "IMAGE", null, null, false, "//abcd/def");
+    checkMatch(["//abcd/def", "abcd$image", "abcd$~image"], "http://abcd/def", "IMAGE", null, null, false, "//abcd/def");
+    checkMatch(["abcd$image", "abcd$~image", "//abcd/def$image"], "http://abcd/def", "IMAGE", null, null, false, "//abcd/def$image");
+    checkMatch(["abcd$image", "abcd$~image", "//abcd/def$script"], "http://abcd/def", "IMAGE", null, null, false, "abcd$image");
     checkMatch(["abc$domain=foo.com", "abc$domain=bar.com", "abc$domain=~foo.com|~bar.com"], "http://foo.com/abc/def", "IMAGE", "foo.com", null, false, "abc$domain=foo.com");
     checkMatch(["abc$domain=foo.com", "abc$domain=bar.com", "abc$domain=~foo.com|~bar.com"], "http://bar.com/abc/def", "IMAGE", "bar.com", null, false, "abc$domain=bar.com");
     checkMatch(["abc$domain=foo.com", "abc$domain=bar.com", "abc$domain=~foo.com|~bar.com"], "http://baz.com/abc/def", "IMAGE", "baz.com", null, false, "abc$domain=~foo.com|~bar.com");
@@ -249,33 +249,33 @@ describe("Matcher", function() {
     checkMatch(["@@^foo/bar/$script", "^foo/bar/$script,domain=example.com"], "http://foo/bar/", "SCRIPT", "example.com", null, false, "@@^foo/bar/$script");
 
     // See https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/230
-    checkMatch(["@@||*$document"], "http://foo/bar/", "DOCUMENT", "example.com", null, false, "@@||*$document");
+    checkMatch(["@@||*$document,domain=example.com"], "http://foo/bar/", "DOCUMENT", "example.com", null, false, "@@||*$document,domain=example.com");
   });
 
   it("Filter search", function() {
     // Start with three filters: foo, bar$domain=example.com, and @@foo
-    let filters = ["foo", "bar$domain=example.com", "@@foo"];
+    let filters = ["foos", "bar$domain=example.com", "@@foos"];
 
-    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com", null, false, "all", {blocking: ["foo"], allowing: ["@@foo"]});
+    checkSearch(filters, "http://example.com/foos", "IMAGE", "example.com", null, false, "all", {blocking: ["foos"], allowing: ["@@foos"]});
 
     // Blocking only.
-    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com", null, false, "blocking", {blocking: ["foo"]});
+    checkSearch(filters, "http://example.com/foos", "IMAGE", "example.com", null, false, "blocking", {blocking: ["foos"]});
 
     // Allowing only.
-    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com", null, false, "allowing", {allowing: ["@@foo"]});
+    checkSearch(filters, "http://example.com/foos", "IMAGE", "example.com", null, false, "allowing", {allowing: ["@@foos"]});
 
     // Different URLs.
     checkSearch(filters, "http://example.com/bar", "IMAGE", "example.com", null, false, "all", {blocking: ["bar$domain=example.com"], allowing: []});
-    checkSearch(filters, "http://example.com/foo/bar", "IMAGE", "example.com", null, false, "all", {
-      blocking: ["foo", "bar$domain=example.com"],
-      allowing: ["@@foo"]
+    checkSearch(filters, "http://example.com/foos/bar", "IMAGE", "example.com", null, false, "all", {
+      blocking: ["foos", "bar$domain=example.com"],
+      allowing: ["@@foos"]
     });
 
     // Non-matching content type.
-    checkSearch(filters, "http://example.com/foo", "CSP", "example.com", null, false, "all", {blocking: [], allowing: []});
+    checkSearch(filters, "http://example.com/foos", "CSP", "example.com", null, false, "all", {blocking: [], allowing: []});
 
     // Non-matching specificity.
-    checkSearch(filters, "http://example.com/foo", "IMAGE", "example.com", null, true, "all", {blocking: [], allowing: ["@@foo"]});
+    checkSearch(filters, "http://example.com/foos", "IMAGE", "example.com", null, true, "all", {blocking: [], allowing: ["@@foos"]});
   });
 
   it("Allowlisted", function() {
