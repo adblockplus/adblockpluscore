@@ -18,7 +18,7 @@
 
 "use strict";
 
-const {ElemHideEmulation, setTestMode,
+const {ElemHideEmulation, setTestMode, clearTestMode,
        getTestInfo} = require("../../lib/content/elemHideEmulation");
 const {timeout} = require("./_utils");
 
@@ -28,9 +28,12 @@ describe("Element hiding emulation", function() {
   const REFRESH_INTERVAL = 200;
 
   let testDocument = null;
+  let elemHideEmulation = null;
 
   beforeEach(function elemHidingBeforeEach() {
-    setTestMode();
+    setTestMode({
+      minInvocationInterval: REFRESH_INTERVAL / 2
+    });
 
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
@@ -38,9 +41,12 @@ describe("Element hiding emulation", function() {
   });
 
   afterEach(function elemHidingAfterEach() {
+    assert.deepEqual(getTestInfo().failedAssertions, []);
+
     let iframe = testDocument.defaultView.frameElement;
     iframe.parentNode.removeChild(iframe);
     testDocument = null;
+    clearTestMode();
   });
 
   function unexpectedError(error) {
@@ -84,6 +90,24 @@ describe("Element hiding emulation", function() {
     assert.ok(
       !getTestInfo().lastProcessedElements.has(element),
       `The element${withId} should not have been processed`);
+  }
+
+  function expectTrackedHidden(element, id = null) {
+    let withId = "";
+    if (id)
+      withId = ` with ID '${id}'`;
+    assert.ok(
+      elemHideEmulation.hiddenElements.has(element),
+      `The element${withId} should be tracked as hidden`);
+  }
+
+  function expectNotTrackedHidden(element, id = null) {
+    let withId = "";
+    if (id)
+      withId = ` with ID '${id}'`;
+    assert.ok(
+      !elemHideEmulation.hiddenElements.has(element),
+      `The element${withId} should not be tracked as hidden`);
   }
 
   function findUniqueId() {
@@ -132,7 +156,7 @@ describe("Element hiding emulation", function() {
     await Promise.resolve();
 
     try {
-      let elemHideEmulation = new ElemHideEmulation(
+      elemHideEmulation = new ElemHideEmulation(
         elems => {
           // Firefox will send mutation notifications even if the
           // property is set to the same value.
@@ -140,11 +164,16 @@ describe("Element hiding emulation", function() {
             if (elem.style.display != "none")
               elem.style.display = "none";
           }
+        },
+        elems => {
+          for (let elem of elems) {
+            if (elem.style.display === "none")
+              elem.style.display = "";
+          }
         }
       );
 
       elemHideEmulation.document = testDocument;
-      elemHideEmulation.minInvocationInterval = REFRESH_INTERVAL / 2;
       elemHideEmulation.apply(selectors.map(
         selector => ({selector, text: selector})
       ));
@@ -243,6 +272,26 @@ describe("Element hiding emulation", function() {
       expectVisible(parent);
       expectVisible(middle);
       expectHidden(toHide);
+    }
+  });
+
+  it("Verbatim property selector: elements are unhidden if they no longer match", async function() {
+    insertStyleRule(".parent > .child { background-color: #000 }");
+    let parent = createElement();
+    parent.className = "parent";
+    let child = createElement(parent);
+    child.className = "child";
+
+    let selectors = [":-abp-properties(background-color: rgb(0, 0, 0))"];
+
+    if (await applyElemHideEmulation(selectors)) {
+      expectVisible(parent);
+      expectHidden(child);
+
+      parent.className = "";
+      await timeout(REFRESH_INTERVAL);
+
+      expectVisible(child);
     }
   });
 
@@ -393,6 +442,49 @@ describe("Element hiding emulation", function() {
       expectVisible(middle);
       expectVisible(sibling);
       expectHidden(toHide);
+    }
+  });
+
+  it("Pseudo-class: has Selector: elements may be unhidden if something changes", async function() {
+    let parent = createElement();
+    let child = createElement(parent, "p", "child");
+
+    let selectors = [
+      "div:-abp-has(p#child)"
+    ];
+
+    if (await applyElemHideEmulation(selectors)) {
+      expectHidden(parent);
+
+      child.remove();
+      await timeout(REFRESH_INTERVAL);
+
+      expectVisible(parent);
+    }
+  });
+
+  it("Pseudo-class: has Selector: elements may be unhidden if something changes: with sibling selectors", async function() {
+    let parent = createElement(null, "div", "parent");
+    let sibling = createElement();
+    createElement(parent, "p");
+
+    let selectors = [
+      "#parent:-abp-has(p) + .hideMe"
+    ];
+
+    sibling.className = "hideMe";
+
+    if (await applyElemHideEmulation(selectors)) {
+      expectVisible(parent);
+      expectHidden(sibling);
+
+      sibling.className = "hideMe stillHideMe";
+      await timeout(REFRESH_INTERVAL);
+      expectHidden(sibling);
+
+      sibling.className = "";
+      await timeout(REFRESH_INTERVAL);
+      expectVisible(sibling);
     }
   });
 
@@ -665,6 +757,24 @@ describe("Element hiding emulation", function() {
       "#parent div:-abp-contains(Ad*)", expectations);
   });
 
+  it("Pseudo-class: contains selector: elements may be unhidden if something changes", async function() {
+    let element = createElement();
+    element.innerText = "Sponsored";
+
+    let selectors = [
+      "div:-abp-contains(Sponsored)"
+    ];
+
+    if (await applyElemHideEmulation(selectors)) {
+      expectHidden(element);
+
+      element.innerText = "Actual content";
+      await timeout(REFRESH_INTERVAL);
+
+      expectVisible(element);
+    }
+  });
+
   it("Pseudo-class: has selector with prop selector: already present", async function() {
     let parent = createElementWithStyle("{}");
     let child = createElementWithStyle("{background-color: #000}", parent);
@@ -769,6 +879,28 @@ describe("Element hiding emulation", function() {
       expectVisible(child);
       expectHidden(sibling);
       expectVisible(child2);
+    }
+  });
+
+  it("DOM updates: removed element can cause elements to hide and show", async function() {
+    let parent = createElement();
+    let firstChild = createElement(parent);
+    let secondChild = createElement(parent);
+    let thirdChild = createElement(parent);
+    thirdChild.innerHTML = "Third";
+
+    let selectors = ["div:-abp-has(>div:nth-child(2):-abp-contains(Third))"];
+
+    if (await applyElemHideEmulation(selectors)) {
+      expectVisible(parent);
+
+      firstChild.remove();
+      await timeout(REFRESH_INTERVAL);
+      expectHidden(parent);
+
+      secondChild.remove();
+      await timeout(REFRESH_INTERVAL);
+      expectVisible(parent);
     }
   });
 
@@ -994,6 +1126,8 @@ describe("Element hiding emulation", function() {
       // This is only a sanity check to make sure everything else is working
       // before we do the actual test.
       for (let i of [1, 2, 3, 4]) {
+        let parentId = `n${i}`;
+        expectVisible(testDocument.getElementById(parentId), parentId);
         for (let j of [1, 2, 4]) {
           let id = `n${i}_${j}`;
           if (j == 4)
@@ -1013,12 +1147,35 @@ describe("Element hiding emulation", function() {
 
       await timeout(REFRESH_INTERVAL);
 
-      // When an element's text is modified, only the element or one of its
-      // ancestors matching any selector is processed for :-abp-has() and
-      // :-abp-contains()
+      // Another sanity check, that new text should have hidden n4
+      for (let i of [1, 2, 3, 4]) {
+        let parentId = `n${i}`;
+        if (i == 4)
+          expectHidden(testDocument.getElementById(parentId), parentId);
+        else
+          expectVisible(testDocument.getElementById(parentId), parentId);
+
+        for (let j of [1, 2, 4]) {
+          let id = `n${i}_${j}`;
+          if (j == 4)
+            expectHidden(testDocument.getElementById(id), id);
+          else
+            expectVisible(testDocument.getElementById(id), id);
+        }
+      }
+
+      // When an element's text is modified, the modified element and
+      // its ancestors matching any selector is processed for
+      // :-abp-has() and :-abp-contains(). We also recheck the
+      // previously hidden elements.
       for (let element of [...testDocument.getElementsByTagName("div"),
                            ...testDocument.getElementsByTagName("p")]) {
-        if (element.id == "n4" || element.id == "n4_1")
+        if (element.id == "n4" ||
+            element.id == "n4_1" ||
+            element.id == "n1_4" ||
+            element.id == "n2_4" ||
+            element.id == "n3_4" ||
+            element.id == "n4_4")
           expectProcessed(element, element.id);
         else
           expectNotProcessed(element, element.id);
@@ -1029,15 +1186,135 @@ describe("Element hiding emulation", function() {
 
       await timeout(REFRESH_INTERVAL);
 
-      // When a new element is added, only the element or one of its ancestors
-      // matching any selector is processed for :-abp-has() and :-abp-contains()
+      // When a new element is added, the element and its ancestors
+      // matching any selector is processed for :-abp-has() and
+      // :-abp-contains(). We also recheck the previously hidden
+      // elements.
       for (let element of [...testDocument.getElementsByTagName("div"),
                            ...testDocument.getElementsByTagName("p")]) {
-        if (element.id == "n2" || element.id == "n2_3")
+        if (element.id == "n2" ||
+            element.id == "n2_3" ||
+            element.id == "n4" ||
+            element.id == "n4_1" ||
+            element.id == "n4_2" ||
+            element.id == "n4_4" ||
+            element.id == "n1_4" ||
+            element.id == "n2_4" ||
+            element.id == "n3_4" ||
+            element.id == "n4_4")
           expectProcessed(element, element.id);
         else
           expectNotProcessed(element, element.id);
       }
     }
+  });
+
+  it("Scheduler should wait a minimum interval between runs", async function() {
+    let elem1 = createElement(null, "div", "elem1");
+
+    let selectors = [
+      "div#elem1",
+      "div#elem2"
+    ];
+
+    if (await applyElemHideEmulation(selectors)) {
+      // The timeout(0)s here are to let the browser fire mutation
+      // events, which call queueFiltering. If you don't have the
+      // timeouts, then the queueFiltering is only actually called later
+      // and we don't test what we're trying to test.
+      let elem2 = createElement(null, "div", "elem2");
+      await timeout(0);
+
+      // even though we just modified some elements, filtering should
+      // not happen immediately because it need to wait at least
+      // minInvocationInterval between filtering.
+      expectHidden(elem1, elem1.id);
+      expectVisible(elem2, elem2.id);
+
+      await timeout(REFRESH_INTERVAL / 4);
+      expectVisible(elem2, elem2.id);
+
+      await timeout(REFRESH_INTERVAL);
+      expectHidden(elem2, elem2.id);
+    }
+  });
+
+  it("Hidden items are tracked, but not after being removed from the page", async function() {
+    let parent = createElement();
+    let child = createElement(parent, "p", "child");
+
+    let selectors = [
+      "p#child"
+    ];
+
+    if (await applyElemHideEmulation(selectors)) {
+      expectHidden(child);
+      expectTrackedHidden(child);
+
+      child.remove();
+      await timeout(REFRESH_INTERVAL);
+
+      expectNotTrackedHidden(child);
+    }
+  });
+
+  it("Hidden items can still be unhidden even if they're removed from the page and readded", async function() {
+    let parent = createElement();
+    let child = createElement(parent, "p", "child");
+
+    let selectors = [
+      "div:-abp-has(p#child)"
+    ];
+
+    if (await applyElemHideEmulation(selectors)) {
+      expectHidden(parent);
+
+      parent.remove();
+      await timeout(REFRESH_INTERVAL);
+      expectNotTrackedHidden(parent);
+
+      child.remove();
+      await timeout(REFRESH_INTERVAL);
+      testDocument.body.appendChild(parent);
+      await timeout(REFRESH_INTERVAL);
+
+      expectVisible(parent);
+    }
+  });
+
+  async function runTestHidesEverythingWhenForcedToYieldThread() {
+    setTestMode({
+      minInvocationInterval: REFRESH_INTERVAL / 2,
+      maxSynchronousProcessingTime: 0
+    });
+
+    let toHide = [
+      createElement(null, "div"),
+      createElement(null, "p")
+    ];
+    let selectors = ["div", "p"];
+    if (await applyElemHideEmulation(selectors)) {
+      elemHideEmulation.maxSynchronousProcessingTime = 0;
+      toHide.push(createElement(null, "div"));
+
+      await timeout(REFRESH_INTERVAL);
+      for (let elem of toHide)
+        expectHidden(elem);
+    }
+  }
+
+  it("Hides everything eventually when forced to yield the thread", runTestHidesEverythingWhenForcedToYieldThread);
+
+  describe("Element hiding emulation on older browsers", function() {
+    let requestIdleCallback = window.requestIdleCallback;
+    before(function() {
+      // older browsers don't support requestIdleCallback
+      delete window.requestIdleCallback;
+    });
+    after(function() {
+      window.requestIdleCallback = requestIdleCallback;
+    });
+
+    it("Hides everything eventually when forced to yield the thread", runTestHidesEverythingWhenForcedToYieldThread);
   });
 });
