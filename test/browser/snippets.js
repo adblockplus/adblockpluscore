@@ -19,7 +19,8 @@
 
 "use strict";
 
-const libraryText = require("raw-loader!../../lib/content/snippets.js");
+const isolatedLibraryText = require("raw-loader!../../lib/content/isolatedSnippets.js");
+const injectedLibraryText = require("raw-loader!../../lib/content/injectedSnippets.js");
 const {compileScript} = require("../../lib/snippets.js");
 const {timeout} = require("./_utils");
 
@@ -29,11 +30,10 @@ describe("Snippets", function()
 {
   async function runSnippetScript(script)
   {
-    new Function(compileScript(script, [libraryText]))();
+    new Function(compileScript(script, isolatedLibraryText, injectedLibraryText, ["injected-snippet"], {}))();
 
     // For snippets that run in the context of the document via a <script>
-    // element (i.e. snippets that use makeInjector()), we need to wait for
-    // execution to be complete.
+    // element, we need to wait for execution to be complete.
     await timeout(100);
   }
 
