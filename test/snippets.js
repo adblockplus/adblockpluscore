@@ -222,62 +222,123 @@ describe("Snippets", function() {
   });
 
   it("Script compilation", function() {
-    let libraries = [
-      `
-        let foo = "foo" in environment ? environment.foo : 0;
+    let isolatedLib = `
+      let foo = "foo" in environment ? environment.foo : 0;
+      let snippets = {};
 
-        exports.setFoo = function(value)
-        {
-          foo = value;
-        };
+      snippets.setFoo = function(value)
+      {
+        foo = value;
+      };
 
-        exports.assertFoo = function(expected)
-        {
-          if (foo != expected)
-            throw new Error("Value mismatch");
-        };
-      `
-    ];
+      snippets.assertFoo = function(expected)
+      {
+        if (foo != expected)
+          throw new Error("Value mismatch");
+      };
+
+      exports.snippets = snippets;
+    `;
+
+    let injectedLib = `
+      let foo = "foo" in environment ? environment.foo : 0;
+      let snippets = {};
+
+      snippets.injectedSetFoo = function(value)
+      {
+        foo = value;
+      };
+
+      snippets.injectedAssertFoo = function(expected)
+      {
+        if (foo != expected)
+          throw new Error("Value mismatch");
+      };
+    `;
+    let injectedSnippetsList = ["injectedSetFoo", "injectedAssertFoo"];
 
     let template = `
     "use strict";
+    (() => 
     {
-      let libraries = ${JSON.stringify(libraries)};
-
       let scripts = {{{script}}};
 
+      let isolatedLib = ${JSON.stringify(isolatedLib)};
       let imports = Object.create(null);
-      for (let library of libraries)
-      {
-        let loadLibrary = new Function("exports", "environment", library);
-        loadLibrary(imports, {});
-      }
+      let injectedSnippetsCount = 0;
+      let loadLibrary = new Function("exports", "environment", isolatedLib);
+      loadLibrary(imports, {});
+      const isolatedSnippets = imports.snippets;
+
+      let injectedLib = ${JSON.stringify(injectedLib)};
+      let injectedSnippetsList = ${JSON.stringify(injectedSnippetsList)};
+      let executable = "(() => {";
+      executable += 'let environment = {};';
+      executable += injectedLib;
 
       let {hasOwnProperty} = Object.prototype;
-
-      if (hasOwnProperty.call(imports, "prepareInjection"))
-        imports.prepareInjection();
-
       for (let script of scripts)
       {
         for (let [name, ...args] of script)
         {
-          if (hasOwnProperty.call(imports, name))
+          if (hasOwnProperty.call(isolatedSnippets, name))
           {
-            let value = imports[name];
+            let value = isolatedSnippets[name];
             if (typeof value == "function")
               value(...args);
+          }
+          if (injectedSnippetsList.includes(name))
+          {
+            executable += stringifyFunctionCall(name, ...args);
+            injectedSnippetsCount++;
           }
         }
       }
 
-      if (hasOwnProperty.call(imports, "commitInjection"))
-        imports.commitInjection();
-    }
+      executable += "})();";
+
+      if (injectedSnippetsCount > 0)
+        injectSnippetsInMainContext(executable);
+
+      function stringifyFunctionCall(func, ...params)
+      {
+        // Call JSON.stringify on the arguments to avoid any arbitrary code
+        // execution.
+        const f = "snippets['" + func + "']";
+        const parameters = params.map(JSON.stringify).join(",");
+        return f + "(" + parameters + ");";
+      }
+
+      function injectSnippetsInMainContext(exec)
+      {
+        // injecting phase
+        let script = document.createElement("script");
+        script.type = "application/javascript";
+        script.async = false;
+
+        // Firefox 58 only bypasses site CSPs when assigning to 'src',
+        // while Chrome 67 and Microsoft Edge (tested on 44.17763.1.0)
+        // only bypass site CSPs when using 'textContent'.
+        if (typeof netscape != "undefined" && typeof browser != "undefined")
+        {
+          let url = URL.createObjectURL(new Blob([executable]));
+          script.src = url;
+          document.documentElement.appendChild(script);
+          URL.revokeObjectURL(url);
+        }
+        else
+        {
+          script.textContent = executable;
+          document.documentElement.appendChild(script);
+        }
+
+        document.documentElement.removeChild(script);
+      }
+    })();
   `;
 
     function verifyExecutable(script) {
-      let actual = compileScript(script, libraries);
+      let actual = compileScript(script, isolatedLib, injectedLib, injectedSnippetsList);
       let parsed = [].concat(script).map(parseScript);
       let expected = template.replace("{{{script}}}", JSON.stringify(parsed));
 
@@ -287,31 +348,9 @@ describe("Snippets", function() {
     verifyExecutable(["hello 'How are you?'", "hello 'Fine, thanks!'"]);
 
     // Test script execution.
-    new Function(compileScript("assertFoo 0", libraries))();
-    new Function(compileScript("setFoo 123; assertFoo 123", libraries))();
+    new Function(compileScript("assertFoo 0", isolatedLib, injectedLib, injectedSnippetsList))();
+    new Function(compileScript("setFoo 123; assertFoo 123", isolatedLib, injectedLib, injectedSnippetsList))();
 
-    // Test compileScript signature
-    let libsAsString = JSON.stringify(libraries);
-    new Function(compileScript("setFoo 456; assertFoo 456", libsAsString))();
-
-    // Override setFoo in a second library, without overriding assertFoo. A
-    // couple of things to note here: (1) each library has its own variables;
-    // (2) script execution is stateless, i.e. the values are not retained
-    // between executions. In the example below, assertFoo does not find 456 but
-    // it doesn't find 123 either. It's the initial value 0.
-    new Function(
-      compileScript("setFoo 456; assertFoo 0", [
-        ...libraries, "let foo = 1; exports.setFoo = value => { foo = value; };"
-      ])
-    )();
-
-    new Function(compileScript("assertFoo 123", libraries, {foo: 123}))();
-
-    // Every library gets its own copy of the environment object.
-    new Function(compileScript("assertFoo 0",
-                               ["environment.foo = 456;", ...libraries]))();
-    new Function(compileScript("assertFoo 123",
-                               ["environment.foo = 456;", ...libraries],
-                               {foo: 123}))();
+    new Function(compileScript("assertFoo 123", isolatedLib, injectedLib, injectedSnippetsList, {foo: 123}))();
   });
 });
