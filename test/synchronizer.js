@@ -31,6 +31,7 @@ let filterStorage = null;
 let Prefs = null;
 let Subscription = null;
 let synchronizer = null;
+let fullUpdater = null;
 let addSubscriptionFilters = null;
 
 describe("Synchronizer", function() {
@@ -48,7 +49,8 @@ describe("Synchronizer", function() {
       {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
       {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
-      {synchronizer, addSubscriptionFilters} = sandboxedRequire(LIB_FOLDER + "/synchronizer")
+      {synchronizer, addSubscriptionFilters} = sandboxedRequire(LIB_FOLDER + "/synchronizer"),
+      {fullUpdater} = sandboxedRequire(LIB_FOLDER + "/updater")
     );
   });
 
@@ -743,7 +745,7 @@ describe("Synchronizer", function() {
     });
 
     it("Stop scheduled checks", function() {
-      // cast synchronizer._downloader._timeout to avoid trusting
+      // cast synchronizer._scheduler._timeout to avoid trusting
       // a static value that could be different per env
       assert.strictEqual(synchronizer._started, true, "Synchronizer started");
       assert.strictEqual(!!synchronizer._scheduler._timeout, true, "Downloader scheduled");
@@ -758,6 +760,6 @@ describe("Synchronizer", function() {
     let onError = () => {
       assert.fail("This should not happen");
     };
-    addSubscriptionFilters(subscription, "[Adblock]\nfoo\nbar", onError);
+    addSubscriptionFilters(fullUpdater, subscription, "[Adblock]\nfoo\nbar", onError);
   });
 });
