@@ -73,7 +73,7 @@ describe("Filter classes", function() {
       result.push("domains=" + domains.sort().join("|"));
 
       if (filter instanceof URLFilter) {
-        result.push("regexp=" + (filter.regexp ? filter.regexp.source : null));
+        result.push("regexp=" + (filter.urlPattern.regexp ? filter.urlPattern.regexpSource : null));
         result.push("contentType=" + filter.contentType);
         result.push("matchCase=" + filter.matchCase);
 

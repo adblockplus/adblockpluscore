@@ -65,265 +65,39 @@ describe("textToRegExp()", function() {
   }
 });
 
-describe("filterToRegExp()", function() {
-  let filterToRegExp = null;
+describe("makeRegExpParameter()", function() {
+  let makeRegExpParameter = null;
 
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
-      {filterToRegExp} = sandboxedRequire(LIB_FOLDER + "/common")
+      {makeRegExpParameter} = sandboxedRequire(LIB_FOLDER + "/common")
     );
   });
 
-  // Wildcards.
-  it("should return '' for '*'", function() {
-    assert.strictEqual(filterToRegExp("*"), "");
+  it("should interpret patterns that start and end with / as a regex", function() {
+    let text = "/[a-z]{3}/";
+    let regexp = makeRegExpParameter(text);
+    assert.equal(regexp.test("abc"), true);
+    assert.equal(regexp.test("ABC"), false);
+    assert.equal(regexp.test("[a-z]{3}"), false);
   });
 
-  it("should return '' for '**'", function() {
-    assert.strictEqual(filterToRegExp("**"), "");
+  it("should allow regex flags", function() {
+    let text = "/[a-z]{3}/i";
+    let regexp = makeRegExpParameter(text);
+    assert.equal(regexp.test("abc"), true);
+    assert.equal(regexp.test("ABC"), true);
+    assert.equal(regexp.test("[a-z]{3}"), false);
   });
 
-  it("should return 'a' for 'a*'", function() {
-    assert.strictEqual(filterToRegExp("a*"), "a");
-  });
-
-  it("should return 'a' for '*a'", function() {
-    assert.strictEqual(filterToRegExp("*a"), "a");
-  });
-
-  it("should return 'a' for 'a**'", function() {
-    assert.strictEqual(filterToRegExp("a**"), "a");
-  });
-
-  it("should return 'a' for '**a'", function() {
-    assert.strictEqual(filterToRegExp("**a"), "a");
-  });
-
-  it("should return 'a.*b' for 'a*b'", function() {
-    assert.strictEqual(filterToRegExp("a*b"), "a.*b");
-  });
-
-  it("should return 'a.*b' for '*a*b*'", function() {
-    assert.strictEqual(filterToRegExp("*a*b*"), "a.*b");
-  });
-
-  it("should return 'a.*b' for 'a**b'", function() {
-    assert.strictEqual(filterToRegExp("a**b"), "a.*b");
-  });
-
-  it("should return 'a.*b' for '*a**b*'", function() {
-    assert.strictEqual(filterToRegExp("*a**b*"), "a.*b");
-  });
-
-  it("should return 'a.*b.*c' for 'a*b*c'", function() {
-    assert.strictEqual(filterToRegExp("a*b*c"), "a.*b.*c");
-  });
-
-  it("should return 'a.*b.*c' for '*a*b*c*'", function() {
-    assert.strictEqual(filterToRegExp("*a*b*c*"), "a.*b.*c");
-  });
-
-  // Anchors.
-  it("should return '^' for '|'", function() {
-    assert.strictEqual(filterToRegExp("|"), "^");
-  });
-
-  it("should return '^a' for '|a'", function() {
-    assert.strictEqual(filterToRegExp("|a"), "^a");
-  });
-
-  it("should return 'a$' for 'a|'", function() {
-    assert.strictEqual(filterToRegExp("a|"), "a$");
-  });
-
-  it("should return '^a$' for '|a|'", function() {
-    assert.strictEqual(filterToRegExp("|a|"), "^a$");
-  });
-
-  it("should return 'a\\|b' for 'a|b'", function() {
-    assert.strictEqual(filterToRegExp("a|b"), "a\\|b");
-  });
-
-  it("should return 'a\\|$' for 'a||'", function() {
-    assert.strictEqual(filterToRegExp("a||"), "a\\|$");
-  });
-
-  // Extended anchor.
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?' for '||'", function() {
-    assert.strictEqual(filterToRegExp("||"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?");
-  });
-
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a' for '||a'", function() {
-    assert.strictEqual(filterToRegExp("||a"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a");
-  });
-
-  it("should return 'a\\|$' for 'a||'", function() {
-    assert.strictEqual(filterToRegExp("a||"), "a\\|$");
-  });
-
-  it("should return 'a\\|\\|b' for 'a||b'", function() {
-    assert.strictEqual(filterToRegExp("a||b"), "a\\|\\|b");
-  });
-
-  // Extended anchor with anchors.
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?$' for '|||'", function() {
-    assert.strictEqual(filterToRegExp("|||"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?$");
-  });
-
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?\\|$' for '||||'", function() {
-    assert.strictEqual(filterToRegExp("||||"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?\\|$");
-  });
-
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a$' for '||a|'", function() {
-    assert.strictEqual(filterToRegExp("||a|"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a$");
-  });
-
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?\\|a' for '|||a'", function() {
-    assert.strictEqual(filterToRegExp("|||a"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?\\|a");
-  });
-
-  // Separator placeholders.
-  it("should return '(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '^'", function() {
-    assert.strictEqual(filterToRegExp("^"),
-                       "(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return '(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '^^", function() {
-    assert.strictEqual(filterToRegExp("^^"),
-                       "(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return 'a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for 'a^'", function() {
-    assert.strictEqual(filterToRegExp("a^"),
-                       "a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return '(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)a' for '^a'", function() {
-    assert.strictEqual(filterToRegExp("^a"),
-                       "(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)a");
-  });
-
-  it("should return '(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '^a^'", function() {
-    assert.strictEqual(filterToRegExp("^a^"),
-                       "(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return 'a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b' for 'a^b'", function() {
-    assert.strictEqual(filterToRegExp("a^b"),
-                       "a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b");
-  });
-
-  it("should return 'a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)c' for 'a^b^c'", function() {
-    assert.strictEqual(filterToRegExp("a^b^c"),
-                       "a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)c");
-  });
-
-  // Separator placeholders with anchors.
-  it("should return '(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '^|'", function() {
-    assert.strictEqual(filterToRegExp("^|"),
-                       "(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return 'a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for 'a^|'", function() {
-    assert.strictEqual(filterToRegExp("a^|"),
-                       "a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return '(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)\\|$' for '^||'", function() {
-    assert.strictEqual(filterToRegExp("^||"),
-                       "(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)\\|$");
-  });
-
-  it("should return '^(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '|^'", function() {
-    assert.strictEqual(filterToRegExp("|^"),
-                       "^(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '||^'", function() {
-    assert.strictEqual(filterToRegExp("||^"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return '^a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '|a^'", function() {
-    assert.strictEqual(filterToRegExp("|a^"),
-                       "^a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return '^a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b' for '|a^b'", function() {
-    assert.strictEqual(filterToRegExp("|a^b"),
-                       "^a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b");
-  });
-
-  it("should return '^a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b$' for '|a^b|'", function() {
-    assert.strictEqual(filterToRegExp("|a^b|"),
-                       "^a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b$");
-  });
-
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)' for '||a^'", function() {
-    assert.strictEqual(filterToRegExp("||a^"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)");
-  });
-
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b' for '||a^b'", function() {
-    assert.strictEqual(filterToRegExp("||a^b"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b");
-  });
-
-  it("should return '^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b$' for '||a^b|'", function() {
-    assert.strictEqual(filterToRegExp("||a^b|"),
-                       "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a(?:[\\x00-\\x24\\x26-\\x2C\\x2F\\x3A-\\x40\\x5B-\\x5E\\x60\\x7B-\\x7F]|$)b$");
-  });
-
-  // Special characters.
-  it("should return '\\:' for ':'", function() {
-    assert.strictEqual(filterToRegExp(":"), "\\:");
-  });
-
-  it("should return '\\/' for '/'", function() {
-    assert.strictEqual(filterToRegExp("/"), "\\/");
-  });
-
-  it("should return '\\.' for '.'", function() {
-    assert.strictEqual(filterToRegExp("."), "\\.");
-  });
-
-  it("should return '\\?' for '?'", function() {
-    assert.strictEqual(filterToRegExp("?"), "\\?");
-  });
-
-  it("should return '\\=' for '='", function() {
-    assert.strictEqual(filterToRegExp("="), "\\=");
-  });
-
-  it("should return '\\&' for '&'", function() {
-    assert.strictEqual(filterToRegExp("&"), "\\&");
-  });
-
-  it("should return '\\+' for '+'", function() {
-    assert.strictEqual(filterToRegExp("+"), "\\+");
-  });
-
-  it("should return '\\#' for '#'", function() {
-    assert.strictEqual(filterToRegExp("#"), "\\#");
-  });
-
-  it("should return '\\[' for '['", function() {
-    assert.strictEqual(filterToRegExp("["), "\\[");
-  });
-
-  it("should return '\\]' for ']'", function() {
-    assert.strictEqual(filterToRegExp("]"), "\\]");
-  });
-
-  it("should return '\\@' for '@'", function() {
-    assert.strictEqual(filterToRegExp("@"), "\\@");
+  it("should match characters literally if they are not a regex", function() {
+    let text = "[a-z]{3}";
+    let regexp = makeRegExpParameter(text);
+    assert.equal(regexp.test("abc"), false);
+    assert.equal(regexp.test("ABC"), false);
+    assert.equal(regexp.test("[a-z]{3}"), true);
+    assert.equal(regexp.test("[A-Z]{3}"), false);
   });
 });
 
