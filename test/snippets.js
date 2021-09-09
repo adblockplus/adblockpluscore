@@ -240,6 +240,8 @@ describe("Snippets", function()
 
   it("Script compilation", function()
   {
+    let environment = {tricky: "'", condition: "\"\n"};
+
     let isolatedLib = `
       let foo = "foo" in environment ? environment.foo : 0;
       let snippets = {};
@@ -285,13 +287,13 @@ describe("Snippets", function()
       let imports = Object.create(null);
       let injectedSnippetsCount = 0;
       let loadLibrary = new Function("exports", "environment", isolatedLib);
-      loadLibrary(imports, {});
+      loadLibrary(imports, ${JSON.stringify(environment)});
       const isolatedSnippets = imports.snippets;
 
       let injectedLib = ${JSON.stringify(injectedLib)};
       let injectedSnippetsList = ${JSON.stringify(injectedSnippetsList)};
       let executable = "(() => {";
-      executable += 'let environment = {};';
+      executable += "let environment = {\\"tricky\\":\\"'\\",\\"condition\\":\\"\\\\\\"\\\\n\\"};";
       executable += injectedLib;
 
       let {hasOwnProperty} = Object.prototype;
@@ -357,7 +359,7 @@ describe("Snippets", function()
 
     function verifyExecutable(script)
     {
-      let actual = compileScript(script, isolatedLib, injectedLib, injectedSnippetsList);
+      let actual = compileScript(script, isolatedLib, injectedLib, injectedSnippetsList, environment);
       let parsed = [].concat(script).map(parseScript);
       let expected = template.replace("{{{script}}}", JSON.stringify(parsed));
 
@@ -367,8 +369,8 @@ describe("Snippets", function()
     verifyExecutable(["hello 'How are you?'", "hello 'Fine, thanks!'"]);
 
     // Test script execution.
-    new Function(compileScript("assertFoo 0", isolatedLib, injectedLib, injectedSnippetsList))();
-    new Function(compileScript("setFoo 123; assertFoo 123", isolatedLib, injectedLib, injectedSnippetsList))();
+    new Function(compileScript("assertFoo 0", isolatedLib, injectedLib, injectedSnippetsList, environment))();
+    new Function(compileScript("setFoo 123; assertFoo 123", isolatedLib, injectedLib, injectedSnippetsList, environment))();
 
     new Function(compileScript("assertFoo 123", isolatedLib, injectedLib, injectedSnippetsList, {foo: 123}))();
   });
