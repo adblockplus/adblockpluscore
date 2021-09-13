@@ -8,8 +8,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@tensorflow/tfjs-core": "^2.7.0",
-    "@tensorflow/tfjs-node": "^2.7.0",
     "babel-eslint": "^10.1.0",
     "c8": "^7.1.2",
     "chai": "^4.2.0",
