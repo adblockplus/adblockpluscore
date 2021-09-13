@@ -751,6 +751,33 @@ describe("Synchronizer", function() {
       assert.strictEqual(synchronizer._started, false, "Synchronizer stopped");
       assert.strictEqual(!!synchronizer._downloader._timeout, false, "Downloader unscheduled");
     });
+
+    it("Receives different timing when Prefs define these", function() {
+      let interval = 0;
+      let delay = 0;
+
+      // stub scheduleChecks to trap received arguments
+      let {scheduleChecks} = synchronizer._downloader;
+      synchronizer._downloader.scheduleChecks = (_interval, _delay) => {
+        [interval, delay] = [_interval, _delay];
+      };
+
+      // overwrite timers
+      Prefs.subscriptions_check_interval = 123;
+      Prefs.subscriptions_initial_delay = 456;
+
+      // ensure synchronizer state and test
+      synchronizer.stop();
+      synchronizer.start();
+
+      assert.strictEqual(interval, 123, "Received expected interval");
+      assert.strictEqual(delay, 456, "Received expected delay");
+
+      // for cleanup sake (future tests)
+      delete Prefs.subscriptions_check_interval;
+      delete Prefs.subscriptions_initial_delay;
+      synchronizer._downloader.scheduleChecks = scheduleChecks;
+    });
   });
 
   it("Adds subscription without starting", function() {
