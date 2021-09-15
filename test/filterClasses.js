@@ -421,9 +421,6 @@ describe("Filter classes", function() {
   });
 
   it("Filter normalization", function() {
-    // Bad domains in content filter are invalid
-    assert.equal(Filter.normalize("example.com/#$#log 456"), "");
-
     // Line breaks etc
     assert.equal(Filter.normalize("\n\t\nad\ns"),
                  "ads");
@@ -448,13 +445,13 @@ describe("Filter classes", function() {
     assert.equal(Filter.normalize("   domain.*#?# # sele ctor   "),
                  "domain.*#?## sele ctor");
 
-    // Incorrect syntax: the separator "#?#" cannot contain spaces; normalized
-    // as element hiding filter
+    // Incorrect syntax: the separator "#?#" cannot contain spaces; treated as a
+    // regular filter instead
     assert.equal(Filter.normalize("   domain.c  om# ?#. sele ctor   "),
-                 "domain.com#?#. sele ctor");
-
-    // Incorrect syntax: the separator "#?#" cannot contain spaces; normalized
-    // as element hiding filter
+                 "domain.com#?#.selector");
+    // Incorrect syntax: the separator "#?#" cannot contain spaces; treated as an
+    // element hiding filter instead, because the "##" following the "?" is taken
+    // to be the separator instead
     assert.equal(Filter.normalize("   domain.c  om# ?##sele ctor   "),
                  "domain.com#?##sele ctor");
 
@@ -466,10 +463,12 @@ describe("Filter classes", function() {
     assert.equal(Filter.normalize("   domain.*#@# # sele ctor   "),
                  "domain.*#@## sele ctor");
 
-    // Incorrect syntax: the separator "#@#" cannot contain spaces; normalized
-    // as element hiding exception filter
+    // Incorrect syntax: the separator "#@#" cannot contain spaces; treated as a
+    // regular filter instead (not an element hiding filter either!), because
+    // unlike the case with "# ?##" the "##" following the "@" is not considered
+    // to be a separator
     assert.equal(Filter.normalize("   domain.c  om# @## sele ctor   "),
-                 "domain.com#@## sele ctor");
+                 "domain.com#@##selector");
 
     // Snippet filters
     assert.equal(Filter.normalize("   domain.c  om#$#  sni pp  et   "),
