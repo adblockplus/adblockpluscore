@@ -15,13 +15,11 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export async function executeScript(driver, name, script, scriptArgs)
-{
+export async function executeScript(driver, name, script, scriptArgs) {
   let realScript = `let f = ${script}
                     let callback = arguments[arguments.length - 1];
                     return f(...arguments).then(() => callback());`;
-  try
-  {
+  try {
     await driver.manage().setTimeouts({script: 100000});
     await driver.executeAsyncScript(realScript, ...scriptArgs);
     let result = await driver.executeScript("return window._consoleLogs;");
@@ -33,8 +31,7 @@ export async function executeScript(driver, name, script, scriptArgs)
     if (result.failures != 0)
       throw name;
   }
-  finally
-  {
+  finally {
     await driver.quit();
   }
 }

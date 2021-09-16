@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 let sandboxedRequire = null;
 
 let IO = null;
@@ -30,33 +30,25 @@ let defaultMatcher = null;
 let SpecialSubscription = null;
 let recommendations = null;
 
-describe("Filter listener", function()
-{
+describe("Filter listener", function() {
   // {module:matcher.findKeyword()} will not do what you expect.
   // This function will get the keyword for a filter using the
   // internal data.
   // This is not an API to be used.
-  function keywordForFilter(filter, matcher)
-  {
+  function keywordForFilter(filter, matcher) {
     return matcher._keywordByFilter.get(filter);
   }
 
-  function checkKnownFilters(text, expected)
-  {
+  function checkKnownFilters(text, expected) {
     let result = {};
-    for (let type of ["blocking", "allowing"])
-    {
+    for (let type of ["blocking", "allowing"]) {
       let matcher = defaultMatcher["_" + type];
       let filters = [];
       for (let map of [matcher._simpleFiltersByKeyword,
-                       matcher._complexFiltersByKeyword])
-      {
-        for (let [keyword, set] of map)
-        {
-          for (let filter of set)
-          {
-            assert.equal(keywordForFilter(filter, matcher), keyword,
-                         "Keyword of filter " + filter.text);
+                       matcher._complexFiltersByKeyword]) {
+        for (let [keyword, set] of map) {
+          for (let filter of set) {
+            assert.equal(keywordForFilter(filter, matcher), keyword, "Keyword of filter " + filter.text);
             filters.push(filter.text);
           }
         }
@@ -64,30 +56,29 @@ describe("Filter listener", function()
       result[type] = filters;
     }
 
-    let {elemHide} = sandboxedRequire("../lib/elemHide");
+    let {elemHide} = sandboxedRequire(LIB_FOLDER + "/elemHide");
     result.elemhide = [];
     for (let filter of elemHide._filters)
       result.elemhide.push(filter.text);
 
-    let {elemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions");
+    let {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions");
     result.elemhideexception = [];
     for (let exception of elemHideExceptions._exceptions)
       result.elemhideexception.push(exception.text);
 
-    let {elemHideEmulation} = sandboxedRequire("../lib/elemHideEmulation");
+    let {elemHideEmulation} = sandboxedRequire(LIB_FOLDER + "/elemHideEmulation");
     result.elemhideemulation = [];
     for (let filter of elemHideEmulation)
       result.elemhideemulation.push(filter.text);
 
-    let {snippets} = sandboxedRequire("../lib/snippets");
+    let {snippets} = sandboxedRequire(LIB_FOLDER + "/snippets");
     result.snippets = [];
     for (let filter of snippets._filters)
       result.snippets.push(filter.text);
 
     let types = ["blocking", "allowing", "elemhide", "elemhideexception",
                  "elemhideemulation", "snippets"];
-    for (let type of types)
-    {
+    for (let type of types) {
       if (!(type in expected))
         expected[type] = [];
       else
@@ -98,20 +89,18 @@ describe("Filter listener", function()
     assert.deepEqual(result, expected, text);
   }
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     sandboxedRequire = createSandbox();
 
     (
       {IO} = sandboxedRequire("./stub-modules/io"),
-      {filterStorage} = sandboxedRequire("../lib/filterStorage"),
-      {filterEngine} = sandboxedRequire("../lib/filterEngine"),
-      {defaultMatcher} = sandboxedRequire("../lib/matcher")
+      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
+      {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine"),
+      {defaultMatcher} = sandboxedRequire(LIB_FOLDER + "/matcher")
     );
   });
 
-  it("Initialization", async function()
-  {
+  it("Initialization", async function() {
     IO._setFileContents(filterStorage.sourceFile, `
       version=5
 
@@ -156,15 +145,13 @@ describe("Filter listener", function()
     });
   });
 
-  describe("Synchronization", function()
-  {
-    beforeEach(async function()
-    {
+  describe("Synchronization", function() {
+    beforeEach(async function() {
       await filterEngine.initialize();
 
       (
-        {Subscription, SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses"),
-        {Filter} = sandboxedRequire("../lib/filterClasses"),
+        {Subscription, SpecialSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
+        {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
         recommendations = sandboxedRequire("../data/subscriptions.json")
       );
 
@@ -177,8 +164,7 @@ describe("Filter listener", function()
       Subscription.fromURL("~user~eh").defaults = ["elemhide"];
     });
 
-    it("Adding/removing filters", function()
-    {
+    it("Adding/removing filters", function() {
       let filter1 = Filter.fromText("filter1");
       let filter2 = Filter.fromText("@@filter2");
       let filter3 = Filter.fromText("##filter3");
@@ -218,8 +204,7 @@ describe("Filter listener", function()
       checkKnownFilters("remove filter4", {elemhide: [filter3.text], elemhideexception: [filter5.text, filter7.text], elemhideemulation: [filter6.text]});
     });
 
-    it("Disabling/enabling filters not in the list", function()
-    {
+    it("Disabling/enabling filters not in the list", function() {
       let filter1 = Filter.fromText("filter1");
       let filter2 = Filter.fromText("@@filter2");
       let filter3 = Filter.fromText("##filter3");
@@ -258,8 +243,7 @@ describe("Filter listener", function()
       checkKnownFilters("enable example.com#@#[-abp-properties='filter6'] while not in list", {});
     });
 
-    it("Filter subscription operations", function()
-    {
+    it("Filter subscription operations", function() {
       let filter1 = Filter.fromText("filter1");
       let filter2 = Filter.fromText("@@filter2");
       filter2.disabled = true;
@@ -335,8 +319,7 @@ describe("Filter listener", function()
       checkKnownFilters("remove subscription", {blocking: [filter1.text]});
     });
 
-    it("Filter group operations", function()
-    {
+    it("Filter group operations", function() {
       let filter1 = Filter.fromText("filter1");
       let filter2 = Filter.fromText("@@filter2");
       let filter3 = Filter.fromText("filter3");
@@ -400,8 +383,7 @@ describe("Filter listener", function()
       checkKnownFilters("enable exception rules", {blocking: [filter1.text], allowing: [filter2.text]});
     });
 
-    it("Snippet filters", function()
-    {
+    it("Snippet filters", function() {
       let filter1 = Filter.fromText("example.com#$#filter1");
       let filter2 = Filter.fromText("example.com#$#filter2");
 
@@ -435,8 +417,7 @@ describe("Filter listener", function()
       checkKnownFilters("add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
     });
 
-    it("HTTP header filters", function()
-    {
+    it("HTTP header filters", function() {
       let filter1 = Filter.fromText("||example.com/ad.js$header=content-type=image/png");
       let filter2 = Filter.fromText("||example.com/content.js$header=content-type=image/png");
 

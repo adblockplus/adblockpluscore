@@ -18,45 +18,35 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let elemHide = null;
 let createStyleSheet = null;
 let rulesFromStyleSheet = null;
 let elemHideExceptions = null;
 let Filter = null;
-let SELECTOR_GROUP_SIZE = null;
 
-describe("Element hiding", function()
-{
-  beforeEach(function()
-  {
+describe("Element hiding", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox({
-      extraExports: {
-        elemHide: ["SELECTOR_GROUP_SIZE"]
-      }
     });
     (
-      {elemHide, createStyleSheet, rulesFromStyleSheet,
-       SELECTOR_GROUP_SIZE} = sandboxedRequire("../lib/elemHide"),
-      {elemHideExceptions} = sandboxedRequire("../lib/elemHideExceptions"),
-      {Filter} = sandboxedRequire("../lib/filterClasses")
+      {elemHide, createStyleSheet, rulesFromStyleSheet} = sandboxedRequire(LIB_FOLDER + "/elemHide"),
+      {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions"),
+      {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
   });
 
-  function normalizeSelectors(selectors)
-  {
+  function normalizeSelectors(selectors) {
     // getStyleSheet is currently allowed to return duplicate
     // selectors for performance reasons, so we need to remove duplicates here.
-    return selectors.slice().sort().filter((selector, index, sortedSelectors) =>
-    {
+    return selectors.slice().sort().filter((selector, index, sortedSelectors) => {
       return index == 0 || selector != sortedSelectors[index - 1];
     });
   }
 
   function testResult(domain, expectedSelectors,
-                      {specificOnly = false, expectedExceptions = []} = {})
-  {
+                      {specificOnly = false, expectedExceptions = []} = {}) {
     let normalizedExpectedSelectors = normalizeSelectors(expectedSelectors);
 
     let {code, selectors, exceptions} =
@@ -77,14 +67,10 @@ describe("Element hiding", function()
 
     // Make sure each expected selector is in the actual CSS code.
     for (let selector of normalizedExpectedSelectors)
-    {
-      assert.ok(code.includes(selector + ", ") ||
-                code.includes(selector + " {display: none !important;}\n"));
-    }
+      assert.ok(code.includes(selector + " {display: none !important;}\n"));
   }
 
-  it("Generate style sheet for domain", function()
-  {
+  it("Generate style sheet for domain", function() {
     let addFilter = filterText => elemHide.add(Filter.fromText(filterText));
     let removeFilter = filterText => elemHide.remove(Filter.fromText(filterText));
     let addException =
@@ -268,16 +254,14 @@ describe("Element hiding", function()
     testResult("foo.com", []);
   });
 
-  it("Zero filter key", function()
-  {
+  it("Zero filter key", function() {
     elemHide.add(Filter.fromText("##test"));
     elemHideExceptions.add(Filter.fromText("foo.com#@#test"));
     testResult("foo.com", [], {expectedExceptions: ["foo.com#@#test"]});
     testResult("bar.com", ["test"]);
   });
 
-  it("Filters by domain", function()
-  {
+  it("Filters by domain", function() {
     assert.equal(elemHide._filtersByDomain.size, 0);
 
     elemHide.add(Filter.fromText("##test"));
@@ -296,60 +280,58 @@ describe("Element hiding", function()
     assert.equal(elemHide._filtersByDomain.size, 0);
   });
 
-  describe("Create style sheet", function()
-  {
-    it("Basic creation", function()
-    {
+  describe("Create style sheet", function() {
+    it("Basic creation", function() {
       assert.equal(
         createStyleSheet([
           "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
           "#foo[data-bar='bar']"
         ]),
-        "html, #foo, .bar, #foo .bar, #foo > .bar, #foo[data-bar='bar'] " +
-          "{display: none !important;}\n",
+        "html {display: none !important;}\n" +
+          "#foo {display: none !important;}\n" +
+          ".bar {display: none !important;}\n" +
+          "#foo .bar {display: none !important;}\n" +
+          "#foo > .bar {display: none !important;}\n" +
+          "#foo[data-bar='bar'] {display: none !important;}\n",
         "Style sheet creation should work"
       );
     });
 
-    it("Splitting", function()
-    {
-      let selectors = new Array(50000).fill().map((element, index) => ".s" + index);
+    it("Splitting", function() {
+      let selectorCount = 50000;
+      let selectors = new Array(selectorCount).fill().map((element, index) => ".s" + index);
 
-      assert.equal((createStyleSheet(selectors).match(/\n/g) || []).length,
-                   Math.ceil(50000 / SELECTOR_GROUP_SIZE),
-                   "Style sheet should be split up into rules with at most " +
-                   SELECTOR_GROUP_SIZE + " selectors each");
+      assert.equal((createStyleSheet(selectors).match(/\n/g) || []).length, selectorCount, "Style sheet should have a separate rule for each selector");
     });
 
-    it("Escaping", function()
-    {
+    it("Escaping", function() {
       assert.equal(
         createStyleSheet([
-          "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
-          "#foo[data-bar='{foo: 1}']"
+          "#foo[data-bar='{{foo: 1}}']"
         ]),
-        "html, #foo, .bar, #foo .bar, #foo > .bar, " +
-          "#foo[data-bar='\\7B foo: 1\\7D '] {display: none !important;}\n",
+        "#foo[data-bar='\\7b \\7b foo: 1\\7d \\7d '] {display: none !important;}\n",
         "Braces should be escaped"
       );
     });
 
-    it("Custom CSS", function()
-    {
+    it("Custom CSS", function() {
       assert.equal(
         createStyleSheet([
           "html", "#foo", ".bar", "#foo .bar", "#foo > .bar",
           "#foo[data-bar='bar']"
         ], "{outline: 2px solid red;}"),
-        "html, #foo, .bar, #foo .bar, #foo > .bar, #foo[data-bar='bar'] " +
-          "{outline: 2px solid red;}\n",
+        "html {outline: 2px solid red;}\n" +
+          "#foo {outline: 2px solid red;}\n" +
+          ".bar {outline: 2px solid red;}\n" +
+          "#foo .bar {outline: 2px solid red;}\n" +
+          "#foo > .bar {outline: 2px solid red;}\n" +
+          "#foo[data-bar='bar'] {outline: 2px solid red;}\n",
         "Custom CSS should be used"
       );
     });
   });
 
-  it("Rules from style sheet", function()
-  {
+  it("Rules from style sheet", function() {
     // Note: The rulesFromStyleSheet function assumes that each rule will be
     // terminated with a newline character, including the last rule. If this is
     // not the case, the function goes into an infinite loop. It should only be

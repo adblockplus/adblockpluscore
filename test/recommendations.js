@@ -18,32 +18,27 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 const data = require("../data/subscriptions.json");
 
 let recommendations = null;
 
-describe("Recommendations", function()
-{
-  beforeEach(function()
-  {
+describe("Recommendations", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox({});
     (
-      {recommendations} = sandboxedRequire("../lib/recommendations")
+      {recommendations} = sandboxedRequire(LIB_FOLDER + "/recommendations")
     );
   });
 
-  function checkValidity(recommendation)
-  {
-    for (let name of ["type", "title", "url", "homepage"])
-    {
+  function checkValidity(recommendation) {
+    for (let name of ["type", "title", "url", "homepage"]) {
       let value = recommendation[name];
       assert.ok(typeof value == "string" && value.length > 0);
     }
 
-    for (let name of ["languages"])
-    {
+    for (let name of ["languages"]) {
       let value = recommendation[name];
 
       assert.ok(Array.isArray(value));
@@ -52,22 +47,19 @@ describe("Recommendations", function()
         assert.ok(typeof element == "string" && /^[a-z]{2}$/.test(element));
     }
 
-    for (let name of ["url", "homepage"])
-    {
+    for (let name of ["url", "homepage"]) {
       // Make sure the value parses as a URL.
       assert.doesNotThrow(() => new URL(recommendation[name]));
     }
 
-    for (let name of ["url"])
-    {
+    for (let name of ["url"]) {
       // The URL of a recommended subscription must be HTTPS.
       // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/5
       assert.equal(new URL(recommendation[name]).protocol, "https:");
     }
   }
 
-  function checkEquality(recommendation, source)
-  {
+  function checkEquality(recommendation, source) {
     // String values.
     for (let name of ["type", "title", "url", "homepage"])
       assert.equal(recommendation[name], source[name]);
@@ -77,21 +69,18 @@ describe("Recommendations", function()
       assert.deepEqual(recommendation[name], source[name] || []);
   }
 
-  function checkImmutability(recommendation, source)
-  {
+  function checkImmutability(recommendation, source) {
     // No properties can be set.
     for (let name of ["type", "languages", "title", "url", "homepage"])
       assert.throws(() => recommendation[name] = null);
 
     // Modifying mutable values (arrays) has an effect on neither the
     // recommendation nor the source.
-    for (let name of ["languages"])
-    {
+    for (let name of ["languages"]) {
       let value = recommendation[name];
 
       // Modify an existing element.
-      if (value.length > 0)
-      {
+      if (value.length > 0) {
         value[Math.floor(Math.random() * value.length)] = null;
         assert.notDeepEqual(value, recommendation[name]);
         assert.notDeepEqual(value, source[name]);
@@ -104,13 +93,11 @@ describe("Recommendations", function()
     }
   }
 
-  it("Recommendations", function()
-  {
+  it("Recommendations", function() {
     let index = 0;
     let knownTypes = new Set();
 
-    for (let recommendation of recommendations())
-    {
+    for (let recommendation of recommendations()) {
       let source = data[index++];
 
       checkValidity(recommendation);

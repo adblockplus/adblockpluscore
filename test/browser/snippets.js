@@ -26,10 +26,8 @@ const {timeout} = require("./_utils");
 
 const {assert} = chai;
 
-describe("Snippets", function()
-{
-  async function runSnippetScript(script)
-  {
+describe("Snippets", function() {
+  async function runSnippetScript(script) {
     new Function(compileScript(script, isolatedLibraryText, injectedLibraryText, ["injected-snippet"], {}))();
 
     // For snippets that run in the context of the document via a <script>
@@ -37,15 +35,13 @@ describe("Snippets", function()
     await timeout(100);
   }
 
-  it("content-script-snippet", async function()
-  {
+  it("content-script-snippet", async function() {
     window.a = false;
     await runSnippetScript("content-script-snippet a");
     assert.isTrue(window.a);
   });
 
-  it("injected-snippet", async function()
-  {
+  it("injected-snippet", async function() {
     window.b = false;
     await runSnippetScript("injected-snippet b");
     assert.isTrue(window.b);

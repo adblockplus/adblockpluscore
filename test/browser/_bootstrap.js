@@ -29,23 +29,19 @@ if (typeof window._consoleLogs == "undefined")
  * template string as the chrome remote interface doesn't support
  * multiple console.log arguments.
  */
-function WdReporter(runner, options)
-{
+function WdReporter(runner, options) {
   Mocha.reporters.Spec.call(this, runner, options);
 
-  runner.on("fail", test =>
-  {
+  runner.on("fail", test => {
     window._consoleLogs.failures++;
   });
 }
 
 Mocha.utils.inherits(WdReporter, Mocha.reporters.Spec);
 
-function runTests(moduleNames)
-{
+function runTests(moduleNames) {
   let oldLog = Mocha.reporters.Base.consoleLog;
-  Mocha.reporters.Base.consoleLog = (...msg) =>
-  {
+  Mocha.reporters.Base.consoleLog = (...msg) => {
     window._consoleLogs.log.push(msg);
     oldLog.call(this, ...msg);
   };
@@ -55,8 +51,7 @@ function runTests(moduleNames)
   for (let module of moduleNames)
     require("./" + module + ".js");
 
-  return new Promise((resolve, reject) =>
-  {
+  return new Promise((resolve, reject) => {
     mocha.run(resolve);
   });
 }

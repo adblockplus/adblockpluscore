@@ -23,26 +23,22 @@ const got = require("got");
 const PSL_URL = "https://publicsuffix.org/list/public_suffix_list.dat";
 const FILENAME = "data/publicSuffixList.json";
 
-async function main()
-{
+async function main() {
   let response = await got(PSL_URL);
   let psl = {};
 
-  for (let line of response.body.split(/\r?\n/))
-  {
+  for (let line of response.body.split(/\r?\n/)) {
     if (line.startsWith("//") || !line.includes("."))
       continue;
 
     let value = 1;
     line = line.replace(/\s+$/, "");
 
-    if (line.startsWith("*."))
-    {
+    if (line.startsWith("*.")) {
       line = line.slice(2);
       value = 2;
     }
-    else if (line.startsWith("!"))
-    {
+    else if (line.startsWith("!")) {
       line = line.slice(1);
       value = 0;
     }

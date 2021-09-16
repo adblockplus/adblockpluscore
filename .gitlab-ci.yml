@@ -48,6 +48,7 @@ tests:
   extends: .default_template
   script:
     - npm test
+    - npm run test:dist
   cache:
     key: global-cache
     paths:
@@ -60,7 +61,7 @@ docs:
     - npm run docs
   artifacts:
     paths:
-      - docs/
+      - build/docs/
     expire_in: 3 mos
 
 audit:

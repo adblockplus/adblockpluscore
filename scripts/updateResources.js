@@ -23,20 +23,17 @@ const process = require("process");
 
 const FILENAME = "data/resources.json";
 
-let resourceDir = path.join("build", "assets");
+let resourceDir = path.join("data", "resources");
 let index = require(path.join("..", resourceDir, "index.json"));
 
 
 let output = {};
 
-for (let entry of index)
-{
+for (let entry of index) {
   let text;
   let type;
-  if (typeof entry.text == "undefined")
-  {
-    if (!entry.file)
-    {
+  if (typeof entry.text == "undefined") {
+    if (!entry.file) {
       console.error("Invalid file entry. Aborting.");
       process.exit(1);
     }
@@ -45,8 +42,7 @@ for (let entry of index)
     text = buffer.toString("base64");
     type = entry.type + ";base64";
   }
-  else
-  {
+  else {
     ({text, type} = entry);
   }
 

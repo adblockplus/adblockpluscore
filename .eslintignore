@@ -1,2 +1,4 @@
 lib/jsbn.js
 lib/rusha.js
+lib/content/snippets.js
+dist/

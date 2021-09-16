@@ -18,50 +18,41 @@
 "use strict";
 
 const assert = require("assert");
-const {createSandbox} = require("./_common");
+const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let MILLIS_IN_SECOND = null;
 let MILLIS_IN_MINUTE = null;
 let MILLIS_IN_HOUR = null;
 let MILLIS_IN_DAY = null;
 
-beforeEach(function()
-{
+beforeEach(function() {
   let sandboxedRequire = createSandbox();
   (
     {MILLIS_IN_SECOND, MILLIS_IN_MINUTE, MILLIS_IN_HOUR,
-     MILLIS_IN_DAY} = sandboxedRequire("../lib/time")
+     MILLIS_IN_DAY} = sandboxedRequire(LIB_FOLDER + "/time")
   );
 });
 
-describe("MILLIS_IN_SECOND", function()
-{
-  it("should be equal to 1000", function()
-  {
+describe("MILLIS_IN_SECOND", function() {
+  it("should be equal to 1000", function() {
     assert.equal(MILLIS_IN_SECOND, 1000);
   });
 });
 
-describe("MILLIS_IN_MINUTE", function()
-{
-  it("should be equal to 60 times MILLIS_IN_SECOND", function()
-  {
+describe("MILLIS_IN_MINUTE", function() {
+  it("should be equal to 60 times MILLIS_IN_SECOND", function() {
     assert.equal(MILLIS_IN_MINUTE, 60 * MILLIS_IN_SECOND);
   });
 });
 
-describe("MILLIS_IN_HOUR", function()
-{
-  it("should be equal to 60 times MILLIS_IN_MINUTE", function()
-  {
+describe("MILLIS_IN_HOUR", function() {
+  it("should be equal to 60 times MILLIS_IN_MINUTE", function() {
     assert.equal(MILLIS_IN_HOUR, 60 * MILLIS_IN_MINUTE);
   });
 });
 
-describe("MILLIS_IN_DAY", function()
-{
-  it("should be equal to 24 times MILLIS_IN_HOUR", function()
-  {
+describe("MILLIS_IN_DAY", function() {
+  it("should be equal to 24 times MILLIS_IN_HOUR", function() {
     assert.equal(MILLIS_IN_DAY, 24 * MILLIS_IN_HOUR);
   });
 });

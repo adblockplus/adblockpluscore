@@ -40,21 +40,15 @@ const resultingKeys = new Set([
   "type"
 ]);
 
-function untar(remoteUrl)
-{
-  return new Promise(resolve =>
-  {
+function untar(remoteUrl) {
+  return new Promise(resolve => {
     let file = path.join(__dirname, path.basename(remoteUrl));
     let writableStream = createWriteStream(file);
-    https.get(remoteUrl, response =>
-    {
+    https.get(remoteUrl, response => {
       response.pipe(writableStream);
-      writableStream.on("close", () =>
-      {
-        tar.x({file, cwd: __dirname}).then(() =>
-        {
-          unlink(file).then(() =>
-          {
+      writableStream.on("close", () => {
+        tar.x({file, cwd: __dirname}).then(() => {
+          unlink(file).then(() => {
             resolve(file.replace(/\.[^/]+$/, ""));
           });
         });
@@ -63,13 +57,11 @@ function untar(remoteUrl)
   });
 }
 
-function parseSubscriptionFile(file, validLanguages)
-{
+function parseSubscriptionFile(file, validLanguages) {
   // Bypass parsing remaining lines in the ReadStream's buffer
   let continuing = true;
 
-  return new Promise(resolve =>
-  {
+  return new Promise(resolve => {
     let parsed = {
       name: path.basename(file).replace(/\.\w+$/, "")
     };
@@ -78,16 +70,23 @@ function parseSubscriptionFile(file, validLanguages)
       input: createReadStream(file, {encoding: "utf8"})
     });
 
-    reader.on("line", line =>
-    {
+    reader.on("line", line => {
       if (!line.match(/\S/g) || !continuing)
         return;
 
-      let [key, value] = line.split("=", 2);
+      let index = line.indexOf("=");
+      let key;
+      let value;
+      if (index > 0) {
+        key = line.substring(0, index);
+        value = line.substring(index + 1);
+      }
+      else {
+        key = line;
+      }
       key = key.trim();
 
-      if (key == "unavailable" || key == "deprecated")
-      {
+      if (key == "unavailable" || key == "deprecated") {
         parsed = null;
         reader.close();
         continuing = false;
@@ -103,14 +102,12 @@ function parseSubscriptionFile(file, validLanguages)
       if (key != "name" && key in parsed)
         console.warn(`Value for attribute ${key} is duplicated in ${file}`);
 
-      if (key == "supplements")
-      {
+      if (key == "supplements") {
         if (!("supplements" in parsed))
           parsed["supplements"] = [];
         parsed["supplements"].push(value);
       }
-      else if (key == "list" || key == "variant")
-      {
+      else if (key == "list" || key == "variant") {
         let name = parsed["name"];
         let url = null;
         let keywords = {
@@ -122,29 +119,24 @@ function parseSubscriptionFile(file, validLanguages)
         let variantRegex = /(.+?)\s+(\S+)$/;
 
         let keywordsMatch = value.match(keywordsRegex);
-        if (keywordsMatch)
-        {
+        if (keywordsMatch) {
           value = value.replace(keywordsRegex, "");
           url = value;
 
-          for (let keyword of keywordsMatch[1].split(","))
-          {
+          for (let keyword of keywordsMatch[1].split(",")) {
             keyword = keyword.toLowerCase();
             if (keyword in keywords)
               keywords[keyword] = true;
           }
         }
 
-        if (key == "variant")
-        {
+        if (key == "variant") {
           let variantMatch = value.match(variantRegex);
-          if (variantMatch)
-          {
+          if (variantMatch) {
             name = variantMatch[1];
             url = variantMatch[2];
           }
-          else
-          {
+          else {
             console.warn(`Invalid variant format in ${file}, no name` +
                          " given?");
           }
@@ -153,31 +145,25 @@ function parseSubscriptionFile(file, validLanguages)
           parsed["variants"] = [];
         parsed["variants"].push([name, url, keywords["complete"]]);
 
-        if (keywords["recommendation"])
-        {
+        if (keywords["recommendation"]) {
           parsed["title"] = name;
           parsed["url"] = url;
         }
       }
-      else if (key == "languages")
-      {
+      else if (key == "languages") {
         parsed["languages"] = value.split(",");
-        for (let language of parsed["languages"])
-        {
+        for (let language of parsed["languages"]) {
           if (!validLanguages.has(language))
             console.warn(`Unknown language code ${language} in ${file}`);
         }
       }
-      else
-      {
+      else {
         parsed[key] = value;
       }
     });
 
-    reader.on("close", () =>
-    {
-      if (!parsed)
-      {
+    reader.on("close", () => {
+      if (!parsed) {
         resolve(parsed);
         return;
       }
@@ -189,12 +175,9 @@ function parseSubscriptionFile(file, validLanguages)
           parsed["languages"] == null)
         console.warn(`Recommendation without languages in ${file}`);
 
-      if (!("supplements" in parsed))
-      {
-        for (let variant of parsed["variants"])
-        {
-          if (variant[2])
-          {
+      if (!("supplements" in parsed)) {
+        for (let variant of parsed["variants"]) {
+          if (variant[2]) {
             console.warn("Variant marked as complete for non-supplemental " +
                          `subscription in ${file}`);
           }
@@ -206,10 +189,8 @@ function parseSubscriptionFile(file, validLanguages)
   });
 }
 
-function parseValidLanguages(root)
-{
-  return new Promise(resolve =>
-  {
+function parseValidLanguages(root) {
+  return new Promise(resolve => {
     let languageRegex = /(\S{2})=(.*)/;
     let languages = new Set();
 
@@ -217,8 +198,7 @@ function parseValidLanguages(root)
       input: createReadStream(root + "/settings", {encoding: "utf8"})
     });
 
-    reader.on("line", line =>
-    {
+    reader.on("line", line => {
       let match = line.match(languageRegex);
       if (match)
         languages.add(match[1]);
@@ -228,23 +208,20 @@ function parseValidLanguages(root)
   });
 }
 
-function postProcessSubscription(subscription)
-{
+function postProcessSubscription(subscription) {
   subscription["homepage"] = subscription["homepage"] ||
                              subscription["forum"] ||
                              subscription["blog"] ||
                              subscription["faq"] ||
                              subscription["contact"];
 
-  for (let key in subscription)
-  {
+  for (let key in subscription) {
     if (!resultingKeys.has(key))
       delete subscription[key];
   }
 }
 
-async function main()
-{
+async function main() {
   let root = await untar(listUrl);
   let languages = await parseValidLanguages(root);
   let tarFiles = await readdir(root);

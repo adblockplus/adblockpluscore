@@ -82,15 +82,136 @@ Linting
 You can lint the code using [ESLint](http://eslint.org) by running
 `npm run lint`.
 
+Benchmarking
+------------
+
+We do care about performance, and we want to keep an eye on changes that might
+degrade the previous state.
+
+Our package has a few helpers, `npm run ...` commands, to do so, based on most
+popular filters lists used out there, focused on both bootstrap and heap
+consumption.
+
+### Bootstrapping benchmarks
+
+Each machine is different, so we decided to not pollute the repository with
+files that could be meaningless across different hardware.
+
+This means that the very first time benchmarking is needed, we should save the
+current results, so that we can incrementally monitor changes in the branch.
+
+To store, at any time, benchmarks references, we need to run the following:
+
+```sh
+npm run benchmark:save
+```
+
+This snapshot will contain the latest performance improvements we'd like to
+match against, while changing code in our own branch.
+
+#### Benchmark cleanup
+
+If benchmark results are polluted with too many data, you can run
+
+```sh
+npm run benchmark:cleanup
+```
+
+This command performs benchmark (without saving it) and cleans benchmark
+results file - saving only efficient runs (for each filters set and for each
+parameter).
+
+#### Benchmark reset
+
+If the best results are not satisfying, or impossible to reach, due new
+requirements - remove benchmarkresults.json manually. Next run with
+"*:save*" flag will create new files.
+
+#### Benchmark - filter lists
+
+Both Matching & Filtering measurements requires filters to measure against.
+You can manipulate which set of filter lists to use by  setting proper flags:
+``` --filter-list=All ``` for filter lists 
+supported flags:
+- All for all filter lists (Easylist, Easylist+AA, Testpages, Easyprivacy)
+- EasyList+AA for Easylist +AA
+- EasyList for Easylist only
+
+```  --match-list=slowlist ``` for matching filter lists
+supported flags: 
+- slowlist (for list of slow filters)
+- unitlist (for list used in unit tests)
+- all (for combination of slowfilters & unittests)
+
+#### Benchmark cache
+
+By default, if filters files are not found, these are downloaded in the
+`./benchmark` folder to avoid downloading different files to compare per each
+consecutive run.
+
+However, from time to time, or after a cleanup, it is recommended to remove
+these files manually, and download latest.
+
+*Please note:* downloading doesn't work for Matching filter lists. 
+### Benchmarking
+
+The `npm run benchmark` command will visually show, in console, what is the
+current *heap* memory state, and *bootstrap* time for both filter engine & matching.
+
+This operations does *not* store results in the benchmark history, so it can
+be executed incrementally, while we code.
+
+#### Benchmark - matching
+Part of benchmark measurement is Matching against various filters. 
+When benchmark is run with flag: --match then by default it will run
+3 rounds of same matching per filters.
+Number of rounds can be adjusted by changing ```--rounds``` argument in benchmark run: 
+`node --expose-gc benchmark.js --matchList=slowlist --match --rounds=23 --dt`
+
+### Benchmark results
+
+If we'd like to compare current changes with *heap* and *bootstrap* we had
+before, `npm run benchmark:compare` would take care of that, producing a
+table with differences between the previous, stored, state, and the current
+one.
+
+Please note that the comparison is always against most efficient results
+generated via all previous saved benchmarks.
+
+**Please note**, as benchmarks results might be compromised by various factors,
+such as your computer dedicating CPU for other tasks while running, there is a
+threshold margin to consider, where only multiple, repeated, better scores can
+be considered an effective improvement, as running the same benchmark twice,
+might produce diversions between scores itself, without changing code at all.
+
+Documentation
+-------------
+
+The module documentation is generated with `jsdoc`. To generate the
+documentation use:
+
+```
+npm run docs
+```
+
+CI will generate the documentation for `master` and `next` branches. It is available at:
+
+- For `next` (the development branch): [https://eyeo.gitlab.io/adblockplus/abc/adblockpluscore/next/docs/]
+- For `master` (the release branch): [https://eyeo.gitlab.io/adblockplus/abc/adblockpluscore/master/docs/]
+
 Node.js module
------------------------------
+--------------
 
-There is now __experimental__ support for this repository to be used directly
-as a Node.js module.
+adblockpluscore is available as an npm module for Node.js. See:
+    https://www.npmjs.com/package/adblockpluscore
+
+You can install it with:
 
 ```
-npm install git+https://gitlab.com/eyeo/adblockplus/adblockpluscore
+npm install adblockpluscore
 ```
+
+Or you can simply add it to your `package.json`.
 
 ```javascript
 let {contentTypes, filterEngine} = require("adblockpluscore");

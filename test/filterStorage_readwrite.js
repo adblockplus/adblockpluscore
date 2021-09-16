@@ -21,7 +21,7 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const {promisify} = require("util");
-const {createSandbox, unexpectedError} = require("./_common");
+const {LIB_FOLDER, createSandbox, unexpectedError} = require("./_common");
 
 let Filter = null;
 let filterStorage = null;
@@ -29,24 +29,21 @@ let IO = null;
 let Prefs = null;
 let SpecialSubscription = null;
 
-describe("Filter storage read/write", function()
-{
-  beforeEach(function()
-  {
+describe("Filter storage read/write", function() {
+  beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
-      {Filter} = sandboxedRequire("../lib/filterClasses"),
-      {filterStorage} = sandboxedRequire("../lib/filterStorage"),
+      {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
+      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {IO} = sandboxedRequire("./stub-modules/io"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {SpecialSubscription} = sandboxedRequire("../lib/subscriptionClasses")
+      {SpecialSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
 
     filterStorage.addFilter(Filter.fromText("foobar"));
   });
 
-  async function readData()
-  {
+  async function readData() {
     let dataPath = path.resolve(__dirname, "data", "patterns.ini");
     let readFileAsync = promisify(fs.readFile);
     let data = await readFileAsync(dataPath, "utf-8");
@@ -55,34 +52,28 @@ describe("Filter storage read/write", function()
 
   let testData = readData();
 
-  function canonize(data)
-  {
+  function canonize(data) {
     let curSection = null;
     let sections = [];
-    for (let line of data)
-    {
-      if (/^\[.*\]$/.test(line))
-      {
+    for (let line of data) {
+      if (/^\[.*\]$/.test(line)) {
         if (curSection)
           sections.push(curSection);
 
         curSection = {header: line, data: []};
       }
-      else if (curSection && /\S/.test(line))
-      {
+      else if (curSection && /\S/.test(line)) {
         curSection.data.push(line);
       }
     }
     if (curSection)
       sections.push(curSection);
 
-    for (let section of sections)
-    {
+    for (let section of sections) {
       section.key = section.header + " " + section.data[0];
       section.data.sort();
     }
-    sections.sort((a, b) =>
-    {
+    sections.sort((a, b) => {
       if (a.key < b.key)
         return -1;
       else if (a.key > b.key)
@@ -92,12 +83,10 @@ describe("Filter storage read/write", function()
     return sections;
   }
 
-  async function testReadWrite(withEmptySpecial)
-  {
+  async function testReadWrite(withEmptySpecial) {
     assert.ok(!filterStorage.initialized, "Uninitialized before the first load");
 
-    try
-    {
+    try {
       let data = await testData;
 
       IO._setFileContents(filterStorage.sourceFile, data);
@@ -106,16 +95,14 @@ describe("Filter storage read/write", function()
       assert.ok(filterStorage.initialized, "Initialize after the first load");
       assert.equal(filterStorage.fileProperties.version, filterStorage.formatVersion, "File format version");
 
-      if (withEmptySpecial)
-      {
+      if (withEmptySpecial) {
         let specialSubscription =
           SpecialSubscription.createForFilter(Filter.fromText("!foo"));
         filterStorage.addSubscription(specialSubscription);
 
         filterStorage.removeFilter(Filter.fromText("!foo"), specialSubscription);
 
-        assert.equal(specialSubscription.filterCount, 0,
-                     "No filters in special subscription");
+        assert.equal(specialSubscription.filterCount, 0, "No filters in special subscription");
         assert.ok(new Set(filterStorage.subscriptions()).has(specialSubscription),
                   "Empty special subscription still in storage");
       }
@@ -125,37 +112,32 @@ describe("Filter storage read/write", function()
       let expected = await testData;
 
       assert.deepEqual(canonize(IO._getFileContents(filterStorage.sourceFile)),
-                       canonize(expected), "Read/write result");
+                       canonize(expected),
+                       "Read/write result");
     }
-    catch (error)
-    {
+    catch (error) {
       unexpectedError.call(assert, error);
     }
   }
 
-  describe("Read and save", function()
-  {
-    it("To file", function()
-    {
+  describe("Read and save", function() {
+    it("To file", function() {
       this.timeout(5000);
 
       return testReadWrite();
     });
 
-    it("To file with empty special subscription", function()
-    {
+    it("To file with empty special subscription", function() {
       this.timeout(5000);
 
       return testReadWrite(true);
     });
   });
 
-  it("Import/export", async function()
-  {
+  it("Import/export", async function() {
     this.timeout(5000);
 
-    try
-    {
+    try {
       let lines = await testData;
 
       if (lines.length && lines[lines.length - 1] == "")
@@ -171,10 +153,8 @@ describe("Filter storage read/write", function()
       // Testing for compatibility changes for
       // https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/140
       let found = false;
-      filterStorage._knownSubscriptions.forEach(sub =>
-      {
-        if (sub.url == "~user~12345")
-        {
+      filterStorage._knownSubscriptions.forEach(sub => {
+        if (sub.url == "~user~12345") {
           found = true;
           assert.deepEqual(sub.defaults, ["allowing"]);
         }
@@ -184,40 +164,33 @@ describe("Filter storage read/write", function()
       let exported = Array.from(filterStorage.exportData());
       assert.deepEqual(canonize(exported), canonize(lines), "Import/export result");
     }
-    catch (error)
-    {
+    catch (error) {
       unexpectedError.call(assert, error);
     }
   });
 
-  describe("Backups", function()
-  {
-    it("Saving without", async function()
-    {
+  describe("Backups", function() {
+    it("Saving without", async function() {
       Prefs.patternsbackups = 0;
       Prefs.patternsbackupinterval = 24;
 
-      try
-      {
+      try {
         await filterStorage.saveToDisk();
         await filterStorage.saveToDisk();
 
         assert.ok(!IO._getFileContents(filterStorage.getBackupName(1)),
                   "Backup shouldn't be created");
       }
-      catch (error)
-      {
+      catch (error) {
         unexpectedError.call(assert, error);
       }
     });
 
-    it("Saving with", async function()
-    {
+    it("Saving with", async function() {
       Prefs.patternsbackups = 2;
       Prefs.patternsbackupinterval = 24;
 
-      let setModifiedTime = (backupFile, lastModified) =>
-      {
+      let setModifiedTime = (backupFile, lastModified) => {
         IO._setModifiedTime(backupFile, lastModified);
         filterStorage._stats.get(backupFile).lastModified = lastModified;
       };
@@ -230,8 +203,7 @@ describe("Filter storage read/write", function()
 
       let oldModifiedTime;
 
-      try
-      {
+      try {
         await filterStorage.saveToDisk();
 
         // Save again immediately
@@ -279,19 +251,16 @@ describe("Filter storage read/write", function()
 
         assert.ok(!IO._getFileContents(backupFile3), "Third backup not created with patternsbackups = 2");
       }
-      catch (error)
-      {
+      catch (error) {
         unexpectedError.call(assert, error);
       }
     });
 
-    it("Restoring", async function()
-    {
+    it("Restoring", async function() {
       Prefs.patternsbackups = 2;
       Prefs.patternsbackupinterval = 24;
 
-      try
-      {
+      try {
         await filterStorage.saveToDisk();
 
         assert.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Initial filter count");
@@ -309,8 +278,7 @@ describe("Filter storage read/write", function()
 
         assert.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after reloading");
       }
-      catch (error)
-      {
+      catch (error) {
         unexpectedError.call(assert, error);
       }
     });

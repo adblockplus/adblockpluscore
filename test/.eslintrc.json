@@ -8,5 +8,8 @@
     "no-console": "off",
     "no-undefined": "off",
     "prefer-arrow-callback": "off"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018
   }
 }

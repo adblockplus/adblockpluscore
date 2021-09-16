@@ -20,18 +20,17 @@
 const assert = require("assert");
 
 let {
-  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError
+  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
+  LIB_FOLDER
 } = require("./_common");
 
 let Prefs = null;
 let notifications = null;
 
-describe("Notifications", function()
-{
+describe("Notifications", function() {
   let runner = {};
 
-  beforeEach(function()
-  {
+  beforeEach(function() {
     runner = {};
     // Inject our Array and JSON to make sure that instanceof checks on arrays
     // within the sandbox succeed even with data passed in from outside.
@@ -42,22 +41,19 @@ describe("Notifications", function()
     let sandboxedRequire = createSandbox({globals});
     (
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {notifications} = sandboxedRequire("../lib/notifications")
+      {notifications} = sandboxedRequire(LIB_FOLDER + "/notifications")
     );
 
     notifications.start();
   });
 
-  after(function()
-  {
+  after(function() {
     notifications.stop();
   });
 
-  function showNotifications()
-  {
+  function showNotifications() {
     let shownNotifications = [];
-    function showListener(notification)
-    {
+    function showListener(notification) {
       shownNotifications.push(notification);
       notifications.markAsShown(notification.id);
     }
@@ -67,11 +63,9 @@ describe("Notifications", function()
     return shownNotifications;
   }
 
-  function showImmediateNotification(notification, options)
-  {
+  function showImmediateNotification(notification, options) {
     let shownNotifications = [];
-    function showListener(shownNotification)
-    {
+    function showListener(shownNotification) {
       shownNotifications.push(shownNotification);
     }
     notifications.addShowListener(showListener);
@@ -80,22 +74,17 @@ describe("Notifications", function()
     return shownNotifications;
   }
 
-  function* pairs(array)
-  {
-    for (let element1 of array)
-    {
-      for (let element2 of array)
-      {
+  function* pairs(array) {
+    for (let element1 of array) {
+      for (let element2 of array) {
         if (element1 != element2)
           yield [element1, element2];
       }
     }
   }
 
-  function registerHandler(notificationList, checkCallback)
-  {
-    runner.registerHandler("/notification.json", metadata =>
-    {
+  function registerHandler(notificationList, checkCallback) {
+    runner.registerHandler("/notification.json", metadata => {
       if (checkCallback)
         checkCallback(metadata);
 
@@ -108,13 +97,11 @@ describe("Notifications", function()
     });
   }
 
-  it("No data", function()
-  {
+  it("No data", function() {
     assert.deepEqual(showNotifications(), [], "No notifications should be returned if there is no data");
   });
 
-  it("Single", function()
-  {
+  it("Single", function() {
     let information = {
       id: 1,
       type: "information",
@@ -122,15 +109,13 @@ describe("Notifications", function()
     };
 
     registerHandler.call(runner, [information]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
+    return runner.runScheduledTasks(1).then(() => {
       assert.deepEqual(showNotifications(), [information], "The notification is shown");
       assert.deepEqual(showNotifications(), [], "Informational notifications aren't shown more than once");
     }).catch(unexpectedError.bind(assert));
   });
 
-  it("Local single", function()
-  {
+  it("Local single", function() {
     let information = {
       id: 1,
       type: "information"
@@ -144,8 +129,7 @@ describe("Notifications", function()
     );
   });
 
-  it("Information and critical", function()
-  {
+  it("Information and critical", function() {
     let information = {
       id: 1,
       type: "information",
@@ -158,15 +142,13 @@ describe("Notifications", function()
     };
 
     registerHandler.call(runner, [information, critical]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
+    return runner.runScheduledTasks(1).then(() => {
       assert.deepEqual(showNotifications(), [critical], "The critical notification is given priority");
       assert.deepEqual(showNotifications(), [critical], "Critical notifications can be shown multiple times");
     }).catch(unexpectedError.bind(assert));
   });
 
-  it("Newtab", function()
-  {
+  it("Newtab", function() {
     let newtabNone = {
       id: 1,
       type: "newtab"
@@ -191,8 +173,7 @@ describe("Notifications", function()
       runner,
       [newtabNone, newtabEmpty, newtabSingle, newtabMultiple]
     );
-    return runner.runScheduledTasks(1).then(() =>
-    {
+    return runner.runScheduledTasks(1).then(() => {
       assert.deepEqual(
         showNotifications(),
         [newtabSingle],
@@ -211,23 +192,20 @@ describe("Notifications", function()
     });
   });
 
-  it("No type", function()
-  {
+  it("No type", function() {
     let information = {
       id: 1,
       message: {"en-US": "Information"}
     };
 
     registerHandler.call(runner, [information]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
+    return runner.runScheduledTasks(1).then(() => {
       assert.deepEqual(showNotifications(), [information], "The notification is shown");
       assert.deepEqual(showNotifications(), [], "Notification is treated as type information");
     }).catch(unexpectedError.bind(assert));
   });
 
-  it("Ignore when remote invalid", function()
-  {
+  it("Ignore when remote invalid", function() {
     let valid = {
       id: 1,
       type: "information"
@@ -238,8 +216,7 @@ describe("Notifications", function()
     };
 
     registerHandler.call(runner, [valid, invalid]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
+    return runner.runScheduledTasks(1).then(() => {
       assert.deepEqual(
         showNotifications(),
         [valid],
@@ -253,11 +230,9 @@ describe("Notifications", function()
     });
   });
 
-  it("Throw when local invalid", function()
-  {
+  it("Throw when local invalid", function() {
     assert.throws(
-      () =>
-      {
+      () => {
         let invalid = {
           id: 1,
           type: "newtab"
@@ -269,10 +244,8 @@ describe("Notifications", function()
     );
   });
 
-  function testTargetSelectionFunc(propName, value, result)
-  {
-    return function()
-    {
+  function testTargetSelectionFunc(propName, value, result) {
+    return function() {
       let targetInfo = {};
       targetInfo[propName] = value;
 
@@ -284,8 +257,7 @@ describe("Notifications", function()
       };
 
       registerHandler.call(this, [information]);
-      return runner.runScheduledTasks(1).then(() =>
-      {
+      return runner.runScheduledTasks(1).then(() => {
         let expected = (result ? [information] : []);
         assert.deepEqual(showNotifications(), expected, "Selected notification for " + JSON.stringify(information.targets));
         assert.deepEqual(showNotifications(), [], "No notification on second call");
@@ -293,8 +265,7 @@ describe("Notifications", function()
     };
   }
 
-  describe("Target selection", function()
-  {
+  describe("Target selection", function() {
     for (let [propName, value, result] of [
       ["extension", "adblockpluschrome", true],
       ["extension", "adblockplus", false],
@@ -344,16 +315,13 @@ describe("Notifications", function()
       it(`${propName}=${value}`, testTargetSelectionFunc(propName, value, result));
   });
 
-  describe("No show stats", function()
-  {
-    beforeEach(function()
-    {
+  describe("No show stats", function() {
+    beforeEach(function() {
       runner.show_statsinpopup_orig = Prefs.show_statsinpopup;
       Prefs.show_statsinpopup = false;
     });
 
-    afterEach(function()
-    {
+    afterEach(function() {
       Prefs.show_statsinpopup = runner.show_statsinpopup_orig;
     });
 
@@ -364,8 +332,7 @@ describe("Notifications", function()
       it(`Target ${propName}=${value}`, testTargetSelectionFunc(propName, value, result));
   });
 
-  describe("Multiple targets", function()
-  {
+  describe("Multiple targets", function() {
     for (let [[propName1, value1, result1], [propName2, value2, result2]] of pairs([
       ["extension", "adblockpluschrome", true],
       ["extension", "adblockplus", false],
@@ -380,10 +347,8 @@ describe("Notifications", function()
       ["platformMinVersion", "12", true],
       ["platformMinVersion", "13", false],
       ["unknown", "unknown", false]
-    ]))
-    {
-      it(`${propName1}=${value1},${propName2}=${value2}`, function()
-      {
+    ])) {
+      it(`${propName1}=${value1},${propName2}=${value2}`, function() {
         let targetInfo1 = {};
         targetInfo1[propName1] = value1;
         let targetInfo2 = {};
@@ -397,8 +362,7 @@ describe("Notifications", function()
         };
 
         registerHandler.call(runner, [information]);
-        return runner.runScheduledTasks(1).then(() =>
-        {
+        return runner.runScheduledTasks(1).then(() => {
           let expected = (result1 || result2 ? [information] : []);
           assert.deepEqual(showNotifications(), expected, "Selected notification for " + JSON.stringify(information.targets));
         }).catch(unexpectedError.bind(assert));
@@ -406,8 +370,7 @@ describe("Notifications", function()
     }
   });
 
-  it("Parameters sent", function()
-  {
+  it("Parameters sent", function() {
     Prefs.notificationdata = {
       data: {
         version: "3"
@@ -415,38 +378,33 @@ describe("Notifications", function()
     };
 
     let parameters = null;
-    registerHandler.call(runner, [], metadata =>
-    {
+    registerHandler.call(runner, [], metadata => {
       parameters = decodeURI(metadata.queryString);
     });
-    return runner.runScheduledTasks(1).then(() =>
-    {
+    return runner.runScheduledTasks(1).then(() => {
       assert.equal(parameters,
                    "addonName=adblockpluschrome&addonVersion=1.4.1&application=chrome&applicationVersion=27.0&platform=chromium&platformVersion=12.0&lastVersion=3&downloadCount=0&disabled=false",
                    "The correct parameters are sent to the server");
     }).catch(unexpectedError.bind(assert));
   });
 
-  it("First version", async function()
-  {
+  it("First version", async function() {
+    let downloadCount;
+
     let checkDownload = async(payload, {queryParam,
                                         state: {firstVersion, currentVersion},
-                                        eFlag = ""}) =>
-    {
+                                        eFlag = ""}) => {
       let requested = false;
 
-      runner.registerHandler("/notification.json", ({queryString}) =>
-      {
+      runner.registerHandler("/notification.json", ({queryString}) => {
         requested = true;
 
-        try
-        {
+        try {
           let params = new URLSearchParams(decodeURI(queryString));
 
           assert.equal(params.get("firstVersion"), queryParam + eFlag);
         }
-        catch (error)
-        {
+        catch (error) {
           unexpectedError.call(assert, error);
         }
 
@@ -459,15 +417,15 @@ describe("Notifications", function()
 
       assert.equal(Prefs.analytics.data.firstVersion, firstVersion + eFlag);
       assert.equal(Prefs.analytics.data.currentVersion, currentVersion);
+      assert.equal(notifications.getDownloadCount(), ++downloadCount);
     };
 
-    async function testIt({eFlag} = {})
-    {
+    async function testIt({eFlag} = {}) {
       Prefs.analytics = {trustedHosts: ["example.com"]};
       Prefs.notificationdata = {};
+      downloadCount = 0;
 
-      if (typeof eFlag != "undefined")
-      {
+      if (typeof eFlag != "undefined") {
         // Set the data property to an empty object to simulate an already
         // installed version.
         Prefs.notificationdata.data = {};
@@ -538,6 +496,7 @@ describe("Notifications", function()
       // Repeat tests with hour-level precision.
       Prefs.analytics = {trustedHosts: ["example.com"]};
       Prefs.notificationdata = {};
+      downloadCount = 0;
 
       if (typeof eFlag != "undefined")
         Prefs.notificationdata.data = {};
@@ -607,6 +566,7 @@ describe("Notifications", function()
       // Repeat tests with day-level precision.
       Prefs.analytics = {trustedHosts: ["example.com"]};
       Prefs.notificationdata = {};
+      downloadCount = 0;
 
       if (typeof eFlag != "undefined")
         Prefs.notificationdata.data = {};
@@ -672,19 +632,16 @@ describe("Notifications", function()
       });
     }
 
-    try
-    {
+    try {
       await testIt();
       await testIt({eFlag: "-E"});
     }
-    catch (error)
-    {
+    catch (error) {
       unexpectedError.call(assert, error);
     }
   });
 
-  describe("Expiration interval", function()
-  {
+  describe("Expiration interval", function() {
     let initialDelay = 1 / 60;
     for (let currentTest of [
       {
@@ -715,38 +672,33 @@ describe("Notifications", function()
         skip: 30,               // Long break should increase soft expiration, hitting hard expiration
         requests: [initialDelay, initialDelay + 48]
       }
-    ])
-    {
+    ]) {
       let testId = `Math.random() returning ${currentTest.randomResult}`;
       if (typeof currentTest.skip == "number")
         testId += ` skipping ${currentTest.skip} hours after ${currentTest.skipAfter} hours`;
 
-      it(testId, function()
-      {
+      it(testId, function() {
         let requests = [];
         registerHandler.call(runner, [], metadata => requests.push(runner.getTimeOffset()));
 
         runner.randomResult = currentTest.randomResult;
 
         let maxHours = Math.round(Math.max.apply(null, currentTest.requests)) + 1;
-        return runner.runScheduledTasks(maxHours, currentTest.skipAfter, currentTest.skip).then(() =>
-        {
+        return runner.runScheduledTasks(maxHours, currentTest.skipAfter, currentTest.skip).then(() => {
           assert.deepEqual(requests, currentTest.requests, "Requests");
         }).catch(unexpectedError.bind(assert));
       });
     }
   });
 
-  it("Using severity instead of type", function(done)
-  {
+  it("Using severity instead of type", function(done) {
     let severityNotification = {
       id: 1,
       severity: "information",
       message: {"en-US": "Information"}
     };
 
-    function listener(name)
-    {
+    function listener(name) {
       if (name !== "notificationdata")
         return;
 
@@ -765,8 +717,7 @@ describe("Notifications", function()
     notifications._onDownloadSuccess({}, responseText, () => {}, () => {});
   });
 
-  it("Interval", function()
-  {
+  it("Interval", function() {
     let relentless = {
       id: 3,
       type: "relentless",
@@ -774,14 +725,11 @@ describe("Notifications", function()
     };
 
     registerHandler.call(runner, [relentless]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
+    return runner.runScheduledTasks(1).then(() => {
       assert.deepEqual(showNotifications(), [relentless], "Relentless notifications are shown initially");
-    }).then(() =>
-    {
+    }).then(() => {
       assert.deepEqual(showNotifications(), [], "Relentless notifications are not shown before the interval");
-    }).then(() =>
-    {
+    }).then(() => {
       // Date always returns a fixed time (see setupTimerAndFetch) so we
       // manipulate the shown data manually.
       Prefs.notificationdata.shown[relentless.id] -= relentless.interval;
@@ -789,20 +737,19 @@ describe("Notifications", function()
     }).catch(unexpectedError.bind(assert));
   });
 
-  it("Global opt-out", function()
-  {
+  it("Global opt-out", function() {
     notifications.toggleIgnoreCategory("*", true);
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") != -1, "Force enable global opt-out");
     notifications.toggleIgnoreCategory("*", true);
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Force enable global opt-out (again)");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") != -1, "Force enable global opt-out (again)");
     notifications.toggleIgnoreCategory("*", false);
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") == -1, "Force disable global opt-out");
     notifications.toggleIgnoreCategory("*", false);
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Force disable global opt-out (again)");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") == -1, "Force disable global opt-out (again)");
     notifications.toggleIgnoreCategory("*");
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") != -1, "Toggle enable global opt-out");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") != -1, "Toggle enable global opt-out");
     notifications.toggleIgnoreCategory("*");
-    assert.ok(Prefs.notifications_ignoredcategories.indexOf("*") == -1, "Toggle disable global opt-out");
+    assert.ok(notifications.getIgnoredCategories().indexOf("*") == -1, "Toggle disable global opt-out");
 
     notifications.toggleIgnoreCategory("*", false);
 
@@ -828,8 +775,7 @@ describe("Notifications", function()
 
     notifications.toggleIgnoreCategory("*", true);
     registerHandler.call(runner, [information]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
+    return runner.runScheduledTasks(1).then(() => {
       assert.deepEqual(showNotifications(), [], "Information notifications are ignored after enabling global opt-out");
       notifications.toggleIgnoreCategory("*", false);
       assert.deepEqual(showNotifications(), [information], "Information notifications are shown after disabling global opt-out");
@@ -838,21 +784,18 @@ describe("Notifications", function()
       Prefs.notificationdata = {};
       registerHandler.call(runner, [critical]);
       return runner.runScheduledTasks(1);
-    }).then(() =>
-    {
+    }).then(() => {
       assert.deepEqual(showNotifications(), [critical], "Critical notifications are not ignored");
 
       Prefs.notificationdata = {};
       registerHandler.call(this, [relentless]);
       return runner.runScheduledTasks(1);
-    }).then(() =>
-    {
+    }).then(() => {
       assert.deepEqual(showNotifications(), [relentless], "Relentless notifications are not ignored");
     }).catch(unexpectedError.bind(assert));
   });
 
-  it("Global ignore", function()
-  {
+  it("Global ignore", function() {
     let information = {
       id: 1,
       type: "information"
@@ -875,35 +818,30 @@ describe("Notifications", function()
 
     notifications.ignored = true;
     registerHandler.call(runner, [information]);
-    return runner.runScheduledTasks(1).then(() =>
-    {
+    return runner.runScheduledTasks(1).then(() => {
       assert.deepEqual(showNotifications(), [], "Information notifications are ignored when ignored flag is set");
 
       Prefs.notificationdata = {};
       registerHandler.call(runner, [critical]);
       return runner.runScheduledTasks(1);
-    }).then(() =>
-    {
+    }).then(() => {
       assert.deepEqual(showNotifications(), [critical], "Critical notifications are not ignored");
 
       Prefs.notificationdata = {};
       registerHandler.call(this, [relentless]);
       return runner.runScheduledTasks(1);
-    }).then(() =>
-    {
+    }).then(() => {
       assert.deepEqual(showNotifications(), [relentless], "Relentless notifications are not ignored");
     }).catch(unexpectedError.bind(assert));
   });
 
-  it("Message without localization", function()
-  {
+  it("Message without localization", function() {
     let notification = {message: "non-localized"};
     let texts = notifications.getLocalizedTexts(notification);
     assert.equal(texts.message, "non-localized");
   });
 
-  it("Language only", function()
-  {
+  it("Language only", function() {
     let notification = {message: {fr: "fr"}};
     notifications.locale = "fr";
     let texts = notifications.getLocalizedTexts(notification);
@@ -913,8 +851,7 @@ describe("Notifications", function()
     assert.equal(texts.message, "fr");
   });
 
-  it("Language and country", function()
-  {
+  it("Language and country", function() {
     let notification = {message: {"fr": "fr", "fr-CA": "fr-CA"}};
     notifications.locale = "fr-CA";
     let texts = notifications.getLocalizedTexts(notification);
@@ -924,8 +861,7 @@ describe("Notifications", function()
     assert.equal(texts.message, "fr");
   });
 
-  it("Missing translation", function()
-  {
+  it("Missing translation", function() {
     let notification = {message: {"en-US": "en-US"}};
     notifications.locale = "fr";
     let texts = notifications.getLocalizedTexts(notification);

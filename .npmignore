@@ -1,0 +1,10 @@
+/build/
+/chromium-snapshots/
+/firefox-snapshots/
+/build/docs/tutorials/snippet-filter-tutorial.md
+/coverage/
+/docs/
+/test/
+benchmark.js
+minify.js
+test_runner.mjs

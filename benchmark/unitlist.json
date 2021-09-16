@@ -1,0 +1,1348 @@
+{
+  "SCRIPT": {
+    "args": [
+      [
+        "svpressa.ru"
+      ],
+      "https://data.giraff.io/track/msvpressaru.js?r=&u=https%3A%2F%2Fsvpressa.ru%2Fpersons%2Faleksandr-tkachev%2F&rand=0.6613109282908787&v=20200731002007&callback=cbGeo31379111&sp=b",
+      "SCRIPT",
+      null,
+      null,
+      false
+    ]
+  },
+  "IMAGE01": {
+    "args": [
+      [],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE2": {
+    "args": [
+      [
+        "abc"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "abc"
+    ]
+  },
+  "IMAGE3": {
+    "args": [
+      [
+        "abc",
+        "ddd"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "abc"
+    ]
+  },
+  "IMAGE4": {
+    "args": [
+      [
+        "ddd",
+        "abc"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "abc"
+    ]
+  },
+  "IMAGE5": {
+    "args": [
+      [
+        "ddd",
+        "abd"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE6": {
+    "args": [
+      [
+        "abc",
+        "://abc/d"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "://abc/d"
+    ]
+  },
+  "IMAGE7": {
+    "args": [
+      [
+        "://abc/d",
+        "abc"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "://abc/d"
+    ]
+  },
+  "IMAGE8": {
+    "args": [
+      [
+        "|http://"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "|http://"
+    ]
+  },
+  "IMAGE9": {
+    "args": [
+      [
+        "|http://abc"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "|http://abc"
+    ]
+  },
+  "IMAGE10": {
+    "args": [
+      [
+        "|abc"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE11": {
+    "args": [
+      [
+        "|/abc/def"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE12": {
+    "args": [
+      [
+        "/def|"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "/def|"
+    ]
+  },
+  "IMAGE13": {
+    "args": [
+      [
+        "/abc/def|"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "/abc/def|"
+    ]
+  },
+  "IMAGE14": {
+    "args": [
+      [
+        "/abc/|"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE15": {
+    "args": [
+      [
+        "http://abc/|"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE16": {
+    "args": [
+      [
+        "|http://abc/def|"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "|http://abc/def|"
+    ]
+  },
+  "IMAGE17": {
+    "args": [
+      [
+        "|/abc/def|"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE18": {
+    "args": [
+      [
+        "|http://abc/|"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE19": {
+    "args": [
+      [
+        "|/abc/|"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE20": {
+    "args": [
+      [
+        "||example.com/abc"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "||example.com/abc"
+    ]
+  },
+  "IMAGE21": {
+    "args": [
+      [
+        "||com/abc/def"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "||com/abc/def"
+    ]
+  },
+  "IMAGE22": {
+    "args": [
+      [
+        "||com/abc"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "||com/abc"
+    ]
+  },
+  "IMAGE23": {
+    "args": [
+      [
+        "||com^"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "||com^"
+    ]
+  },
+  "IMAGE24": {
+    "args": [
+      [
+        "||com^"
+      ],
+      "http://com-example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "||com^"
+    ]
+  },
+  "IMAGE25": {
+    "args": [
+      [
+        "||mple.com/abc"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE26": {
+    "args": [
+      [
+        "||.com/abc/def"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE27": {
+    "args": [
+      [
+        "||http://example.com/"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE28": {
+    "args": [
+      [
+        "||example.com/abc/def|"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "||example.com/abc/def|"
+    ]
+  },
+  "IMAGE29": {
+    "args": [
+      [
+        "||com/abc/def|"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "||com/abc/def|"
+    ]
+  },
+  "IMAGE30": {
+    "args": [
+      [
+        "||example.com/abc|"
+      ],
+      "http://example.com/abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE31": {
+    "args": [
+      [
+        "abc",
+        "://abc/d",
+        "asdf1234"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "://abc/d"
+    ]
+  },
+  "IMAGE32": {
+    "args": [
+      [
+        "foo*://abc/d",
+        "foo*//abc/de",
+        "://abc/de",
+        "asdf1234"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "://abc/de"
+    ]
+  },
+  "IMAGE33": {
+    "args": [
+      [
+        "abc$third-party",
+        "abc$~third-party",
+        "ddd"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "abc$~third-party"
+    ]
+  },
+  "IMAGE34": {
+    "args": [
+      [
+        "abc$third-party",
+        "abc$~third-party",
+        "ddd"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      "other-domain",
+      null,
+      false,
+      "abc$third-party"
+    ]
+  },
+  "IMAGE35": {
+    "args": [
+      [
+        "//abc/def$third-party",
+        "//abc/def$~third-party",
+        "//abc_def"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "//abc/def$~third-party"
+    ]
+  },
+  "IMAGE36": {
+    "args": [
+      [
+        "//abc/def$third-party",
+        "//abc/def$~third-party",
+        "//abc_def"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      "other-domain",
+      null,
+      false,
+      "//abc/def$third-party"
+    ]
+  },
+  "IMAGE37": {
+    "args": [
+      [
+        "abc$third-party",
+        "abc$~third-party",
+        "//abc/def"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      "other-domain",
+      null,
+      false,
+      "//abc/def"
+    ]
+  },
+  "IMAGE38": {
+    "args": [
+      [
+        "//abc/def",
+        "abc$third-party",
+        "abc$~third-party"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      "other-domain",
+      null,
+      false,
+      "//abc/def"
+    ]
+  },
+  "IMAGE39": {
+    "args": [
+      [
+        "abc$third-party",
+        "abc$~third-party",
+        "//abc/def$third-party"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      "other-domain",
+      null,
+      false,
+      "//abc/def$third-party"
+    ]
+  },
+  "IMAGE40": {
+    "args": [
+      [
+        "abc$third-party",
+        "abc$~third-party",
+        "//abc/def$third-party"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "abc$~third-party"
+    ]
+  },
+  "IMAGE41": {
+    "args": [
+      [
+        "abc$third-party",
+        "abc$~third-party",
+        "//abc/def$~third-party"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      "other-domain",
+      null,
+      false,
+      "abc$third-party"
+    ]
+  },
+  "IMAGE42": {
+    "args": [
+      [
+        "abc$image",
+        "abc$script",
+        "abc$~image"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "abc$image"
+    ]
+  },
+  "IMAGE43": {
+    "args": [
+      [
+        "abc$image",
+        "abc$script",
+        "abc$~script"
+      ],
+      "http://abc/def",
+      "SCRIPT",
+      null,
+      null,
+      false,
+      "abc$script"
+    ]
+  },
+  "OTHER1": {
+    "args": [
+      [
+        "abc$image",
+        "abc$script",
+        "abc$~image"
+      ],
+      "http://abc/def",
+      "OTHER",
+      null,
+      null,
+      false,
+      "abc$~image"
+    ]
+  },
+  "IMAGE45": {
+    "args": [
+      [
+        "//abc/def$image",
+        "//abc/def$script",
+        "//abc/def$~image"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "//abc/def$image"
+    ]
+  },
+  "SCRIPT2": {
+    "args": [
+      [
+        "//abc/def$image",
+        "//abc/def$script",
+        "//abc/def$~script"
+      ],
+      "http://abc/def",
+      "SCRIPT",
+      null,
+      null,
+      false,
+      "//abc/def$script"
+    ]
+  },
+  "OTHER3": {
+    "args": [
+      [
+        "//abc/def$image",
+        "//abc/def$script",
+        "//abc/def$~image"
+      ],
+      "http://abc/def",
+      "OTHER",
+      null,
+      null,
+      false,
+      "//abc/def$~image"
+    ]
+  },
+  "IMAGE46": {
+    "args": [
+      [
+        "abc$image",
+        "abc$~image",
+        "//abc/def"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "//abc/def"
+    ]
+  },
+  "IMAGE47": {
+    "args": [
+      [
+        "//abc/def",
+        "abc$image",
+        "abc$~image"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "//abc/def"
+    ]
+  },
+  "IMAGE48": {
+    "args": [
+      [
+        "abc$image",
+        "abc$~image",
+        "//abc/def$image"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "//abc/def$image"
+    ]
+  },
+  "IMAGE49": {
+    "args": [
+      [
+        "abc$image",
+        "abc$~image",
+        "//abc/def$script"
+      ],
+      "http://abc/def",
+      "IMAGE",
+      null,
+      null,
+      false,
+      "abc$image"
+    ]
+  },
+  "IMAGE50": {
+    "args": [
+      [
+        "abc$domain=foo.com",
+        "abc$domain=bar.com",
+        "abc$domain=~foo.com|~bar.com"
+      ],
+      "http://foo.com/abc/def",
+      "IMAGE",
+      "foo.com",
+      null,
+      false,
+      "abc$domain=foo.com"
+    ]
+  },
+  "IMAGE51": {
+    "args": [
+      [
+        "abc$domain=foo.com",
+        "abc$domain=bar.com",
+        "abc$domain=~foo.com|~bar.com"
+      ],
+      "http://bar.com/abc/def",
+      "IMAGE",
+      "bar.com",
+      null,
+      false,
+      "abc$domain=bar.com"
+    ]
+  },
+  "IMAGE52": {
+    "args": [
+      [
+        "abc$domain=foo.com",
+        "abc$domain=bar.com",
+        "abc$domain=~foo.com|~bar.com"
+      ],
+      "http://baz.com/abc/def",
+      "IMAGE",
+      "baz.com",
+      null,
+      false,
+      "abc$domain=~foo.com|~bar.com"
+    ]
+  },
+  "IMAGE100": {
+    "args": [
+      [
+        "abc$domain=foo.com",
+        "cba$domain=bar.com",
+        "ccc$domain=~foo.com|~bar.com"
+      ],
+      "http://foo.com/abc/def",
+      "IMAGE",
+      "foo.com",
+      null,
+      false,
+      "abc$domain=foo.com"
+    ]
+  },
+  "IMAGE53": {
+    "args": [
+      [
+        "abc$domain=foo.com",
+        "cba$domain=bar.com",
+        "ccc$domain=~foo.com|~bar.com"
+      ],
+      "http://bar.com/abc/def",
+      "IMAGE",
+      "bar.com",
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE54": {
+    "args": [
+      [
+        "abc$domain=foo.com",
+        "cba$domain=bar.com",
+        "ccc$domain=~foo.com|~bar.com"
+      ],
+      "http://baz.com/abc/def",
+      "IMAGE",
+      "baz.com",
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE55": {
+    "args": [
+      [
+        "abc$domain=foo.com",
+        "cba$domain=bar.com",
+        "ccc$domain=~foo.com|~bar.com"
+      ],
+      "http://baz.com/ccc/def",
+      "IMAGE",
+      "baz.com",
+      null,
+      false,
+      "ccc$domain=~foo.com|~bar.com"
+    ]
+  },
+  "IMAGE56": {
+    "args": [
+      [
+        "abc$sitekey=foo-publickey",
+        "abc$sitekey=bar-publickey"
+      ],
+      "http://foo.com/abc/def",
+      "IMAGE",
+      "foo.com",
+      "foo-publickey",
+      false,
+      "abc$sitekey=foo-publickey"
+    ]
+  },
+  "IMAGE57": {
+    "args": [
+      [
+        "abc$sitekey=foo-publickey",
+        "abc$sitekey=bar-publickey"
+      ],
+      "http://bar.com/abc/def",
+      "IMAGE",
+      "bar.com",
+      "bar-publickey",
+      false,
+      "abc$sitekey=bar-publickey"
+    ]
+  },
+  "IMAGE58": {
+    "args": [
+      [
+        "abc$sitekey=foo-publickey",
+        "cba$sitekey=bar-publickey"
+      ],
+      "http://bar.com/abc/def",
+      "IMAGE",
+      "bar.com",
+      "bar-publickey",
+      false,
+      null
+    ]
+  },
+  "IMAGE59": {
+    "args": [
+      [
+        "abc$sitekey=foo-publickey",
+        "cba$sitekey=bar-publickey"
+      ],
+      "http://baz.com/abc/def",
+      "IMAGE",
+      "baz.com",
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE60": {
+    "args": [
+      [
+        "abc$sitekey=foo-publickey,domain=foo.com",
+        "abc$sitekey=bar-publickey,domain=bar.com"
+      ],
+      "http://foo.com/abc/def",
+      "IMAGE",
+      "foo.com",
+      "foo-publickey",
+      false,
+      "abc$sitekey=foo-publickey,domain=foo.com"
+    ]
+  },
+  "IMAGE61": {
+    "args": [
+      [
+        "abc$sitekey=foo-publickey,domain=foo.com",
+        "abc$sitekey=bar-publickey,domain=bar.com"
+      ],
+      "http://foo.com/abc/def",
+      "IMAGE",
+      "foo.com",
+      "bar-publickey",
+      false,
+      null
+    ]
+  },
+  "IMAGE62": {
+    "args": [
+      [
+        "abc$sitekey=foo-publickey,domain=foo.com",
+        "abc$sitekey=bar-publickey,domain=bar.com"
+      ],
+      "http://bar.com/abc/def",
+      "IMAGE",
+      "bar.com",
+      "foo-publickey",
+      false,
+      null
+    ]
+  },
+  "IMAGE63": {
+    "args": [
+      [
+        "abc$sitekey=foo-publickey,domain=foo.com",
+        "abc$sitekey=bar-publickey,domain=bar.com"
+      ],
+      "http://bar.com/abc/def",
+      "IMAGE",
+      "bar.com",
+      "bar-publickey",
+      false,
+      "abc$sitekey=bar-publickey,domain=bar.com"
+    ]
+  },
+  "DOCUMENT": {
+    "args": [
+      [
+        "@@foo.com$document"
+      ],
+      "http://foo.com/bar",
+      "DOCUMENT",
+      "foo.com",
+      null,
+      false,
+      "@@foo.com$document"
+    ]
+  },
+  "ELEMHIDE": {
+    "args": [
+      [
+        "@@foo.com$elemhide"
+      ],
+      "http://foo.com/bar",
+      "ELEMHIDE",
+      "foo.com",
+      null,
+      false,
+      "@@foo.com$elemhide"
+    ]
+  },
+  "GENERICHIDE": {
+    "args": [
+      [
+        "@@foo.com$generichide"
+      ],
+      "http://foo.com/bar",
+      "GENERICHIDE",
+      "foo.com",
+      null,
+      false,
+      "@@foo.com$generichide"
+    ]
+  },
+  "GENERICBLOCK": {
+    "args": [
+      [
+        "@@foo.com$genericblock"
+      ],
+      "http://foo.com/bar",
+      "GENERICBLOCK",
+      "foo.com",
+      null,
+      false,
+      "@@foo.com$genericblock"
+    ]
+  },
+  "DOCUMENT2": {
+    "args": [
+      [
+        "@@bar.com$document"
+      ],
+      "http://foo.com/bar",
+      "DOCUMENT",
+      "foo.com",
+      null,
+      false,
+      null
+    ]
+  },
+  "ELEMHIDE2": {
+    "args": [
+      [
+        "@@bar.com$elemhide"
+      ],
+      "http://foo.com/bar",
+      "ELEMHIDE",
+      "foo.com",
+      null,
+      false,
+      null
+    ]
+  },
+  "GENERICHIDE2": {
+    "args": [
+      [
+        "@@bar.com$generichide"
+      ],
+      "http://foo.com/bar",
+      "GENERICHIDE",
+      "foo.com",
+      null,
+      false,
+      null
+    ]
+  },
+  "GENERICBLOCK2": {
+    "args": [
+      [
+        "@@bar.com$genericblock"
+      ],
+      "http://foo.com/bar",
+      "GENERICBLOCK",
+      "foo.com",
+      null,
+      false,
+      null
+    ]
+  },
+  "IMAGE64": {
+    "args": [
+      [
+        "/bar"
+      ],
+      "http://foo.com/bar",
+      "IMAGE",
+      "foo.com",
+      null,
+      true,
+      null
+    ]
+  },
+  "IMAGE65": {
+    "args": [
+      [
+        "/bar$domain=foo.com"
+      ],
+      "http://foo.com/bar",
+      "IMAGE",
+      "foo.com",
+      null,
+      true,
+      "/bar$domain=foo.com"
+    ]
+  },
+  "IMAGE66": {
+    "args": [
+      [
+        "@@||foo.com^"
+      ],
+      "http://foo.com/bar",
+      "IMAGE",
+      "foo.com",
+      null,
+      false,
+      null,
+      "@@||foo.com^"
+    ]
+  },
+  "IMAGE67": {
+    "args": [
+      [
+        "/bar",
+        "@@||foo.com^"
+      ],
+      "http://foo.com/bar",
+      "IMAGE",
+      "foo.com",
+      null,
+      false,
+      "@@||foo.com^"
+    ]
+  },
+  "IMAGE1": {
+    "args": [
+      [
+        "/bar",
+        "@@||foo.com^"
+      ],
+      "http://foo.com/foo",
+      "IMAGE",
+      "foo.com",
+      null,
+      false,
+      null,
+      "@@||foo.com^"
+    ]
+  },
+  "POPUP": {
+    "args": [
+      [
+        "||foo.com^$popup"
+      ],
+      "http://foo.com/bar",
+      "POPUP",
+      "foo.com",
+      null,
+      false,
+      "||foo.com^$popup"
+    ]
+  },
+  "POPUP2": {
+    "args": [
+      [
+        "@@||foo.com^$popup"
+      ],
+      "http://foo.com/bar",
+      "POPUP",
+      "foo.com",
+      null,
+      false,
+      null,
+      "@@||foo.com^$popup"
+    ]
+  },
+  "POPUP3": {
+    "args": [
+      [
+        "||foo.com^$popup",
+        "@@||foo.com^$popup"
+      ],
+      "http://foo.com/bar",
+      "POPUP",
+      "foo.com",
+      null,
+      false,
+      "@@||foo.com^$popup",
+      "||foo.com^$popup"
+    ]
+  },
+  "CSP": {
+    "args": [
+      [
+        "||foo.com^$csp=script-src 'none'"
+      ],
+      "http://foo.com/bar",
+      "CSP",
+      "foo.com",
+      null,
+      false,
+      "||foo.com^$csp=script-src 'none'"
+    ]
+  },
+  "CSP2": {
+    "args": [
+      [
+        "@@||foo.com^$csp"
+      ],
+      "http://foo.com/bar",
+      "CSP",
+      "foo.com",
+      null,
+      false,
+      null,
+      "@@||foo.com^$csp"
+    ]
+  },
+  "CSP3": {
+    "args": [
+      [
+        "||foo.com^$csp=script-src 'none'",
+        "@@||foo.com^$csp"
+      ],
+      "http://foo.com/bar",
+      "CSP",
+      "foo.com",
+      null,
+      false,
+      "@@||foo.com^$csp",
+      "||foo.com^$csp=script-src 'none'"
+    ]
+  },
+  "HEADER": {
+    "args": [
+      [
+        "||example.com/ad.js$header=content-type:.*image/png"
+      ],
+      "http://example.com/ad.js",
+      "HEADER",
+      "example.com",
+      null,
+      false,
+      "||example.com/ad.js$header=content-type:.*image/png"
+    ]
+  },
+  "HEADER2": {
+    "args": [
+      [
+        "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"
+      ],
+      "http://example.com/ad.js",
+      "HEADER",
+      "bar.com",
+      null,
+      true,
+      "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"
+    ]
+  },
+  "HEADER3": {
+    "args": [
+      [
+        "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"
+      ],
+      "http://example.com/ad.js",
+      "HEADER",
+      "bar.com",
+      null,
+      false,
+      "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"
+    ]
+  },
+  "HEADER4": {
+    "args": [
+      [
+        "@@||example.com/assets/*.js$header"
+      ],
+      "http://example.com/assets/logo.js",
+      "HEADER",
+      "example.com",
+      null,
+      false,
+      null,
+      "@@||example.com/assets/*.js$header"
+    ]
+  },
+  "HEADER5": {
+    "args": [
+      [
+        "||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com",
+        "@@||example.com/assets/logo.js$header"
+      ],
+      "http://example.com/assets/logo.js",
+      "HEADER",
+      "bar.com",
+      null,
+      false,
+      "@@||example.com/assets/logo.js$header",
+      "||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com"
+    ]
+  },
+  "SCRIPT3": {
+    "args": [
+      [
+        "^foo/bar/$script"
+      ],
+      "http://foo/bar/",
+      "SCRIPT",
+      "example.com",
+      null,
+      true,
+      null
+    ]
+  },
+  "SCRIPT4": {
+    "args": [
+      [
+        "^foo/bar/$script"
+      ],
+      "http://foo/bar/",
+      "SCRIPT",
+      "example.com",
+      null,
+      false,
+      "^foo/bar/$script"
+    ]
+  },
+  "SCRIPT5": {
+    "args": [
+      [
+        "^foo/bar/$script,domain=example.com",
+        "@@^foo/bar/$script"
+      ],
+      "http://foo/bar/",
+      "SCRIPT",
+      "example.com",
+      null,
+      true,
+      "@@^foo/bar/$script",
+      "^foo/bar/$script,domain=example.com"
+    ]
+  },
+  "SCRIPT6": {
+    "args": [
+      [
+        "@@^foo/bar/$script",
+        "^foo/bar/$script,domain=example.com"
+      ],
+      "http://foo/bar/",
+      "SCRIPT",
+      "example.com",
+      null,
+      true,
+      "@@^foo/bar/$script",
+      "^foo/bar/$script,domain=example.com"
+    ]
+  },
+  "SCRIPT7": {
+    "args": [
+      [
+        "@@^foo/bar/$script",
+        "^foo/bar/$script,domain=example.com"
+      ],
+      "http://foo/bar/",
+      "SCRIPT",
+      "example.com",
+      null,
+      false,
+      "@@^foo/bar/$script"
+    ]
+  },
+  "DOCUMENT4": {
+    "args": [
+      [
+        "@@||*$document"
+      ],
+      "http://foo/bar/",
+      "DOCUMENT",
+      "example.com",
+      null,
+      false,
+      "@@||*$document"
+    ]
+  }
+}
