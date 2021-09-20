@@ -31,7 +31,7 @@ beforeEach(function() {
   );
 });
 
-describe("filterState.isEnabled()", function() {
+describe("filterState.isEnabled() without subscription", function() {
   context("No state", function() {
     it("should return true for enabled filter", function() {
       assert.strictEqual(filterState.isEnabled("||example.com^"), true);
@@ -385,9 +385,153 @@ describe("filterState.isEnabled()", function() {
       assert.strictEqual(filterState.isEnabled("||example.com^"), false);
     });
   });
+
+  context("State: disabledSubscriptions = ['~user']", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabledSubscriptions: ["~user"]});
+    });
+
+    it("should return true for disabled filter", function() {
+      assert.strictEqual(filterState.isEnabled("||example.com^"), true);
+    });
+
+    it("should return false after filter is disabled globally", function() {
+      filterState.setEnabled("||example.com^", false);
+
+      assert.strictEqual(filterState.isEnabled("||example.com^"), false);
+    });
+  });
 });
 
-describe("filterState.setEnabled()", function() {
+describe("filterState.isDisabledForSubscription()", function() {
+  context("No state", function() {
+    it("should return false for enabled filter", function() {
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), false);
+    });
+
+    it("should return false after filter's enabled state is reset", function() {
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), false);
+    });
+
+    it("should return true after filter is disabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), true);
+    });
+
+    it("should return false after filter is disabled for a different subscription", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~easylist"), false);
+    });
+
+    it("should still return true for isEnabled without a subscription if a filter is disabled for a specified subscription", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+
+      assert.strictEqual(filterState.isEnabled("||example.com^"), true);
+    });
+
+    it("should return false after filter is re-enabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), false);
+    });
+
+    it("should return true after filter is re-disabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+      filterState.setDisabledForSubscription("||example.com^", "~easylist", true);
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+      filterState.setDisabledForSubscription("||example.com^", "~easylist", false);
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), true);
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~easylist"), false);
+    });
+
+    it("should return false after filter is disabled and filter's enabled state is reset", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), false);
+    });
+  });
+
+  context("State: disabled = true, for migrating from old disabling method", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabled: true});
+    });
+
+    it("should return true for disabled filter", function() {
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), true);
+    });
+
+    it("should return false after filter is enabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), false);
+    });
+
+    it("should only disable one subscription if disable is called again", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), true);
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~easylist"), false);
+    });
+  });
+
+  context("State: disabledSubscriptions = ['~user']", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabledSubscriptions: ["~user"]});
+    });
+
+    it("should return true for disabled filter", function() {
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), true);
+    });
+
+    it("should return false for disabled filter on other subscriptions", function() {
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~easylist"), false);
+    });
+
+    it("should return false after filter's enabled state is reset", function() {
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), false);
+    });
+
+    it("should return false after filter is enabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), false);
+    });
+
+    it("should return true after filter is re-disabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), true);
+    });
+
+    it("should return false after filter is re-enabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), false);
+    });
+
+    it("should return false after filter is enabled and filter's enabled state is reset", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+      filterState.resetEnabled("||example.com^");
+
+      assert.strictEqual(filterState.isDisabledForSubscription("||example.com^", "~user"), false);
+    });
+  });
+});
+
+describe("filterState.setEnabled() without subscription", function() {
   let events = null;
 
   function checkEvents(func, expectedEvents = []) {
@@ -532,6 +676,11 @@ describe("filterState.setEnabled()", function() {
                   [["||example.com^", true, false]]);
     });
 
+    it("should not emit filterState.enabled when filter is enabled for a subscription", function() {
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", false),
+                  [["||example.com^", true, false]]);
+    });
+
     it("should not emit filterState.enabled when filter is enabled after filter's enabled state is reset", function() {
       filterState.resetEnabled("||example.com^");
 
@@ -597,6 +746,155 @@ describe("filterState.setEnabled()", function() {
 
       checkEvents(() => filterState.setEnabled("||example.com^", true),
                   [["||example.com^", true, false]]);
+    });
+  });
+
+  context("State: disabledSubscriptions = ['~user']", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabledSubscriptions: ["~user"]});
+    });
+
+    it("should not emit filterState.enabled when filter is enabled", function() {
+      checkEvents(() => filterState.setEnabled("||example.com^", true),
+                  []);
+    });
+
+    it("should emit filterState.enabled when filter is disabled", function() {
+      checkEvents(() => filterState.setEnabled("||example.com^", false),
+                  [["||example.com^", false, true]]);
+    });
+  });
+});
+
+describe("filterState.setDisabledForSubscription()", function() {
+  let events = null;
+
+  function checkEvents(func, expectedEvents = []) {
+    events = [];
+
+    func();
+
+    assert.deepEqual(events, expectedEvents);
+  }
+
+  beforeEach(function() {
+    let sandboxedRequire = createSandbox();
+    (
+      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
+    );
+
+    filterNotifier.on("filterState.disabledSubscriptions", (...args) => events.push(args));
+  });
+
+  context("No state", function() {
+    it("should emit filterState.disabledSubscriptions when filter is disabled", function() {
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", true),
+                  [["||example.com^", new Set(["~user"]), new Set()]]);
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is reenabled for one subscription", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+      filterState.setDisabledForSubscription("||example.com^", "~easylist", true);
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", false),
+                  [["||example.com^", new Set(["~easylist"]), new Set(["~user", "~easylist"])]]);
+    });
+
+    it("should not emit filterState.disabledSubscriptions when filter is enabled", function() {
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", false));
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is re-enabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", false),
+                  [["||example.com^", new Set(), new Set(["~user"])]]);
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is re-disabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", true),
+                  [["||example.com^", new Set(["~user"]), new Set()]]);
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is disabled after filter's enabled state is reset", function() {
+      filterState.resetEnabled("||example.com^");
+
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", true),
+                  [["||example.com^", new Set(["~user"]), new Set()]]);
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is disabled after filter state is reset", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+      filterState.reset("||example.com^");
+
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", true),
+                  [["||example.com^", new Set(["~user"]), new Set()]]);
+    });
+  });
+
+  context("State: disabled = true", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabled: true});
+    });
+
+    it("should not emit filterState.disabledSubscriptions when filter is enabled", function() {
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", false),
+                  []);
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is disabled for a specific subscription", function() {
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", true),
+                  [["||example.com^", new Set(["~user"]), new Set()]]);
+    });
+  });
+
+  context("State: disabledSubscriptions = ['~user']", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabledSubscriptions: ["~user"]});
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is enabled", function() {
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", false),
+                  [["||example.com^", new Set(), new Set(["~user"])]]);
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is disabled for a second subscription", function() {
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~easylist", true),
+                  [["||example.com^", new Set(["~user", "~easylist"]), new Set(["~user"])]]);
+    });
+
+    it("should not emit filterState.disabledSubscriptions when filter is disabled", function() {
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", true));
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is re-disabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", true),
+                  [["||example.com^", new Set(["~user"]), new Set()]]);
+    });
+
+    it("should emit filterState.disabledSubscriptions when filter is re-enabled", function() {
+      filterState.setDisabledForSubscription("||example.com^", "~user", false);
+      filterState.setDisabledForSubscription("||example.com^", "~user", true);
+
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", false),
+                  [["||example.com^", new Set(), new Set(["~user"])]]);
+    });
+
+    it("should not emit filterState.disabledSubscriptions when filter is enabled after filter's enabled state is reset", function() {
+      filterState.resetEnabled("||example.com^");
+
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", false));
+    });
+
+    it("should not emit filterState.disabledSubscriptions when filter is enabled after filter state is reset", function() {
+      filterState.reset("||example.com^");
+
+      checkEvents(() => filterState.setDisabledForSubscription("||example.com^", "~user", false));
     });
   });
 });
@@ -791,6 +1089,17 @@ describe("filterState.toggleEnabled()", function() {
 
       checkEvents(() => filterState.toggleEnabled("||example.com^"),
                   [["||example.com^", true, false]]);
+    });
+  });
+
+  context("State: disabledSubscriptions = ['~user']", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabledSubscriptions: ["~user"]});
+    });
+
+    it("should emit filterState.enabled when filter's enabled state is toggled", function() {
+      checkEvents(() => filterState.toggleEnabled("||example.com^"),
+                  [["||example.com^", false, true]]);
     });
   });
 });
@@ -1751,8 +2060,8 @@ describe("filterState.reset()", function() {
 
 
   context("No state", function() {
-    it("should not emit filterState.disabled when filter is reset", function() {
-      filterNotifier.on("filterState.disabled", argsFor("filterState.disabled"));
+    it("should not emit filterState.enabled when filter is reset", function() {
+      filterNotifier.on("filterState.enabled", argsFor("filterState.enabled"));
 
       checkEvents(() => filterState.reset("||example.com^"));
     });
@@ -1775,8 +2084,8 @@ describe("filterState.reset()", function() {
       filterState.fromObject("||example.com^", {disabled: false});
     });
 
-    it("should not emit filterState.disabled when filter is reset", function() {
-      filterNotifier.on("filterState.disabled", argsFor("filterState.disabled"));
+    it("should not emit filterState.enabled when filter is reset", function() {
+      filterNotifier.on("filterState.enabled", argsFor("filterState.enabled"));
       checkEvents(() => filterState.reset("||example.com^"));
     });
   });
@@ -1786,11 +2095,25 @@ describe("filterState.reset()", function() {
       filterState.fromObject("||example.com^", {disabled: true});
     });
 
-    it("should emit filterState.disabled when filter is reset", function() {
-      filterNotifier.on("filterState.disabled", argsFor("filterState.disabled"));
+    it("should emit filterState.enabled when filter is reset", function() {
+      filterNotifier.on("filterState.enabled", argsFor("filterState.enabled"));
       checkEvents(
         () => filterState.reset("||example.com^"),
-        [["filterState.disabled", "||example.com^", false, true]]
+        [["filterState.enabled", "||example.com^", true, false]]
+      );
+    });
+  });
+
+  context("State: disabledSubscriptions = ['~user']", function() {
+    beforeEach(function() {
+      filterState.fromObject("||example.com^", {disabledSubscriptions: ["~user"]});
+    });
+
+    it("should not filterState.enabled when filter is reset", function() {
+      filterNotifier.on("filterState.enabled", argsFor("filterState.enabled"));
+      checkEvents(
+        () => filterState.reset("||example.com^"),
+        []
       );
     });
   });
@@ -2102,7 +2425,7 @@ describe("filterState.setLastHit()", function() {
     it("should update state when lastHit is set", function() {
       filterState.setLastHit("||example.com^", 1);
       let state = filterState.map.get("||example.com^");
-      assert.strictEqual(state.disabled, false);
+      assert.strictEqual(state.disabled, undefined);
       assert.strictEqual(state.hitCount, 0);
       assert.strictEqual(state.lastHit, 1);
     });
@@ -2176,7 +2499,7 @@ describe("filterState.resetLastHit()", function() {
     let originalFunc = filterState.setLastHit;
     let wrapperFunc = function(...args) {
       calls.push(args);
-      return originalFunc(...args);
+      return originalFunc.call(this, args);
     };
     filterState.setLastHit = wrapperFunc.bind(filterState);
 
@@ -2206,6 +2529,12 @@ describe("filterState.fromObject()", function() {
     assert.strictEqual(state.disabled, true);
   });
 
+  it("sets state.disabledSubscriptions from array of strings", function() {
+    filterState.fromObject("||example.com^", {disabledSubscriptions: ["~user", "~easylist"]});
+    let state = filterState.map.get("||example.com^");
+    assert.deepEqual(state.disabledSubscriptions, new Set(["~user", "~easylist"]));
+  });
+
   it("sets state.hitCount", function() {
     filterState.fromObject("||example.com^", {hitCount: 1});
     let state = filterState.map.get("||example.com^");
@@ -2229,6 +2558,12 @@ describe("filterState.fromObject()", function() {
 
   it("deletes state when it is reset", function() {
     filterState.fromObject("||example.com^", {disabled: false, lastHit: 0, hitCount: 0});
+    let state = filterState.map.get("||example.com^");
+    assert.strictEqual(state, undefined);
+  });
+
+  it("deletes state when it is reset with empty disabled array", function() {
+    filterState.fromObject("||example.com^", {disabled: [], lastHit: 0, hitCount: 0});
     let state = filterState.map.get("||example.com^");
     assert.strictEqual(state, undefined);
   });
@@ -2266,6 +2601,16 @@ describe("filterState.serialize()", function() {
       filterState.fromObject("||example.com^", {disabled: false, lastHit: 1, hitCount: 1});
 
       let expectedResults = ["[Filter]", "text=||example.com^", "hitCount=1", "lastHit=1"];
+      for (let line of filterState.serialize("||example.com^"))
+        assert.strictEqual(line, expectedResults.shift());
+
+      assert.strictEqual(expectedResults.length, 0);
+    });
+
+    it("returns disabledSubscriptions if it has value", function() {
+      filterState.fromObject("||example.com^", {disabledSubscriptions: ["~user", "~easylist"]});
+
+      let expectedResults = ["[Filter]", "text=||example.com^", "disabledSubscriptions[]=~user", "disabledSubscriptions[]=~easylist"];
       for (let line of filterState.serialize("||example.com^"))
         assert.strictEqual(line, expectedResults.shift());
 

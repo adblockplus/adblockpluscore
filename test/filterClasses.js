@@ -60,6 +60,8 @@ describe("Filter classes", function() {
     }
     else if (filter instanceof ActiveFilter) {
       result.push("disabled=" + filter.disabled);
+      for (let disabledSubscription of filter.disabledSubscriptions)
+        result.push("disabledSubscriptions[]=" + disabledSubscription);
       result.push("lastHit=" + filter.lastHit);
       result.push("hitCount=" + filter.hitCount);
 
@@ -254,6 +256,16 @@ describe("Filter classes", function() {
       ["type=blocking", "text=blabla_non_default", "disabled=true", "hitCount=12", "lastHit=20"],
       filter => {
         filter.disabled = true;
+        filter.hitCount = 12;
+        filter.lastHit = 20;
+      }
+    );
+    compareFilter(
+      "blabla_non_default",
+      ["type=blocking", "text=blabla_non_default", "disabledSubscriptions[]=~user", "disabledSubscriptions[]=~easylist", "hitCount=12", "lastHit=20"],
+      filter => {
+        filter.setDisabledForSubscription("~user", true);
+        filter.setDisabledForSubscription("~easylist", true);
         filter.hitCount = 12;
         filter.lastHit = 20;
       }
