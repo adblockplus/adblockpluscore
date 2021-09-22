@@ -30,6 +30,7 @@ let defaultMatcher = null;
 let SpecialSubscription = null;
 let recommendations = null;
 let filterState = null;
+let elemHideExceptions = null;
 
 describe("Filter listener", function() {
   // {module:matcher.findKeyword()} will not do what you expect.
@@ -62,7 +63,6 @@ describe("Filter listener", function() {
     for (let filter of elemHide._filters)
       result.elemhide.push(filter.text);
 
-    let {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions");
     result.elemhideexception = [];
     for (let exception of elemHideExceptions._exceptions)
       result.elemhideexception.push(exception.text);
@@ -97,6 +97,7 @@ describe("Filter listener", function() {
       {IO} = sandboxedRequire("./stub-modules/io"),
       {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine"),
+      {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions"),
       {defaultMatcher} = sandboxedRequire(LIB_FOLDER + "/matcher")
     );
   });
@@ -436,6 +437,23 @@ describe("Filter listener", function() {
 
       subscription3.disabled = false;
       checkKnownFilters("enable exception rules", {blocking: [filter1.text], allowing: [filter2.text]});
+    });
+
+    it("Can add and remove a large subscription", function() {
+      let subscription = Subscription.fromURL("https://test");
+
+      let filterText = [];
+      for (let i = 0; i < 20000; i++)
+        filterText.push(`example.com#@##id-${i}`);
+
+      subscription.updateFilterText(filterText);
+      assert.equal(elemHideExceptions._exceptions.size, 0);
+
+      filterStorage.addSubscription(subscription);
+      assert.equal(elemHideExceptions._exceptions.size, filterText.length);
+
+      filterStorage.removeSubscription(subscription);
+      assert.equal(elemHideExceptions._exceptions.size, 0);
     });
 
     it("Snippet filters", function() {
