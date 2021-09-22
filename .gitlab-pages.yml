@@ -41,7 +41,7 @@ pages:
     MASTER_ARTIFACT_URL: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/artifacts/master/download?job=pages"
     NEXT_ARTIFACT_URL: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/artifacts/next/download?job=pages"
   script:
-    - "UPDATES=`git ls-files --others --directory`"
+    - "UPDATES=docs"
     - echo $UPDATES
     - "mkdir public"
     # preserve the most recent public pages
@@ -51,14 +51,14 @@ pages:
     - "wget -q $NEXT_ARTIFACT_URL -O next.zip &&
        unzip -q next.zip -d next &&
        mv -t public next/public/next || true"
-    # Update this branch's publich page
+    # Update this branch's public page
     - mkdir -p public/$CI_COMMIT_REF_NAME
     - |
       for PART in $UPDATES
       do
         echo "Updating $PART"
         rm -rf public/$CI_COMMIT_REF_NAME/$PART
-        mv $PART public/$CI_COMMIT_REF_NAME/
+        mv build/$PART public/$CI_COMMIT_REF_NAME/
       done
   resource_group: pages
   artifacts:
