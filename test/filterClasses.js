@@ -664,6 +664,13 @@ describe("Filter classes", function() {
 
   it("Filters with wildcard domains", function() {
     // Blocking filters
+    compareFilter("||*", [
+      "type=blocking",
+      "text=||*",
+      "domains=",
+      "regexp=null"
+    ]);
+
     compareFilter("||example.com^$domain=example.*", [
       "type=blocking",
       "text=||example.com^$domain=example.*",
