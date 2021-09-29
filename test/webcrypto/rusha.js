@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 (function () {
     var /*
  * Rusha, a JavaScript implementation of the Secure Hash Algorithm, SHA-1,

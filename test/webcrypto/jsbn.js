@@ -29,7 +29,11 @@
  * and disclaimer.
  */
 
+/* eslint-disable */
+
 // Basic JavaScript BN library - subset useful for RSA encryption.
+
+var navigator = {};
 
 // Bits per digit
 var dbits;
