@@ -20,7 +20,7 @@ these resources, you'll need to regenerate the file
 
 Adding the new resource for `$redirect`:
 
-* Edit `build/assets/index.json`. The fields are defined as follow:
+* Edit `data/resources/index.json`. The fields are defined as follow:
   * `name`: The name of the resource as used for the `$rewrite` filter option.
   * `type`: The MIME type of the content.
   * `text`: If the resource is pure text, you can use this for the text
@@ -29,7 +29,7 @@ Adding the new resource for `$redirect`:
     in the output as base64. If there is a `text` value, don't include this.
   * `comment`: an optional comment. This won't be part of the output.
 * Add the binary files referenced in the `file` entry for the new resource in
-  `build/assets/`. They should be checked into the repository.
+  `data/resources/`. They should be checked into the repository.
 * Run the `resources` package script using npm with the command
   `npm run uppdate-resources`. This will generate the file
   `data/resources.json`. This file is also managed by the version control
