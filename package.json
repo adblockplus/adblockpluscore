@@ -14,7 +14,7 @@
     "chrome-remote-interface": "^0.30.0",
     "chromedriver": "2.36.0",
     "dmg": "0.1.0",
-    "eslint": "^7.4.0",
+    "eslint": "^7.32.0",
     "eslint-config-eyeo": "^3.1.0",
     "extract-zip": "^2.0.0",
     "geckodriver": "^2.0.4",
