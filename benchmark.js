@@ -64,7 +64,7 @@ let profilerReporter = function(list) {
 }.bind(filterBenchmarkData);
 
 const profiler = require("./lib/profiler");
-profiler.enable(true, profilerReporter, false);
+profiler.enable(true, profilerReporter);
 
 const {filterEngine} = require("./lib/filterEngine");
 const {Filter} = require("./lib/filterClasses");
@@ -207,6 +207,50 @@ async function performMatchingBenchmark() {
   console.log(`Matching heap (total): ${dataToSaveForTimestamp[`Matching_${matchListCase}`]["HeapTotal"]}`);
 }
 
+async function performInitializationBenchmark() {
+  let lists = [];
+  switch (filterListName) {
+    case "EasyList":
+      lists.push(EASY_LIST);
+      break;
+    case "EasyList+AA":
+      lists.push(EASY_LIST);
+      lists.push(AA);
+      break;
+    case "All":
+      lists.push(EASY_LIST);
+      lists.push(AA);
+      lists.push(EASYPRIVACY);
+      lists.push(TESTPAGES);
+      break;
+  }
+
+  console.log("## " + filterListName);
+  let filters = [];
+
+  if (lists.length > 0) {
+    for (let list of lists) {
+      let content = await helpers.loadFile(list);
+      filters = filters.concat(content.split(/[\r\n]+/).map(sliceString));
+    }
+  }
+
+  if (filters.length > 0) {
+    await filterEngine.initialize(filters);
+    // From Node16 onwards, the profiler doesn't provide a synchronous
+    // interface to profiling data. We register a callback in the
+    // benchmark initialization to provide the profiling measurements
+    // as they're available, and here we wait for them to actually be
+    // available before continuing.
+    await helpers.waitForProfilingResults(filterBenchmarkData);
+    // Call printMemory() asynchronously so GC can clean up any objects from
+    // here.
+    await new Promise(resolve => setTimeout(() => {
+      printMemory(); resolve();
+    }, 1000));
+  }
+}
+
 function getFlagValue(flag) {
   let value;
 
@@ -228,53 +272,22 @@ async function main() {
     await helpers.cleanBenchmarkData();
     return;
   }
+
   if (process.argv.some(arg => /^--save$/.test(arg))) {
     saveData = true;
     // Saving data that was initialized at the begining
     mergeAndSaveData(benchmarkResults);
   }
+
   if (process.argv.some(arg => /^--match$/.test(arg))) {
     await performMatchingBenchmark();
     mergeAndSaveData(benchmarkResults);
   }
   else {
-    let lists = [];
-    switch (filterListName) {
-      case "EasyList":
-        lists.push(EASY_LIST);
-        break;
-      case "EasyList+AA":
-        lists.push(EASY_LIST);
-        lists.push(AA);
-        break;
-      case "All":
-        lists.push(EASY_LIST);
-        lists.push(AA);
-        lists.push(EASYPRIVACY);
-        lists.push(TESTPAGES);
-        break;
-    }
-
-    console.log("## " + filterListName);
-    let filters = [];
-
-    if (lists.length > 0) {
-      for (let list of lists) {
-        let content = await helpers.loadFile(list);
-        filters = filters.concat(content.split(/[\r\n]+/).map(sliceString));
-      }
-    }
-
-    if (filters.length > 0) {
-      await filterEngine.initialize(filters);
-      // Call printMemory() asynchronously so GC can clean up any objects from
-      // here.
-      await new Promise(resolve => setTimeout(() => {
-        printMemory(); resolve();
-      }, 1000));
-      mergeAndSaveData(benchmarkResults);
-    }
+    await performInitializationBenchmark();
+    mergeAndSaveData(benchmarkResults);
   }
+
   if (process.argv.some(arg => /^--compare$/.test(arg)))
     helpers.compareResults(benchmarkDate);
 }

@@ -20,8 +20,7 @@
 const assert = require("assert");
 
 let {
-  createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
-  LIB_FOLDER
+  createSandbox, setupTimerAndFetch, setupRandomResult, LIB_FOLDER
 } = require("./_common");
 
 let filterStorage = null;
@@ -50,7 +49,7 @@ describe("Synchronizer", function() {
     profiler.enable(true, list => {
       for (let entry of list.getEntriesByType("measure"))
         events.push(entry);
-    }, false);
+    });
   });
 
   afterEach(function() {
@@ -67,28 +66,33 @@ describe("Synchronizer", function() {
       synchronizer.stop();
     });
 
-    it("Benchmarking events are fired", function() {
+    it("Benchmarking events are fired", async function() {
       runner.registerHandler("/subscription", metadata => {
         return [200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
       });
 
       let subscription = Subscription.fromURL("https://example.com/subscription");
       filterStorage.addSubscription(subscription);
+      await runner.runScheduledTasks(1);
 
-      return runner.runScheduledTasks(1).then(() => {
-        assert.equal(events.length, 7, "Benchmarking events count");
-        const eventTypes = events.map(event =>
-          event.name.slice(event.name.lastIndexOf(":") + 1));
-        assert.deepEqual(eventTypes, [
-          "startup",
-          "downloading.started_measure",
-          "downloading.finished_measure",
-          "parsing.started_measure",
-          "parsing.finished_measure",
-          "processing.started_measure",
-          "processing.finished_measure"
-        ], "Benchmarking event types");
-      }).catch(error => unexpectedError.call(assert, error));
+      // From node 16 onwards, the profiler no longer has a
+      // synchronous callback mode. This means that we need to await a
+      // timeout here to give the async callback an opportunity to
+      // run.
+      await new Promise(setImmediate);
+
+      assert.equal(events.length, 7, "Benchmarking events count");
+      const eventTypes = events.map(event =>
+        event.name.slice(event.name.lastIndexOf(":") + 1));
+      assert.deepEqual(eventTypes, [
+        "startup",
+        "downloading.started_measure",
+        "downloading.finished_measure",
+        "parsing.started_measure",
+        "parsing.finished_measure",
+        "processing.started_measure",
+        "processing.finished_measure"
+      ], "Benchmarking event types");
     });
   });
 });

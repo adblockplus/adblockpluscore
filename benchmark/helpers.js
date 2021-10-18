@@ -29,6 +29,19 @@ const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
 const TEMP_BENCHMARK_RESULTS = path.join(__dirname, "tempresults.json");
 const fs = require("fs");
 const https = require("https");
+const {performance} = require("perf_hooks");
+
+const PROFILING_RESULTS_KEYS = [
+  "FilterEngine:startup",
+  "FilterEngine:initialize_measure",
+  "FilterEngine:download_done_measure"
+];
+const HEAP_RESULTS_KEYS = [
+  "HeapUsed",
+  "HeapTotal"
+];
+const RESULTS_KEYS = PROFILING_RESULTS_KEYS.concat(HEAP_RESULTS_KEYS);
+
 let dataToSave = {};
 
 function loadDataFromFile(pathToLoad) {
@@ -114,17 +127,10 @@ exports.mergeToBenchmarkResults = function mergeToBenchmarkResults(
 
 exports.cleanBenchmarkData = async function cleanBenchmarkData() {
   console.log("Wait a sec, I am cleaning benchmark Data... ");
-  let keys = [
-    "FilterEngine:startup",
-    "FilterEngine:initialize_measure",
-    "FilterEngine:download_done_measure",
-    "HeapUsed",
-    "HeapTotal"
-  ];
 
   let minValues = {};
 
-  for (let key of keys) {
+  for (let key of RESULTS_KEYS) {
     minValues[`${key}Min`] = Number.MAX_SAFE_INTEGER;
     minValues[`${key}Timestamp`] = null;
   }
@@ -152,7 +158,7 @@ exports.cleanBenchmarkData = async function cleanBenchmarkData() {
     }
   }
   console.log("Min Values", minValues);
-  for (let key of keys) {
+  for (let key of RESULTS_KEYS) {
     if (!timestampsToSave.includes(minValues[`${key}Timestamp`]))
       timestampsToSave.push(minValues[`${key}Timestamp`]);
   }
@@ -182,22 +188,32 @@ function getValuesKeys(obj) {
   return uniqueWithoutGitKeys;
 }
 
-exports.compareResults = async function compareResults(currentRunTimestamp) {
-  let keys = [
-    "FilterEngine:startup",
-    "FilterEngine:initialize_measure",
-    "FilterEngine:download_done_measure",
-    "HeapUsed",
-    "HeapTotal"
-  ];
+exports.waitForProfilingResults =
+async function waitForProfilingResults(filterBenchmarkData,
+                                       pollingInterval = 10,
+                                       timeout = 1000) {
+  let missingProfileResults = () => PROFILING_RESULTS_KEYS
+    .filter(key => typeof filterBenchmarkData[key] === "undefined");
+  let profileResultsAllExist = () => missingProfileResults().length === 0;
 
+  let startTime = performance.now();
+  while (!profileResultsAllExist()) {
+    if (performance.now() - startTime > timeout) {
+      throw new Error("Timeout waiting for profiler results. " +
+                      `Missing measurements: ${missingProfileResults()}`);
+    }
+    await new Promise(resolve => setTimeout(resolve, pollingInterval));
+  }
+};
+
+exports.compareResults = async function compareResults(currentRunTimestamp) {
   let currentRunData = loadDataFromFile(TEMP_BENCHMARK_RESULTS);
   let dataToAnalyze = loadDataFromFile(BENCHMARK_RESULTS);
   let filterList = await getValuesKeys(dataToAnalyze);
   console.log(`┏${"━".repeat(87)}┓`);
 
-  for (let j = 0; j < keys.length; j++) {
-    let key = keys[j];
+  for (let j = 0; j < RESULTS_KEYS.length; j++) {
+    let key = RESULTS_KEYS[j];
 
     console.log(`┃${" ".repeat(33)}${key.padEnd(54, " ")}┃`);
     printTableSeparator("┳");
@@ -248,7 +264,7 @@ exports.compareResults = async function compareResults(currentRunTimestamp) {
         diff.toFixed(3)
       );
 
-      if (j == (keys.length - 1) && i == (filterList.length - 1)) {
+      if (j == (RESULTS_KEYS.length - 1) && i == (filterList.length - 1)) {
         printTableSeparator("┻", "┗", "┛");
         continue;
       }
