@@ -219,6 +219,9 @@ describe("Snippets", function() {
     checkParsedScript("Script ending with a backslash",
                       "foo Hello; bar 'How are you?' \\",
                       [["foo", "Hello"]]);
+    checkParsedScript("Script with a RegExp argument and flags",
+                      "foo /test/i",
+                      [["foo", "/test/i"]]);
   });
 
   it("Script compilation", function() {
