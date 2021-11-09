@@ -31,7 +31,6 @@ const tar = require("tar");
 const listUrl = "https://gitlab.com/eyeo/filterlists/subscriptionlist/" +
                 "-/archive/master/subscriptionlist-master.tar.gz";
 
-const filename = "data/subscriptions.json";
 const resultingKeys = new Set([
   "title",
   "url",
@@ -221,7 +220,7 @@ function postProcessSubscription(subscription) {
   }
 }
 
-async function main() {
+async function update(urlMapper, filename) {
   let root = await untar(listUrl);
   let languages = await parseValidLanguages(root);
   let tarFiles = await readdir(root);
@@ -236,8 +235,11 @@ async function main() {
     subscription != null && "title" in subscription
   );
 
-  for (let subscription of parsed)
+  for (let subscription of parsed) {
+    if (urlMapper != null)
+      subscription.url = urlMapper(subscription);
     postProcessSubscription(subscription);
+  }
 
   parsed.sort((a, b) =>
     a["type"].toLowerCase().localeCompare(b["type"]) ||
@@ -245,6 +247,27 @@ async function main() {
   );
   await writeFile(filename, JSON.stringify(parsed, null, 2), "utf8");
   await rmdir(root, {recursive: true});
+}
+
+async function main() {
+  let urlMapper;
+  let filename;
+  // the only optional argument is expected to be passed to separate MV2/ MV3
+  if (process.argv[2] === "mv3") {
+    urlMapper = function(subscription) {
+      // the URL endpoint is different for MV3 subscriptions:
+      // path is prefixed with "/mv3"
+      const url = new URL(subscription.url);
+      url.pathname = "/mv3" + url.pathname;
+      return url.toString();
+    };
+    filename = "data/subscriptionsMv3.json";
+  }
+  else {
+    urlMapper = null; // no mapping needed
+    filename = "data/subscriptions.json";
+  }
+  await update(urlMapper, filename);
 }
 
 if (require.main == module)
