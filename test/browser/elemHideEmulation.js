@@ -480,17 +480,6 @@ describe("Element hiding emulation", function() {
     }
   });
 
-  it("Pseudo-class: other pseudoclass selectors: match as expected", async function() {
-    let toNotHide = createElement(null, "div", "dont-hide");
-    let toHide = createElement(null, "div");
-
-    if (await applyElemHideEmulation(["div:not(#dont-hide)"])) {
-      expectVisible(toNotHide);
-      expectHidden(toHide);
-    }
-  });
-
-
   async function runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(selector, expectations) {
     testDocument.body.innerHTML = `<div id="parent">
         <div id="middle">
@@ -581,6 +570,90 @@ describe("Element hiding emulation", function() {
     };
     return runTestPseudoClassHasSelectorWithHasAndWithSuffixSibling(
       "div:-abp-has(> span:-abp-contains(Advertisment))", expectations);
+  });
+
+  it("Pseudo-class: not selector: match as expected", async function() {
+    let toNotHide = createElement(null, "div", "dont-hide");
+    let toHide = createElement(null, "div");
+
+    if (await applyElemHideEmulation(["div:not(#dont-hide)"])) {
+      expectVisible(toNotHide);
+      expectHidden(toHide);
+    }
+  });
+
+  it("Pseudo-class: not selector: match as expected with ancestor combinator", async function() {
+    let parent = createElement();
+    let toNotHide = createElement(parent, "span", "dont-hide");
+    let toHide = createElement(parent, "span");
+
+    if (await applyElemHideEmulation(["div :not(#dont-hide)"])) {
+      expectVisible(parent);
+      expectVisible(toNotHide);
+      expectHidden(toHide);
+    }
+  });
+
+  it("Pseudo-class: not selector: containing an :-abp-has selector", async function() {
+    let toHide = createElement();
+    createElement(toHide, "span");
+    let toShow = createElement();
+    createElement(toShow, "input");
+
+    if (await applyElemHideEmulation(["div:not(:-abp-has(> input))"])) {
+      expectVisible(toShow);
+      expectHidden(toHide);
+    }
+  });
+
+  it("Pseudo-class: not selector: containing an :has selector", async function() {
+    let toHide = createElement();
+    createElement(toHide, "span");
+    let toShow = createElement();
+    createElement(toShow, "input");
+
+    if (await applyElemHideEmulation(["div:not(:has(> input))"])) {
+      expectVisible(toShow);
+      expectHidden(toHide);
+    }
+  });
+
+  it("Pseudo-class: not selector: containing an :-abp-contains", async function() {
+    let toHide = createElement();
+    toHide.textContent = "hide me";
+    let toShow = createElement();
+    toShow.textContent = "show me";
+
+    if (await applyElemHideEmulation([":not(div:-abp-contains(show me))"])) {
+      expectVisible(toShow);
+      expectHidden(toHide);
+    }
+  });
+
+  it("Pseudo-class: not selector: containing a :has-text", async function() {
+    let toHide = createElement();
+    toHide.textContent = "hide me";
+    let toShow = createElement();
+    toShow.textContent = "show me";
+
+    if (await applyElemHideEmulation([":not(div:has-text(show me))"])) {
+      expectVisible(toShow);
+      expectHidden(toHide);
+    }
+  });
+
+  it("Pseudo-class: not selector: nested inside other pseudo-classes", async function() {
+    let toHide = createElement();
+    let toHideChild = createElement(toHide, "span");
+    toHideChild.textContent = "hide me";
+    let toShow = createElement();
+    let toShowChild = createElement(toHide, "span");
+    toShowChild.textContent = "show me";
+
+    if (await applyElemHideEmulation(["div:-abp-has(span:not(span:-abp-contains(show me)))"])) {
+      expectVisible(toShow);
+      expectHidden(toHide);
+    }
   });
 
   async function runTestQualifier(selector) {
