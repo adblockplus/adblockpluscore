@@ -20,7 +20,7 @@
 const {
   createReadStream,
   createWriteStream,
-  promises: {readdir, rmdir, unlink, writeFile}
+  promises: {readdir, rm, unlink, writeFile}
 } = require("fs");
 
 const path = require("path");
@@ -249,7 +249,7 @@ async function update(urlMapper, filename) {
     a["title"].localeCompare(b["title"])
   );
   await writeFile(filename, JSON.stringify(parsed, null, 2), "utf8");
-  await rmdir(root, {recursive: true});
+  await rm(root, {recursive: true});
 }
 
 async function main() {
