@@ -27,8 +27,8 @@ const path = require("path");
 const helpers = require("./benchmark/helpers.js");
 
 let saveData = false;
-let filterListName = getFlagValue("filter-list");
-let matchListCase = getFlagValue("match-list");
+let filterListName = helpers.getFlagValue("filter-list");
+let matchListCase = helpers.getFlagValue("match-list");
 let benchmarkDate = setTimestamp();
 
 // Holds benchmark results that will be merged into json file
@@ -71,23 +71,6 @@ const {Filter} = require("./lib/filterClasses");
 const {parseURL} = require("./lib/url");
 const {contentTypes} = require("./lib/contentTypes");
 
-const EASY_LIST = {
-  path: "benchmark/easylist.txt",
-  url: "https://easylist-downloads.adblockplus.org/easylist.txt"
-};
-const AA = {
-  path: "benchmark/exceptionrules.txt",
-  url: "https://easylist-downloads.adblockplus.org/exceptionrules.txt"
-};
-const EASYPRIVACY = {
-  path: "benchmark/easyprivacy.txt",
-  url: "https://easylist.to/easylist/easyprivacy.txt"
-};
-const TESTPAGES = {
-  path: "benchmark/testpages.txt",
-  url: "https://testpages.adblockplus.org/en/abp-testcase-subscription.txt"
-};
-
 const BENCHMARK_RESULTS = path.join(
   __dirname,
   "/benchmark/benchmarkresults.json"
@@ -109,7 +92,7 @@ function toMiB(numBytes) {
 }
 
 function setTimestamp() {
-  let date = getFlagValue("ts");
+  let date = helpers.getFlagValue("ts");
   if (date == null) {
     let currentdate = new Date();
     date = currentdate.toISOString();
@@ -185,7 +168,7 @@ async function performMatchingBenchmark() {
   for (let filter of matchFilterList) {
     let filterToMatch = require(`./benchmark/${filter}.json`);
     for (let key in filterToMatch) {
-      let rounds = getFlagValue("rounds");
+      let rounds = helpers.getFlagValue("rounds");
       if (rounds == null)
         rounds = 3;
 
@@ -207,25 +190,26 @@ async function performMatchingBenchmark() {
   console.log(`Matching heap (total): ${dataToSaveForTimestamp[`Matching_${matchListCase}`]["HeapTotal"]}`);
 }
 
-async function performInitializationBenchmark() {
-  let lists = [];
-  switch (filterListName) {
-    case "EasyList":
-      lists.push(EASY_LIST);
-      break;
-    case "EasyList+AA":
-      lists.push(EASY_LIST);
-      lists.push(AA);
-      break;
-    case "All":
-      lists.push(EASY_LIST);
-      lists.push(AA);
-      lists.push(EASYPRIVACY);
-      lists.push(TESTPAGES);
-      break;
-  }
+async function performInitializationBenchmark(filters) {
+  await filterEngine.initialize(filters);
+  // From Node16 onwards, the profiler doesn't provide a synchronous
+  // interface to profiling data. We register a callback in the
+  // benchmark initialization to provide the profiling measurements
+  // as they're available, and here we wait for them to actually be
+  // available before continuing.
+  await helpers.waitForProfilingResults(filterBenchmarkData);
+  // Call printMemory() asynchronously so GC can clean up any objects from
+  // here.
+  await new Promise(resolve => setTimeout(() => {
+    printMemory(); resolve();
+  }, 1000));
+}
 
+async function main() {
+  // Extract filter set to  array of filter lists
   console.log("## " + filterListName);
+  let lists = helpers.divideSetToArray(filterListName);
+
   let filters = [];
 
   if (lists.length > 0) {
@@ -234,40 +218,6 @@ async function performInitializationBenchmark() {
       filters = filters.concat(content.split(/[\r\n]+/).map(sliceString));
     }
   }
-
-  if (filters.length > 0) {
-    await filterEngine.initialize(filters);
-    // From Node16 onwards, the profiler doesn't provide a synchronous
-    // interface to profiling data. We register a callback in the
-    // benchmark initialization to provide the profiling measurements
-    // as they're available, and here we wait for them to actually be
-    // available before continuing.
-    await helpers.waitForProfilingResults(filterBenchmarkData);
-    // Call printMemory() asynchronously so GC can clean up any objects from
-    // here.
-    await new Promise(resolve => setTimeout(() => {
-      printMemory(); resolve();
-    }, 1000));
-  }
-}
-
-function getFlagValue(flag) {
-  let value;
-
-  process.argv
-      .slice(2, process.argv.length)
-      .forEach(arg => {
-        if (arg.slice(0, 2) === "--") {
-          const longArg = arg.split("=");
-          if (longArg[0].slice(2, longArg[0].length) == flag)
-            value = longArg.length > 1 ? longArg[1] : true;
-        }
-      });
-
-  return value;
-}
-
-async function main() {
   if (process.argv.some(arg => /^--cleanup$/.test(arg))) {
     await helpers.cleanBenchmarkData();
     return;
@@ -283,8 +233,8 @@ async function main() {
     await performMatchingBenchmark();
     mergeAndSaveData(benchmarkResults);
   }
-  else {
-    await performInitializationBenchmark();
+  else if (lists.length > 0) {
+    await performInitializationBenchmark(filters);
     mergeAndSaveData(benchmarkResults);
   }
 

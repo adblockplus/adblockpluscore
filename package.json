@@ -34,9 +34,9 @@
   "scripts": {
     "jsdoc": "jsdoc --configure .jsdoc.conf --destination build/docs lib",
     "docs": "npm run jsdoc",
-    "benchmark:easylist": "node --expose-gc benchmark.js --filter-list=EasyList --dt",
-    "benchmark:easylist+AA": "node --expose-gc benchmark.js --filter-list=EasyList+AA --dt",
-    "benchmark:allFilters": "node --expose-gc benchmark.js --filter-list=All --dt",
+    "benchmark:easylist": "FL=\"EasyList\"; node benchmark/list-checker.js --filter-list=$FL && node --expose-gc benchmark.js --filter-list=$FL --dt",
+    "benchmark:easylist+AA": "FL=\"EasyList+AA\"; node benchmark/list-checker.js --filter-list=$FL && node --expose-gc benchmark.js --filter-list=$FL --dt",
+    "benchmark:allFilters": "FL=\"All\"; node benchmark/list-checker.js --filter-list=$FL && node --expose-gc benchmark.js --filter-list=$FL --dt",
     "benchmark:match:slowlist": "node --expose-gc benchmark.js --match-list=slowlist --match --rounds=3 --dt",
     "benchmark:match:unitlist": "node --expose-gc benchmark.js --match-list=unitlist --match --rounds=3 --dt",
     "benchmark:match:all": "node --expose-gc benchmark.js --match-list=all --match --rounds=3 --dt",

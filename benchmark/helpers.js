@@ -31,6 +31,24 @@ const fs = require("fs");
 const https = require("https");
 const {performance} = require("perf_hooks");
 
+const EASY_LIST = {
+  path: "./benchmark/easylist.txt",
+  url: "https://easylist-downloads.adblockplus.org/easylist.txt"
+};
+const AA = {
+  path: "./benchmark/exceptionrules.txt",
+  url: "https://easylist-downloads.adblockplus.org/exceptionrules.txt"
+};
+const EASYPRIVACY = {
+  path: "./benchmark/easyprivacy.txt",
+  url: "https://easylist.to/easylist/easyprivacy.txt"
+};
+const TESTPAGES = {
+  path: "./benchmark/testpages.txt",
+  url: "https://testpages.adblockplus.org/en/abp-testcase-subscription.txt"
+};
+
+
 const PROFILING_RESULTS_KEYS = [
   "FilterEngine:startup",
   "FilterEngine:initialize_measure",
@@ -56,6 +74,21 @@ function loadDataFromFile(pathToLoad) {
   return data;
 }
 
+exports.getFlagValue = function getFlagValue(flag) {
+  let value;
+  process.argv
+        .slice(2, process.argv.length)
+        .forEach(arg => {
+          if (arg.slice(0, 2) === "--") {
+            const longArg = arg.split("=");
+            if (longArg[0].slice(2, longArg[0].length) == flag)
+              value = longArg.length > 1 ? longArg[1] : true;
+          }
+        });
+
+  return value;
+};
+
 exports.saveToFile = async function
 saveToFile(data, fileCleanup = false, pathToFile) {
   if (fileCleanup)
@@ -69,16 +102,22 @@ exports.loadFile = async function loadFile(list) {
     return await fs.promises.readFile(list.path, "utf8");
   }
   catch (error) {
-    console.log(`Hey, we're downloading the file once, 
-    hold on for a second. Downloading from url: ${list.url}`);
-    let data = await download(list.url);
-    let listPath = path.join(__dirname, list.path.replace("benchmark", ""));
-    await fs.promises.writeFile(listPath, data);
-    return data;
+    console.log(`Hey, looks like you don't have filter list ${list.path} cached.
+    Please run benchmark-entrypoint.sh --filter-list=<filterList> to download it`);
   }
 };
 
-function download(url) {
+exports.checkIfFileExists = function checkIfFileExists(pathToFile){
+  try {
+    if (fs.existsSync(pathToFile))
+      return true;
+  }
+  catch (err) {
+    return false;
+  }
+};
+
+exports.downloadFile = async function downloadFile(url) {
   return new Promise((resolve, reject) => {
     let request = https.request(url);
 
@@ -99,7 +138,20 @@ function download(url) {
 
     request.end();
   });
-}
+};
+
+exports.divideSetToArray = function divideSetToArray(setName) {
+  switch (setName) {
+    case "EasyList":
+      return [EASY_LIST];
+    case "EasyList+AA":
+      return [EASY_LIST, AA];
+    case "All":
+      return [EASY_LIST, AA, EASYPRIVACY, TESTPAGES];
+    default:
+      throw new Error(`Sorry, cannot find set ${setName}.`);
+  }
+};
 
 function deepMerge(object1, object2) {
   for (let key of Object.keys(object2)) {
