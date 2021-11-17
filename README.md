@@ -238,3 +238,42 @@ async function main()
 if (require.main == module)
   main();
 ```
+
+Manifest V3: subscriptions
+==========================
+
+1.Generate the list of subscription
+
+Run
+```
+npm run update-subscriptions:mv3
+```
+to generate a list of subscriptions supported at eyeo's back-end.
+Edit the generated `data/subscriptionsMv3.json` file if needed.
+
+2.Fetch the filter rules
+
+Run
+```
+npm run fetch-subscriptions
+```
+to download all the ABP filter rules listed in the `data/subscriptions` file.
+Add the ABP filter rules files to `data/subscriptions/ABP` directory if needed.
+
+3.Convert the ABP filter rules files to DNR static rules
+
+Run
+```
+npm run convert-subscriptions
+```
+to convert all the files in `data/subscriptions/ABP` directory from ABP to DNR syntax.
+Add the DNR filter rules files to `data/subscriptions/DNR` directory if needed.
+
+4.Generate DNR filter rules declaration code snippet
+
+Run
+```
+npm run generate-subscriptions-snippet
+```
+to generate the file `/data/subscriptions/snippet.json` with a snippet to be used
+in a web extension manifest (`declarative_net_request` part).
