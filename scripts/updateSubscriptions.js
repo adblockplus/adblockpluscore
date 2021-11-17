@@ -31,6 +31,9 @@ const tar = require("tar");
 const listUrl = "https://gitlab.com/eyeo/filterlists/subscriptionlist/" +
                 "-/archive/master/subscriptionlist-master.tar.gz";
 
+const outputDir = "data";
+const filenameMv2 = outputDir + "/subscriptions.json";
+const filenameMv3 = outputDir + "/subscriptionsMv3.json";
 const resultingKeys = new Set([
   "title",
   "url",
@@ -261,14 +264,16 @@ async function main() {
       url.pathname = "/mv3" + url.pathname;
       return url.toString();
     };
-    filename = "data/subscriptionsMv3.json";
+    filename = filenameMv3;
   }
   else {
     urlMapper = null; // no mapping needed
-    filename = "data/subscriptions.json";
+    filename = filenameMv2;
   }
   await update(urlMapper, filename);
 }
 
 if (require.main == module)
   main();
+
+exports.filenameMv3 = filenameMv3;

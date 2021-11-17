@@ -8,3 +8,4 @@ benchmark/benchmarkresults.json
 /dist/
 benchmark/tempresults.json
 .DS_Store
+data/subscriptions
