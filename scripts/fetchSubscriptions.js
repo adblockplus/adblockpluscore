@@ -77,6 +77,12 @@ async function main() {
   }
   await mkdir(outputDir);
 
+  if (!existsSync(filenameMv3)) {
+    throw(new Error(
+      `Subscriptions file (${filenameMv3}) does not exist. ` +
+      "Run `npm run \"update-subscriptions:mv3\"` to generate it."));
+  }
+
   console.info("Downloading started");
   let subscriptions = await JSON.parse(await readFile(filenameMv3));
   for (let key in subscriptions) {
