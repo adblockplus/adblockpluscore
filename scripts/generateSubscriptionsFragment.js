@@ -20,7 +20,7 @@
 "use strict";
 
 const {
-  readdirSync,
+  readdirSync, existsSync,
   promises: {writeFile}
 } = require("fs");
 const path = require("path");
@@ -29,6 +29,11 @@ const {outputDir: convertOutputDir} = require("./convertSubscriptions.js");
 const outputFile = "data/subscriptions/fragment.json";
 
 function generateFragment(space = 2) {
+  if (!existsSync(convertOutputDir)) {
+    throw new Error(`DNR rules directory (${convertOutputDir}) does not exist. ` +
+      "Run `npm run \"convert-subscriptions\"` to generate it.");
+  }
+
   let files = readdirSync(convertOutputDir);
   let fragment = {rule_resources: []};
   for (let key in files) {
