@@ -54,7 +54,8 @@
     "updatepsl": "node scripts/updatepsl.js",
     "update-subscriptions:mv2": "node scripts/updateSubscriptions.js mv2",
     "update-subscriptions:mv3": "node scripts/updateSubscriptions.js mv3",
-    "fetch-subscriptions": "node scripts/fetchSubscriptions.js"
+    "fetch-subscriptions": "node scripts/fetchSubscriptions.js",
+    "generate-subscriptions-fragment": "node scripts/generateSubscriptionsFragment.js"
   },
   "main": "lib"
 }
