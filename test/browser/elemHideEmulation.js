@@ -20,7 +20,7 @@
 
 const {ElemHideEmulation, setTestMode, clearTestMode,
        getTestInfo} = require("../../lib/content/elemHideEmulation");
-const {timeout} = require("./_utils");
+const {timeout, waitFor} = require("./_utils");
 
 const {assert} = chai;
 
@@ -1396,14 +1396,15 @@ describe("Element hiding emulation", function() {
       let allHidden = toHide.every(elem => isHidden(elem));
       assert.ok(!allHidden,
                 "Elements were all hidden without the thread being yielded");
+      assert.ok(elemHideEmulation._filteringInProgress,
+                "_filteringInProgress was not set even though not everything is hidden");
 
-      // most tests would not require a timeout immediately after
-      // applyElemHideEmulation because the selectors and pages are
-      // simple enough to process entirely within the
-      // maxSynchronousProcessingTime. However, in this test, we've
-      // set that to 0, so it will be yielding the thread back to us
-      // in the middle of processing filters.
-      await timeout(REFRESH_INTERVAL);
+      try {
+        await waitFor(() => !elemHideEmulation._filteringInProgress);
+      }
+      catch (e) {
+        assert.fail("Timeout waiting for filtering to be completed");
+      }
 
       for (let elem of toHide)
         expectHidden(elem);
