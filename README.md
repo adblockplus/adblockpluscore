@@ -273,7 +273,7 @@ Add the DNR filter rules files to `data/subscriptions/DNR` directory if needed.
 
 Run
 ```
-npm run generate-subscriptions-snippet
+npm run generate-subscriptions-fragment
 ```
 to generate the file `/data/subscriptions/snippet.json` with a snippet to be used
 in a web extension manifest (`declarative_net_request` part).
