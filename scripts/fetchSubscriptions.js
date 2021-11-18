@@ -31,7 +31,7 @@ const outputDir = "data/subscriptions";
 
 async function download(url, toFile) {
   console.info(`Downloading ${url} to ${toFile} ...`);
-  const proto = !url.charAt(4).localeCompare("s") ? https : http;
+  const proto = url.startsWith("https") ? https : http;
 
   return new Promise((resolve, reject) => {
     const file = createWriteStream(toFile);
