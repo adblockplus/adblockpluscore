@@ -66,7 +66,7 @@ async function download(url, toFile) {
   });
 }
 
-function subscriptionFile(subscription) {
+function getSubscriptionFile(subscription) {
   return subscription.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
 }
 
@@ -87,7 +87,7 @@ async function main() {
   let subscriptions = await JSON.parse(await readFile(filenameMv3));
   for (let key in subscriptions) {
     let subscription = subscriptions[key];
-    let toFile = `${outputDir}/${subscriptionFile(subscription)}.txt`;
+    let toFile = `${outputDir}/${getSubscriptionFile(subscription)}.txt`;
     await download(subscription.url, toFile);
   }
   console.info("Downloading finished");
