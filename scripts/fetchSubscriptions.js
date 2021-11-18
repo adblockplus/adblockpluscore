@@ -27,7 +27,7 @@ const {
 const http = require("http");
 const https = require("https");
 
-const outputDir = "data/subscriptions";
+const outputDir = "data/subscriptions/ABP";
 
 async function download(url, toFile) {
   console.info(`Downloading ${url} to ${toFile} ...`);
@@ -75,7 +75,7 @@ async function main() {
     console.warn("Cleaning subscriptions dir ...");
     await rm(outputDir, {recursive: true});
   }
-  await mkdir(outputDir);
+  await mkdir(outputDir, {recursive: true});
 
   if (!existsSync(filenameMv3)) {
     throw new Error(
