@@ -48,6 +48,8 @@ function generateFragment(space = 2) {
       path: getFilePath(file)
     });
   }
+  if (fragment.rule_resources.length === 0)
+    console.warn("No static rules generated.");
   return JSON.stringify(fragment, null, space);
 }
 
