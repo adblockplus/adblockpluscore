@@ -28,13 +28,13 @@ const {outputDir: convertOutputDir} = require("./convertSubscriptions.js");
 
 const outputFile = "data/subscriptions/fragment.json";
 
-function generateFragment(space = 2) {
-  if (!existsSync(convertOutputDir)) {
-    throw new Error(`DNR rules directory (${convertOutputDir}) does not exist. ` +
+function generateFragment(dir, space = 2) {
+  if (!existsSync(dir)) {
+    throw new Error(`DNR rules directory (${dir}) does not exist. ` +
       "Run `npm run \"convert-subscriptions\"` to generate it.");
   }
 
-  let files = readdirSync(convertOutputDir);
+  let files = readdirSync(dir);
   let fragment = {rule_resources: []};
   for (let key in files) {
     let file = files[key];
@@ -62,7 +62,7 @@ function getFilePath(file) {
 }
 
 async function main() {
-  let fragmentJson = generateFragment();
+  let fragmentJson = generateFragment(convertOutputDir);
   await writeFile(outputFile, fragmentJson, "utf8");
   console.log(`Web extension manifest fragment file (${outputFile}) generated.`);
 }
