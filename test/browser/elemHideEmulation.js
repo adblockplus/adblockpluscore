@@ -20,7 +20,7 @@
 
 const {ElemHideEmulation, setTestMode, clearTestMode,
        getTestInfo} = require("../../lib/content/elemHideEmulation");
-const {timeout} = require("./_utils");
+const {timeout, waitFor} = require("./_utils");
 
 const {assert} = chai;
 
@@ -48,6 +48,10 @@ describe("Element hiding emulation", function() {
     testDocument = null;
     clearTestMode();
   });
+
+  function isHidden(element) {
+    return window.getComputedStyle(element).display == "none";
+  }
 
   function expectHidden(element, id) {
     let withId = "";
@@ -1389,10 +1393,19 @@ describe("Element hiding emulation", function() {
     ];
     let selectors = ["div", "p"];
     if (await applyElemHideEmulation(selectors)) {
-      elemHideEmulation.maxSynchronousProcessingTime = 0;
-      toHide.push(createElement(null, "div"));
+      let allHidden = toHide.every(elem => isHidden(elem));
+      assert.ok(!allHidden,
+                "Elements were all hidden without the thread being yielded");
+      assert.ok(elemHideEmulation._filteringInProgress,
+                "_filteringInProgress was not set even though not everything is hidden");
 
-      await timeout(REFRESH_INTERVAL);
+      try {
+        await waitFor(() => !elemHideEmulation._filteringInProgress);
+      }
+      catch (e) {
+        assert.fail("Timeout waiting for filtering to be completed");
+      }
+
       for (let elem of toHide)
         expectHidden(elem);
     }
