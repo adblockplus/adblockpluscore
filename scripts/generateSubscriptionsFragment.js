@@ -61,7 +61,6 @@ function getFilePath(file) {
 
 async function main() {
   let fragmentJson = generateFragment();
-  console.info(fragmentJson);
   await writeFile(outputFile, fragmentJson, "utf8");
   console.log(`Web extension manifest fragment file (${outputFile}) generated.`);
 }
