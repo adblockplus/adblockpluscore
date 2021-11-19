@@ -27,7 +27,7 @@ const path = require("path");
 
 const {generateFragment} = require("../../scripts/generateSubscriptionsFragment");
 
-describe("Script", function() {
+describe("generateSubscriptionsFragment script", function() {
   let tmpDir;
   let originalConsole;
   let warnings;
@@ -76,7 +76,7 @@ describe("Script", function() {
     assert.strictEqual(warnings.length, 1);
   });
 
-  it("should return ignore not .json files", async function() {
+  it("should ignore not .json files", async function() {
     createRuleFile("jsfile.js");
     assert.strictEqual(
       generateFragment(tmpDir, null),
