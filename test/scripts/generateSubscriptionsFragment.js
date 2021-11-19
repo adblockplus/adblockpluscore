@@ -20,7 +20,7 @@
 const assert = require("assert");
 const {
   existsSync, openSync,
-  promises: {rm, mkdtemp}
+  promises: {rmdir, mkdtemp}
 } = require("fs");
 const os = require("os");
 const path = require("path");
@@ -45,7 +45,7 @@ describe("Script", function() {
 
   afterEach(async function() {
     if (existsSync(tmpDir))
-      await rm(tmpDir, {recursive: true});
+      await rmdir(tmpDir, {recursive: true});
     console = originalConsole;
   });
 
@@ -58,7 +58,7 @@ describe("Script", function() {
   }
 
   it("should throw an error if rules directory does not exist", async function() {
-    await rm(tmpDir, {recursive: true});
+    await rmdir(tmpDir, {recursive: true});
     assert.throws(() => generateFragment(tmpDir), Error);
   });
 
