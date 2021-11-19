@@ -38,7 +38,7 @@ function generateFragment(space = 2) {
   let fragment = {rule_resources: []};
   for (let key in files) {
     let file = files[key];
-    if (!file.endsWith(".json")) {
+    if (path.extname(file) !== ".json") {
       console.warn(`Not .json file (${file}) skipped`);
       continue;
     }
