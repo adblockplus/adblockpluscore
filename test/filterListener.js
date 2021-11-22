@@ -31,6 +31,7 @@ let SpecialSubscription = null;
 let recommendations = null;
 let filterState = null;
 let elemHideExceptions = null;
+let elemHide = null;
 
 describe("Filter listener", function() {
   // {module:matcher.findKeyword()} will not do what you expect.
@@ -58,7 +59,6 @@ describe("Filter listener", function() {
       result[type] = filters;
     }
 
-    let {elemHide} = sandboxedRequire(LIB_FOLDER + "/elemHide");
     result.elemhide = [];
     for (let filter of elemHide._filters)
       result.elemhide.push(filter.text);
@@ -97,6 +97,7 @@ describe("Filter listener", function() {
       {IO} = sandboxedRequire("./stub-modules/io"),
       {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine"),
+      {elemHide} = sandboxedRequire(LIB_FOLDER + "/elemHide"),
       {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions"),
       {defaultMatcher} = sandboxedRequire(LIB_FOLDER + "/matcher")
     );
@@ -439,7 +440,23 @@ describe("Filter listener", function() {
       checkKnownFilters("enable exception rules", {blocking: [filter1.text], allowing: [filter2.text]});
     });
 
-    it("Can add and remove a large subscription", function() {
+    it("Can add and remove a large element hide subscription", function() {
+      let subscription = Subscription.fromURL("https://test");
+      let filterText = [];
+      for (let i = 0; i < 20000; i++)
+        filterText.push(`example.com###id-${i}`);
+
+      subscription.updateFilterText(filterText);
+      assert.equal(elemHide._filters.size, 0);
+
+      filterStorage.addSubscription(subscription);
+      assert.equal(elemHide._filters.size, filterText.length);
+
+      filterStorage.removeSubscription(subscription);
+      assert.equal(elemHide._filters.size, 0);
+    });
+
+    it("Can add and remove a large element hide exception subscription", function() {
       let subscription = Subscription.fromURL("https://test");
 
       let filterText = [];
@@ -454,6 +471,78 @@ describe("Filter listener", function() {
 
       filterStorage.removeSubscription(subscription);
       assert.equal(elemHideExceptions._exceptions.size, 0);
+    });
+
+    it("Can add and remove a large blocking subscription", function() {
+      let subscription = Subscription.fromURL("https://test");
+
+      let filterText = [];
+      for (let i = 0; i < 2000; i++){
+        let text = `//example.com/id-${i}/`;
+        let filter = Filter.fromText(text);
+        filterText.push(text);
+        subscription.addFilter(filter);
+      }
+
+      filterStorage.addSubscription(subscription);
+      checkKnownFilters("add subscription", {blocking: filterText, allowing: []});
+
+      filterStorage.removeSubscription(subscription);
+      checkKnownFilters("remove subscription", {});
+    });
+
+    it("Can add and remove a large allowing subscription", function() {
+      let subscription = Subscription.fromURL("https://test1");
+
+      let filterText = [];
+      for (let i = 0; i < 2000; i++){
+        let text = `@@example.com/id-${i}/`;
+        let filter = Filter.fromText(text);
+        filterText.push(text);
+        subscription.addFilter(filter);
+      }
+
+      filterStorage.addSubscription(subscription);
+      checkKnownFilters("add subscription", {blocking: [], allowing: filterText});
+
+      filterStorage.removeSubscription(subscription);
+      checkKnownFilters("remove subscription", {});
+    });
+
+    it("Can add and remove a large elem-hide emulation subscription", function() {
+      let subscription = Subscription.fromURL("https://test1");
+
+      let filterText = [];
+      for (let i = 0; i < 2000; i++){
+        let text = `example.com#?#:-abp-properties(filter${i})/`;
+        let filter = Filter.fromText(text);
+        filterText.push(text);
+        subscription.addFilter(filter);
+      }
+
+      filterStorage.addSubscription(subscription);
+      checkKnownFilters("add elem hide emulation subscription", {blocking: [], allowing: [], elemhideemulation: filterText});
+
+      filterStorage.removeSubscription(subscription);
+      checkKnownFilters("remove subscription", {});
+    });
+
+    it("Can add and remove a large elem-hide emulation exception subscription", function() {
+      let subscription = Subscription.fromURL("https://test1");
+
+      let filterText = [];
+      for (let i = 0; i < 2000; i++) {
+        let text = `example.com#@#[-abp-properties='filter${i}']/`;
+        let filter = Filter.fromText(text);
+        filterText.push(text);
+        subscription.addFilter(filter);
+      }
+
+      filterStorage.addSubscription(subscription);
+      checkKnownFilters("add elem hide emulation exception subscription", {blocking: [], allowing: [], elemhideemulation: [], elemhideexception: filterText});
+
+      filterStorage.removeSubscription(subscription);
+      checkKnownFilters("remove subscription", {});
     });
 
     it("Snippet filters", function() {
