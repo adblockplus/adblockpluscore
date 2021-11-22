@@ -80,7 +80,7 @@ describe("updateSubscriptions script", function() {
   async function assertSubscriptions(assertCallback) {
     let fileUrlPath = "/data/subscriptionlist-master.tar.gz";
     let data = await readFile("test/data/subscriptionlist-master.tar.gz");
-    configureHttpServer(fileUrlPath, data); // simulate HTTP error
+    configureHttpServer(fileUrlPath, data);
     await startHttpServer();
 
     let toFile = path.join(tmpDir, "subscriptions_mv3.json");
