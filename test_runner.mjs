@@ -193,7 +193,8 @@ function spawnScript(name, ...args) {
 (async function() {
   let paths = process.argv.length > 2 ? process.argv.slice(2) :
                 [path.join(dirname, "test"),
-                 path.join(dirname, "test", "browser")];
+                 path.join(dirname, "test", "browser"),
+                 path.join(dirname, "test", "scripts")];
   addTestPaths(paths, true);
 
   try {
