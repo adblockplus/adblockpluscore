@@ -6,6 +6,7 @@
   "engines": {
     "node": ">=12.17.0"
   },
+  "dependencies": {},
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "c8": "^7.1.2",
