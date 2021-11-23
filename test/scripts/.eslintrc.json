@@ -1,15 +1,5 @@
 {
-  "env": {
-    "mocha": true,
-    "node": true
-  },
   "rules": {
-    "max-len": "off",
-    "no-console": "off",
-    "no-global-assign": "off",
-    "prefer-arrow-callback": "off"
-  },
-  "parserOptions": {
-    "ecmaVersion": 2018
+    "no-global-assign": "off"
   }
 }
