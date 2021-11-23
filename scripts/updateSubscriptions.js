@@ -226,8 +226,8 @@ function postProcessSubscription(subscription) {
   }
 }
 
-async function update(remoteUrl, urlMapper, filename) {
-  let root = await untar(remoteUrl);
+async function update(urlMapper, filename) {
+  let root = await untar(listUrl);
   let languages = await parseValidLanguages(root);
   let tarFiles = await readdir(root);
 
@@ -280,12 +280,13 @@ async function main() {
     urlMapper = null; // no mapping needed
     filename = filenameMv2;
   }
-  await update(listUrl, urlMapper, filename);
+  await update(urlMapper, filename);
 }
 
 if (require.main == module)
   main();
 
+exports.listUrl = listUrl;
 exports.filenameMv3 = filenameMv3;
 exports.urlMapperMv3 = urlMapperMv3;
 exports.update = update;
