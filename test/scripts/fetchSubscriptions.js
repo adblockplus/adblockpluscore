@@ -98,13 +98,7 @@ describe("fetchSubscriptions script", function() {
 
   it("should throw an error if input file does not exist", async function() {
     let file = path.join(tmpDir, "someNotExistingFile");
-    try {
-      await fetchSubscriptions(file, outDir);
-      assert.fail("Error is expected to be thrown");
-    }
-    catch (e) {
-      assert.equal(e instanceof Error, true);
-    }
+    await assert.rejects(async() => fetchSubscriptions(file, outDir), Error);
   });
 
   it("should create output directory if it does not exist", async function() {
@@ -204,12 +198,6 @@ describe("fetchSubscriptions script", function() {
     await startHttpServer();
 
     mkdirSync(outDir);
-    try {
-      await fetchSubscriptions(subscriptionsFile, outDir);
-      assert.fail("Error is expected to be thrown");
-    }
-    catch (e) {
-      assert.strictEqual(e instanceof Error, true);
-    }
+    await assert.rejects(async() => fetchSubscriptions(subscriptionsFile, outDir));
   });
 });
