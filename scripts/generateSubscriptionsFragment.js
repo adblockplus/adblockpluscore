@@ -36,8 +36,7 @@ function generateFragment(dir, space = 2) {
 
   let files = readdirSync(dir);
   let fragment = {rule_resources: []};
-  for (let key in files) {
-    let file = files[key];
+  for (let file of files) {
     if (path.extname(file) !== ".json") {
       console.warn(`Not .json file (${file}) skipped`);
       continue;
@@ -62,9 +61,10 @@ function getFilePath(file) {
 }
 
 async function main() {
+  let toFile = process.argv[2] || outputFile;
   let fragmentJson = generateFragment(convertOutputDir);
-  await writeFile(outputFile, fragmentJson, "utf8");
-  console.log(`Web extension manifest fragment file (${outputFile}) generated.`);
+  await writeFile(toFile, fragmentJson, "utf8");
+  console.log(`Web extension manifest fragment file (${toFile}) generated.`);
 }
 
 if (require.main == module)
