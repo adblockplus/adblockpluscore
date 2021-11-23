@@ -265,6 +265,11 @@ npm run fetch-subscriptions
 to download all the ABP filter rules listed in the `build/data/subscriptions_mv3.json` file.
 Add the ABP filter rules files to `build/data/subscriptions/ABP` directory if needed.
 
+Pass a specific input filename and target directory if needed:
+```
+node scripts/fetchSubscriptions.js build/data/subscriptions_custom_mv3.json build/data/subscriptions/custom_ABP
+```
+
 3.Convert the ABP filter rules files to DNR static rules
 
 Run
