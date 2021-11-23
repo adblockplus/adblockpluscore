@@ -26,7 +26,6 @@ const {
 
 const path = require("path");
 const readline = require("readline");
-const http = require("http");
 const https = require("https");
 const tar = require("tar");
 
@@ -48,8 +47,7 @@ function untar(remoteUrl) {
   return new Promise(resolve => {
     let file = path.join(__dirname, path.basename(remoteUrl));
     let writableStream = createWriteStream(file);
-    let proto = remoteUrl.startsWith("https") ? https : http;
-    proto.get(remoteUrl, response => {
+    https.get(remoteUrl, response => {
       response.pipe(writableStream);
       writableStream.on("close", () => {
         tar.x({file, cwd: __dirname}).then(() => {
