@@ -85,8 +85,7 @@ async function fetchSubscriptions(fromFile, toDir) {
 
   console.info("Downloading started");
   let subscriptions = await JSON.parse(await readFile(fromFile));
-  for (let key in subscriptions) {
-    let subscription = subscriptions[key];
+  for (let subscription of subscriptions) {
     let toFile = `${toDir}/${getSubscriptionFile(subscription)}.txt`;
     await download(subscription.url, toFile);
   }
