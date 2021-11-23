@@ -24,67 +24,31 @@ const {
 } = require("fs");
 const os = require("os");
 const path = require("path");
-const http = require("http");
+const nock = require("nock");
 
-const {urlMapperMv3, update} = require("../../scripts/updateSubscriptions");
-
-const port = 5555;
+const {
+  listUrl, urlMapperMv3, update
+} = require("../../scripts/updateSubscriptions");
 
 describe("updateSubscriptions script", function() {
   let tmpDir;
-  let serverConfig;
-  let server;
-
-  function configureHttpServer(urlPath, buffer) {
-    serverConfig[urlPath] = buffer;
-  }
-
-  const requestListener = function(req, res) {
-    let data = serverConfig[req.url];
-    if (data != null) {
-      res.writeHead(200);
-      res.end(data);
-    }
-    else {
-      res.writeHead(404);
-      res.end();
-    }
-  };
-
-  async function startHttpServer() {
-    server = http.createServer(requestListener);
-    return new Promise((resolve, reject) => {
-      server.listen(port, "localhost", () => {
-        console.trace(`Server is running on port ${port}`);
-        resolve();
-      });
-    });
-  }
-
-  async function stopHttpServer() {
-    if (server != null)
-      server.close();
-  }
 
   beforeEach(async function() {
     tmpDir = await mkdtemp(path.join(os.tmpdir(), "tmp-"));
-    serverConfig = {};
   });
 
   afterEach(async function() {
     if (existsSync(tmpDir))
       await rmdir(tmpDir, {recursive: true});
-    await stopHttpServer();
   });
 
   async function assertSubscriptions(assertCallback) {
-    let fileUrlPath = "/data/subscriptionlist-master.tar.gz";
-    let data = await readFile("test/data/subscriptionlist-master.tar.gz");
-    configureHttpServer(fileUrlPath, data);
-    await startHttpServer();
+    let mockedData = await readFile("test/data/subscriptionlist-master.tar.gz");
+    let url = new URL(listUrl);
+    nock(url.origin).get(url.pathname).reply(200, mockedData);
 
     let toFile = path.join(tmpDir, "subscriptions_mv3.json");
-    await update("http://localhost:" + port + fileUrlPath, urlMapperMv3, toFile);
+    await update(urlMapperMv3, toFile);
     let subscriptionsFileData = await readFile(toFile);
     let subscriptionsJson = JSON.parse(subscriptionsFileData);
 
