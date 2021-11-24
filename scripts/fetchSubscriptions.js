@@ -15,8 +15,6 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint no-console: "off" */
-
 "use strict";
 
 const {filenameMv3} = require("./updateSubscriptions");
