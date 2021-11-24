@@ -288,7 +288,7 @@ npm run generate-subscriptions-fragment
 to generate the file `build/data/subscriptions/fragment.json` with a fragment to be used
 in a web extension manifest (`declarative_net_request` part).
 
-Pass a specific target filename if needed:
+Pass a specific input dir and target filename if needed:
 ```
-node scripts/generateSubscriptionsFragment.js build/data/custom_fragment.json
+node scripts/generateSubscriptionsFragment.js build/data/subscriptions/custom_DNR build/data/custom_fragment.json
 ```
