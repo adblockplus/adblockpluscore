@@ -254,7 +254,7 @@ async function update(remoteUrl, urlMapper, filename) {
 
   let toDir = path.dirname(filename);
   if (!existsSync(toDir))
-    await mkdir(toDir);
+    await mkdir(toDir, {recursive: true});
   await writeFile(filename, JSON.stringify(parsed, null, 2), "utf8");
   await rmdir(root, {recursive: true});
 }
