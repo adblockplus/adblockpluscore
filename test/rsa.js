@@ -23,8 +23,7 @@ const crypto = require("crypto");
 const {LIB_FOLDER, createSandbox} = require("./_common");
 
 const globals = {
-  // fallbacks for NodeJS < 16
-  crypto: crypto.webcrypto || require("./webcrypto"),
+  crypto: crypto.webcrypto,
 
   // fallback for TextEncoder not exported as global
   TextEncoder: global.TextEncoder || class {

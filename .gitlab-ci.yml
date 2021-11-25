@@ -31,7 +31,7 @@ stages:
   - default
   - pages
 
-image: "registry.gitlab.com/eyeo/docker/adblockplus-ci:node12"
+image: "registry.gitlab.com/eyeo/docker/adblockplus-ci:node16-no-python"
 
 variables:
   npm_config_audit: "false"

@@ -4,7 +4,8 @@
   "repository": "https://gitlab.com/eyeo/adblockplus/adblockpluscore.git",
   "license": "GPL-3.0-only",
   "engines": {
-    "node": ">=12.17.0"
+    "node": ">=16.10.0",
+    "npm": ">=7"
   },
   "dependencies": {},
   "devDependencies": {
