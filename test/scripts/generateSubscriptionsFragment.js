@@ -54,7 +54,7 @@ describe("generateSubscriptionsFragment script", function() {
   }
 
   function getRulesArrayFrom(dir) {
-    return JSON.parse(generateFragment(dir, null)).rule_resources;
+    return JSON.parse(generateFragment(dir, null, null)).rule_resources;
   }
 
   it("should throw an error if rules directory does not exist", async function() {
@@ -64,14 +64,14 @@ describe("generateSubscriptionsFragment script", function() {
 
   it("should return empty array for empty dir", async function() {
     assert.strictEqual(
-      generateFragment(tmpDir, null),
+      generateFragment(tmpDir, null, null),
       "{\"rule_resources\":[]}");
   });
 
   it("should warn on empty dir", async function() {
     assert.strictEqual(warnings.length, 0);
     assert.strictEqual(
-      generateFragment(tmpDir, null),
+      generateFragment(tmpDir, null, null),
       "{\"rule_resources\":[]}");
     assert.strictEqual(warnings.length, 1);
   });
@@ -79,7 +79,7 @@ describe("generateSubscriptionsFragment script", function() {
   it("should ignore not .json files", async function() {
     createRuleFile("jsfile.js");
     assert.strictEqual(
-      generateFragment(tmpDir, null),
+      generateFragment(tmpDir, null, null),
       "{\"rule_resources\":[]}");
   });
 
@@ -87,14 +87,14 @@ describe("generateSubscriptionsFragment script", function() {
     assert.strictEqual(warnings.length, 0);
     createRuleFile("jsfile.js");
     createRuleFile("file.json");
-    generateFragment(tmpDir, null);
+    generateFragment(tmpDir, null, null);
     assert.strictEqual(warnings.length, 1);
   });
 
   it("should return single rule", async function() {
     createRuleFile("singleFile.json");
     assert.strictEqual(
-      generateFragment(tmpDir, null),
+      generateFragment(tmpDir, null, null),
       "{\"rule_resources\":[{\"id\":\"singleFile\",\"enabled\":false,\"path\":\"singleFile.json\"}]}");
   });
 
@@ -116,6 +116,14 @@ describe("generateSubscriptionsFragment script", function() {
     assert.strictEqual(getRulesArrayFrom(tmpDir)[0].path, filename);
   });
 
+  it("should return proper file path with prefix", async function() {
+    const filename = "singleFile.json";
+    createRuleFile(filename);
+    const prefix = "subscriptions/";
+    let rules = JSON.parse(generateFragment(tmpDir, prefix, null)).rule_resources;
+    assert.strictEqual(rules[0].path, prefix + filename);
+  });
+
   it("should return multiple rules", async function() {
     createRuleFile("multipleFile1.json");
     createRuleFile("multipleFile2.json");
@@ -125,10 +133,10 @@ describe("generateSubscriptionsFragment script", function() {
   it("should prettify JSON if space is passed", async function() {
     createRuleFile("file.json");
     assert.strictEqual(
-      generateFragment(tmpDir, null),
+      generateFragment(tmpDir, null, null),
       "{\"rule_resources\":[{\"id\":\"file\",\"enabled\":false,\"path\":\"file.json\"}]}");
     assert.strictEqual(
-      generateFragment(tmpDir, 2),
+      generateFragment(tmpDir, null, 2),
       "{\n" +
       "  \"rule_resources\": [\n" +
       "    {\n" +
@@ -139,7 +147,7 @@ describe("generateSubscriptionsFragment script", function() {
       "  ]\n" +
       "}");
     assert.strictEqual(
-      generateFragment(tmpDir, "\t"),
+      generateFragment(tmpDir, null, "\t"),
       "{\n" +
       "\t\"rule_resources\": [\n" +
       "\t\t{\n" +
