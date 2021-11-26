@@ -47,7 +47,7 @@
     "benchmark:cleanup": "node --expose-gc benchmark.js -- --cleanup",
     "lint": "eslint *.js *.mjs lib benchmark test scripts",
     "minify": "mkdir -p dist && node minify.js && cp -R lib/content dist",
-    "unit-tests": "c8 --include=lib/*.js --exclude=lib/index.js --exclude=lib/jsbn.js --exclude=lib/rusha.js --all mocha --check-leaks",
+    "unit-tests": "c8 --include=lib/*.js --include=scripts/*.js --exclude=lib/index.js --exclude=lib/jsbn.js --exclude=lib/rusha.js --all mocha --check-leaks",
     "test": "LIB_FOLDER=lib node test_runner.mjs",
     "test:dist": "npm run minify && LIB_FOLDER=dist node test_runner.mjs",
     "posttest": "npm run lint",
