@@ -24,20 +24,17 @@ const {
 } = require("fs");
 const os = require("os");
 const path = require("path");
-const http = require("http");
+const nock = require("nock");
 
 const {fetchSubscriptions} = require("../../scripts/fetchSubscriptions");
 
-const port = 5555;
-const encoding = "utf8";
+const encoding = "utf-8";
 
 describe("fetchSubscriptions script", function() {
   let tmpDir;
   let outDir;
   let originalConsole;
   let warnings;
-  let serverConfig;
-  let server;
 
   function mockedConsoleWarn(message) {
     warnings.push(message);
@@ -49,51 +46,18 @@ describe("fetchSubscriptions script", function() {
     return file;
   }
 
-  function configureHttpServer(urlPath, buffer) {
-    serverConfig[urlPath] = buffer;
-  }
-
-  const requestListener = function(req, res) {
-    let data = serverConfig[req.url];
-    if (data != null) {
-      res.writeHead(200);
-      res.end(data);
-    }
-    else {
-      res.writeHead(404);
-      res.end();
-    }
-  };
-
-  async function startHttpServer() {
-    server = http.createServer(requestListener);
-    return new Promise((resolve, reject) => {
-      server.listen(port, "localhost", () => {
-        console.trace(`Server is running on port ${port}`);
-        resolve();
-      });
-    });
-  }
-
-  async function stopHttpServer() {
-    if (server != null)
-      server.close();
-  }
-
   beforeEach(async function() {
     tmpDir = await mkdtemp(path.join(os.tmpdir(), "rules-"));
     outDir = path.join(tmpDir, "outDir");
     originalConsole = console;
     console.warn = mockedConsoleWarn;
     warnings = [];
-    serverConfig = {};
   });
 
   afterEach(async function() {
     if (existsSync(tmpDir))
       await rmdir(tmpDir, {recursive: true});
     console = originalConsole;
-    await stopHttpServer();
   });
 
   it("should throw an error if input file does not exist", async function() {
@@ -120,18 +84,18 @@ describe("fetchSubscriptions script", function() {
   it("should fetch single subscription", async function() {
     const urlPath = "/test_subscription.txt";
     const data = "subscription data";
+    const origin = "http://localhost";
     const subscriptionsFile = createFile(tmpDir, "[{\n" +
       "    \"type\": \"ads\",\n" +
       "    \"languages\": [\n" +
       "      \"en\"\n" +
       "    ],\n" +
       "    \"title\": \"Test Subscription\",\n" +
-      "    \"url\": \"http://localhost:" + port + urlPath + "\",\n" +
+      "    \"url\": \"" + origin + urlPath + "\",\n" +
       "    \"homepage\": \"https://easylist.to/\"\n" +
       "  }]");
 
-    configureHttpServer(urlPath, Buffer.from(data, encoding));
-    await startHttpServer();
+    nock(origin).get(urlPath).reply(200, data);
 
     mkdirSync(outDir);
     await fetchSubscriptions(subscriptionsFile, outDir);
@@ -147,6 +111,7 @@ describe("fetchSubscriptions script", function() {
     const data1 = "subscription data 1";
     const urlPath2 = "/test_subscription2.txt";
     const data2 = "subscription data 2";
+    const origin = "http://localhost";
 
     const subscriptionsFile = createFile(tmpDir, "[{\n" +
       "    \"type\": \"ads\",\n" +
@@ -154,7 +119,7 @@ describe("fetchSubscriptions script", function() {
       "      \"en\"\n" +
       "    ],\n" +
       "    \"title\": \"Test Subscription 1\",\n" +
-      "    \"url\": \"http://localhost:" + port + urlPath1 + "\",\n" +
+      "    \"url\": \"" + origin + urlPath1 + "\",\n" +
       "    \"homepage\": \"https://easylist.to/\"\n" +
       "  }, {\n" +
       "    \"type\": \"ads\",\n" +
@@ -162,13 +127,12 @@ describe("fetchSubscriptions script", function() {
       "      \"en\"\n" +
       "    ],\n" +
       "    \"title\": \"Test Subscription 2\",\n" +
-      "    \"url\": \"http://localhost:" + port + urlPath2 + "\",\n" +
+      "    \"url\": \"" + origin + urlPath2 + "\",\n" +
       "    \"homepage\": \"https://easylist.to/\"\n" +
       "  }]");
 
-    configureHttpServer(urlPath1, Buffer.from(data1, encoding));
-    configureHttpServer(urlPath2, Buffer.from(data2, encoding));
-    await startHttpServer();
+    nock(origin).get(urlPath1).reply(200, data1);
+    nock(origin).get(urlPath2).reply(200, data2);
 
     mkdirSync(outDir);
     await fetchSubscriptions(subscriptionsFile, outDir);
@@ -183,6 +147,7 @@ describe("fetchSubscriptions script", function() {
   });
 
   it("should fail on http error", async function() {
+    const origin = "http://localhost";
     const urlPath = "/test_subscription.txt";
     const subscriptionsFile = createFile(tmpDir, "[{\n" +
       "    \"type\": \"ads\",\n" +
@@ -190,12 +155,11 @@ describe("fetchSubscriptions script", function() {
       "      \"en\"\n" +
       "    ],\n" +
       "    \"title\": \"Test Subscription\",\n" +
-      "    \"url\": \"http://localhost:" + port + urlPath + "\",\n" +
+      "    \"url\": \"" + origin + urlPath + "\",\n" +
       "    \"homepage\": \"https://easylist.to/\"\n" +
       "  }]");
 
-    // configureHttpServer(urlPath, data); // simulate HTTP error
-    await startHttpServer();
+    nock(origin).get(urlPath).reply(404); // simulate HTTP error
 
     mkdirSync(outDir);
     await assert.rejects(async() => fetchSubscriptions(subscriptionsFile, outDir));
