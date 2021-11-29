@@ -264,21 +264,3 @@ npm run fetch-subscriptions
 ```
 to download all the ABP filter rules listed in the `build/data/subscriptions_mv3.json` file.
 Add the ABP filter rules files to `build/data/subscriptions/ABP` directory if needed.
-
-3.Convert the ABP filter rules files to DNR static rules
-
-Run
-```
-npm run convert-subscriptions
-```
-to convert all the files in `build/data/subscriptions/ABP` directory from ABP to DNR syntax.
-Add the DNR filter rules files to `build/data/subscriptions/DNR` directory if needed.
-
-4.Generate DNR filter rules declaration code snippet
-
-Run
-```
-npm run generate-subscriptions-fragment
-```
-to generate the file `build/data/subscriptions/fragment.json` with a fragment to be used
-in a web extension manifest (`declarative_net_request` part).
