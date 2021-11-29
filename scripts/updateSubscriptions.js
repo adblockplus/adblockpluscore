@@ -279,6 +279,7 @@ async function main() {
     filename = filenameMv2;
   }
   await update(urlMapper, filename);
+  console.log(`Subscriptions file (${filename}) generated.`);
 }
 
 if (require.main == module)
