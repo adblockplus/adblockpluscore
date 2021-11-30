@@ -20,7 +20,8 @@
 const {
   createReadStream,
   createWriteStream,
-  promises: {readdir, rmdir, unlink, writeFile}
+  existsSync,
+  promises: {readdir, rmdir, unlink, writeFile, mkdir}
 } = require("fs");
 
 const path = require("path");
@@ -31,7 +32,9 @@ const tar = require("tar");
 const listUrl = "https://gitlab.com/eyeo/filterlists/subscriptionlist/" +
                 "-/archive/master/subscriptionlist-master.tar.gz";
 
-const filename = "data/subscriptions.json";
+const filenameMv2 = "data/subscriptions.json";
+const filenameMv3 = "build/data/subscriptions_mv3.json";
+
 const resultingKeys = new Set([
   "title",
   "url",
@@ -221,31 +224,68 @@ function postProcessSubscription(subscription) {
   }
 }
 
-async function main() {
+async function update(urlMapper, filename) {
   let root = await untar(listUrl);
   let languages = await parseValidLanguages(root);
   let tarFiles = await readdir(root);
 
   let parsed = await Promise.all(
-    tarFiles.filter(file => file.match(".subscription")).map(
-      file => parseSubscriptionFile(root + "/" + file, languages)
-    )
+    tarFiles
+      .filter(file => file.match(".subscription"))
+      .map(file => parseSubscriptionFile(root + "/" + file, languages))
   );
 
   parsed = parsed.filter(subscription =>
     subscription != null && "title" in subscription
   );
 
-  for (let subscription of parsed)
+  for (let subscription of parsed) {
+    if (urlMapper != null)
+      subscription.url = urlMapper(subscription);
     postProcessSubscription(subscription);
+  }
 
   parsed.sort((a, b) =>
     a["type"].toLowerCase().localeCompare(b["type"]) ||
     a["title"].localeCompare(b["title"])
   );
+
+  let toDir = path.dirname(filename);
+  if (!existsSync(toDir))
+    await mkdir(toDir, {recursive: true});
   await writeFile(filename, JSON.stringify(parsed, null, 2), "utf8");
   await rmdir(root, {recursive: true});
 }
 
+const urlMapperMv3 = function(subscription) {
+  // the URL endpoint is different for MV3 subscriptions:
+  // path is prefixed with "/mv3"
+  const url = new URL(subscription.url);
+  url.pathname = "/mv3" + url.pathname;
+  return url.toString();
+};
+
+async function main() {
+  let urlMapper;
+  let filename;
+  // the 1st argument (optional) is expected to be passed to separate MV2/ MV3
+  if (process.argv[2] === "mv3") {
+    urlMapper = urlMapperMv3;
+    // the 2nd argument (optional) is output file path
+    filename = process.argv[3] || filenameMv3;
+  }
+  else {
+    urlMapper = null; // no mapping needed
+    filename = filenameMv2;
+  }
+  await update(urlMapper, filename);
+  console.log(`Subscriptions file (${filename}) generated.`);
+}
+
 if (require.main == module)
   main();
+
+exports.listUrl = listUrl;
+exports.filenameMv3 = filenameMv3;
+exports.urlMapperMv3 = urlMapperMv3;
+exports.update = update;
