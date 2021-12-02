@@ -260,11 +260,10 @@ async function update(urlMapper, filename) {
 }
 
 const urlMapperMv3 = function(subscription) {
-  // the URL endpoint is different for MV3 subscriptions:
-  // path is prefixed with "/mv3"
-  const url = new URL(subscription.url);
-  url.pathname = "/mv3" + url.pathname;
-  return url.toString();
+  // https://gitlab.com/eyeo/filters/filterlists-delivery/-/tree/main#mv3-filter-list-delivery
+  let lastSegmentIndex = subscription.url.lastIndexOf("/");
+  let filename = subscription.url.substring(lastSegmentIndex + 1);
+  return "https://release-v3.filter-delivery-staging.eyeo.com/v3/full/" + filename;
 };
 
 async function main() {
