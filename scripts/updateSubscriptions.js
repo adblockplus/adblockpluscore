@@ -273,11 +273,13 @@ async function main() {
       alias: "t",
       type: "string",
       requiresArg: true,
+      demandOption: true,
       description: "Manifest version (mv2/mv3)"
     })
     .option("output", {
       alias: "o",
       type: "string",
+      requiresArg: true,
       description: "Output directory"
     })
     .parse();
