@@ -272,6 +272,7 @@ async function main() {
     .option("type", {
       alias: "t",
       type: "string",
+      requiresArg: true,
       description: "Manifest version (mv2/mv3)"
     })
     .option("output", {
