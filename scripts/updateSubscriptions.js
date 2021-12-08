@@ -274,7 +274,8 @@ async function main() {
       type: "string",
       requiresArg: true,
       demandOption: true,
-      description: "Manifest version (mv2/mv3)"
+      choices: ["mv2", "mv3"],
+      description: "Manifest version"
     })
     .option("output", {
       alias: "o",
