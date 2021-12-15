@@ -1,3 +1,11 @@
+0.5.1
+=====
+
+## Bug fixes
+
+- Fix a regression on loading stylesheet in the ElementHidingEmulation
+  code. Issue #390
+
 0.5.0
 =====
 
