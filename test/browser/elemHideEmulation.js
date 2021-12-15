@@ -293,7 +293,7 @@ describe("Element hiding emulation", function() {
 
   // Add the style. Then add the element for that style.
   // This should retrigger the filtering and hide it.
-  it("Property pseudo selector add style and elemment", async function() {
+  it("Property pseudo selector add style and element", async function() {
     let styleElement;
     let toHide;
 
@@ -1378,6 +1378,27 @@ describe("Element hiding emulation", function() {
       await timeout(REFRESH_INTERVAL);
 
       expectVisible(parent);
+    }
+  });
+
+  it("OnLoad queues stylesheets to reprocess correctly", async function() {
+    // Watching for stylesheet changes is only done if there are
+    // filters that depend on style rules.
+    let selectors = [":-abp-properties(background-color: rgb(0, 0, 0))"];
+
+    if (await applyElemHideEmulation(selectors)) {
+      let styleElement = testDocument.createElement("style");
+      testDocument.head.appendChild(styleElement);
+      styleElement.sheet.insertRule("#toHide {background-color: #000}");
+      // Normally, onLoad would be triggered by an external stylesheet
+      // being loaded. We mock it here since we're actually creating a
+      // style element.
+      elemHideEmulation.onLoad({target: styleElement});
+
+      assert.ok(
+        Array.isArray(elemHideEmulation._scheduledProcessing.stylesheets),
+        "expected _scheduledProcessing.stylesheets to be an array"
+      );
     }
   });
 
