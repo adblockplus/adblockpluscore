@@ -107,7 +107,7 @@ exports.loadFile = async function loadFile(list) {
   }
 };
 
-exports.checkIfFileExists = function checkIfFileExists(pathToFile){
+exports.checkIfFileExists = function checkIfFileExists(pathToFile) {
   try {
     if (fs.existsSync(pathToFile))
       return true;
