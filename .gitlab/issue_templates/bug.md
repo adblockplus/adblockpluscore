@@ -18,4 +18,8 @@ Replace this text with your detailed observations.
 
 Replace this text with your detailed expectations.
 
+## Further Information
+
+Replace with any information that might help to understand the background of the issue, e.g. paste any relevant logs or link a MR where it was introduces (please use code blocks (```)to format console output, logs, and code, asit's very hard to read otherwise.)
+
 /label ~bug
