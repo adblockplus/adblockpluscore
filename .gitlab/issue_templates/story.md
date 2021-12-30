@@ -1,6 +1,6 @@
 ## Description
 
-<!-- Example of a feature -->
+<!-- Example of a story -->
 <!-- As an AdblockPlus extension engineer -->
 <!-- I would like to know how many ads were blocked -->
 <!-- So that I could display this information in the extension UI to the user -->
