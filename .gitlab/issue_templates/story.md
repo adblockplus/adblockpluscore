@@ -1,3 +1,5 @@
+<!--- Provide a general summary of the story in the Title above -->
+
 ## Description
 
 <!-- Example of a story -->
@@ -31,5 +33,4 @@ Then
 ***Z***
 <br>
 
-/label ~"State::In Refinement"<br>
 /cc @product-manager

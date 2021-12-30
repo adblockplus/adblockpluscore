@@ -1,4 +1,4 @@
-<!--- Provide a general summary of the issue in the Title above -->
+<!--- Provide a general summary of the feature in the Title above -->
 
 ## Context
 <!-- Introduction on why the feature is requested, brief description of the value it should bring. -->
@@ -15,5 +15,3 @@
 
 ## Hints for testing 
 <!-- Optional -->
-
-/label ~"State::In Refinement"
