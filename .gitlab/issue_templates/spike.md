@@ -13,7 +13,7 @@
 
 ## Question we are trying to answer
 <!-- What are the questions we are addressing with this spike? -->
-<!-- e.g. Does changing the way we are storing filters in the memore can improve memory consumption? -->
+<!-- e.g. Does changing the way we are storing filters improve memory consumption? -->
 
 ## What theory/solution are we trying to test?
 <!-- List one or more theories that should be addressed in this spike -->
