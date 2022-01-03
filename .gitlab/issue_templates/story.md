@@ -16,7 +16,7 @@ So that I/we/they could
 
 ## Acceptance Criteria
 
-<!-- Example of acceptnace criteria -->
+<!-- Example of acceptance criteria -->
 <!-- Given new web page just loaded  -->
 <!-- When ABP extension asks Core about the number of ads blocked -->
 <!-- Then core provides the total number of ads being blocked on through all filter types -->
