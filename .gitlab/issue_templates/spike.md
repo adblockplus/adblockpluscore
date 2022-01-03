@@ -25,4 +25,4 @@
 <!-- List the criteria which help to determine if the spike was successful -->
 <!-- and the solution should be brought to the next stage (either implementation -->
 <!-- or next rounds of spikes) or disregarded -->
-<!-- e.g. memory consumption was reduced to 10MB and adding new filters doesn't have any influnce on it -->
+<!-- e.g. memory consumption was reduced to 10MB and adding new filters doesn't have any influence on it -->
