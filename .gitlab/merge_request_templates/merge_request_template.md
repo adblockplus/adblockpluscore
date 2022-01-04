@@ -14,6 +14,7 @@
 <!-- Please describe in detail how you tested your changes. -->
 <!-- Include details of your testing environment, and the tests you ran to -->
 <!-- see how your change affects other areas of the code, etc. -->
+<!-- Please also include if any benchmarking was done and the results -->
 
 ## Types of changes
 <!-- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
