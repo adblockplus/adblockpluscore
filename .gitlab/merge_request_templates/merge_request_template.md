@@ -14,21 +14,24 @@
 <!-- Please describe in detail how you tested your changes. -->
 <!-- Include details of your testing environment, and the tests you ran to -->
 <!-- see how your change affects other areas of the code, etc. -->
-<!-- Please also include if any benchmarking was done and the results -->
+<!-- Include if any benchmarking was done and the results -->
 
 ## Types of changes
-<!-- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Adding new tests
-- [ ] CI/CD change (improving/adding new jobs)
-- [ ] Breaking change (fix or feature that would cause existing functionality to change)
-- [ ] Not code-related change (repository setup, templates)
+<!-- What types of changes does your code introduce? Replace :white_large_square: with :white_check_mark: in the box that applies: -->
+
+:white_large_square: Bug fix (non-breaking change which fixes an issue) <br>
+:white_large_square: New feature (non-breaking change which adds functionality) <br>
+:white_large_square: Breaking change (fix or feature that would cause existing functionality to change) <br>
+:white_large_square: Adding new tests <br>
+:white_large_square: Documentation <br>
+:white_large_square: CI/CD change <br>
+:white_large_square: Not code-related change (repository setup, templates) <br>
 
 ## Checklist:
-<!-- Go over all the following points, and put an `x` in all the boxes that apply. -->
-- [ ] My code follows the code style of this project.
-- [ ] My change requires a change to the documentation.
-- [ ] I have updated the documentation accordingly.
-- [ ] I have added tests to cover my changes.
-- [ ] All new and existing tests passed.
+<!-- Go over all the following points, and replace :white_large_square: with :white_check_mark: in all the boxes that apply. -->
+
+:white_large_square: My code follows the code style of this project.<br>
+:white_large_square: My change requires a change to the documentation.<br>
+:white_large_square: I have updated the documentation accordingly.<br>
+:white_large_square: I have added tests to cover my changes.<br>
+:white_large_square: All new and existing tests passed.<br>

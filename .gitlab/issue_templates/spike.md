@@ -8,7 +8,7 @@
 <!-- therefore we are running experiments on how to improve it's performance. -->
 
 ## Targeting problem
-<!-- Description of the problem which is being solved -->
+<!-- Description of the problem which needs to be solved -->
 <!-- e.g. The memory consumption on the mobile devices is too high (above 100MB) -->
 
 ## Question we are trying to answer

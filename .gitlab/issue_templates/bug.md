@@ -1,6 +1,10 @@
 ## Environment
 
-Replace this text with the Version of your operating system, your exact browser version, the used Adblock Plus version and the enabled Filter lists.
+- **OS version:** (e.g. Windows 10)
+- **Browser version:** (e.g. Firefox 51)
+- **Extension version:** (e.g. Adblock Plus 3.6; UI release 2019-1)
+- **Core version:** (e.g. 0.5.0)
+- **Enabled Filter lists:** (e.g. EasyList; Last Update 07/01/2022)
 
 ## How to reproduce
 
