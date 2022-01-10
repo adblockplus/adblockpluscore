@@ -246,7 +246,7 @@ Manifest V3: subscriptions
 
 Run
 ```
-npm run update-subscriptions:mv3
+npm run update-subscriptions:mv3 [-- -o /tmp/custom_output.json]
 ```
 to generate a list of subscriptions supported at eyeo's back-end.
 Edit the generated `build/data/subscriptions_mv3.json` file if needed.

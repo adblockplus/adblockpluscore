@@ -28,6 +28,8 @@ const path = require("path");
 const readline = require("readline");
 const https = require("https");
 const tar = require("tar");
+const yargs = require("yargs/yargs");
+const {hideBin} = require("yargs/helpers");
 
 const listUrl = "https://gitlab.com/eyeo/filterlists/subscriptionlist/" +
                 "-/archive/master/subscriptionlist-master.tar.gz";
@@ -266,13 +268,28 @@ const urlMapperMv3 = function(subscription) {
 };
 
 async function main() {
+  const args = yargs(hideBin(process.argv))
+    .option("type", {
+      alias: "t",
+      type: "string",
+      requiresArg: true,
+      demandOption: true,
+      choices: ["mv2", "mv3"],
+      description: "Manifest version"
+    })
+    .option("output", {
+      alias: "o",
+      type: "string",
+      requiresArg: true,
+      description: "Output directory"
+    })
+    .parse();
+
   let urlMapper;
   let filename;
-  // the 1st argument (optional) is expected to be passed to separate MV2/ MV3
-  if (process.argv[2] === "mv3") {
+  if (args.type === "mv3") {
     urlMapper = urlMapperMv3;
-    // the 2nd argument (optional) is output file path
-    filename = process.argv[3] || filenameMv3;
+    filename = args.output || filenameMv3;
   }
   else {
     urlMapper = null; // no mapping needed
