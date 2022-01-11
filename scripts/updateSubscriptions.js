@@ -21,7 +21,7 @@ const {
   createReadStream,
   createWriteStream,
   existsSync,
-  promises: {readdir, rmdir, unlink, writeFile, mkdir}
+  promises: {readdir, rm, unlink, writeFile, mkdir}
 } = require("fs");
 
 const path = require("path");
@@ -46,18 +46,24 @@ const resultingKeys = new Set([
 ]);
 
 function untar(remoteUrl) {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     let file = path.join(__dirname, path.basename(remoteUrl));
     let writableStream = createWriteStream(file);
+
     https.get(remoteUrl, response => {
-      response.pipe(writableStream);
-      writableStream.on("close", () => {
-        tar.x({file, cwd: __dirname}).then(() => {
-          unlink(file).then(() => {
-            resolve(file.replace(/\.[^/]+$/, ""));
+      if (response.statusCode != 200) {
+        reject(new Error(`HTTPS server response code: ${response.statusCode}`));
+      }
+      else {
+        response.pipe(writableStream);
+        writableStream.on("close", () => {
+          tar.x({file, cwd: __dirname}).then(() => {
+            unlink(file).then(() => {
+              resolve(file.replace(/\.[^/]+$/, ""));
+            });
           });
         });
-      });
+      }
     });
   });
 }
@@ -65,7 +71,6 @@ function untar(remoteUrl) {
 function parseSubscriptionFile(file, validLanguages) {
   // Bypass parsing remaining lines in the ReadStream's buffer
   let continuing = true;
-
   return new Promise(resolve => {
     let parsed = {
       name: path.basename(file).replace(/\.\w+$/, "")
@@ -93,6 +98,7 @@ function parseSubscriptionFile(file, validLanguages) {
 
       if (key == "unavailable" || key == "deprecated") {
         parsed = null;
+        console.warn(`No list locations given in ${file}`);
         reader.close();
         continuing = false;
         return;
@@ -119,7 +125,6 @@ function parseSubscriptionFile(file, validLanguages) {
           recommendation: false,
           complete: false
         };
-
         let keywordsRegex = /\s*\[((?:\w+,)*\w+)\]$/;
         let variantRegex = /(.+?)\s+(\S+)$/;
 
@@ -166,51 +171,57 @@ function parseSubscriptionFile(file, validLanguages) {
         parsed[key] = value;
       }
     });
-
     reader.on("close", () => {
       if (!parsed) {
         resolve(parsed);
         return;
       }
+      if (typeof parsed["variants"] !== "undefined") {
+        if (parsed["variants"].length == 0)
+          console.warn(`No list locations given in ${file}`);
 
-      if (parsed["variants"].length == 0)
-        console.warn(`No list locations given in ${file}`);
-
-      if ("title" in parsed && parsed["type"] == "ads" &&
+        if ("title" in parsed && parsed["type"] == "ads" &&
           parsed["languages"] == null)
-        console.warn(`Recommendation without languages in ${file}`);
+          console.warn(`Recommendation without languages in ${file}`);
 
-      if (!("supplements" in parsed)) {
-        for (let variant of parsed["variants"]) {
-          if (variant[2]) {
-            console.warn("Variant marked as complete for non-supplemental " +
+        if (!("supplements" in parsed)) {
+          for (let variant of parsed["variants"]) {
+            if (variant[2]) {
+              console.warn("Variant marked as complete for non-supplemental " +
                          `subscription in ${file}`);
+            }
           }
         }
       }
-
+      else {
+        console.warn(`Invalid format of the file ${file},
+        cannot find variants in proper format in the file`);
+      }
       resolve(parsed);
     });
   });
 }
 
 function parseValidLanguages(root) {
-  return new Promise(resolve => {
-    let languageRegex = /(\S{2})=(.*)/;
-    let languages = new Set();
+  let rootPath = path.join(root, "settings");
+  if (existsSync(rootPath)) {
+    return new Promise(resolve => {
+      let languageRegex = /(\S{2})=(.*)/;
+      let languages = new Set();
+      let reader = readline.createInterface({
+        input: createReadStream(rootPath, {encoding: "utf8"})
+      });
 
-    let reader = readline.createInterface({
-      input: createReadStream(root + "/settings", {encoding: "utf8"})
+      reader.on("line", line => {
+        let match = line.match(languageRegex);
+        if (match)
+          languages.add(match[1]);
+      });
+
+      reader.on("close", () => resolve(languages));
     });
-
-    reader.on("line", line => {
-      let match = line.match(languageRegex);
-      if (match)
-        languages.add(match[1]);
-    });
-
-    reader.on("close", () => resolve(languages));
-  });
+  }
+  console.warn("Settings file doesn't exist");
 }
 
 function postProcessSubscription(subscription) {
@@ -228,6 +239,7 @@ function postProcessSubscription(subscription) {
 
 async function update(urlMapper, filename) {
   let root = await untar(listUrl);
+
   let languages = await parseValidLanguages(root);
   let tarFiles = await readdir(root);
 
@@ -256,7 +268,7 @@ async function update(urlMapper, filename) {
   if (!existsSync(toDir))
     await mkdir(toDir, {recursive: true});
   await writeFile(filename, JSON.stringify(parsed, null, 2), "utf8");
-  await rmdir(root, {recursive: true});
+  await rm(root, {recursive: true});
 }
 
 const urlMapperMv3 = function(subscription) {
@@ -298,8 +310,12 @@ async function main() {
   console.log(`Subscriptions file (${filename}) generated.`);
 }
 
-if (require.main == module)
-  main();
+if (require.main == module) {
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}
 
 exports.listUrl = listUrl;
 exports.filenameMv3 = filenameMv3;
