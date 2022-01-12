@@ -225,8 +225,10 @@ describe("updateSubscriptions script", function() {
 
   it("should provide mv3 mapping when urlmapper is passed", async function() {
     await assertSubscriptions(subscriptions => {
-      for (let subscription of subscriptions)
-        assert.strictEqual((subscription.url).includes("https://release-v3.filter-delivery-staging.eyeo.com/v3"), true);
+      for (let subscription of subscriptions) {
+        assert.strictEqual(
+          subscription.url.includes("https://release-v3.filter-delivery-staging.eyeo.com/v3"), true);
+      }
     });
   });
 
