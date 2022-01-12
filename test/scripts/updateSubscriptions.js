@@ -210,13 +210,6 @@ describe("updateSubscriptions script", function() {
       assert.strictEqual((subscription.url).includes("mv3"), false);
   });
 
-  it("should provide mv3 mapping when urlmapper is passed", async function() {
-    await mockData(exampleSubscription);
-    await update(urlMapperMv3, toFile);
-    let subscriptions = JSON.parse(await readFile(toFile));
-    for (let subscription of subscriptions)
-      assert.strictEqual((subscription.url).includes("https://release-v3.filter-delivery-staging.eyeo.com/v3"), true);
-  });
 
   for (let statusCode of [400, 401, 404, 422]) {
     it(`should handle request ${statusCode} on download`, async function() {
@@ -229,4 +222,18 @@ describe("updateSubscriptions script", function() {
       );
     });
   }
+
+  it("should provide mv3 mapping when urlmapper is passed", async function() {
+    await assertSubscriptions(subscriptions => {
+      for (let subscription of subscriptions)
+        assert.strictEqual((subscription.url).includes("https://release-v3.filter-delivery-staging.eyeo.com/v3"), true);
+    });
+  });
+
+  it("should replace \"+easylist\" in mv3 URLs", async function() {
+    await assertSubscriptions(subscriptions => {
+      for (let subscription of subscriptions)
+        assert.strictEqual(subscription.url.includes("+easylist"), false);
+    });
+  });
 });
