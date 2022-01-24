@@ -27,11 +27,20 @@
 :white_large_square: CI/CD change <br>
 :white_large_square: Not code-related change (repository setup, templates) <br>
 
-## Checklist:
-<!-- Go over all the following points, and replace :white_large_square: with :white_check_mark: in all the boxes that apply. -->
+## Changes Checklist:
+<!-- Go over all the following points, keep those that apply and mark them with an `x` whenever the task is completed -->
+- [ ] My changes require a documentation update and I have updated the documentation accordingly
+<br>*\- or -*
+- [ ] My changes didn't require a documentation update
+___
+- [ ] I have added tests to cover my changes
+<br>*\- or -*
+- [ ] My changes didn't require new tests
+___
+- [ ] All new and existing tests passed
 
-:white_large_square: My code follows the code style of this project.<br>
-:white_large_square: My change requires a change to the documentation.<br>
-:white_large_square: I have updated the documentation accordingly.<br>
-:white_large_square: I have added tests to cover my changes.<br>
-:white_large_square: All new and existing tests passed.<br>
+## MR Checklist:
+<!-- Go over all the following points, and put an `x` in all the boxes that apply. -->
+- [ ] My code follows the code style of this project
+- [ ] I checked commit and messages follow the convention and commits are squashed as appropriate
+- [ ] I checked description and it is clear enough for engineers to use it when checking/integrating my MR
