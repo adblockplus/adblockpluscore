@@ -1,6 +1,6 @@
 <!--- Provide a general summary of the spike in the Title above -->
 
-## Context
+## Background
 <!-- If there is no parent issue that introduces with the context of why the particular spike is being created, -->
 <!-- that context should be provided in the description body of the spike itself.-->
 <!-- Example: -->

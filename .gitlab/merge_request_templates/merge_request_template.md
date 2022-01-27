@@ -16,16 +16,17 @@
 <!-- see how your change affects other areas of the code, etc. -->
 <!-- Include if any benchmarking was done and the results -->
 
-## Types of changes
-<!-- What types of changes does your code introduce? Replace :white_large_square: with :white_check_mark: in the box that applies: -->
+## Type of changes
+<!-- Please leave out the type that describes your change the best -->
 
-:white_large_square: Bug fix (non-breaking change which fixes an issue) <br>
-:white_large_square: New feature (non-breaking change which adds functionality) <br>
-:white_large_square: Breaking change (fix or feature that would cause existing functionality to change) <br>
-:white_large_square: Adding new tests <br>
-:white_large_square: Documentation <br>
-:white_large_square: CI/CD change <br>
-:white_large_square: Not code-related change (repository setup, templates) <br>
+#### :beetle: :wrench: Bug fix (non-breaking change which fixes the issue)
+#### :cherries: New feature (non-breaking change which adds functionality)
+#### :zap: Breaking change (fix or feature that would cause existing functionality to change)
+#### :chart: Adding new tests
+#### :book: Documentation
+#### :rocket: CI/CD change
+#### :file_folder: Not code-related change (repository setup, templates)
+<!-- End of the section -->
 
 ## Changes Checklist:
 <!-- Go over all the following points, keep those that apply and mark them with an `x` whenever the task is completed -->
