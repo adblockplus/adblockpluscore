@@ -21,5 +21,3 @@
 
 ## Hints for testing 
 <!-- Optional -->
-
-/cc @product-manager
