@@ -76,6 +76,29 @@ Browser tests run headless by default (except on Windows). If you want
 to disable headless mode on the WebDriver controlled tests, set the
 BROWSER_TEST_HEADLESS environment to 0.
 
+### Integration tests
+[testpages](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org) tests check `adblockpluscore` integration with ABP. To run them locally, you need to install [Docker](https://www.docker.com/). 
+
+Tests can be executed with:
+
+```sh
+docker build -t testpages .
+docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets" -it testpages
+```
+
+The current version of the project may contain changes that are not yet supported by ABP. In that case, some of the tests may need to be excluded, which can be done using the `TESTS_EXCLUDE` argument f.ex:
+
+```sh
+docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets|CSP|Header" -it testpages
+```
+
+Firefox (latest) is the default browser. Other browsers can be run using the
+BROWSER argument:
+
+```sh
+docker run -e BROWSER="Chromium \(latest\)" -it testpages
+```
+
 Linting
 -------
 

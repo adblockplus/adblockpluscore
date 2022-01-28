@@ -55,6 +55,52 @@ tests:
       - chromium-snapshots/download-cache/
       - firefox-snapshots/download-cache/
 
+.testpages:
+  image: docker:19.03.5
+  stage: default
+  services:
+    - docker:19.03.5-dind
+  before_script:
+    - docker info
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+  interruptible: true
+  script:
+    - docker build -t testpages .
+    - docker run --shm-size=256m -e BROWSER="$BROWSER" -e TESTS_EXCLUDE="Snippets|CSP|Header" testpages
+  after_script:
+    - IMAGE_ID=$(docker ps -aqf ancestor=testpages)
+    - docker cp $IMAGE_ID:/testpages.adblockplus.org/test/screenshots .
+      2> /dev/null
+    - docker cp $IMAGE_ID:/var/log/nginx/ .
+  artifacts:
+    paths:
+      - screenshots/
+      - nginx/
+    when: on_failure
+    expire_in: 1 mo
+
+testpages:chrome:latest:
+  extends: .testpages
+  variables:
+    BROWSER: Chromium \(latest\)
+
+testpages:chrome:oldest:
+  extends: .testpages
+  variables:
+    BROWSER: Chromium \(oldest\)
+
+testpages:firefox:latest:
+  extends: .testpages
+  variables:
+    BROWSER: Firefox \(latest\)
+
+testpages:firefox:oldest:
+  extends: .testpages
+  variables:
+    BROWSER: Firefox \(oldest\)
+
 docs:
   extends: .default_template
   script:
