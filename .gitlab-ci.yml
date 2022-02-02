@@ -55,6 +55,13 @@ tests:
       - chromium-snapshots/download-cache/
       - firefox-snapshots/download-cache/
 
+benchmark:
+  extends: .default_template
+  script:
+    - npm run benchmark
+    - npm run benchmark:save
+    - npm run benchmark:compare
+
 .testpages:
   image: docker:19.03.5
   stage: default

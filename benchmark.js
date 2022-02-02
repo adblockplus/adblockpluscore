@@ -47,10 +47,9 @@ dataToSaveForTimestamp["Refs"] = refs;
 dataToSaveForTimestamp["CommitHash"] = commitHash;
 
 let benchmarkDataEntryName = `FilterList_${filterListName}`;
-if (filterListName == null) {
-  filterListName = matchListCase;
-  benchmarkDataEntryName = `Matching_${filterListName}`;
-}
+if (filterListName == null)
+  benchmarkDataEntryName = `Matching_${matchListCase}`;
+
 dataToSaveForTimestamp[benchmarkDataEntryName] = {};
 let filterBenchmarkData =
   benchmarkResults[benchmarkDate][benchmarkDataEntryName];
@@ -206,18 +205,6 @@ async function performInitializationBenchmark(filters) {
 }
 
 async function main() {
-  // Extract filter set to  array of filter lists
-  console.log("## " + filterListName);
-  let lists = helpers.divideSetToArray(filterListName);
-
-  let filters = [];
-
-  if (lists.length > 0) {
-    for (let list of lists) {
-      let content = await helpers.loadFile(list);
-      filters = filters.concat(content.split(/[\r\n]+/).map(sliceString));
-    }
-  }
   if (process.argv.some(arg => /^--cleanup$/.test(arg))) {
     await helpers.cleanBenchmarkData();
     return;
@@ -230,10 +217,20 @@ async function main() {
   }
 
   if (process.argv.some(arg => /^--match$/.test(arg))) {
+    console.log("## Matching " + matchListCase);
     await performMatchingBenchmark();
     mergeAndSaveData(benchmarkResults);
   }
-  else if (lists.length > 0) {
+  else if (filterListName) {
+    console.log("## Initializing " + filterListName);
+    let filters = [];
+    let lists = helpers.divideSetToArray(filterListName);
+    if (lists.length > 0) {
+      for (let list of lists) {
+        let content = await helpers.loadFile(list);
+        filters = filters.concat(content.split(/[\r\n]+/).map(sliceString));
+      }
+    }
     await performInitializationBenchmark(filters);
     mergeAndSaveData(benchmarkResults);
   }
