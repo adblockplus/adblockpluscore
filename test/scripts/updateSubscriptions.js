@@ -95,6 +95,8 @@ describe("updateSubscriptions script", function() {
   }
 
   it("should handle empty subscription tar file", async function() {
+    // In this scenario test checks if code throws error when tar file is
+    // empty (has no settings)
     await assertFailureWarnings("noSubscription/" + exampleSubscription,
                                 "Settings file doesn't exist");
   });
@@ -129,7 +131,10 @@ describe("updateSubscriptions script", function() {
                                 "Variant marked as complete for non-supplemental");
   });
 
-  it("should handle invalid subsciption file", async function() {
+  it("should handle invalid subscription file", async function() {
+    // This scenario checks if code outputs the warning when subscription file
+    // has invalid format - in this specific case subscriptionlist_master.tar.gz
+    // empty subscription file is included
     await assertFailureWarnings("invalidSubscriptionFile/" + exampleSubscription,
                                 "Invalid format of the file");
   });
