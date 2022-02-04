@@ -64,6 +64,8 @@ benchmark:
 
 .testpages:
   image: docker:19.03.5
+  tags:
+    - docker
   stage: default
   services:
     - docker:19.03.5-dind
