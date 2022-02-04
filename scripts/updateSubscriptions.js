@@ -273,9 +273,8 @@ async function update(urlMapper, filename) {
 
 const urlMapperMv3 = function(subscription) {
   // https://gitlab.com/eyeo/filters/filterlists-delivery/-/tree/main#mv3-filter-list-delivery
-  let lastSegmentIndex = subscription.url.lastIndexOf("/");
   let filename = subscription.url
-    .substring(lastSegmentIndex + 1)
+    .substring(subscription.url.lastIndexOf("/") + 1)
     .replace("+easylist", "");
   return "https://release-v3.filter-delivery-staging.eyeo.com/v3/full/" + filename;
 };
