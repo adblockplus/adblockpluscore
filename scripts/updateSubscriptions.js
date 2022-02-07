@@ -319,6 +319,7 @@ if (require.main == module) {
 }
 
 exports.listUrl = listUrl;
+exports.filenameMv2 = filenameMv2;
 exports.filenameMv3 = filenameMv3;
 exports.urlMapperMv3 = urlMapperMv3;
 exports.update = update;

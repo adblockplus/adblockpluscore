@@ -256,7 +256,22 @@ Pass a specific target filename if needed:
 node scripts/updateSubscriptions.js mv3 build/data/subscriptions_custom_mv3.json
 ```
 
-2.Fetch the filter rules
+2.Merge with product-specific subscriptions list (optional)
+
+Run
+```
+node scripts/mergeSubscriptions.js [-i ./data/subscriptions.json /tmp/subscriptions_custom.json] [-o output_subscriptions.json]
+```
+
+Use `-a` to add default subscriptions file to input files list.
+
+The default output path is `./data/subscriptions.json`, so:
+```
+node scripts/mergeSubscriptions.js -a /tmp/subscriptions.json
+```
+will effectively append the subscriptions `/tmp/subscriptions.json` to the default file `./data/subscriptions.json`.
+
+3.Fetch the filter rules
 
 Run
 ```
