@@ -1,3 +1,58 @@
+0.6.0
+=====
+
+## Changes
+
+- Internal code changes
+  - Revert `knownFilters` as non self-cleaning Map. Issue #371
+  - Use native crypto API for sitekeys. Issue #208
+  - Change linter rule to force space before curly braces. Issue #393
+
+- API changes
+  - Allow filters to be enabled / disabled per subscription. Issue #115
+
+- Documentaion improvements
+  - Document some of the preference keys. Issue #365
+  - Add missing download status documentation (inline).
+  - Minor documentation formatting improvements.
+
+- Testing improvements
+  - Add unit tests for `iniParser`. Issue #152
+  - Fix some benchmark scripts that have been broken in a previous change.
+  - Fix benchmarking code not running in some situations. MR !603
+  - Fix downloading filter lists in benchmarks. Issue #376
+  - Added time based benchmarking for filter matching. Issue #392
+  - Require Node 16 for the test. Issue #374
+  - Remove profiler option that doesn't exist anymore in Node 16. Issue #374
+  - Update mocha to ^9.x and eslint to 3.72.
+  - Ensure Regular Expression flags are preserved in `parseScript`.
+  - Test against testpages in CI. Issue #398
+  - Improve automated tests around `filterListener` with large tests sample.
+    Issue #372
+  - Improve reliability of `ElemHideEmulation`. Issue #384
+
+- Filtering
+  - Implement `:not` selector for `ElemHideEmulation` filters. Issue #369.
+
+- Updated public suffix list. Issue #406
+
+## Bug fixes
+
+- Identify more types of ElemenHiding filters which could be triggered by
+  attribute changes. Issue #377
+- Treat header and CSP separately from resource types. Issue #326
+
+## Updating your code
+
+- Sitekey now use the webcrypto API. It's available in all support
+  browsers, and in NodeJS 16. However if you use a different platform,
+  you might need it add some polyfills.
+- When calling `Matcher.match` or `Matcher.search` to check if any
+  filters match a request in the context of header filtering or CSP
+  filtering, the content type must now be the "context" type
+  (`contentTypes.HEADER` or `contentTypes.CSP`) combined with the request
+  resource type using the bitwise or operator.
+
 0.5.1
 =====
 
