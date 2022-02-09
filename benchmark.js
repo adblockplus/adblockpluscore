@@ -22,50 +22,36 @@
 
 "use strict";
 
-const fs = require("fs");
 const path = require("path");
 const helpers = require("./benchmark/helpers.js");
+const {createHistogram, performance} = require("perf_hooks");
 
-let saveData = false;
+let saveData = helpers.getFlagExists("save");
+let saveTempData = helpers.getFlagExists("save-temp");
+let deleteTempData = helpers.getFlagValue("dt");
 let filterListName = helpers.getFlagValue("filter-list");
 let matchListCase = helpers.getFlagValue("match-list");
-let benchmarkDate = setTimestamp();
+let runMatchingBenchmark = helpers.getFlagExists("match");
+let benchmarkDate = helpers.getFlagValue("ts") || new Date().toISOString();
+let benchmarkDataEntryName;
+if (runMatchingBenchmark) {
+  if (filterListName)
+    benchmarkDataEntryName = `Matching_${matchListCase}_${filterListName}`;
+  else
+    benchmarkDataEntryName = `Matching_${matchListCase}`;
+}
+else {
+  benchmarkDataEntryName = `FilterList_${filterListName}`;
+}
 
 // Holds benchmark results that will be merged into json file
 let benchmarkResults = {};
 let matchResults = {};
 benchmarkResults[benchmarkDate] = {};
 let dataToSaveForTimestamp = benchmarkResults[benchmarkDate];
-
-// Get git data about branch and commit
-const rev = fs.readFileSync(".git/HEAD").toString().replace(/\n/g, "");
-let refs = rev;
-let commitHash = rev;
-if (rev.includes(":"))
-  commitHash = fs.readFileSync(".git/" + rev.substring(5).replace(/\n/g, "")).toString().replace(/\n/g, "");
-dataToSaveForTimestamp["Refs"] = refs;
-dataToSaveForTimestamp["CommitHash"] = commitHash;
-
-let benchmarkDataEntryName = `FilterList_${filterListName}`;
-if (filterListName == null)
-  benchmarkDataEntryName = `Matching_${matchListCase}`;
-
 dataToSaveForTimestamp[benchmarkDataEntryName] = {};
-let filterBenchmarkData =
-  benchmarkResults[benchmarkDate][benchmarkDataEntryName];
+let filterBenchmarkData = dataToSaveForTimestamp[benchmarkDataEntryName];
 
-// Gathers data from profiler & passes it to benchmark
-let profilerReporter = function(list) {
-  for (let entry of list.getEntriesByType("measure")) {
-    console.log(`${entry.name}: ${entry.duration}ms`);
-    this[entry.name] = entry.duration;
-  }
-}.bind(filterBenchmarkData);
-
-const profiler = require("./lib/profiler");
-profiler.enable(true, profilerReporter);
-
-const {filterEngine} = require("./lib/filterEngine");
 const {Filter} = require("./lib/filterClasses");
 const {parseURL} = require("./lib/url");
 const {contentTypes} = require("./lib/contentTypes");
@@ -79,37 +65,30 @@ const TEMP_BENCHMARK_RESULTS = path.join(
   "/benchmark/tempresults.json"
 );
 
-let benchmarkDataToSave;
-
 function sliceString(str) {
   // Create a new string in V8 to free up the parent string.
   return JSON.parse(JSON.stringify(str));
 }
 
 function toMiB(numBytes) {
-  return new Intl.NumberFormat().format(numBytes / 1024 / 1024);
+  return numBytes / 1024 / 1024;
 }
 
-function setTimestamp() {
-  let date = helpers.getFlagValue("ts");
-  if (date == null) {
-    let currentdate = new Date();
-    date = currentdate.toISOString();
-  }
-  console.log("Date", date);
-  return date;
+function nanosToMillis(nanos) {
+  return nanos / 1e6;
 }
 
-function mergeAndSaveData(dataToMerge) {
+async function mergeAndSaveData(dataToMerge) {
   if (saveData) {
-    benchmarkDataToSave =
-    helpers.mergeToBenchmarkResults(dataToMerge, BENCHMARK_RESULTS);
-    helpers.saveToFile(benchmarkDataToSave, false, BENCHMARK_RESULTS);
+    let benchmarkDataToSave =
+        helpers.mergeToBenchmarkResults(dataToMerge, BENCHMARK_RESULTS);
+    await helpers.saveToFile(benchmarkDataToSave, BENCHMARK_RESULTS);
   }
-  // saving data to temporary file only
-  let tempBenchmarkDataToSave =
-    helpers.mergeToBenchmarkResults(dataToMerge, TEMP_BENCHMARK_RESULTS);
-  helpers.saveToFile(tempBenchmarkDataToSave, false, TEMP_BENCHMARK_RESULTS);
+  if (saveTempData) {
+    let tempBenchmarkDataToSave =
+        helpers.mergeToBenchmarkResults(dataToMerge, TEMP_BENCHMARK_RESULTS);
+    await helpers.saveToFile(tempBenchmarkDataToSave, TEMP_BENCHMARK_RESULTS);
+  }
 }
 
 function printMemory(type = "filterEngine", index = 1) {
@@ -126,15 +105,10 @@ function printMemory(type = "filterEngine", index = 1) {
   // For counting match results
   matchResults[`${type}_HeapUsed_${index}`] = toMiB(heapUsed);
   matchResults[`${type}_HeapTotal_${index}`] = toMiB(heapTotal);
-
-  mergeAndSaveData(benchmarkResults);
-  // deleting temporary file to keep it clean
-  if (process.argv.some(arg => /^--dt$/.test(arg)))
-    helpers.deleteFile(TEMP_BENCHMARK_RESULTS);
 }
 
-function runMatch(
-  filters, location, contentType, docDomain, sitekey, specificOnly) {
+function runMatch(filterEngine, filters, location, contentType, docDomain,
+                  sitekey, specificOnly) {
   let url = parseURL(location);
   for (let filter of filters)
     filterEngine.add(Filter.fromText(filter));
@@ -148,7 +122,10 @@ function runMatch(
   }
 }
 
-async function performMatchingBenchmark() {
+async function performMatchingBenchmark(initialFilters) {
+  const {filterEngine} = require("./lib/filterEngine");
+  filterEngine.initialize(initialFilters);
+
   let matchFilterList = [];
   switch (matchListCase) {
     case "slowlist":
@@ -162,8 +139,11 @@ async function performMatchingBenchmark() {
       matchFilterList.push("unitlist");
       break;
   }
-  dataToSaveForTimestamp[`Matching_${matchListCase}`] = {};
-  console.log(`Matching Filter List: ${matchListCase}`);
+
+  let performanceHistogram = createHistogram();
+  filterEngine.match = performance.timerify(filterEngine.match, {
+    histogram: performanceHistogram
+  });
   for (let filter of matchFilterList) {
     let filterToMatch = require(`./benchmark/${filter}.json`);
     for (let key in filterToMatch) {
@@ -173,7 +153,7 @@ async function performMatchingBenchmark() {
 
       for (let i = 1; i <= rounds; i++) {
         let args = filterToMatch[key]["args"];
-        await runMatch(...args);
+        await runMatch(filterEngine, ...args);
         await Promise.resolve().then(printMemory("Matching", i));
       }
     }
@@ -183,20 +163,29 @@ async function performMatchingBenchmark() {
     await helpers.countStatisticsOfRuns(matchResults, "HeapUsed");
   let matchingHeapTotal =
     await helpers.countStatisticsOfRuns(matchResults, "HeapTotal");
-  dataToSaveForTimestamp[`Matching_${matchListCase}`]["HeapTotal"] = `${matchingHeapTotal["average"]} MiB +/- ${matchingHeapTotal["margin"]} MiB`;
-  dataToSaveForTimestamp[`Matching_${matchListCase}`]["HeapUsed"] = `${matchingHeapUsed["average"]} MiB +/-${matchingHeapUsed["margin"]} MiB`;
-  console.log(`Matching heap (used): ${dataToSaveForTimestamp[`Matching_${matchListCase}`]["HeapUsed"]}`);
-  console.log(`Matching heap (total): ${dataToSaveForTimestamp[`Matching_${matchListCase}`]["HeapTotal"]}`);
+
+  filterBenchmarkData["TimeMin"] = nanosToMillis(performanceHistogram.min);
+  filterBenchmarkData["TimeMean"] = nanosToMillis(performanceHistogram.mean);
+  filterBenchmarkData["TimeMax"] = nanosToMillis(performanceHistogram.max);
+  filterBenchmarkData["HeapUsed"] = matchingHeapUsed.average;
+  filterBenchmarkData["HeapTotal"] = matchingHeapTotal.average;
+
+  console.log(`Matching time (min): ${filterBenchmarkData["TimeMin"]}ms`);
+  console.log(`Matching time (mean): ${filterBenchmarkData["TimeMean"]}ms`);
+  console.log(`Matching time (max): ${filterBenchmarkData["TimeMax"]}ms`);
+  console.log(`Matching heap (used): ${filterBenchmarkData["HeapUsed"]} MiB +/- ${matchingHeapUsed.margin} MiB`);
+  console.log(`Matching heap (total): ${filterBenchmarkData["HeapTotal"]} MiB +/- ${matchingHeapTotal.margin} MiB`);
 }
 
 async function performInitializationBenchmark(filters) {
+  const {filterEngine} = require("./lib/filterEngine");
+  let performanceHistogram = createHistogram();
+  filterEngine.initialize = performance.timerify(filterEngine.initialize, {
+    histogram: performanceHistogram
+  });
   await filterEngine.initialize(filters);
-  // From Node16 onwards, the profiler doesn't provide a synchronous
-  // interface to profiling data. We register a callback in the
-  // benchmark initialization to provide the profiling measurements
-  // as they're available, and here we wait for them to actually be
-  // available before continuing.
-  await helpers.waitForProfilingResults(filterBenchmarkData);
+  filterBenchmarkData["TimeMean"] = nanosToMillis(performanceHistogram.mean);
+  console.log(`Initialization time: ${filterBenchmarkData["TimeMean"]}ms`);
   // Call printMemory() asynchronously so GC can clean up any objects from
   // here.
   await new Promise(resolve => setTimeout(() => {
@@ -205,38 +194,52 @@ async function performInitializationBenchmark(filters) {
 }
 
 async function main() {
-  if (process.argv.some(arg => /^--cleanup$/.test(arg))) {
-    await helpers.cleanBenchmarkData();
-    return;
-  }
+  try {
+    console.log("Date", benchmarkDate);
+    await helpers.populateGitMetadata(dataToSaveForTimestamp);
 
-  if (process.argv.some(arg => /^--save$/.test(arg))) {
-    saveData = true;
-    // Saving data that was initialized at the begining
-    mergeAndSaveData(benchmarkResults);
-  }
-
-  if (process.argv.some(arg => /^--match$/.test(arg))) {
-    console.log("## Matching " + matchListCase);
-    await performMatchingBenchmark();
-    mergeAndSaveData(benchmarkResults);
-  }
-  else if (filterListName) {
-    console.log("## Initializing " + filterListName);
     let filters = [];
-    let lists = helpers.divideSetToArray(filterListName);
-    if (lists.length > 0) {
+    if (filterListName) {
+      let lists = helpers.divideSetToArray(filterListName);
       for (let list of lists) {
         let content = await helpers.loadFile(list);
         filters = filters.concat(content.split(/[\r\n]+/).map(sliceString));
       }
     }
-    await performInitializationBenchmark(filters);
-    mergeAndSaveData(benchmarkResults);
-  }
 
-  if (process.argv.some(arg => /^--compare$/.test(arg)))
-    helpers.compareResults(benchmarkDate);
+    if (helpers.getFlagValue("cleanup")) {
+      await helpers.cleanBenchmarkData();
+      return;
+    }
+
+    if (saveData) {
+      // Saving data that was initialized at the begining
+      await mergeAndSaveData(benchmarkResults);
+    }
+
+    if (runMatchingBenchmark) {
+      if (filterListName)
+        console.log(`## Matching ${matchListCase} matches with ${filterListName} filters`);
+      else
+        console.log(`## Matching ${matchListCase} matches`);
+
+      await performMatchingBenchmark(filters);
+      await mergeAndSaveData(benchmarkResults);
+    }
+    else {
+      console.log(`## Initializing with ${filterListName} filters`);
+      await performInitializationBenchmark(filters);
+      await mergeAndSaveData(benchmarkResults);
+    }
+
+    if (helpers.getFlagValue("compare"))
+      helpers.compareResults(benchmarkDate);
+  }
+  finally {
+    // deleting temporary file to keep it clean
+    if (deleteTempData)
+      await helpers.deleteFile(TEMP_BENCHMARK_RESULTS);
+  }
 }
 
 if (require.main == module)
