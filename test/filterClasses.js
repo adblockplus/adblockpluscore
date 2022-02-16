@@ -35,6 +35,7 @@ let ElemHideFilter = null;
 let ElemHideException = null;
 let ElemHideEmulationFilter = null;
 let SnippetFilter = null;
+let filterMeta = null;
 
 describe("Filter classes", function() {
   beforeEach(function() {
@@ -44,7 +45,8 @@ describe("Filter classes", function() {
       {Filter, InvalidFilter, CommentFilter, ActiveFilter, URLFilter,
        BlockingFilter, AllowingFilter, ContentFilter, ElemHideBase,
        ElemHideFilter, ElemHideException, ElemHideEmulationFilter,
-       SnippetFilter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
+       SnippetFilter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
+      {filterMeta} = sandboxedRequire(LIB_FOLDER + "/filterMeta")
     );
   });
 
@@ -53,6 +55,9 @@ describe("Filter classes", function() {
     let result = [];
     result.push("text=" + filter.text);
     result.push("type=" + filter.type);
+    let metaData = filterMeta.getMetaData(filter.text);
+    if (metaData)
+      result.push("meta=" + JSON.stringify(metaData, null, null));
     if (filter instanceof InvalidFilter) {
       result.push("reason=" + filter.reason);
     }
@@ -268,6 +273,25 @@ describe("Filter classes", function() {
         filter.setDisabledForSubscription("~easylist", true);
         filter.hitCount = 12;
         filter.lastHit = 20;
+      }
+    );
+  });
+
+  it("Filters with meta data", function() {
+    compareFilter("blabla", ["type=blocking", "text=blabla"]);
+    compareFilter(
+      "blabla_non_default",
+      ["type=blocking", "text=blabla_non_default", "meta={\"date\":1}"],
+      filter => {
+        filter.setMetaData("date", 1);
+      }
+    );
+    compareFilter(
+      "blabla_non_default",
+      ["type=blocking", "text=blabla_non_default", "meta={\"date\":2,\"tags\":[\"tag1\",\"tag2\"]}"],
+      filter => {
+        filter.setMetaData("date", 2);
+        filter.setMetaData("tags", ["tag1", "tag2"]);
       }
     );
   });
