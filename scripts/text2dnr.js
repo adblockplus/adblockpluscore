@@ -25,6 +25,7 @@ let {hideBin} = require("yargs/helpers");
 
 let {createConverter} = require("../lib/dnr/index.js");
 let {normalize} = require("../lib/filters/index.js");
+let {parseFilterList} = require("../lib/filters/lists.js");
 
 const convert = createConverter({
   // the sync/async callback to use to check a RegExp is compatible with Re2
@@ -34,10 +35,13 @@ const convert = createConverter({
   }
 });
 
-function processList(filterList) {
-  if (!(filterList instanceof Array))
-    return Promise.reject(new Error("filter list not an Array"));
-  return Promise.resolve(filterList
+function processContent(filterListContent) {
+  let {error, lines} = parseFilterList(filterListContent);
+  if (error)
+    return Promise.reject(new Error(error));
+
+  lines.shift();
+  return Promise.resolve(lines
                          .flatMap(filter => convert(normalize(filter)))
                          .filter(o => !(o instanceof Error)));
 }
@@ -71,8 +75,7 @@ function parseArgs(cliArgv) {
 
 function processFile(filename, outputfile) {
   return readFile(filename, {encoding: "utf-8"})
-    .then(content => content.split(/\r?\n/))
-    .then(list => processList(list))
+    .then(content => processContent(content))
     .then(results => {
       if (typeof outputfile != "undefined") {
         return writeFile(
@@ -100,4 +103,3 @@ if (require.main == module) {
 
 exports.parseArgs = parseArgs;
 exports.processFile = processFile;
-exports.processList = processList;
