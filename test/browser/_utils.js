@@ -24,3 +24,23 @@ function timeout(delay) {
 }
 
 exports.timeout = timeout;
+
+/**
+ * Promise that resolves after a predicate becomes true. The
+ * `predicate` is called every `pollingInverval` ms, until it returns
+ * true. If this does not happen within `maxTimeout` ms, then the
+ * promise is rejected.
+ * @param {function} predicate This function will be called at regular intervals until it returns `true`
+ * @param {number} [pollingInterval] How often in ms to call `predicate`
+ * @param {number} [maxTimeout] How long in ms to keep polling before rejecting the promise.
+ * @returns {Promise} A promise resolved after `predicate` returns `true`.
+ */
+exports.waitFor = async function(predicate, pollingInterval = 10, maxTimeout = 1000) {
+  let startTime = performance.now();
+  while (!predicate()) {
+    if (performance.now() - startTime > maxTimeout)
+      throw new Error("Timeout");
+
+    await timeout(pollingInterval);
+  }
+};

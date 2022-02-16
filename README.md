@@ -20,7 +20,7 @@ these resources, you'll need to regenerate the file
 
 Adding the new resource for `$redirect`:
 
-* Edit `build/assets/index.json`. The fields are defined as follow:
+* Edit `data/resources/index.json`. The fields are defined as follow:
   * `name`: The name of the resource as used for the `$rewrite` filter option.
   * `type`: The MIME type of the content.
   * `text`: If the resource is pure text, you can use this for the text
@@ -29,7 +29,7 @@ Adding the new resource for `$redirect`:
     in the output as base64. If there is a `text` value, don't include this.
   * `comment`: an optional comment. This won't be part of the output.
 * Add the binary files referenced in the `file` entry for the new resource in
-  `build/assets/`. They should be checked into the repository.
+  `data/resources/`. They should be checked into the repository.
 * Run the `resources` package script using npm with the command
   `npm run uppdate-resources`. This will generate the file
   `data/resources.json`. This file is also managed by the version control
@@ -42,7 +42,7 @@ Running the unit tests
 ### Requirements
 
 In order to run the unit test suite you need
-[Node.js 12.17.0 or higher](https://nodejs.org/). Once Node.js is installed
+[Node.js 16.10.0 or higher](https://nodejs.org/). Once Node.js is installed
 please run `npm install` in the repository directory in order to install the
 required dependencies.
 
@@ -75,6 +75,29 @@ You can not set a specific version of the browser at runtime.
 Browser tests run headless by default (except on Windows). If you want
 to disable headless mode on the WebDriver controlled tests, set the
 BROWSER_TEST_HEADLESS environment to 0.
+
+### Integration tests
+[testpages](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org) tests check `adblockpluscore` integration with ABP. To run them locally, you need to install [Docker](https://www.docker.com/). 
+
+Tests can be executed with:
+
+```sh
+docker build -t testpages .
+docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets" -it testpages
+```
+
+The current version of the project may contain changes that are not yet supported by ABP. In that case, some of the tests may need to be excluded, which can be done using the `TESTS_EXCLUDE` argument f.ex:
+
+```sh
+docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets|CSP|Header" -it testpages
+```
+
+Firefox (latest) is the default browser. Other browsers can be run using the
+BROWSER argument:
+
+```sh
+docker run -e BROWSER="Chromium \(latest\)" -it testpages
+```
 
 Linting
 -------

@@ -29,6 +29,46 @@ const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
 const TEMP_BENCHMARK_RESULTS = path.join(__dirname, "tempresults.json");
 const fs = require("fs");
 const https = require("https");
+const {promisify} = require("util");
+const exec = promisify(require("child_process").exec);
+
+const EASY_LIST = {
+  path: "./benchmark/easylist.txt",
+  url: "https://easylist-downloads.adblockplus.org/easylist.txt"
+};
+const AA = {
+  path: "./benchmark/exceptionrules.txt",
+  url: "https://easylist-downloads.adblockplus.org/exceptionrules.txt"
+};
+const EASYPRIVACY = {
+  path: "./benchmark/easyprivacy.txt",
+  url: "https://easylist.to/easylist/easyprivacy.txt"
+};
+const TESTPAGES = {
+  path: "./benchmark/testpages.txt",
+  url: "https://testpages.adblockplus.org/en/abp-testcase-subscription.txt"
+};
+
+const TIMERIFY_KEYS = [
+  "TimeMin",
+  "TimeMean",
+  "TimeMax"
+];
+const HEAP_RESULTS_KEYS = [
+  "HeapUsed",
+  "HeapTotal"
+];
+const RESULTS_KEYS = TIMERIFY_KEYS
+      .concat(HEAP_RESULTS_KEYS);
+
+function keyUnit(key) {
+  if (TIMERIFY_KEYS.includes(key))
+    return "ms";
+  else if (HEAP_RESULTS_KEYS.includes(key))
+    return "MB";
+  return "";
+}
+
 let dataToSave = {};
 
 function loadDataFromFile(pathToLoad) {
@@ -43,12 +83,29 @@ function loadDataFromFile(pathToLoad) {
   return data;
 }
 
+exports.getFlagExists = function getFlagExists(flag) {
+  return process.argv.includes(`--${flag}`);
+};
+
+exports.getFlagValue = function getFlagValue(flag) {
+  let value;
+  process.argv
+        .slice(2, process.argv.length)
+        .forEach(arg => {
+          if (arg.slice(0, 2) === "--") {
+            const longArg = arg.split("=");
+            if (longArg[0].slice(2, longArg[0].length) == flag)
+              value = longArg.length > 1 ? longArg[1] : true;
+          }
+        });
+
+  return value;
+};
+
 exports.saveToFile = async function
-saveToFile(data, fileCleanup = false, pathToFile) {
-  if (fileCleanup)
-    await this.deleteFile(BENCHMARK_RESULTS);
-  let json = JSON.stringify(data);
-  fs.promises.writeFile(pathToFile, json, "utf8");
+saveToFile(data, pathToFile) {
+  let json = JSON.stringify(data, null, 2);
+  await fs.promises.writeFile(pathToFile, json, "utf8");
 };
 
 exports.loadFile = async function loadFile(list) {
@@ -56,16 +113,22 @@ exports.loadFile = async function loadFile(list) {
     return await fs.promises.readFile(list.path, "utf8");
   }
   catch (error) {
-    console.log(`Hey, we're downloading the file once, 
-    hold on for a second. Downloading from url: ${list.url}`);
-    let data = await download(list.url);
-    let listPath = path.join(__dirname, list.path.replace("benchmark", ""));
-    await fs.promises.writeFile(listPath, data);
-    return data;
+    console.log(`Hey, looks like you don't have filter list ${list.path} cached.
+    Please run benchmark-entrypoint.sh --filter-list=<filterList> to download it`);
   }
 };
 
-function download(url) {
+exports.checkIfFileExists = function checkIfFileExists(pathToFile) {
+  try {
+    if (fs.existsSync(pathToFile))
+      return true;
+  }
+  catch (err) {
+    return false;
+  }
+};
+
+exports.downloadFile = async function downloadFile(url) {
   return new Promise((resolve, reject) => {
     let request = https.request(url);
 
@@ -86,7 +149,20 @@ function download(url) {
 
     request.end();
   });
-}
+};
+
+exports.divideSetToArray = function divideSetToArray(setName) {
+  switch (setName) {
+    case "EasyList":
+      return [EASY_LIST];
+    case "EasyList+AA":
+      return [EASY_LIST, AA];
+    case "All":
+      return [EASY_LIST, AA, EASYPRIVACY, TESTPAGES];
+    default:
+      throw new Error(`Sorry, cannot find set ${setName}.`);
+  }
+};
 
 function deepMerge(object1, object2) {
   for (let key of Object.keys(object2)) {
@@ -114,17 +190,10 @@ exports.mergeToBenchmarkResults = function mergeToBenchmarkResults(
 
 exports.cleanBenchmarkData = async function cleanBenchmarkData() {
   console.log("Wait a sec, I am cleaning benchmark Data... ");
-  let keys = [
-    "FilterEngine:startup",
-    "FilterEngine:initialize_measure",
-    "FilterEngine:download_done_measure",
-    "HeapUsed",
-    "HeapTotal"
-  ];
 
   let minValues = {};
 
-  for (let key of keys) {
+  for (let key of RESULTS_KEYS) {
     minValues[`${key}Min`] = Number.MAX_SAFE_INTEGER;
     minValues[`${key}Timestamp`] = null;
   }
@@ -135,11 +204,11 @@ exports.cleanBenchmarkData = async function cleanBenchmarkData() {
   for (let i = 0; i < filterList.length; i++) {
     let filter = filterList[i];
     for (let timestamp in dataToAnalyze) {
-      if (typeof (dataToAnalyze[timestamp][filter]) == "undefined")
+      if (typeof (dataToAnalyze[timestamp][filter]) != "number")
         continue;
       for (let key in dataToAnalyze[timestamp][filter]) {
         let valueToCompare =
-          parseFloat(dataToAnalyze[timestamp][filter][key]);
+          dataToAnalyze[timestamp][filter][key];
         if (minValues[`${key}Min`] == null) {
           continue;
         }
@@ -152,7 +221,7 @@ exports.cleanBenchmarkData = async function cleanBenchmarkData() {
     }
   }
   console.log("Min Values", minValues);
-  for (let key of keys) {
+  for (let key of RESULTS_KEYS) {
     if (!timestampsToSave.includes(minValues[`${key}Timestamp`]))
       timestampsToSave.push(minValues[`${key}Timestamp`]);
   }
@@ -160,7 +229,7 @@ exports.cleanBenchmarkData = async function cleanBenchmarkData() {
   for (let timestamp of timestampsToSave)
     dataToSave[timestamp] = dataToAnalyze[timestamp];
 
-  await this.saveToFile(dataToSave, true, BENCHMARK_RESULTS);
+  await this.saveToFile(dataToSave, BENCHMARK_RESULTS);
   console.log("Data is cleaned.");
 };
 
@@ -178,58 +247,52 @@ function getValuesKeys(obj) {
     valueKeys = Object.keys(obj[timestamp]);
 
   let uniqueWithoutGitKeys = valueKeys.filter(
-    word => (word !== "Refs" & word !== "CommitHash"));
+    word => (word !== "Refs" && word !== "CommitHash"));
   return uniqueWithoutGitKeys;
 }
 
-exports.compareResults = async function compareResults(currentRunTimestamp) {
-  let keys = [
-    "FilterEngine:startup",
-    "FilterEngine:initialize_measure",
-    "FilterEngine:download_done_measure",
-    "HeapUsed",
-    "HeapTotal"
-  ];
-
+exports.compareResults = function compareResults(currentRunTimestamp) {
   let currentRunData = loadDataFromFile(TEMP_BENCHMARK_RESULTS);
   let dataToAnalyze = loadDataFromFile(BENCHMARK_RESULTS);
-  let filterList = await getValuesKeys(dataToAnalyze);
+  let filterList = getValuesKeys(dataToAnalyze);
+
   console.log(`┏${"━".repeat(87)}┓`);
 
-  for (let j = 0; j < keys.length; j++) {
-    let key = keys[j];
+  for (let j = 0; j < RESULTS_KEYS.length; j++) {
+    let key = RESULTS_KEYS[j];
+    let unit = keyUnit(key);
+    let heading = `${key} (${unit})`;
 
-    console.log(`┃${" ".repeat(33)}${key.padEnd(54, " ")}┃`);
+    console.log(`┃${" ".repeat(33)}${heading.padEnd(54, " ")}┃`);
     printTableSeparator("┳");
     fillTab(" ", "Current", "Min", "Diff");
     printTableSeparator("╋");
 
     for (let i = 0; i < filterList.length; i++) {
       let filter = filterList[i];
-      if (!key.includes("Heap")) {
-        if (filter.includes("Matching"))
-          continue;
-      }
+      let currentRunValue = currentRunData[currentRunTimestamp][filter][key];
+      if (!currentRunValue)
+        continue;
+
       let valueMin = Number.MAX_SAFE_INTEGER;
       for (let timestamp of Object.keys(dataToAnalyze)) {
         if (timestamp == currentRunTimestamp)
           continue;
         if (typeof (dataToAnalyze[timestamp][filter]) == "undefined")
           continue;
-        if (typeof (dataToAnalyze[timestamp][filter][key]) == "undefined")
+        if (typeof (dataToAnalyze[timestamp][filter][key]) != "number")
           continue;
 
         let valueToCompare =
-        parseFloat(dataToAnalyze[timestamp][filter][key]);
+        dataToAnalyze[timestamp][filter][key];
         if (valueMin > valueToCompare)
           valueMin = valueToCompare;
       }
       if (valueMin == Number.MAX_SAFE_INTEGER) {
-        console.log(` Missing historical data to compare,
-          please run 'npm benchmark-save' to create one`);
-        this.deleteFile(TEMP_BENCHMARK_RESULTS)
-            .finally(() => process.exit(1));
-        process.exit(1);
+        console.log(`Missing historical data to compare for ${filter}: ${key}`);
+        console.log("Please run 'npm run benchmark:save' to create one.");
+        throw new Error("Missing historical data to compare. " +
+                        "Please run 'npm run benchmark:save'");
       }
       // eslint-disable-next-line max-len
       if ((typeof (currentRunData[currentRunTimestamp][filter]) == "undefined") ||
@@ -237,8 +300,6 @@ exports.compareResults = async function compareResults(currentRunTimestamp) {
         typeof (currentRunData[currentRunTimestamp][filter][key]) == "undefined")
         continue;
 
-      let currentRunValue =
-        parseFloat(currentRunData[currentRunTimestamp][filter][key]);
       let diff = ((currentRunValue - valueMin) / valueMin) * 100;
 
       fillTab(
@@ -248,7 +309,7 @@ exports.compareResults = async function compareResults(currentRunTimestamp) {
         diff.toFixed(3)
       );
 
-      if (j == (keys.length - 1) && i == (filterList.length - 1)) {
+      if (j == (RESULTS_KEYS.length - 1) && i == (filterList.length - 1)) {
         printTableSeparator("┻", "┗", "┛");
         continue;
       }
@@ -288,12 +349,21 @@ exports.countStatisticsOfRuns =
     await extractHeapDataFromMatchingResults(matchResults, parameter);
     let sum = 0;
     for (let i = 0; i < heap.length; i++)
-      sum += parseFloat(heap[i], 10);
+      sum += heap[i];
 
-    let average = parseInt(sum / heap.length, 10).toFixed(3);
-    let margin = parseFloat(getMargin(heap, average)).toFixed(3);
+    let average = sum / heap.length;
+    let margin = getMargin(heap, average);
     return {
       average,
       margin
     };
   };
+
+exports.populateGitMetadata =
+async function populateGitMetadata(dataToSaveForTimestamp) {
+  // see https://git-scm.com/docs/git-rev-parse
+  dataToSaveForTimestamp["Refs"] =
+    (await exec("git rev-parse --symbolic-full-name HEAD")).stdout.trim();
+  dataToSaveForTimestamp["CommitHash"] =
+    (await exec("git rev-parse HEAD")).stdout.trim();
+};

@@ -18,13 +18,26 @@
 "use strict";
 
 const assert = require("assert");
+const {Buffer} = require("buffer");
+const crypto = require("crypto");
 const {LIB_FOLDER, createSandbox} = require("./_common");
+
+const globals = {
+  crypto: crypto.webcrypto,
+
+  // fallback for TextEncoder not exported as global
+  TextEncoder: global.TextEncoder || class {
+    encode(data) {
+      return Buffer.from(data);
+    }
+  }
+};
 
 let verifySignature = null;
 
 describe("verifySignature()", function() {
   beforeEach(function() {
-    let sandboxedRequire = createSandbox();
+    let sandboxedRequire = createSandbox({globals});
     (
       {verifySignature} = sandboxedRequire(LIB_FOLDER + "/rsa")
     );
@@ -47,28 +60,28 @@ describe("verifySignature()", function() {
     let publicKey = "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALZc50pEXnz9TSRozwM04rryuaXl/wgUFqV9FHq8HDlkdKvRU0hXhb/AKrSpCJ0NCxHtal1l/kHYlHG9e7Ev6+MCAwEAAQ==";
     let signature = "LzKJE1BOsZDfwD/hncHq+MN5ZygIemb1Pyzx40rm3CoTL4CVPAicS1mOiTv6s9Li9Vw1ds9HwFWVMFVEwHwfIw==";
 
-    it("should return true for correct public key, signature, and data", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data), true);
+    it("should return true for correct public key, signature, and data", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data), true);
     });
 
-    it("should return false for data with extra characters", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data + "1"), false);
+    it("should return false for data with extra characters", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data + "1"), false);
     });
 
-    it("should return false for truncated data", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data.substring(0, 3)), false);
+    it("should return false for truncated data", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data.substring(0, 3)), false);
     });
 
-    it("should return false for incorrect signature", function() {
-      assert.strictEqual(verifySignature(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data), false);
+    it("should return false for incorrect signature", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data), false);
     });
 
-    it("should return false for incorrect public key (1)", function() {
-      assert.strictEqual(verifySignature(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data), false);
+    it("should return false for incorrect public key (1)", async function() {
+      assert.strictEqual(await verifySignature(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data), false);
     });
 
-    it("should return false for incorrect public key (2)", function() {
-      assert.strictEqual(verifySignature(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data), false);
+    it("should return false for incorrect public key (2)", async function() {
+      assert.strictEqual(await verifySignature(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data), false);
     });
   });
 
@@ -107,28 +120,28 @@ describe("verifySignature()", function() {
     let publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy45IKQw0R5YBiIFyfKftx3F/6WsvtdNMnCKodkDemXuJOcFuOf/KeIjED/wW2DFG8qq72FAByUUFoTLcmawQZPd2htmHIk8ZkBRsaQ8HzNoK+vg4wnI6yN/2lhSP27D4XpedG3mtbG8aYtMuqyQaxWHInSqiM4tqW/8coAPXrRTKYmsFfAwPB1LCg5QI3vCy7Vdbbp907xOXON1+2seF9j8m9rh0sufXgGNWcvTNUvlf/TidSVjqxe6O3hG9jTOswC8/hez7rbiLroVNnCtIDrdX6OSM/je/XSMMnS5xpZBuqZGZtZm1Mr42omgst+KE+5dE6kyx76ra8LwsCEShawIDAQAB";
     let signature = "UYTQmygOICKi4ozlMbLSYFZ1olovZZFYT0nZygPrGoA+6+ta+wzKnPnghK4j35QSucrf3yN8DSXa/kXBX0LcTmEaSwoNRuM7QPjT6v9hNsVjwNexOUk6pR3DotYuD1yV36sITNjx59McG8/q6qLyj2A8KVlUbtnz/IiLzzw+wgy6WRjU1meYP8oiQGVIkB21ICqqaJ5kCvM0YrAqzQKAya513O51ADA6aC/EMz6B62XGgZ+AywUMcH2Wvx7cyCvPVLfAbXcgex1JtpPS6vGcdpigaVQkoyl4cIQmX1ppasgJj2MiYl2htXvFXjYoWniEmspteNu3UybB0nMHnYjKdQ==";
 
-    it("should return true for correct public key, signature, and data", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data), true);
+    it("should return true for correct public key, signature, and data", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data), true);
     });
 
-    it("should return false for data with extra characters", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data + "1"), false);
+    it("should return false for data with extra characters", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data + "1"), false);
     });
 
-    it("should return false for truncated data", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data.substring(0, 3)), false);
+    it("should return false for truncated data", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data.substring(0, 3)), false);
     });
 
-    it("should return false for incorrect signature", function() {
-      assert.strictEqual(verifySignature(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data), false);
+    it("should return false for incorrect signature", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data), false);
     });
 
-    it("should return false for incorrect public key (1)", function() {
-      assert.strictEqual(verifySignature(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data), false);
+    it("should return false for incorrect public key (1)", async function() {
+      assert.strictEqual(await verifySignature(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data), false);
     });
 
-    it("should return false for incorrect public key (2)", function() {
-      assert.strictEqual(verifySignature(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data), false);
+    it("should return false for incorrect public key (2)", async function() {
+      assert.strictEqual(await verifySignature(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data), false);
     });
   });
 
@@ -149,28 +162,28 @@ describe("verifySignature()", function() {
     let publicKey = "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALZc50pEXnz9TSRozwM04rryuaXl/wgUFqV9FHq8HDlkdKvRU0hXhb/AKrSpCJ0NCxHtal1l/kHYlHG9e7Ev6+MCAwEAAQ==";
     let signature = "L1LtPxp9VwL/ij8tuIxJqtx6mD3qoFhcEmPl8A1RlNeOP34A25nzyzRWuP2wEbHcKKXnAQESdIXaTaEuymXviQ==";
 
-    it("should return true for correct public key, signature, and data", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data), true);
+    it("should return true for correct public key, signature, and data", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data), true);
     });
 
-    it("should return false for data with extra characters", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data + "1"), false);
+    it("should return false for data with extra characters", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data + "1"), false);
     });
 
-    it("should return false for truncated data", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data.substring(0, 3)), false);
+    it("should return false for truncated data", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data.substring(0, 3)), false);
     });
 
-    it("should return false for incorrect signature", function() {
-      assert.strictEqual(verifySignature(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data), false);
+    it("should return false for incorrect signature", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data), false);
     });
 
-    it("should return false for incorrect public key (1)", function() {
-      assert.strictEqual(verifySignature(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data), false);
+    it("should return false for incorrect public key (1)", async function() {
+      assert.strictEqual(await verifySignature(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data), false);
     });
 
-    it("should return false for incorrect public key (2)", function() {
-      assert.strictEqual(verifySignature(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data), false);
+    it("should return false for incorrect public key (2)", async function() {
+      assert.strictEqual(await verifySignature(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data), false);
     });
   });
 
@@ -183,8 +196,8 @@ describe("verifySignature()", function() {
     let publicKey = "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANnylWw2vLY4hUn9w06zQKbhKBfvjFUCsdFlb6TdQhxb9RXWXuI4t31c+o8fYOv/s8q1LGPga3DE1L/tHU4LENMCAwEAAQ==";
     let signature = "nLH8Vbc1rzmy0Q+Xg+bvm43IEO42h8rq5D9C0WCn/Y3ykgAoV4npzm7eMlqBSwZBLA/0DuuVsfTJT9MOVaurcA==";
 
-    it("should return true for correct public key, signature, and data", function() {
-      assert.strictEqual(verifySignature(publicKey, signature, data.join("\0")), true);
+    it("should return true for correct public key, signature, and data", async function() {
+      assert.strictEqual(await verifySignature(publicKey, signature, data.join("\0")), true);
     });
   });
 });

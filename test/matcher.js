@@ -57,7 +57,14 @@ describe("Matcher", function() {
     }
   }
 
-  function checkMatch(filters, location, contentType, docDomain, sitekey, specificOnly, expected, expectedFirstMatch = expected) {
+  function checkMatch(filters, location, requestContentTypes, docDomain, sitekey, specificOnly, expected, expectedFirstMatch = expected) {
+    if (typeof requestContentTypes === "string")
+      requestContentTypes = [requestContentTypes];
+
+    let contentTypeMask = 0;
+    for (let contentType of requestContentTypes)
+      contentTypeMask |= contentTypes[contentType];
+
     let url = parseURL(location);
 
     let matcher = new Matcher();
@@ -65,11 +72,11 @@ describe("Matcher", function() {
       matcher.add(Filter.fromText(filter));
 
     for (let arg of [url, location]) {
-      let result = matcher.match(arg, contentTypes[contentType], docDomain, sitekey, specificOnly);
+      let result = matcher.match(arg, contentTypeMask, docDomain, sitekey, specificOnly);
       if (result)
         result = result.text;
 
-      assert.equal(result, expectedFirstMatch, "match(" + (typeof arg == "string" ? arg : `parseURL(${arg})`) + ", " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
+      assert.equal(result, expectedFirstMatch, "match(" + (typeof arg == "string" ? arg : `parseURL(${arg})`) + ", " + requestContentTypes + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
     }
 
     let combinedMatcher = new CombinedMatcher();
@@ -77,11 +84,11 @@ describe("Matcher", function() {
       for (let filter of filters)
         combinedMatcher.add(Filter.fromText(filter));
 
-      let result = combinedMatcher.match(url, contentTypes[contentType], docDomain, sitekey, specificOnly);
+      let result = combinedMatcher.match(url, contentTypeMask, docDomain, sitekey, specificOnly);
       if (result)
         result = result.text;
 
-      assert.equal(result, expected, "combinedMatch(parseURL(" + location + "), " + contentType + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
+      assert.equal(result, expected, "combinedMatch(parseURL(" + location + "), " + requestContentTypes + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
 
       // Generic allowing rules can match for specificOnly searches, so we
       // can't easily know which rule will match for these allowlisting tests
@@ -231,15 +238,22 @@ describe("Matcher", function() {
     checkMatch(["||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", null, false, "||foo.com^$popup");
     checkMatch(["@@||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", null, false, null, "@@||foo.com^$popup");
     checkMatch(["||foo.com^$popup", "@@||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", null, false, "@@||foo.com^$popup", "||foo.com^$popup");
-    checkMatch(["||foo.com^$csp=script-src 'none'"], "http://foo.com/bar", "CSP", "foo.com", null, false, "||foo.com^$csp=script-src 'none'");
-    checkMatch(["@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", null, false, null, "@@||foo.com^$csp");
-    checkMatch(["||foo.com^$csp=script-src 'none'", "@@||foo.com^$csp"], "http://foo.com/bar", "CSP", "foo.com", null, false, "@@||foo.com^$csp", "||foo.com^$csp=script-src 'none'");
+    checkMatch(["||foo.com^$csp=script-src 'none'"], "http://foo.com/bar", ["CSP", "OTHER"], "foo.com", null, false, "||foo.com^$csp=script-src 'none'");
+    checkMatch(["@@||foo.com^$csp"], "http://foo.com/bar", ["CSP", "OTHER"], "foo.com", null, false, null, "@@||foo.com^$csp");
+    checkMatch(["||foo.com^$csp=script-src 'none'", "@@||foo.com^$csp"], "http://foo.com/bar", ["CSP", "OTHER"], "foo.com", null, false, "@@||foo.com^$csp", "||foo.com^$csp=script-src 'none'");
+    checkMatch(["||foo.com^$csp=script-src 'none',image"], "http://foo.com/bar.png", ["CSP", "IMAGE"], "foo.com", null, false, "||foo.com^$csp=script-src 'none',image");
+    checkMatch(["||foo.com^$csp=script-src 'none',image"], "http://foo.com/bar.js", ["CSP", "SCRIPT"], "foo.com", null, false, null);
 
-    checkMatch(["||example.com/ad.js$header=content-type:.*image/png"], "http://example.com/ad.js", "HEADER", "example.com", null, false, "||example.com/ad.js$header=content-type:.*image/png");
-    checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", "HEADER", "bar.com", null, true, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
-    checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", "HEADER", "bar.com", null, false, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
-    checkMatch(["@@||example.com/assets/*.js$header"], "http://example.com/assets/logo.js", "HEADER", "example.com", null, false, null, "@@||example.com/assets/*.js$header");
-    checkMatch(["||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com", "@@||example.com/assets/logo.js$header"], "http://example.com/assets/logo.js", "HEADER", "bar.com", null, false, "@@||example.com/assets/logo.js$header", "||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com");
+    checkMatch(["||example.com/ad.js$header=content-type:.*image/png"], "http://example.com/ad.js", ["HEADER", "SCRIPT"], "example.com", null, false, "||example.com/ad.js$header=content-type:.*image/png");
+    checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", ["HEADER", "SCRIPT"], "bar.com", null, true, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
+    checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", ["HEADER", "SCRIPT"], "bar.com", null, false, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
+    checkMatch(["@@||example.com/assets/*.js$header"], "http://example.com/assets/logo.js", ["HEADER", "SCRIPT"], "example.com", null, false, null, "@@||example.com/assets/*.js$header");
+    checkMatch(["||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com", "@@||example.com/assets/logo.js$header"], "http://example.com/assets/logo.js", ["HEADER", "SCRIPT"], "bar.com", null, false, "@@||example.com/assets/logo.js$header", "||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com");
+
+    // See https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/-/issues/326
+    checkMatch(["||example.com^$script,header=X-Frame-Options=sameorigin"], "http://example.com/ad.js", ["HEADER", "SCRIPT"], "example.com", null, false, "||example.com^$script,header=X-Frame-Options=sameorigin");
+    checkMatch(["||example.com^$script,header=X-Frame-Options=sameorigin"], "http://example.com/ad.css", ["HEADER", "STYLESHEET"], "example.com", null, false, null);
+    checkMatch(["||example.com^$script,header=X-Frame-Options=sameorigin"], "http://example.com/ad.js", "SCRIPT", "example.com", null, false, null);
 
     // See #7312.
     checkMatch(["^foo/bar/$script"], "http://foo/bar/", "SCRIPT", "example.com", null, true, null);
@@ -272,7 +286,7 @@ describe("Matcher", function() {
     });
 
     // Non-matching content type.
-    checkSearch(filters, "http://example.com/foos", "CSP", "example.com", null, false, "all", {blocking: [], allowing: []});
+    checkSearch(filters, "http://example.com/foos", ["CSP", "OTHER"], "example.com", null, false, "all", {blocking: [], allowing: []});
 
     // Non-matching specificity.
     checkSearch(filters, "http://example.com/foos", "IMAGE", "example.com", null, true, "all", {blocking: [], allowing: ["@@foos"]});

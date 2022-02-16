@@ -1,7 +1,17 @@
-## Background
+<!--- Provide a general summary of the change in the Title above -->
 
-Replace this text with your reasoning that lead to wanting the change.
+## Background / User story
+<!-- Introduction on why the change is requested, brief description of the value it should bring. -->
+<!-- Mention any related issues/researches and link them here -->
 
 ## What to change
 
-Replace this text with the detailed description of what exactly shall be changed/added and where.
+- **Development:**
+<!-- Describe the functionality which needs to be implemented/changed -->
+<!-- Mention any implementation deatils -->
+<!-- List technical requirements which needs to be met if any -->
+- **Documentation:**
+<!-- Describe any documentation related changes -->
+
+## Hints for testing 
+<!-- Optional -->

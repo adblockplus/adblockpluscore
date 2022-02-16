@@ -29,7 +29,9 @@ let Filter = null;
 let defaultMatcher = null;
 let SpecialSubscription = null;
 let recommendations = null;
+let filterState = null;
 let elemHideExceptions = null;
+let elemHide = null;
 
 describe("Filter listener", function() {
   // {module:matcher.findKeyword()} will not do what you expect.
@@ -57,7 +59,6 @@ describe("Filter listener", function() {
       result[type] = filters;
     }
 
-    let {elemHide} = sandboxedRequire(LIB_FOLDER + "/elemHide");
     result.elemhide = [];
     for (let filter of elemHide._filters)
       result.elemhide.push(filter.text);
@@ -96,6 +97,7 @@ describe("Filter listener", function() {
       {IO} = sandboxedRequire("./stub-modules/io"),
       {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine"),
+      {elemHide} = sandboxedRequire(LIB_FOLDER + "/elemHide"),
       {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions"),
       {defaultMatcher} = sandboxedRequire(LIB_FOLDER + "/matcher")
     );
@@ -153,7 +155,8 @@ describe("Filter listener", function() {
       (
         {Subscription, SpecialSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
         {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
-        recommendations = sandboxedRequire("../data/subscriptions.json")
+        recommendations = sandboxedRequire("../data/subscriptions.json"),
+        {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState")
       );
 
       filterStorage.addSubscription(Subscription.fromURL("~user~fl"));
@@ -217,6 +220,10 @@ describe("Filter listener", function() {
       checkKnownFilters("disable filter1 while not in list", {});
       filter1.disabled = false;
       checkKnownFilters("enable filter1 while not in list", {});
+      filter1.setDisabledForSubscription("~user", true);
+      checkKnownFilters("disable filter1 per subscription while not in list", {});
+      filter1.setDisabledForSubscription("~user", false);
+      checkKnownFilters("enable filter1 per subscription while not in list", {});
 
       filter2.disabled = true;
       checkKnownFilters("disable @@filter2 while not in list", {});
@@ -289,6 +296,11 @@ describe("Filter listener", function() {
       filter2.disabled = false;
       checkKnownFilters("enable filter1, filter2", {blocking: [filter1.text], allowing: [filter2.text]});
 
+      filterState.setEnabled(filter1.text, false);
+      checkKnownFilters("disable filter1", {allowing: [filter2.text]});
+      filterState.reset(filter1.text);
+      checkKnownFilters("enabled filter1 with filterState.reset", {blocking: [filter1.text], allowing: [filter2.text]});
+
       filterStorage.addFilter(filter1);
       checkKnownFilters("add filter1", {blocking: [filter1.text], allowing: [filter2.text]});
 
@@ -318,6 +330,50 @@ describe("Filter listener", function() {
 
       filterStorage.removeSubscription(subscription);
       checkKnownFilters("remove subscription", {blocking: [filter1.text]});
+    });
+
+    it("Filter subscription operations with multiple subscriptions", function() {
+      let filter1 = Filter.fromText("filter1");
+      let filter2 = Filter.fromText("@@filter2");
+      let filter3 = Filter.fromText("##filter3");
+
+      let subscription1 = Subscription.fromURL("https://test1/");
+      let subscription2 = Subscription.fromURL("https://test2/");
+      subscription1.addFilter(filter1);
+      subscription2.addFilter(filter2);
+      subscription1.addFilter(filter3);
+      subscription2.addFilter(filter3);
+
+      filterStorage.addSubscription(subscription1);
+      filterStorage.addSubscription(subscription2);
+      checkKnownFilters("add subscription with filter1, @@filter2, ##filter3", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
+
+      filter1.setDisabledForSubscription("https://test1/", true);
+      checkKnownFilters("disable filter1 for https://test1/", {blocking: [], allowing: [filter2.text], elemhide: [filter3.text]});
+      filter1.setDisabledForSubscription("https://test2/", true);
+      checkKnownFilters("disable filter1 for https://test2/", {blocking: [], allowing: [filter2.text], elemhide: [filter3.text]});
+      filter1.setDisabledForSubscription("https://test1/", false);
+      checkKnownFilters("enable filter1 for https://test1/", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
+      filter1.setDisabledForSubscription("https://test2/", false);
+      checkKnownFilters("enable filter1 for https://test2/", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
+
+      filter2.setDisabledForSubscription("https://test1/", true);
+      checkKnownFilters("disable @@filter2 for https://test1/", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
+      filter2.setDisabledForSubscription("https://test2/", true);
+      checkKnownFilters("disable @@filter2 for https://test2/", {blocking: [filter1.text], allowing: [], elemhide: [filter3.text]});
+      filter2.setDisabledForSubscription("https://test1/", false);
+      checkKnownFilters("enable @@filter2 for https://test1/", {blocking: [filter1.text], allowing: [], elemhide: [filter3.text]});
+      filter2.setDisabledForSubscription("https://test2/", false);
+      checkKnownFilters("enable @@filter2 for https://test2/", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
+
+      filter3.setDisabledForSubscription("https://test1/", true);
+      checkKnownFilters("disable ##filter3 for https://test1/", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
+      filter3.setDisabledForSubscription("https://test2/", true);
+      checkKnownFilters("disable ##filter3 for https://test2/", {blocking: [filter1.text], allowing: [filter2.text], elemhide: []});
+      filter3.setDisabledForSubscription("https://test1/", false);
+      checkKnownFilters("enable ##filter3 for https://test1/", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
+      filter3.setDisabledForSubscription("https://test2/", false);
+      checkKnownFilters("enable ##filter3 for https://test2/", {blocking: [filter1.text], allowing: [filter2.text], elemhide: [filter3.text]});
     });
 
     it("Filter group operations", function() {
@@ -384,7 +440,23 @@ describe("Filter listener", function() {
       checkKnownFilters("enable exception rules", {blocking: [filter1.text], allowing: [filter2.text]});
     });
 
-    it("Can add and remove a large subscription", function() {
+    it("Can add and remove a large element hide subscription", function() {
+      let subscription = Subscription.fromURL("https://test");
+      let filterText = [];
+      for (let i = 0; i < 20000; i++)
+        filterText.push(`example.com###id-${i}`);
+
+      subscription.updateFilterText(filterText);
+      assert.equal(elemHide._filters.size, 0);
+
+      filterStorage.addSubscription(subscription);
+      assert.equal(elemHide._filters.size, filterText.length);
+
+      filterStorage.removeSubscription(subscription);
+      assert.equal(elemHide._filters.size, 0);
+    });
+
+    it("Can add and remove a large element hide exception subscription", function() {
       let subscription = Subscription.fromURL("https://test");
 
       let filterText = [];
@@ -401,12 +473,85 @@ describe("Filter listener", function() {
       assert.equal(elemHideExceptions._exceptions.size, 0);
     });
 
+    it("Can add and remove a large blocking subscription", function() {
+      let subscription = Subscription.fromURL("https://test");
+
+      let filterText = [];
+      for (let i = 0; i < 2000; i++){
+        let text = `//example.com/id-${i}/`;
+        let filter = Filter.fromText(text);
+        filterText.push(text);
+        subscription.addFilter(filter);
+      }
+
+      filterStorage.addSubscription(subscription);
+      checkKnownFilters("add subscription", {blocking: filterText, allowing: []});
+
+      filterStorage.removeSubscription(subscription);
+      checkKnownFilters("remove subscription", {});
+    });
+
+    it("Can add and remove a large allowing subscription", function() {
+      let subscription = Subscription.fromURL("https://test1");
+
+      let filterText = [];
+      for (let i = 0; i < 2000; i++){
+        let text = `@@example.com/id-${i}/`;
+        let filter = Filter.fromText(text);
+        filterText.push(text);
+        subscription.addFilter(filter);
+      }
+
+      filterStorage.addSubscription(subscription);
+      checkKnownFilters("add subscription", {blocking: [], allowing: filterText});
+
+      filterStorage.removeSubscription(subscription);
+      checkKnownFilters("remove subscription", {});
+    });
+
+    it("Can add and remove a large elem-hide emulation subscription", function() {
+      let subscription = Subscription.fromURL("https://test1");
+
+      let filterText = [];
+      for (let i = 0; i < 2000; i++){
+        let text = `example.com#?#:-abp-properties(filter${i})/`;
+        let filter = Filter.fromText(text);
+        filterText.push(text);
+        subscription.addFilter(filter);
+      }
+
+      filterStorage.addSubscription(subscription);
+      checkKnownFilters("add elem hide emulation subscription", {blocking: [], allowing: [], elemhideemulation: filterText});
+
+      filterStorage.removeSubscription(subscription);
+      checkKnownFilters("remove subscription", {});
+    });
+
+    it("Can add and remove a large elem-hide emulation exception subscription", function() {
+      let subscription = Subscription.fromURL("https://test1");
+
+      let filterText = [];
+      for (let i = 0; i < 2000; i++) {
+        let text = `example.com#@#[-abp-properties='filter${i}']/`;
+        let filter = Filter.fromText(text);
+        filterText.push(text);
+        subscription.addFilter(filter);
+      }
+
+      filterStorage.addSubscription(subscription);
+      checkKnownFilters("add elem hide emulation exception subscription", {blocking: [], allowing: [], elemhideemulation: [], elemhideexception: filterText});
+
+      filterStorage.removeSubscription(subscription);
+      checkKnownFilters("remove subscription", {});
+    });
+
     it("Snippet filters", function() {
       let filter1 = Filter.fromText("example.com#$#filter1");
       let filter2 = Filter.fromText("example.com#$#filter2");
 
       let subscription1 = Subscription.fromURL("https://test1/");
       assert.equal(subscription1.type, null);
+      assert.equal(subscription1.privileged, false);
 
       subscription1.addFilter(filter1);
       subscription1.addFilter(filter2);
@@ -420,6 +565,7 @@ describe("Filter listener", function() {
 
       let subscription2 = Subscription.fromURL(circumventionURL);
       assert.equal(subscription2.type, "circumvention");
+      assert.equal(subscription2.privileged, true);
 
       subscription2.addFilter(filter1);
 
@@ -428,11 +574,42 @@ describe("Filter listener", function() {
 
       let subscription3 = Subscription.fromURL("~user~foo");
       assert.equal(subscription3.type, null);
+      assert.equal(subscription3.privileged, true);
 
       subscription3.addFilter(filter2);
 
       filterStorage.addSubscription(subscription3);
       checkKnownFilters("add special subscription with filter2", {snippets: [filter1.text, filter2.text]});
+    });
+
+    it("Filter subscription operations with snippet filters", function() {
+      let filter1 = Filter.fromText("example.com#$#filter1");
+
+      let subscription1 = Subscription.fromURL("https://test1/");
+      subscription1.addFilter(filter1);
+      filterStorage.addSubscription(subscription1);
+
+      let {url: circumventionURL} = recommendations.find(
+        ({type}) => type == "circumvention"
+      );
+      let subscription2 = Subscription.fromURL(circumventionURL);
+      subscription2.addFilter(filter1);
+      filterStorage.addSubscription(subscription2);
+
+      let subscription3 = Subscription.fromURL("~user~foo");
+      subscription3.addFilter(filter1);
+      filterStorage.addSubscription(subscription3);
+
+      checkKnownFilters("snippet from multiple subscriptions is present", {snippets: [filter1.text]});
+
+      filter1.setDisabledForSubscription(subscription3.url, true);
+      checkKnownFilters("snippet still present after disabled on one privileged subscription", {snippets: [filter1.text]});
+
+      filter1.setDisabledForSubscription(subscription2.url, true);
+      checkKnownFilters("snippet no longer enabled when disabled on all privileged subscriptions", {snippets: []});
+
+      filter1.setDisabledForSubscription(subscription3.url, false);
+      checkKnownFilters("snippet can be reenabled from any subscription", {snippets: [filter1.text]});
     });
 
     it("HTTP header filters", function() {

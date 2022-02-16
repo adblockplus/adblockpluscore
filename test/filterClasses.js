@@ -60,6 +60,8 @@ describe("Filter classes", function() {
     }
     else if (filter instanceof ActiveFilter) {
       result.push("disabled=" + filter.disabled);
+      for (let disabledSubscription of filter.disabledSubscriptions)
+        result.push("disabledSubscriptions[]=" + disabledSubscription);
       result.push("lastHit=" + filter.lastHit);
       result.push("hitCount=" + filter.hitCount);
 
@@ -258,6 +260,16 @@ describe("Filter classes", function() {
         filter.lastHit = 20;
       }
     );
+    compareFilter(
+      "blabla_non_default",
+      ["type=blocking", "text=blabla_non_default", "disabledSubscriptions[]=~user", "disabledSubscriptions[]=~easylist", "hitCount=12", "lastHit=20"],
+      filter => {
+        filter.setDisabledForSubscription("~user", true);
+        filter.setDisabledForSubscription("~easylist", true);
+        filter.hitCount = 12;
+        filter.lastHit = 20;
+      }
+    );
   });
 
   it("Special characters", function() {
@@ -285,20 +297,21 @@ describe("Filter classes", function() {
     compareFilter("||content.server.com/files/*.php$rewrite=", ["type=invalid", "reason=filter_invalid_rewrite", "text=||content.server.com/files/*.php$rewrite="]);
 
     // header blocking
-    compareFilter("||example.com/ad.js$header=content-type=image/png", ["type=blocking", "text=||example.com/ad.js$header=content-type=image/png", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=image/png"]);
-    compareFilter("||example.com/ad.js$header=x-brick=Everything\\x2c is\\x2c awesome!", ["type=blocking", "text=||example.com/ad.js$header=x-brick=Everything\\x2c is\\x2c awesome!", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=x-brick=Everything, is, awesome!"]);
-    compareFilter("||example.com/ad.js$header=x-brick=Everything\\\\x2c is\\\\x2c awesome!", ["type=blocking", "text=||example.com/ad.js$header=x-brick=Everything\\\\x2c is\\\\x2c awesome!", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=x-brick=Everything\\x2c is\\x2c awesome!"]);
-    compareFilter("@@||example.com/ad.js$header=content-type=image/png", ["type=allowing", "text=@@||example.com/ad.js$header=content-type=image/png", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=image/png"]);
-    compareFilter("@@||example.com/ad.js$header", ["type=allowing", "text=@@||example.com/ad.js$header", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=null"]);
-    compareFilter("@@||example.com/ad.js$header=", ["type=allowing", "text=@@||example.com/ad.js$header=", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=null"]);
+    compareFilter("||example.com/ad.js$header=content-type=image/png", ["type=blocking", "text=||example.com/ad.js$header=content-type=image/png", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=content-type=image/png"]);
+    compareFilter("||example.com/ad.js$header=x-brick=Everything\\x2c is\\x2c awesome!", ["type=blocking", "text=||example.com/ad.js$header=x-brick=Everything\\x2c is\\x2c awesome!", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=x-brick=Everything, is, awesome!"]);
+    compareFilter("||example.com/ad.js$header=x-brick=Everything\\\\x2c is\\\\x2c awesome!", ["type=blocking", "text=||example.com/ad.js$header=x-brick=Everything\\\\x2c is\\\\x2c awesome!", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=x-brick=Everything\\x2c is\\x2c awesome!"]);
+    compareFilter("@@||example.com/ad.js$header=content-type=image/png", ["type=allowing", "text=@@||example.com/ad.js$header=content-type=image/png", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=content-type=image/png"]);
+    compareFilter("@@||example.com/ad.js$header", ["type=allowing", "text=@@||example.com/ad.js$header", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=null"]);
+    compareFilter("@@||example.com/ad.js$header=", ["type=allowing", "text=@@||example.com/ad.js$header=", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=null"]);
     compareFilter("||example.com/ad.js$header", ["type=invalid", "reason=filter_invalid_header", "text=||example.com/ad.js$header"]);
     compareFilter("||example.com/ad.js$header==value", ["type=invalid", "reason=filter_invalid_header", "text=||example.com/ad.js$header==value"]);
     compareFilter("||example.com/ad.js$header=x-my-id=/[0-9]/", ["type=invalid", "reason=filter_invalid_header", "text=||example.com/ad.js$header=x-my-id=/[0-9]/"]);
 
-    compareFilter("||example.com/ad.js$header=content-type=.*image/[a-z]{1\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type=.*image/[a-z]{1\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=.*image/[a-z]{1,3}"]);
-    compareFilter("||example.com/ad.js$header=content-type=.*image/[a-z]{1\\\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type=.*image/[a-z]{1\\\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type=.*image/[a-z]{1\\x2c3}"]);
-    compareFilter("||example.com/ad.js$header=content-type=", ["type=blocking", "text=||example.com/ad.js$header=content-type=", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type"]);
-    compareFilter("||example.com/ad.js$header=Content-Type", ["type=blocking", "text=||example.com/ad.js$header=Content-Type", "regexp=null", "matchCase=false", "contentType=" + contentTypes.HEADER, "header=content-type"]);
+    compareFilter("||example.com/ad.js$header=content-type=.*image/[a-z]{1\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type=.*image/[a-z]{1\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=content-type=.*image/[a-z]{1,3}"]);
+    compareFilter("||example.com/ad.js$header=content-type=.*image/[a-z]{1\\\\x2c3}", ["type=blocking", "text=||example.com/ad.js$header=content-type=.*image/[a-z]{1\\\\x2c3}", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=content-type=.*image/[a-z]{1\\x2c3}"]);
+    compareFilter("||example.com/ad.js$header=content-type=", ["type=blocking", "text=||example.com/ad.js$header=content-type=", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=content-type"]);
+    compareFilter("||example.com/ad.js$header=Content-Type", ["type=blocking", "text=||example.com/ad.js$header=Content-Type", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | RESOURCE_TYPES), "header=content-type"]);
+    compareFilter("||example.com/ad.js$script,header=Content-Type", ["type=blocking", "text=||example.com/ad.js$script,header=Content-Type", "regexp=null", "matchCase=false", "contentType=" + (contentTypes.HEADER | contentTypes.SCRIPT), "header=content-type"]);
 
 
     // background and image should be the same for backwards compatibility
@@ -328,8 +341,8 @@ describe("Filter classes", function() {
     compareFilter("blah$csp=", ["type=invalid", "text=blah$csp=", "reason=filter_invalid_csp"]);
 
     // Blahnk CSP values are allowed for allowing filters.
-    compareFilter("@@blah$csp", ["type=allowing", "text=@@blah$csp", "contentType=" + contentTypes.CSP]);
-    compareFilter("@@blah$csp=", ["type=allowing", "text=@@blah$csp=", "contentType=" + contentTypes.CSP]);
+    compareFilter("@@blah$csp", ["type=allowing", "text=@@blah$csp", "contentType=" + (contentTypes.CSP | RESOURCE_TYPES)]);
+    compareFilter("@@blah$csp=", ["type=allowing", "text=@@blah$csp=", "contentType=" + (contentTypes.CSP | RESOURCE_TYPES)]);
 
     compareFilter("blah$csp=report-uri", ["type=invalid", "text=blah$csp=report-uri", "reason=filter_invalid_csp"]);
     compareFilter("blah$csp=foo,csp=report-to", ["type=invalid", "text=blah$csp=foo,csp=report-to", "reason=filter_invalid_csp"]);
@@ -501,7 +514,7 @@ describe("Filter classes", function() {
         "csp=c s p",
         "domains=domain.com|foo.com",
         "sitekeys=foo",
-        "contentType=" + contentTypes.CSP
+        "contentType=" + (contentTypes.CSP | RESOURCE_TYPES)
       ]
     );
 
