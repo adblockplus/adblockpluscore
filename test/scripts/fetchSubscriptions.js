@@ -29,7 +29,7 @@ const nock = require("nock");
 const {fetchSubscriptions, getSubscriptionFile} =
   require("../../scripts/fetchSubscriptions");
 
-const encoding = "utf-8";
+const ENCODING = "utf-8";
 
 describe("fetchSubscriptions script", function() {
   let tmpDir;
@@ -103,7 +103,7 @@ describe("fetchSubscriptions script", function() {
     assert.strictEqual(files.length, 1);
     assert.deepEqual(
       await readFile(path.join(outDir, files[0])),
-      Buffer.from(data, encoding));
+      Buffer.from(data, ENCODING));
   });
 
   it("should fetch multiple subscriptions", async function() {
@@ -141,10 +141,10 @@ describe("fetchSubscriptions script", function() {
     assert.strictEqual(files.length, 2);
     assert.deepEqual(
       await readFile(path.join(outDir, files[0])),
-      Buffer.from(data1, encoding));
+      Buffer.from(data1, ENCODING));
     assert.deepEqual(
       await readFile(path.join(outDir, files[1])),
-      Buffer.from(data2, encoding));
+      Buffer.from(data2, ENCODING));
   });
 
   it("should fail on HTTP error", async function() {

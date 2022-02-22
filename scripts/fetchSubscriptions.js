@@ -27,7 +27,7 @@ const https = require("https");
 const yargs = require("yargs/yargs");
 const {hideBin} = require("yargs/helpers");
 
-const outputDir = "build/data/subscriptions/ABP";
+const OUTPUT_DIR = "build/data/subscriptions/ABP";
 
 async function download(url, toFile) {
   console.info(`Downloading ${url} to ${toFile} ...`);
@@ -120,13 +120,13 @@ async function main() {
     })
     .parse();
   let fromFile = args.input || filenameMv3;
-  let toDir = args.output || outputDir;
+  let toDir = args.output || OUTPUT_DIR;
   await fetchSubscriptions(fromFile, toDir);
 }
 
 if (require.main == module)
   main();
 
-exports.outputDir = outputDir;
+exports.OUTPUT_DIR = OUTPUT_DIR;
 exports.getSubscriptionFile = getSubscriptionFile;
 exports.fetchSubscriptions = fetchSubscriptions;
