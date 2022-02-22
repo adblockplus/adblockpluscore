@@ -90,8 +90,7 @@ describe("updateSubscriptions script", function() {
 
   async function assertFailureWarnings(mockedDataPath, messageToAssert) {
     await performSubscriptionUpdate(mockedDataPath);
-    assert.strictEqual(warnings[0].substring(0, messageToAssert.length),
-                       messageToAssert);
+    assert.strictEqual(warnings[0].startsWith(messageToAssert), true);
   }
 
   it("should handle empty subscription tar file", async function() {

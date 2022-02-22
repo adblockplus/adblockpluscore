@@ -248,7 +248,7 @@ Run
 ```
 npm run update-subscriptions:mv3 [-- -o /tmp/custom_output.json]
 ```
-to generate a list of subscriptions supported at eyeo's back-end.
+to generate a list of subscriptions downloaded from eyeo's backend.
 Edit the generated `build/data/subscriptions_mv3.json` file if needed.
 
 Pass a specific target filename if needed:
@@ -279,3 +279,8 @@ npm run fetch-subscriptions
 ```
 to download all the ABP filter rules listed in the `build/data/subscriptions_mv3.json` file.
 Add the ABP filter rules files to `build/data/subscriptions/ABP` directory if needed.
+
+Pass a specific input filename and target directory if needed:
+```
+node scripts/fetchSubscriptions.js -i build/data/subscriptions_custom_mv3.json -o build/data/subscriptions/custom_ABP
+```
