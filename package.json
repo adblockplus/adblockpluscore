@@ -25,12 +25,14 @@
     "memory-fs": "0.4.1",
     "mocha": "^9.1.2",
     "ncp": "2.0.0",
+    "nock": "^13.2.1",
     "sandboxed-module": "2.0.4",
     "script-loader": "0.7.0",
     "selenium-webdriver": "^4.0.0-alpha",
     "tar": "^6.1.10",
     "terser": "^5.6.0",
-    "webpack": "^4.41.6"
+    "webpack": "^4.41.6",
+    "yargs": "17.3.0"
   },
   "scripts": {
     "jsdoc": "jsdoc --configure .jsdoc.conf --destination build/docs lib",
@@ -50,13 +52,15 @@
     "benchmark:cleanup": "node --expose-gc benchmark.js -- --cleanup",
     "lint": "eslint *.js *.mjs lib benchmark test scripts",
     "minify": "mkdir -p dist && node minify.js && cp -R lib/content dist",
-    "unit-tests": "c8 --include=lib/*.js --exclude=lib/index.js --exclude=lib/jsbn.js --exclude=lib/rusha.js --all mocha --check-leaks",
+    "unit-tests": "c8 --include=lib/*.js --include=scripts/*.js --include=lib/filters/*.js --include=lib/dnr/*.js --exclude=lib/index.js --exclude=lib/jsbn.js --exclude=lib/rusha.js --all mocha --check-leaks",
     "test": "LIB_FOLDER=lib node test_runner.mjs",
     "test:dist": "npm run minify && LIB_FOLDER=dist node test_runner.mjs",
     "posttest": "npm run lint",
     "update-resources": "node scripts/updateResources.js",
     "updatepsl": "node scripts/updatepsl.js",
-    "update-subscriptions": "node scripts/updateSubscriptions.js"
+    "update-subscriptions:mv2": "node scripts/updateSubscriptions.js -t mv2",
+    "update-subscriptions:mv3": "node scripts/updateSubscriptions.js -t mv3",
+    "merge-subscriptions": "node scripts/mergeSubscriptions.js"
   },
   "main": "lib"
 }

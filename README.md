@@ -261,3 +261,44 @@ async function main()
 if (require.main == module)
   main();
 ```
+
+Manifest V3: subscriptions
+==========================
+
+1.Generate the list of subscription
+
+Run
+```
+npm run update-subscriptions:mv3 [-- -o /tmp/custom_output.json]
+```
+to generate a list of subscriptions supported at eyeo's back-end.
+Edit the generated `build/data/subscriptions_mv3.json` file if needed.
+
+Pass a specific target filename if needed:
+```
+node scripts/updateSubscriptions.js mv3 build/data/subscriptions_custom_mv3.json
+```
+
+2.Merge with product-specific subscriptions list (optional)
+
+Run
+```
+node scripts/mergeSubscriptions.js [-i ./data/subscriptions.json /tmp/subscriptions_custom.json] [-o output_subscriptions.json]
+```
+
+Use `-a` to add default subscriptions file to input files list.
+
+The default output path is `./data/subscriptions.json`, so:
+```
+node scripts/mergeSubscriptions.js -a /tmp/subscriptions.json
+```
+will effectively append the subscriptions `/tmp/subscriptions.json` to the default file `./data/subscriptions.json`.
+
+3.Fetch the filter rules
+
+Run
+```
+npm run fetch-subscriptions
+```
+to download all the ABP filter rules listed in the `build/data/subscriptions_mv3.json` file.
+Add the ABP filter rules files to `build/data/subscriptions/ABP` directory if needed.

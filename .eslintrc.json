@@ -22,6 +22,9 @@
       }
     ]
   },
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
   "overrides": [
     {
       "files": ["*.mjs"],
