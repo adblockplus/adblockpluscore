@@ -60,6 +60,7 @@
     "updatepsl": "node scripts/updatepsl.js",
     "update-subscriptions:mv2": "node scripts/updateSubscriptions.js -t mv2",
     "update-subscriptions:mv3": "node scripts/updateSubscriptions.js -t mv3",
+    "fetch-subscriptions": "node scripts/fetchSubscriptions.js",
     "merge-subscriptions": "node scripts/mergeSubscriptions.js"
   },
   "main": "lib"
