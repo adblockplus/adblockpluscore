@@ -113,6 +113,13 @@ describe("Filter storage", function() {
     compareSubscriptionList("Adding second", [subscription1, subscription2]);
     assert.deepEqual(changes, ["subscription.added https://test2/"], "Received changes");
 
+    assert(filterStorage.hasSubscription(subscription1));
+    assert(filterStorage.hasSubscription(subscription1.url));
+
+    // We just do an equal because we expect the actual same object here.
+    assert.equal(filterStorage.getSubscription(subscription1.url),
+                 subscription1);
+
     filterStorage.removeSubscription(subscription1);
     compareSubscriptionList("Remove", [subscription2]);
 
@@ -269,6 +276,63 @@ describe("Filter storage", function() {
     filterStorage.addFilter(Filter.fromText("example.com#$#foobar"), subscription2, 0);
     compareFiltersList("Adding filter to an explicit subscription with position", [["foobar", "!foobar", "foobar"], ["example.com#$#foobar", "@@bars", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foobar"]]);
     assert.deepEqual(changes, ["filter.added example.com#$#foobar"], "Received changes");
+  });
+
+  it("Allows adding filters with metadata", function() {
+    let subscription1 = filterStorage.addFiltersWithMetadata(
+      Filter.fromText("foobar"), {meta: "foo"});
+
+    assert(subscription1);
+    assert.deepEqual(subscription1.metadata, {meta: "foo"});
+
+    let result = [...subscription1.serialize()];
+
+    let map = Object.create(null);
+    for (let line of result.slice(1)) {
+      if (/(.*?)=(.*)/.test(line))
+        map[RegExp.$1] = RegExp.$2;
+    }
+
+    // The metadata is JSON.
+    assert.deepEqual(JSON.parse(map["metadata"]), {meta: "foo"});
+
+    // Checking that adding multiple filters at the same time
+    // works
+    let subscription2 = filterStorage.addFiltersWithMetadata([
+      Filter.fromText("bar1"),
+      Filter.fromText("bar2"),
+      Filter.fromText("bar3")
+    ], {meta: "bar"});
+
+    assert(subscription2);
+    assert.deepEqual(subscription2.metadata, {meta: "bar"});
+
+    assert.equal(subscription2.filterCount, 3);
+
+    // This should be in neither of the subscriptions
+    let subscription3 = filterStorage.addFilter(Filter.fromText(
+      "example.com$image"
+    ));
+
+    assert(subscription3);
+    assert.notEqual(subscription3.url, subscription1.url);
+    assert.notEqual(subscription3.url, subscription2.url);
+    assert.equal(subscription3.filterCount, 1);
+
+    assert.strictEqual(filterStorage.getMetadataForFilter("another.example.com"), undefined);
+    assert.strictEqual(filterStorage.getMetadataForFilter("example.com$image"), undefined);
+    assert.deepEqual(filterStorage.getMetadataForFilter("bar1"), [{subscription: subscription2.url, metadata: {meta: "bar"}}]);
+
+
+    let subscription4 = filterStorage.setMetadataForFilter("bar1", {meta: "bar updated"});
+    assert.equal(subscription4, subscription2);
+    assert.deepEqual(subscription4.metadata, {meta: "bar updated"});
+    assert.deepEqual(filterStorage.getMetadataForFilter("bar1"), [{subscription: subscription4.url, metadata: {meta: "bar updated"}}]);
+
+    filterStorage.removeSubscription(subscription2);
+    assert.deepEqual(filterStorage.getMetadataForFilter("bar1"), undefined);
+    assert.deepEqual(filterStorage.getMetadataForFilter("bar2"), undefined);
+    assert.deepEqual(filterStorage.getMetadataForFilter("bar3"), undefined);
   });
 
   it("Removing filters", function() {
