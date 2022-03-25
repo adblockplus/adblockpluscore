@@ -202,7 +202,7 @@ describe("Filter storage", function() {
     compareSubscriptionList("Remove", [subscription1, subscription3]);
   });
 
-  it("Adding filters", function() {
+  it("Adding filters", async function() {
     let subscription1 = Subscription.fromURL("~blocking");
     subscription1.defaults = ["blocking"];
 
@@ -226,60 +226,60 @@ describe("Filter storage", function() {
     assert.deepEqual(changes, [], "Received changes");
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("foobar"));
+    await filterStorage.addFilter(Filter.fromText("foobar"));
     compareFiltersList("Adding blocking filter", [["foobar"], [], []]);
     assert.deepEqual(changes, ["filter.added foobar"], "Received changes");
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("@@bars"));
+    await filterStorage.addFilter(Filter.fromText("@@bars"));
     compareFiltersList("Adding exception rule", [["foobar"], ["@@bars"], []]);
     assert.deepEqual(changes, ["filter.added @@bars"], "Received changes");
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("foo##bar"));
+    await filterStorage.addFilter(Filter.fromText("foo##bar"));
     compareFiltersList("Adding hiding rule", [["foobar"], ["@@bars", "foo##bar"], []]);
     assert.deepEqual(changes, ["filter.added foo##bar"], "Received changes");
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("foo#@#bar"));
+    await filterStorage.addFilter(Filter.fromText("foo#@#bar"));
     compareFiltersList("Adding hiding exception", [["foobar"], ["@@bars", "foo##bar", "foo#@#bar"], []]);
     assert.deepEqual(changes, ["filter.added foo#@#bar"], "Received changes");
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("example.com#$#foobar"));
+    await filterStorage.addFilter(Filter.fromText("example.com#$#foobar"));
     compareFiltersList("Adding snippet filter", [["foobar"], ["@@bars", "foo##bar", "foo#@#bar"], ["example.com#$#foobar"]]);
     assert.deepEqual(changes, ["filter.added example.com#$#foobar"], "Received changes");
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("!foobar"));
+    await filterStorage.addFilter(Filter.fromText("!foobar"));
     compareFiltersList("Adding comment", [["foobar", "!foobar"], ["@@bars", "foo##bar", "foo#@#bar"], ["example.com#$#foobar"]]);
     assert.deepEqual(changes, ["filter.added !foobar"], "Received changes");
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("foobar"));
+    await assert.rejects(filterStorage.addFilter(Filter.fromText("foobar")), "FilterStorageError");
     compareFiltersList("Adding already added filter", [["foobar", "!foobar"], ["@@bars", "foo##bar", "foo#@#bar"], ["example.com#$#foobar"]]);
     assert.deepEqual(changes, [], "Received changes");
 
     subscription1.disabled = true;
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("foobar"));
+    await filterStorage.addFilter(Filter.fromText("foobar"));
     compareFiltersList("Adding filter already in a disabled subscription", [["foobar", "!foobar"], ["@@bars", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foobar"]]);
     assert.deepEqual(changes, ["filter.added foobar"], "Received changes");
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("foobar"), subscription1);
+    await filterStorage.addFilter(Filter.fromText("foobar"), subscription1);
     compareFiltersList("Adding filter to an explicit subscription", [["foobar", "!foobar", "foobar"], ["@@bars", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foobar"]]);
     assert.deepEqual(changes, ["filter.added foobar"], "Received changes");
 
     changes = [];
-    filterStorage.addFilter(Filter.fromText("example.com#$#foobar"), subscription2, 0);
+    await filterStorage.addFilter(Filter.fromText("example.com#$#foobar"), subscription2, 0);
     compareFiltersList("Adding filter to an explicit subscription with position", [["foobar", "!foobar", "foobar"], ["example.com#$#foobar", "@@bars", "foo##bar", "foo#@#bar"], ["example.com#$#foobar", "foobar"]]);
     assert.deepEqual(changes, ["filter.added example.com#$#foobar"], "Received changes");
   });
 
-  it("Allows adding filters with metadata", function() {
-    let subscription1 = filterStorage.addFiltersWithMetadata(
+  it("Allows adding filters with metadata", async function() {
+    let subscription1 = await filterStorage.addFiltersWithMetadata(
       Filter.fromText("foobar"), {meta: "foo"});
 
     assert(subscription1);
@@ -298,9 +298,10 @@ describe("Filter storage", function() {
 
     // Checking that adding multiple filters at the same time
     // works
-    let subscription2 = filterStorage.addFiltersWithMetadata([
+    let subscription2 = await filterStorage.addFiltersWithMetadata([
       Filter.fromText("bar1"),
       Filter.fromText("bar2"),
+      Filter.fromText("bar2"), // duplicate.
       Filter.fromText("bar3")
     ], {meta: "bar"});
 
@@ -310,7 +311,7 @@ describe("Filter storage", function() {
     assert.equal(subscription2.filterCount, 3);
 
     // This should be in neither of the subscriptions
-    let subscription3 = filterStorage.addFilter(Filter.fromText(
+    let subscription3 = await filterStorage.addFilter(Filter.fromText(
       "example.com$image"
     ));
 
@@ -319,20 +320,20 @@ describe("Filter storage", function() {
     assert.notEqual(subscription3.url, subscription2.url);
     assert.equal(subscription3.filterCount, 1);
 
-    assert.strictEqual(filterStorage.getMetadataForFilter("another.example.com"), undefined);
-    assert.strictEqual(filterStorage.getMetadataForFilter("example.com$image"), undefined);
-    assert.deepEqual(filterStorage.getMetadataForFilter("bar1"), [{subscription: subscription2.url, metadata: {meta: "bar"}}]);
+    assert.rejects(filterStorage.getMetadataForFilter("another.example.com"), "FilterStorageError");
+    assert.rejects(filterStorage.getMetadataForFilter("example.com$image"), "FilterStorageError");
+    assert.rejects(filterStorage.setMetadataForFilter("example.com$image", {meta: "bar"}), "FilterStorageError");
+    assert.deepEqual(await filterStorage.getMetadataForFilter("bar1"), {meta: "bar"});
 
-
-    let subscription4 = filterStorage.setMetadataForFilter("bar1", {meta: "bar updated"});
+    let subscription4 = await filterStorage.setMetadataForFilter("bar1", {meta: "bar updated"});
     assert.equal(subscription4, subscription2);
     assert.deepEqual(subscription4.metadata, {meta: "bar updated"});
-    assert.deepEqual(filterStorage.getMetadataForFilter("bar1"), [{subscription: subscription4.url, metadata: {meta: "bar updated"}}]);
+    assert.deepEqual(await filterStorage.getMetadataForFilter("bar1"), {meta: "bar updated"});
 
     filterStorage.removeSubscription(subscription2);
-    assert.deepEqual(filterStorage.getMetadataForFilter("bar1"), undefined);
-    assert.deepEqual(filterStorage.getMetadataForFilter("bar2"), undefined);
-    assert.deepEqual(filterStorage.getMetadataForFilter("bar3"), undefined);
+    assert.rejects(filterStorage.getMetadataForFilter("bar1"), "FilterStorageError");
+    assert.rejects(filterStorage.getMetadataForFilter("bar2"), "FilterStorageError");
+    assert.rejects(filterStorage.getMetadataForFilter("bar3"), "FilterStorageError");
   });
 
   it("Removing filters", function() {
