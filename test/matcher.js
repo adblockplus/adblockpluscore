@@ -271,7 +271,7 @@ describe("Matcher", function() {
     checkMatch(["@@^foo/bar/$script", "^foo/bar/$script,domain=example.com"], "http://foo/bar/", "SCRIPT", "example.com", null, true, "@@^foo/bar/$script", "^foo/bar/$script,domain=example.com");
     checkMatch(["@@^foo/bar/$script", "^foo/bar/$script,domain=example.com"], "http://foo/bar/", "SCRIPT", "example.com", null, false, "@@^foo/bar/$script");
 
-    // See https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/230
+    // See https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/-/issues/230
     checkMatch(["@@||*$document,domain=example.com"], "http://foo/bar/", "DOCUMENT", "example.com", null, false, "@@||*$document,domain=example.com");
   });
 
@@ -434,7 +434,7 @@ describe("Matcher", function() {
 
     // The request URL contains neither "example" nor "foo", therefore it should
     // get to the filters associated with the blank keyword.
-    // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/13
+    // https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/issues/13
     assert.ok(!!matcher.match(parseURL("https://adblockplus/bar/"),
                               contentTypes.IMAGE,
                               "adblockplus"));
