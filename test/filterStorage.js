@@ -336,6 +336,15 @@ describe("Filter storage", function() {
     assert.rejects(filterStorage.getMetadataForFilter("bar3"), "FilterStorageError");
   });
 
+  it("sets metadata for filter added without metadata", async() => {
+    let filter = "foo";
+    await filterStorage.addFilter(Filter.fromText(filter));
+    assert.rejects(filterStorage.getMetadataForFilter(filter), "FilterStorageError");
+    let meta = {created: 123};
+    await filterStorage.setMetadataForFilter(filter, meta);
+    assert.equal(await filterStorage.getMetadataForFilter(filter), meta);
+  });
+
   it("Removing filters", function() {
     let subscription1 = Subscription.fromURL("~foo");
     subscription1.addFilter(Filter.fromText("foo"));
