@@ -322,6 +322,7 @@ describe("Filter storage", function() {
 
     assert.rejects(filterStorage.getMetadataForFilter("another.example.com"), "FilterStorageError");
     assert.rejects(filterStorage.getMetadataForFilter("example.com$image"), "FilterStorageError");
+    assert.rejects(filterStorage.setMetadataForFilter("example.com$image", {meta: "bar"}), "FilterStorageError");
     assert.deepEqual(await filterStorage.getMetadataForFilter("bar1"), {meta: "bar"});
 
     let subscription4 = await filterStorage.setMetadataForFilter("bar1", {meta: "bar updated"});
