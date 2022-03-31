@@ -5,5 +5,5 @@ npm run benchmark:save
 git checkout origin next
 npm install
 npm run benchmark:save
-npm run benchmark:compare
-
+#npm run benchmark:compare
+node benchmark/compare-results.js --ts=$(date +%FT%TZ)
