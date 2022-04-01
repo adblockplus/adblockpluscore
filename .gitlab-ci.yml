@@ -62,6 +62,23 @@ benchmark:
     - npm run benchmark:save
     - npm run benchmark:compare
 
+benchmark:Docker:
+  image: docker:19.03.5
+  tags:
+    - docker
+  stage: default
+  services:
+    - docker:19.03.5-dind
+  before_script:
+    - docker info
+  variables:
+    DOCKER_DRIVER: overlay2
+  interruptible: true
+  script:
+    - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
+    - docker run benchmark 
+  
+
 .testpages:
   image: docker:19.03.5
   tags:
