@@ -21,7 +21,7 @@ const fs = require("fs");
 const path = require("path");
 const process = require("process");
 
-const FILENAME = "data/resources.json";
+const FILENAME = "data/resources.js";
 
 let resourceDir = path.join("data", "resources");
 let index = require(path.join("..", resourceDir, "index.json"));
@@ -49,4 +49,5 @@ for (let entry of index) {
   output[entry.name] = `data:${type},${text}`;
 }
 
-fs.writeFileSync(FILENAME, JSON.stringify(output, null, 2));
+fs.writeFileSync(FILENAME, "exports.resources = " +
+                 JSON.stringify(output, null, 2));

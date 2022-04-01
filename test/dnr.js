@@ -323,7 +323,7 @@ describe("DeclarativeNetRequest", function() {
   });
 
   it("Convert easylist rewrite rules", function() {
-    const resources = require("../data/resources.json");
+    const {resources} = require("../data/resources.js");
 
     let rule = Object.assign(
       {},

@@ -1,4 +1,4 @@
-{
+exports.resources = {
   "blank-text": "data:text/plain,",
   "blank-css": "data:text/css,",
   "blank-js": "data:application/javascript,",

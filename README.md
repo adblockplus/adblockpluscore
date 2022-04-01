@@ -16,7 +16,7 @@ Adblock Plus.
 
 As there is no "build" for adblockplsucore, if you want to modify
 these resources, you'll need to regenerate the file
-`data/resources.json`.
+`data/resources.js`.
 
 Adding the new resource for `$redirect`:
 
@@ -32,7 +32,7 @@ Adding the new resource for `$redirect`:
   `data/resources/`. They should be checked into the repository.
 * Run the `resources` package script using npm with the command
   `npm run uppdate-resources`. This will generate the file
-  `data/resources.json`. This file is also managed by the version control
+  `data/resources.js`. This file is also managed by the version control
   system and should be part of the checkin.
 
 
