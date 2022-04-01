@@ -71,7 +71,7 @@ function keyUnit(key) {
 
 let dataToSave = {};
 
-function loadDataFromFile(pathToLoad) {
+exports.loadDataFromFile = function loadDataFromFile(pathToLoad) {
   let data = {};
   try {
     data = require(pathToLoad);
@@ -81,7 +81,7 @@ function loadDataFromFile(pathToLoad) {
       throw e;
   }
   return data;
-}
+};
 
 exports.getFlagExists = function getFlagExists(flag) {
   return process.argv.includes(`--${flag}`);
@@ -183,7 +183,7 @@ exports.mergeToBenchmarkResults = function mergeToBenchmarkResults(
   dataToMege,
   pathForData) {
   let benchmarkData = {};
-  benchmarkData = loadDataFromFile(pathForData);
+  benchmarkData = this.loadDataFromFile(pathForData);
   return deepMerge(benchmarkData, dataToMege);
 };
 
@@ -199,7 +199,7 @@ exports.cleanBenchmarkData = async function cleanBenchmarkData() {
   }
 
   let timestampsToSave = [];
-  let dataToAnalyze = loadDataFromFile(BENCHMARK_RESULTS);
+  let dataToAnalyze = this.loadDataFromFile(BENCHMARK_RESULTS);
   let filterList = await getValuesKeys(dataToAnalyze);
   for (let i = 0; i < filterList.length; i++) {
     let filter = filterList[i];
@@ -233,13 +233,14 @@ exports.cleanBenchmarkData = async function cleanBenchmarkData() {
   console.log("Data is cleaned.");
 };
 
+exports.printTableSeparator =
 function printTableSeparator(separator, startSign = "┣", endSign = "┫") {
   console.log(`${startSign}${"━".repeat(35)}${separator}${"━".repeat(14)}${separator}${"━".repeat(14)}${separator}${"━".repeat(21)}${endSign}`);
-}
+};
 
-function fillTab(col1, col2, col3, col4) {
+exports.fillTab = function fillTab(col1, col2, col3, col4) {
   console.log(`┃ ${col1.padEnd(34, " ")}┃ ${col2.padEnd(13, " ")}┃ ${col3.padEnd(13, " ")}┃${col4.padStart(19, " ")}% ┃ `);
-}
+};
 
 function getValuesKeys(obj) {
   let valueKeys = [];
@@ -252,8 +253,8 @@ function getValuesKeys(obj) {
 }
 
 exports.compareResults = function compareResults(currentRunTimestamp) {
-  let currentRunData = loadDataFromFile(TEMP_BENCHMARK_RESULTS);
-  let dataToAnalyze = loadDataFromFile(BENCHMARK_RESULTS);
+  let currentRunData = this.loadDataFromFile(TEMP_BENCHMARK_RESULTS);
+  let dataToAnalyze = this.loadDataFromFile(BENCHMARK_RESULTS);
   let filterList = getValuesKeys(dataToAnalyze);
 
   console.log(`┏${"━".repeat(87)}┓`);
@@ -264,9 +265,9 @@ exports.compareResults = function compareResults(currentRunTimestamp) {
     let heading = `${key} (${unit})`;
 
     console.log(`┃${" ".repeat(33)}${heading.padEnd(54, " ")}┃`);
-    printTableSeparator("┳");
-    fillTab(" ", "Current", "Min", "Diff");
-    printTableSeparator("╋");
+    this.printTableSeparator("┳");
+    this.fillTab(" ", "Current", "Min", "Diff");
+    this.printTableSeparator("╋");
 
     for (let i = 0; i < filterList.length; i++) {
       let filter = filterList[i];
@@ -302,7 +303,7 @@ exports.compareResults = function compareResults(currentRunTimestamp) {
 
       let diff = ((currentRunValue - valueMin) / valueMin) * 100;
 
-      fillTab(
+      this.fillTab(
         filter,
         currentRunValue.toFixed(3),
         valueMin.toFixed(3),
@@ -310,10 +311,10 @@ exports.compareResults = function compareResults(currentRunTimestamp) {
       );
 
       if (j == (RESULTS_KEYS.length - 1) && i == (filterList.length - 1)) {
-        printTableSeparator("┻", "┗", "┛");
+        this.printTableSeparator("┻", "┗", "┛");
         continue;
       }
-      printTableSeparator("╋");
+      this.printTableSeparator("╋");
     }
   }
 };
