@@ -21,7 +21,7 @@ const {promises: {writeFile}} = require("fs");
 const got = require("got");
 
 const PSL_URL = "https://publicsuffix.org/list/public_suffix_list.dat";
-const FILENAME = "data/publicSuffixList.json";
+const FILENAME = "data/publicSuffixList.js";
 
 async function main() {
   let response = await got(PSL_URL);
@@ -47,7 +47,8 @@ async function main() {
   }
 
   let keys = Object.keys(psl).sort();
-  await writeFile(FILENAME, JSON.stringify(psl, keys, 2));
+  await writeFile(FILENAME, "exports.publicSuffixes = " +
+                  JSON.stringify(psl, keys, 2));
 }
 
 if (require.main == module)

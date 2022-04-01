@@ -1,4 +1,4 @@
-{
+exports.publicSuffixes = {
   "0.bg": 1,
   "001www.com": 1,
   "0e.vc": 1,

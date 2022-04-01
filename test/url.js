@@ -20,7 +20,7 @@
 const assert = require("assert");
 const {LIB_FOLDER, createSandbox} = require("./_common");
 
-const publicSuffixes = require("../data/publicSuffixList.json");
+const {publicSuffixes} = require("../data/publicSuffixList.js");
 
 describe("parseURL()", function() {
   let parseURL = null;
