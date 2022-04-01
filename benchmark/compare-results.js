@@ -71,8 +71,6 @@ async function main() {
         extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}`);
     }
     helpers.printTableSeparator("┻", "┗", "┛");
-    console.log("Metrics with big performance change:");
-    console.log(extendedDiffArray);
     if (extendedDiffArray.length > 0) {
       throw new Error("Performance on current branch is lower . " +
       `Metrics that failed: ${extendedDiffArray}`);
