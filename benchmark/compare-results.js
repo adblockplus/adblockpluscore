@@ -51,7 +51,9 @@ async function main() {
     // eslint-disable-next-line max-len
     const timestampCurrentBranch = timestampsToAnalyze[timestampsToAnalyze.length - 2];
     for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
-    // eslint-disable-next-line max-len
+      if (metrics == "TimeMean")
+        continue;
+      // eslint-disable-next-line max-len
       currentBranchValue = dataToAnalyze[timestampCurrentBranch][key][metrics];
       // eslint-disable-next-line max-len
       const timestampNextBranch = timestampsToAnalyze[timestampsToAnalyze.length - 1];
