@@ -76,7 +76,7 @@ benchmark:Docker:
   interruptible: true
   script:
     - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
-    - docker run benchmark 
+    - docker run --shm-size=256m benchmark 
   
 
 .testpages:

@@ -58,7 +58,8 @@ async function main() {
       nextBranchValue = dataToAnalyze[timestampNextBranch][key][metrics];
       // eslint-disable-next-line max-len
 
-      let diff = ((currentBranchValue - nextBranchValue) / nextBranchValue) * 100;
+      let diff =
+        ((currentBranchValue - nextBranchValue) / nextBranchValue) * 100;
 
       helpers.printTableSeparator("╋");
       helpers.fillTab(
@@ -71,10 +72,8 @@ async function main() {
         extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}`);
     }
     helpers.printTableSeparator("┻", "┗", "┛");
-    if (extendedDiffArray.length > 0) {
-      throw new Error("Performance on current branch is lower . " +
-      `Metrics that failed: ${extendedDiffArray}`);
-    }
+    if (extendedDiffArray.length > 0)
+      throw new Error(`Performance got worse. Metrics to be fixed: ${extendedDiffArray}`);
   }
 }
 
