@@ -1,12 +1,12 @@
-0.7.0
-=====
+0.7.0 - 2022/04/04
+==================
 
 ## Changes
 
 - Blocking
   - Return an allowing filter, even if it isn't overriding a blocking
     filter. Issue #392
-- Allow adding metadata to custom filters. Issue #407
+- Allow adding metadata to custom filters. Issue #407 and #419.
 
 - Tooling for Manifest V3
   - Download filter list from subscriptions for DNR conversion. #412
@@ -18,12 +18,12 @@
 
 ## Updating your code
 
-- `FilterStorage.addFilter()` now returns the Subscription object the
-  filter was added to in case of success.
-- Metadata for custom filter. Issue #407
+- `FilterStorage.addFilter()` is now async and returns the Subscription
+  object the filter was added to in case of success.
+- Metadata for custom filter. Issue #407 and #419.
   - The new API `FilterStrage.addFiltersWithMetadata()` allow adding a
-    bunch of custom filter with metadata. It will return the created
-    `SpecialScubscription` in case of success. Issue #407
+    bunch of custom filter with metadata. It is async and will return the
+    created `SpecialScubscription` in case of success. Issue #407 and #419.
   - Added `FilterStorage.getMetadataForFilter()` and
     `FilterStorage.setMetadataForFilter()` to access metadata.
 - Added `FilterStorage.getSubscription()` to get a subscription by URL.
