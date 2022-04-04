@@ -6,4 +6,4 @@ npm run benchmark:save
 git checkout origin next
 npm install
 npm run benchmark:save
-node benchmark/compare-results.js 
+npm run test benchmark/compare-results.js 
