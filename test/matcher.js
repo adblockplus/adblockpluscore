@@ -57,7 +57,7 @@ describe("Matcher", function() {
     }
   }
 
-  function checkMatch(filters, location, requestContentTypes, docDomain, sitekey, specificOnly, expected, expectedFirstMatch = expected) {
+  function checkMatch(filters, location, requestContentTypes, docDomain, sitekey, specificOnly, expected, expectedFirstMatch = expected, expectedExhaustive = expected) {
     if (typeof requestContentTypes === "string")
       requestContentTypes = [requestContentTypes];
 
@@ -90,6 +90,12 @@ describe("Matcher", function() {
 
       assert.equal(result, expected, "combinedMatch(parseURL(" + location + "), " + requestContentTypes + ", " + docDomain + ", " + (sitekey || "no-sitekey") + ", " + (specificOnly ? "specificOnly" : "not-specificOnly") + ") with:\n" + filters.join("\n"));
 
+      let resultExhaustive = combinedMatcher.match(url, contentTypeMask, docDomain, sitekey, specificOnly, true);
+      if (resultExhaustive)
+        resultExhaustive = resultExhaustive.text;
+
+      assert.equal(resultExhaustive, expectedExhaustive, `combinedMatch(parseURL(${location}), ${requestContentTypes}, ${docDomain}, ${sitekey || "no-sitekey"}, ${specificOnly ? "specificOnly" : "not-specificOnly"}, "exhaustive") with:\n${filters.join("\n")}`);
+
       // Generic allowing rules can match for specificOnly searches, so we
       // can't easily know which rule will match for these allowlisting tests
       if (specificOnly)
@@ -99,6 +105,9 @@ describe("Matcher", function() {
       filters = filters.map(text => text.substring(0, 2) == "@@" ? text : "@@" + text);
       if (expected && expected.substring(0, 2) != "@@")
         expected = "@@" + expected;
+
+      if (expectedExhaustive && expectedExhaustive.substring(0, 2) != "@@")
+        expectedExhaustive = "@@" + expectedExhaustive;
     }
   }
 
@@ -232,14 +241,14 @@ describe("Matcher", function() {
     checkMatch(["@@bar.com$genericblock"], "http://foo.com/bar", "GENERICBLOCK", "foo.com", null, false, null);
     checkMatch(["/bar"], "http://foo.com/bar", "IMAGE", "foo.com", null, true, null);
     checkMatch(["/bar$domain=foo.com"], "http://foo.com/bar", "IMAGE", "foo.com", null, true, "/bar$domain=foo.com");
-    checkMatch(["@@||foo.com^"], "http://foo.com/bar", "IMAGE", "foo.com", null, false, null, "@@||foo.com^");
+    checkMatch(["@@||foo.com^"], "http://foo.com/bar", "IMAGE", "foo.com", null, false, null, "@@||foo.com^", "@@||foo.com^");
     checkMatch(["/bar", "@@||foo.com^"], "http://foo.com/bar", "IMAGE", "foo.com", null, false, "@@||foo.com^");
-    checkMatch(["/bar", "@@||foo.com^"], "http://foo.com/foo", "IMAGE", "foo.com", null, false, null, "@@||foo.com^");
+    checkMatch(["/bar", "@@||foo.com^"], "http://foo.com/foo", "IMAGE", "foo.com", null, false, null, "@@||foo.com^", "@@||foo.com^");
     checkMatch(["||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", null, false, "||foo.com^$popup");
-    checkMatch(["@@||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", null, false, null, "@@||foo.com^$popup");
+    checkMatch(["@@||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", null, false, null, "@@||foo.com^$popup", "@@||foo.com^$popup");
     checkMatch(["||foo.com^$popup", "@@||foo.com^$popup"], "http://foo.com/bar", "POPUP", "foo.com", null, false, "@@||foo.com^$popup", "||foo.com^$popup");
     checkMatch(["||foo.com^$csp=script-src 'none'"], "http://foo.com/bar", ["CSP", "OTHER"], "foo.com", null, false, "||foo.com^$csp=script-src 'none'");
-    checkMatch(["@@||foo.com^$csp"], "http://foo.com/bar", ["CSP", "OTHER"], "foo.com", null, false, null, "@@||foo.com^$csp");
+    checkMatch(["@@||foo.com^$csp"], "http://foo.com/bar", ["CSP", "OTHER"], "foo.com", null, false, null, "@@||foo.com^$csp", "@@||foo.com^$csp");
     checkMatch(["||foo.com^$csp=script-src 'none'", "@@||foo.com^$csp"], "http://foo.com/bar", ["CSP", "OTHER"], "foo.com", null, false, "@@||foo.com^$csp", "||foo.com^$csp=script-src 'none'");
     checkMatch(["||foo.com^$csp=script-src 'none',image"], "http://foo.com/bar.png", ["CSP", "IMAGE"], "foo.com", null, false, "||foo.com^$csp=script-src 'none',image");
     checkMatch(["||foo.com^$csp=script-src 'none',image"], "http://foo.com/bar.js", ["CSP", "SCRIPT"], "foo.com", null, false, null);
@@ -247,7 +256,7 @@ describe("Matcher", function() {
     checkMatch(["||example.com/ad.js$header=content-type:.*image/png"], "http://example.com/ad.js", ["HEADER", "SCRIPT"], "example.com", null, false, "||example.com/ad.js$header=content-type:.*image/png");
     checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", ["HEADER", "SCRIPT"], "bar.com", null, true, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
     checkMatch(["||example.com/ad.js$header=content-type:.*image/png,domain=bar.com"], "http://example.com/ad.js", ["HEADER", "SCRIPT"], "bar.com", null, false, "||example.com/ad.js$header=content-type:.*image/png,domain=bar.com");
-    checkMatch(["@@||example.com/assets/*.js$header"], "http://example.com/assets/logo.js", ["HEADER", "SCRIPT"], "example.com", null, false, null, "@@||example.com/assets/*.js$header");
+    checkMatch(["@@||example.com/assets/*.js$header"], "http://example.com/assets/logo.js", ["HEADER", "SCRIPT"], "example.com", null, false, null, "@@||example.com/assets/*.js$header", "@@||example.com/assets/*.js$header");
     checkMatch(["||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com", "@@||example.com/assets/logo.js$header"], "http://example.com/assets/logo.js", ["HEADER", "SCRIPT"], "bar.com", null, false, "@@||example.com/assets/logo.js$header", "||example.com/assets/*.js$header=content-type:.*image/png,domain=bar.com");
 
     // See https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/-/issues/326
@@ -262,7 +271,7 @@ describe("Matcher", function() {
     checkMatch(["@@^foo/bar/$script", "^foo/bar/$script,domain=example.com"], "http://foo/bar/", "SCRIPT", "example.com", null, true, "@@^foo/bar/$script", "^foo/bar/$script,domain=example.com");
     checkMatch(["@@^foo/bar/$script", "^foo/bar/$script,domain=example.com"], "http://foo/bar/", "SCRIPT", "example.com", null, false, "@@^foo/bar/$script");
 
-    // See https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/230
+    // See https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/-/issues/230
     checkMatch(["@@||*$document,domain=example.com"], "http://foo/bar/", "DOCUMENT", "example.com", null, false, "@@||*$document,domain=example.com");
   });
 
@@ -425,7 +434,7 @@ describe("Matcher", function() {
 
     // The request URL contains neither "example" nor "foo", therefore it should
     // get to the filters associated with the blank keyword.
-    // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/13
+    // https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/issues/13
     assert.ok(!!matcher.match(parseURL("https://adblockplus/bar/"),
                               contentTypes.IMAGE,
                               "adblockplus"));

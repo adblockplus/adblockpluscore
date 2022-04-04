@@ -26,7 +26,7 @@ const path = require("path");
 
 // Load sandboxed-module dynamically instead of using require() so it does not
 // have a module.parent
-// https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/192
+// https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/-/issues/192
 const SandboxedModule = dynamicRequire("sandboxed-module");
 
 const {MILLIS_IN_HOUR} = require(LIB_FOLDER + "/time");
@@ -114,7 +114,7 @@ exports.setupTimerAndFetch = function() {
       // The fake timer implementation is a holdover from the legacy extension.
       // Due to the way it works, it is safer to allow only one callback at a
       // time.
-      // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/43
+      // https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/issues/43
       if (this.callback && callback != this.callback)
         throw new Error("Only one timer callback supported");
 

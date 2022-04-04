@@ -151,7 +151,7 @@ describe("Filter storage read/write", function() {
       assert.equal(filterStorage.fileProperties.version, filterStorage.formatVersion, "File format version");
 
       // Testing for compatibility changes for
-      // https://gitlab.com/eyeo/adblockplus/adblockpluscore/-/issues/140
+      // https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/-/issues/140
       let found = false;
       filterStorage._knownSubscriptions.forEach(sub => {
         if (sub.url == "~user~12345") {

@@ -1,5 +1,37 @@
-0.6.0
-=====
+0.7.0 - 2022/04/04
+==================
+
+## Changes
+
+- Blocking
+  - Return an allowing filter, even if it isn't overriding a blocking
+    filter. Issue #392
+- Allow adding metadata to custom filters. Issue #407 and #419.
+
+- Tooling for Manifest V3
+  - Download filter list from subscriptions for DNR conversion. #412
+  - Provide a tooling to merge subscriptions files. #394
+  - Fetch full filter lists. #383
+  - Filter list text to DNR conversion. #379
+
+## Bug fixes
+
+## Updating your code
+
+- `FilterStorage.addFilter()` is now async and returns the Subscription
+  object the filter was added to in case of success.
+- Metadata for custom filter. Issue #407 and #419.
+  - The new API `FilterStrage.addFiltersWithMetadata()` allow adding a
+    bunch of custom filter with metadata. It is async and will return the
+    created `SpecialScubscription` in case of success. Issue #407 and #419.
+  - Added `FilterStorage.getMetadataForFilter()` and
+    `FilterStorage.setMetadataForFilter()` to access metadata.
+- Added `FilterStorage.getSubscription()` to get a subscription by URL.
+- Changed FilterStorage.hasSubscription() to accept a URL in addition
+  to the subscription itself.
+
+0.6.0 - 2022/02/16
+==================
 
 ## Changes
 
@@ -53,16 +85,16 @@
   (`contentTypes.HEADER` or `contentTypes.CSP`) combined with the request
   resource type using the bitwise or operator.
 
-0.5.1
-=====
+0.5.1 - 2022/01/06
+==================
 
 ## Bug fixes
 
 - Fix a regression on loading stylesheet in the ElementHidingEmulation
   code. Issue #390
 
-0.5.0
-=====
+0.5.0 - 2021/10/07
+==================
 
 ## Changes
 
@@ -181,8 +213,8 @@ values in your `Prefs` object:
 - `subscriptions_default_expiration_interval`: how long before the
   list expires, by default, in milliseconds.
 
-0.4.0
-=====
+0.4.0 - 2021/09/10
+==================
 
 ## Changes
 

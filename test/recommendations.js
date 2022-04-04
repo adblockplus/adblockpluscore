@@ -54,7 +54,7 @@ describe("Recommendations", function() {
 
     for (let name of ["url"]) {
       // The URL of a recommended subscription must be HTTPS.
-      // https://gitlab.com/eyeo/adblockplus/adblockpluscore/issues/5
+      // https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/issues/5
       assert.equal(new URL(recommendation[name]).protocol, "https:");
     }
   }

@@ -340,7 +340,7 @@ describe("Filter classes", function() {
     compareFilter("blah$csp", ["type=invalid", "text=blah$csp", "reason=filter_invalid_csp"]);
     compareFilter("blah$csp=", ["type=invalid", "text=blah$csp=", "reason=filter_invalid_csp"]);
 
-    // Blahnk CSP values are allowed for allowing filters.
+    // Blank CSP values are allowed for allowing filters.
     compareFilter("@@blah$csp", ["type=allowing", "text=@@blah$csp", "contentType=" + (contentTypes.CSP | RESOURCE_TYPES)]);
     compareFilter("@@blah$csp=", ["type=allowing", "text=@@blah$csp=", "contentType=" + (contentTypes.CSP | RESOURCE_TYPES)]);
 
