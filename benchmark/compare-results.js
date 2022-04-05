@@ -25,8 +25,10 @@
 const assert = require("assert");
 const helpers = require("./helpers.js");
 const path = require("path");
-const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
 const {describe, it} = require("mocha");
+
+const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
+
 
 describe("Measure penformance", () => {
   it("Compare Results on master and current commit", async() => {
