@@ -77,7 +77,7 @@ benchmark:Docker:
   script:
     - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
     - docker run --shm-size=256m benchmark 
-  
+  allow_failure: true
 
 .testpages:
   image: docker:19.03.5
