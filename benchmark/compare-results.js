@@ -47,11 +47,11 @@ describe("Measure penformance", () => {
     // That should be proper outcome of benchmark-entrypoint.sh
     let currentBranchValue;
     let nextBranchValue;
-    console.log(`┏${"━".repeat(80)}┓`);
+    console.log(`┏${"━".repeat(87)}┓`);
     helpers.printTableSeparator("┳");
-    helpers.fillTab(" ", "Current Branch", "Next Branch", "Diff");
+    helpers.fillTab("", "Current", "Master", "Diff");
     for (let key of valueKeys){
-      helpers.fillTab("", "", key, "");
+      console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
       // eslint-disable-next-line max-len
       const timestampCurrentBranch = timestampsToAnalyze[timestampsToAnalyze.length - 2];
       for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
