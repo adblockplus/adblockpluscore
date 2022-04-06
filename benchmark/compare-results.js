@@ -29,9 +29,8 @@ const {describe, it} = require("mocha");
 
 const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
 
-
-describe("Measure penformance", () => {
-  it("Compare Results on master and current commit", async() => {
+describe("Measure performance", () => {
+  it("Compare Results between master and current commit", async() => {
     let dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
     let valueKeysWithGitMeta = [];
     let extendedDiffArray = [];

@@ -207,10 +207,10 @@ threshold margin to consider, where only multiple, repeated, better scores can
 be considered an effective improvement, as running the same benchmark twice,
 might produce diversions between scores itself, without changing code at all.
 
-### Running benchmark on Docker
+### Running benchmark in Docker
 
-To avoid comprimising benchmark results you can run benchmark script on Docker. 
-To build docker image: 
+To avoid compromising benchmark results you can run the benchmark script in Docker. 
+To build the docker image: 
 `docker build -t benchmark -f benchmark/benchmark.Dockerfile . `
 
 To run docker: 
