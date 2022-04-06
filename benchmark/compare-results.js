@@ -106,7 +106,7 @@ describe("Measure performance", async function() {
         let diff;
         // eslint-disable-next-line max-len
         ({currentBranchValue, refBranchValue, diff} = await getDataForMetrics(metrics, key));
-        console.log("threshold:", thresholds[key][metrics]);
+        console.log("threshold:", thresholds[key][metrics], "data:", diff);
         assert.equal(diff > thresholds[key][metrics], false, `${metrics} in ${key} extended threshold`);
       });
     }
