@@ -30,53 +30,86 @@ const path = require("path");
 const {describe, it} = require("mocha");
 
 const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
+const THRESHOLDS = path.join(__dirname, "benchmarkThresholds.json");
 
-describe("Measure performance", () => {
+let timestampsToAnalyze;
+let dataToAnalyze = {};
+let thresholds = {};
+let timestampCurrentBranch;
+let timestampRefBranch;
+
+
+async function getDataForMetrics(metrics, key) {
+  let currentBranchValue;
+  let refBranchValue;
+  let diff;
+  currentBranchValue =
+          dataToAnalyze[timestampCurrentBranch][key][metrics];
+  refBranchValue = dataToAnalyze[timestampRefBranch][key][metrics];
+  diff = currentBranchValue - refBranchValue;
+  return {currentBranchValue, refBranchValue, diff};
+}
+describe("Measure performance", async function() {
+  // before(async function() {
+  dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
+  thresholds = await helpers.loadDataFromFile(THRESHOLDS);
+  timestampsToAnalyze = Object.keys(dataToAnalyze);
+  let valueKeysWithGitMeta = [];
+  for (let timestamp in dataToAnalyze)
+    valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestamp]);
+    // Filter out all git details
+  const valueKeys = valueKeysWithGitMeta.filter(
+    word => (word !== "Refs" && word !== "CommitHash"));
+  // Code will only compare last two entries in benchmark results.
+  // That should be proper outcome of benchmark-entrypoint.sh
+  const timestampsLength = timestampsToAnalyze.length;
+  timestampCurrentBranch = timestampsToAnalyze[timestampsLength - 2];
+  timestampRefBranch = timestampsToAnalyze[timestampsLength - 1];
+
   it("Compare Results between master and current commit", async function() {
-    let dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
-    let valueKeysWithGitMeta = [];
     let extendedDiffArray = [];
-    let timestampsToAnalyze = Object.keys(dataToAnalyze);
-    for (let timestamp in dataToAnalyze)
-      valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestamp]);
-
-    let valueKeys = valueKeysWithGitMeta.filter(
-      word => (word !== "Refs" && word !== "CommitHash"));
-
-    // Code will only compare last two entries in benchmark results.
-    // That should be proper outcome of benchmark-entrypoint.sh
-    let currentBranchValue;
-    let nextBranchValue;
     console.log(`┏${"━".repeat(87)}┓`);
     helpers.printTableSeparator("┳");
     helpers.fillTab("", "Current", "Master", "Diff");
     for (let key of valueKeys){
       console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
       // eslint-disable-next-line max-len
-      const timestampCurrentBranch = timestampsToAnalyze[timestampsToAnalyze.length - 2];
+      let currentBranchValue;
+      let refBranchValue;
       for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
         if (metrics == "TimeMean")
           continue;
+        let diff;
         // eslint-disable-next-line max-len
-        currentBranchValue = dataToAnalyze[timestampCurrentBranch][key][metrics];
-        // eslint-disable-next-line max-len
-        const timestampNextBranch = timestampsToAnalyze[timestampsToAnalyze.length - 1];
-        nextBranchValue = dataToAnalyze[timestampNextBranch][key][metrics];
-        let diff =
-        ((currentBranchValue - nextBranchValue) / nextBranchValue) * 100;
-
+        ({currentBranchValue, refBranchValue, diff} = await getDataForMetrics(metrics, key));
+        diff = (diff / refBranchValue) * 100;
         helpers.printTableSeparator("╋");
         helpers.fillTab(
           metrics,
           currentBranchValue.toFixed(3),
-          nextBranchValue.toFixed(3),
+          refBranchValue.toFixed(3),
           diff.toFixed(3)
         );
         if (diff.toFixed(3) > 10)
           extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}`);
       }
       helpers.printTableSeparator("┻", "┗", "┛");
-      assert.equal(extendedDiffArray.length > 0, false, `Performance got worse. Metrics to be fixed: ${extendedDiffArray}`);
+      assert.equal(extendedDiffArray.length > 0, false, `Performance got worse. Metrics to check: ${extendedDiffArray}`);
     }
   });
+
+  for (let key of valueKeys) {
+    for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
+      it(`Checks if in ${key} extended threshold`, async function() {
+        let currentBranchValue;
+        let refBranchValue;
+        let diff;
+        // eslint-disable-next-line max-len
+        ({currentBranchValue, refBranchValue, diff} = await getDataForMetrics(metrics, key));
+        console.log("threshold:", thresholds[key][metrics]);
+        assert.equal(diff > thresholds[key][metrics], true, `${metrics} in ${key} extended threshold`);
+      });
+    }
+  }
 });
+

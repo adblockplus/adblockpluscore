@@ -1,0 +1,41 @@
+{
+    "FilterList_EasyList": {
+        "TimeMean": 4,
+        "HeapUsed": 4,
+        "HeapTotal": 4
+      },
+      "FilterList_EasyList+AA": {
+        "TimeMean": 5,
+        "HeapUsed": 5,
+        "HeapTotal": 5
+      },
+      "FilterList_All": {
+        "TimeMean": 6,
+        "HeapUsed": 6,
+        "HeapTotal": 6
+      },
+      "Matching_all": {
+        "TimeMean": 0.01,
+        "TimeMax": 1,
+        "HeapUsed": 1,
+        "HeapTotal": 1
+      },
+      "Matching_all_EasyList": {
+        "TimeMean": 0.2,
+        "TimeMax": 2,
+        "HeapUsed": 2,
+        "HeapTotal": 2
+      },
+      "Matching_all_EasyList+AA": {
+        "TimeMean": 0.3,
+        "TimeMax": 3,
+        "HeapUsed": 3,
+        "HeapTotal": 3
+      },
+      "Matching_all_All": {
+        "TimeMean": 0.9,
+        "TimeMax": 9,
+        "HeapUsed": 9,
+        "HeapTotal": 9
+      }
+    }
