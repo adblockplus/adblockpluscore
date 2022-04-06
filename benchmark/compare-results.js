@@ -1,3 +1,4 @@
+
 /*
  * This file is part of Adblock Plus <https://adblockplus.org/>,
  * Copyright (C) 2006-present eyeo GmbH
@@ -15,6 +16,7 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* eslint-disable prefer-arrow-callback */
 /* eslint-env node */
 /* eslint no-console: "off" */
 
@@ -30,12 +32,11 @@ const {describe, it} = require("mocha");
 const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
 
 describe("Measure performance", () => {
-  it("Compare Results between master and current commit", async() => {
+  it("Compare Results between master and current commit", async function() {
     let dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
     let valueKeysWithGitMeta = [];
     let extendedDiffArray = [];
     let timestampsToAnalyze = Object.keys(dataToAnalyze);
-    // eslint-disable-next-line max-len
     for (let timestamp in dataToAnalyze)
       valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestamp]);
 
@@ -56,7 +57,7 @@ describe("Measure performance", () => {
       for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
         if (metrics == "TimeMean")
           continue;
-          // eslint-disable-next-line max-len
+        // eslint-disable-next-line max-len
         currentBranchValue = dataToAnalyze[timestampCurrentBranch][key][metrics];
         // eslint-disable-next-line max-len
         const timestampNextBranch = timestampsToAnalyze[timestampsToAnalyze.length - 1];
