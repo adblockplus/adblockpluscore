@@ -45,21 +45,25 @@ async function getDataForMetrics(metrics, key) {
   let diff;
   currentBranchValue =
           dataToAnalyze[timestampCurrentBranch][key][metrics];
+  currentBranchValue.toFixed(3);
   refBranchValue = dataToAnalyze[timestampRefBranch][key][metrics];
+  refBranchValue.toFixed(3);
   diff = currentBranchValue - refBranchValue;
+  diff.toFixed(3);
   return {currentBranchValue, refBranchValue, diff};
 }
 describe("Measure performance", async function() {
-  // before(async function() {
   dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
   thresholds = await helpers.loadDataFromFile(THRESHOLDS);
   timestampsToAnalyze = Object.keys(dataToAnalyze);
   let valueKeysWithGitMeta = [];
   for (let timestamp in dataToAnalyze)
     valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestamp]);
-    // Filter out all git details
+
+  // Filter out all git details
   const valueKeys = valueKeysWithGitMeta.filter(
     word => (word !== "Refs" && word !== "CommitHash"));
+
   // Code will only compare last two entries in benchmark results.
   // That should be proper outcome of benchmark-entrypoint.sh
   const timestampsLength = timestampsToAnalyze.length;
@@ -73,15 +77,14 @@ describe("Measure performance", async function() {
     helpers.fillTab("", "Current", "Master", "Diff");
     for (let key of valueKeys){
       console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
-      // eslint-disable-next-line max-len
       let currentBranchValue;
       let refBranchValue;
       for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
         if (metrics == "TimeMean")
           continue;
         let diff;
-        // eslint-disable-next-line max-len
-        ({currentBranchValue, refBranchValue, diff} = await getDataForMetrics(metrics, key));
+        ({currentBranchValue, refBranchValue, diff} =
+          await getDataForMetrics(metrics, key));
         diff = (diff / refBranchValue) * 100;
         helpers.printTableSeparator("╋");
         helpers.fillTab(
@@ -100,13 +103,13 @@ describe("Measure performance", async function() {
 
   for (let key of valueKeys) {
     for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
-      it(`Checks if in ${key} extended threshold`, async function() {
-        let currentBranchValue;
-        let refBranchValue;
+      // eslint-disable-next-line no-undefined
+      if (thresholds[key][metrics] == undefined)
+        continue;
+      it(`Checks if in ${key} for ${metrics} extended threshold`, async function() {
         let diff;
-        // eslint-disable-next-line max-len
-        ({currentBranchValue, refBranchValue, diff} = await getDataForMetrics(metrics, key));
-        console.log("threshold:", thresholds[key][metrics], "data:", diff);
+        ({diff} =
+          await getDataForMetrics(metrics, key));
         assert.equal(diff > thresholds[key][metrics], false, `${metrics} in ${key} extended threshold`);
       });
     }
