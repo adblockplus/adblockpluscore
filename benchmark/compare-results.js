@@ -69,11 +69,11 @@ describe("Measure performance", async function() {
 
   it("Compare Results between master and current commit", async function() {
     let extendedDiffArray = [];
-    console.log(`┏${"━".repeat(87)}┓`);
-    helpers.printTableSeparator("┳");
-    helpers.fillTab("", "Current", "Master", "Diff");
+    // console.log(`┏${"━".repeat(87)}┓`);
+    // helpers.printTableSeparator("┳");
+    // helpers.fillTab("", "Current", "Master", "Diff");
     for (let key of valueKeys){
-      console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
+    //  console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
       let currentBranchValue;
       let refBranchValue;
       for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
@@ -89,7 +89,7 @@ describe("Measure performance", async function() {
         //     refBranchValue.toFixed(3),
         //     diff.toFixed(3)
         //   );
-        if (diff.toFixed(3) > 10) {
+        if (diff.toFixed(3) > 15) {
           extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
           `CurrentBranch: ${currentBranchValue}, Ref branch: ${refBranchValue}`);
         }
