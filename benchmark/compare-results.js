@@ -70,7 +70,7 @@ describe("Measure performance", async function() {
     // console.log(`┏${"━".repeat(87)}┓`);
     // helpers.printTableSeparator("┳");
     // helpers.fillTab("", "Current", "Master", "Diff");
-    for (let key of valueKeys){
+    for (let key of valueKeys) {
     //  console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
       let currentBranchValue;
       let refBranchValue;
