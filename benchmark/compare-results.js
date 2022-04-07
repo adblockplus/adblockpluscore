@@ -107,7 +107,7 @@ describe("Measure performance", async function() {
         let {currentBranchValue, refBranchValue} = await getDataForMetrics(metrics, key));
         let diff = (currentBranchValue - refBranchValue);
         assert.equal(diff > thresholdForMetric, false, `${metrics} in ${key} extended threshold` +
-        `Threshold ${thresholdForMetric}, Value: ${diff.toFixed(3)}`);
+          `Threshold ${thresholdForMetric}, Value: ${diff.toFixed(3)}`);
       });
     }
   }
