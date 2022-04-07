@@ -74,7 +74,7 @@ describe("Measure performance", async function() {
     //  console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
       let currentBranchValue;
       let refBranchValue;
-      for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
+      for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
         ({currentBranchValue, refBranchValue} =
           await getDataForMetrics(metrics, key));
         let diff =
