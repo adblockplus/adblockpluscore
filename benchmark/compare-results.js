@@ -98,7 +98,7 @@ describe("Measure performance", async function() {
   });
 
   for (let key of valueKeys) {
-    for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
+    for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
       let thresholdForMetric = thresholds[key][metrics];
       // eslint-disable-next-line no-undefined
       if (thresholdForMetric == undefined)
