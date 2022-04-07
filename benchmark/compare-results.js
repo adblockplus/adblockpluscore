@@ -103,6 +103,7 @@ describe("Measure performance", async function() {
       // eslint-disable-next-line no-undefined
       if (thresholdForMetric == undefined)
         continue;
+
       it(`Checks if in ${key} for ${metrics} extended threshold`, async function() {
         let {currentBranchValue, refBranchValue} = await getDataForMetrics(metrics, key));
         let diff = (currentBranchValue - refBranchValue);
