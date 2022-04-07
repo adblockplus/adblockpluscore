@@ -47,6 +47,7 @@ async function getDataForMetrics(metrics, key) {
   refBranchValue.toFixed(3);
   return {currentBranchValue, refBranchValue};
 }
+
 describe("Measure performance", async function() {
   dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
   thresholds = await helpers.loadDataFromFile(THRESHOLDS);
