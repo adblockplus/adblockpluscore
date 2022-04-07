@@ -40,12 +40,10 @@ let timestampRefBranch;
 
 
 async function getDataForMetrics(metrics, key) {
-  let currentBranchValue;
-  let refBranchValue;
-  currentBranchValue =
+  let currentBranchValue =
           dataToAnalyze[timestampCurrentBranch][key][metrics];
   currentBranchValue.toFixed(3);
-  refBranchValue = dataToAnalyze[timestampRefBranch][key][metrics];
+  let refBranchValue = dataToAnalyze[timestampRefBranch][key][metrics];
   refBranchValue.toFixed(3);
   return {currentBranchValue, refBranchValue};
 }
