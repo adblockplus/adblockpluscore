@@ -51,6 +51,7 @@ describe("Measure performance", async function() {
   dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
   thresholds = await helpers.loadDataFromFile(THRESHOLDS);
   timestampsToAnalyze = Object.keys(dataToAnalyze);
+
   let valueKeysWithGitMeta = [];
   for (let timestamp in dataToAnalyze)
     valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestamp]);
