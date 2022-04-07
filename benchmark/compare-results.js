@@ -42,15 +42,12 @@ let timestampRefBranch;
 async function getDataForMetrics(metrics, key) {
   let currentBranchValue;
   let refBranchValue;
-  let diff;
   currentBranchValue =
           dataToAnalyze[timestampCurrentBranch][key][metrics];
   currentBranchValue.toFixed(3);
   refBranchValue = dataToAnalyze[timestampRefBranch][key][metrics];
   refBranchValue.toFixed(3);
-  diff = currentBranchValue - refBranchValue;
-  diff.toFixed(3);
-  return {currentBranchValue, refBranchValue, diff};
+  return {currentBranchValue, refBranchValue};
 }
 describe("Measure performance", async function() {
   dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
@@ -80,21 +77,22 @@ describe("Measure performance", async function() {
       let currentBranchValue;
       let refBranchValue;
       for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
-        if (metrics == "TimeMean")
-          continue;
-        let diff;
-        ({currentBranchValue, refBranchValue, diff} =
+        ({currentBranchValue, refBranchValue} =
           await getDataForMetrics(metrics, key));
-        diff = (diff / refBranchValue) * 100;
-        helpers.printTableSeparator("╋");
-        helpers.fillTab(
-          metrics,
-          currentBranchValue.toFixed(3),
-          refBranchValue.toFixed(3),
-          diff.toFixed(3)
-        );
-        if (diff.toFixed(3) > 10)
-          extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}`);
+        let diff =
+          ((currentBranchValue - refBranchValue) / refBranchValue) * 100;
+
+        //   helpers.printTableSeparator("╋");
+        //   helpers.fillTab(
+        //     metrics,
+        //     currentBranchValue.toFixed(3),
+        //     refBranchValue.toFixed(3),
+        //     diff.toFixed(3)
+        //   );
+        if (diff.toFixed(3) > 10) {
+          extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
+          `CurrentBranch: ${currentBranchValue}, Ref branch: ${refBranchValue}`);
+        }
       }
       helpers.printTableSeparator("┻", "┗", "┛");
       assert.equal(extendedDiffArray.length > 0, false, `Performance got worse. Metrics to check: ${extendedDiffArray}`);
@@ -103,14 +101,18 @@ describe("Measure performance", async function() {
 
   for (let key of valueKeys) {
     for (let metrics in dataToAnalyze[timestampCurrentBranch][key]){
+      let thresholdForMetric = thresholds[key][metrics];
       // eslint-disable-next-line no-undefined
-      if (thresholds[key][metrics] == undefined)
+      if (thresholdForMetric == undefined)
         continue;
       it(`Checks if in ${key} for ${metrics} extended threshold`, async function() {
-        let diff;
-        ({diff} =
+        let currentBranchValue;
+        let refBranchValue;
+        ({currentBranchValue, refBranchValue} =
           await getDataForMetrics(metrics, key));
-        assert.equal(diff > thresholds[key][metrics], false, `${metrics} in ${key} extended threshold`);
+        let diff = (currentBranchValue - refBranchValue);
+        assert.equal(diff > thresholdForMetric, false, `${metrics} in ${key} extended threshold` +
+        `Threshold ${thresholdForMetric}, Value: ${diff.toFixed(3)}`);
       });
     }
   }
