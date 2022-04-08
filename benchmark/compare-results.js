@@ -20,8 +20,6 @@
 /* eslint-env node */
 /* eslint no-console: "off" */
 
-/* global gc */
-
 "use strict";
 
 const assert = require("assert");
