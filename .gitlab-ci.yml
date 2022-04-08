@@ -121,7 +121,7 @@ docs:
 audit:
   extends: .default_template
   script:
-    - npm audit
+    - npm audit --production
   allow_failure: true
 
 .pages:
