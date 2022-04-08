@@ -84,7 +84,7 @@ describe("Measure performance", async function() {
           //     refBranchValue.toFixed(3),
           //     diff.toFixed(3)
           //   );
-          if (diff.toFixed(3) > 15) {
+          if (diff > 15) {
             extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
           `CurrentBranch: ${currentBranchValue}, Ref branch: ${refBranchValue}`);
           }
