@@ -60,64 +60,64 @@ describe("Measure performance", async function() {
   // Code will only compare last two entries in benchmark results.
   // That should be proper outcome of benchmark-entrypoint.sh
   const timestampsLength = timestampsToAnalyze.length;
-  if (timestampsLength > 2) {
+
+  if (timestampsLength < 2) {
+    it("Fail if there is no data to compare", async function() {
+      assert.fail("Not enough data to compare, please run" +
+          " ``` sh benchmark-entrypoint.sh to create data ```.");
+    });
+  }
+
+  else {
     timestampCurrentBranch = timestampsToAnalyze[timestampsLength - 2];
     timestampRefBranch = timestampsToAnalyze[timestampsLength - 1];
+  }
 
-    it("Compare Results between master and current commit", async function() {
-      let extendedDiffArray = [];
-      // console.log(`┏${"━".repeat(87)}┓`);
-      // helpers.printTableSeparator("┳");
-      // helpers.fillTab("", "Current", "Master", "Diff");
-      for (let key of valueKeys) {
-        //  console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
-        for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
-          let {currentBranchValue, refBranchValue} =
+
+  it("Compare Results between master and current commit", async function() {
+    let extendedDiffArray = [];
+    // console.log(`┏${"━".repeat(87)}┓`);
+    // helpers.printTableSeparator("┳");
+    // helpers.fillTab("", "Current", "Master", "Diff");
+    for (let key of valueKeys) {
+      //  console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
+      for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
+        let {currentBranchValue, refBranchValue} =
           await getDataForMetrics(metrics, key);
-          let diff =
+        let diff =
           ((currentBranchValue - refBranchValue) / refBranchValue) * 100;
 
-          //   helpers.printTableSeparator("╋");
-          //   helpers.fillTab(
-          //     metrics,
-          //     currentBranchValue.toFixed(3),
-          //     refBranchValue.toFixed(3),
-          //     diff.toFixed(3)
-          //   );
-          if (diff > 15) {
-            extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
+        //   helpers.printTableSeparator("╋");
+        //   helpers.fillTab(
+        //     metrics,
+        //     currentBranchValue.toFixed(3),
+        //     refBranchValue.toFixed(3),
+        //     diff.toFixed(3)
+        //   );
+        if (diff > 15) {
+          extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
           `CurrentBranch: ${currentBranchValue}, Ref branch: ${refBranchValue}`);
-          }
         }
-        helpers.printTableSeparator("┻", "┗", "┛");
-        assert.equal(extendedDiffArray.length > 0, false, `Performance got worse. Metrics to check: ${extendedDiffArray}`);
       }
-    });
+      helpers.printTableSeparator("┻", "┗", "┛");
+      assert.equal(extendedDiffArray.length > 0, false, `Performance got worse. Metrics to check: ${extendedDiffArray}`);
+    }
+  });
 
-    for (let key of valueKeys) {
-      for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
-        let thresholdForMetric = thresholds[key][metrics];
-        // eslint-disable-next-line no-undefined
-        if (typeof thresholdForMetric == "undefined")
-          continue;
+  for (let key of valueKeys) {
+    for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
+      let thresholdForMetric = thresholds[key][metrics];
+      // eslint-disable-next-line no-undefined
+      if (typeof thresholdForMetric == "undefined")
+        continue;
 
-        it(`Checks if in ${key} for ${metrics} extended threshold`, async function() {
-          let {currentBranchValue, refBranchValue} =
+      it(`Checks if in ${key} for ${metrics} extended threshold`, async function() {
+        let {currentBranchValue, refBranchValue} =
           await getDataForMetrics(metrics, key);
-          let diff = (currentBranchValue - refBranchValue);
-          assert.equal(diff > thresholdForMetric, false, `${metrics} in ${key} extended threshold` +
+        let diff = (currentBranchValue - refBranchValue);
+        assert.equal(diff > thresholdForMetric, false, `${metrics} in ${key} extended threshold` +
           `Threshold ${thresholdForMetric}, Value: ${diff.toFixed(3)}`);
-        });
-      }
-    }
-  }
-  else {
-    try {
-      throw ("Not enough data to compare, please run" +
-      " ``` sh benchmark-entrypoint.sh to create data ```.");
-    }
-    catch (e) {
-      console.log(e);
+      });
     }
   }
 });
