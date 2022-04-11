@@ -99,7 +99,7 @@ describe("Measure performance", async function() {
           `CurrentBranch: ${currentBranchValue}, Ref branch: ${refBranchValue}`);
         }
       }
-      helpers.printTableSeparator("┻", "┗", "┛");
+      //  helpers.printTableSeparator("┻", "┗", "┛");
       assert.equal(extendedDiffArray.length > 0, false, `Performance got worse. Metrics to check: ${extendedDiffArray}`);
     }
   });
