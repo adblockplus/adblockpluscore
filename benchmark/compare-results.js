@@ -33,8 +33,8 @@ const THRESHOLDS = path.join(__dirname, "benchmarkThresholds.json");
 let timestampsToAnalyze;
 let dataToAnalyze = {};
 let thresholds = {};
-let timestampCurrentBranch;
-let timestampRefBranch;
+let timestampCurrentBranch = process.env.npm_config_current;
+let timestampRefBranch = process.env.npm_config_refs;
 
 
 async function getDataForMetrics(metrics, key) {
@@ -47,32 +47,34 @@ async function getDataForMetrics(metrics, key) {
 describe("Measure performance", async function() {
   dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
   thresholds = await helpers.loadDataFromFile(THRESHOLDS);
-  timestampsToAnalyze = Object.keys(dataToAnalyze);
-
   let valueKeysWithGitMeta = [];
-  for (let timestamp in dataToAnalyze)
-    valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestamp]);
+  // If no flag with Timestamps passed
+  // Code will only compare last two entries in benchmark results or fail.
+  // That should be proper outcome of benchmark-entrypoint.sh
+  if (typeof dataToAnalyze[timestampCurrentBranch] == "undefined" ||
+    typeof dataToAnalyze[timestampRefBranch] == "undefined") {
+    timestampsToAnalyze = Object.keys(dataToAnalyze);
+    const timestampsLength = timestampsToAnalyze.length;
 
+    if (timestampsLength < 2) {
+      it("Fail if there is no data to compare", async function() {
+        assert.fail("Not enough data to compare, please run" +
+          " ``` sh benchmark-entrypoint.sh to create data ```.");
+      });
+    }
+    else {
+      timestampCurrentBranch = timestampsToAnalyze[timestampsLength - 2];
+      timestampRefBranch = timestampsToAnalyze[timestampsLength - 1];
+      for (let timestamp in dataToAnalyze)
+        valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestamp]);
+    }
+  }
+  else {
+    valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestampCurrentBranch]);
+  }
   // Filter out all git details
   const valueKeys = valueKeysWithGitMeta.filter(
     word => (word !== "Refs" && word !== "CommitHash"));
-
-  // Code will only compare last two entries in benchmark results.
-  // That should be proper outcome of benchmark-entrypoint.sh
-  const timestampsLength = timestampsToAnalyze.length;
-
-  if (timestampsLength < 2) {
-    it("Fail if there is no data to compare", async function() {
-      assert.fail("Not enough data to compare, please run" +
-          " ``` sh benchmark-entrypoint.sh to create data ```.");
-    });
-  }
-
-  else {
-    timestampCurrentBranch = timestampsToAnalyze[timestampsLength - 2];
-    timestampRefBranch = timestampsToAnalyze[timestampsLength - 1];
-  }
-
 
   it("Compare Results between master and current commit", async function() {
     let extendedDiffArray = [];
@@ -96,7 +98,7 @@ describe("Measure performance", async function() {
         //   );
         if (diff > 15) {
           extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
-          `CurrentBranch: ${currentBranchValue}, Ref branch: ${refBranchValue}`);
+          `CurrentBranch value: ${currentBranchValue}, Ref branch value: ${refBranchValue}`);
         }
       }
       //  helpers.printTableSeparator("┻", "┗", "┛");
