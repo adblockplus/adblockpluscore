@@ -24,7 +24,6 @@
 # https://gitlab.com/eyeo/devops/ansible-role-adblockplus-builder
 # https://gitlab.com/eyeo/devops/ansible-role-gitlab-runner
 
-
 ---
 
 stages:
@@ -79,15 +78,14 @@ benchmark:
       - benchmarkresults.json
   allow_failure: true
 
-benchmark:SaveHistoryOnMerge:
-    stage: default
-    dependencies:
-    - benchmark
-    script:
-    - sh benchmark/extendHistoricalData.sh
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-
+#benchmark:SaveHistoryOnMerge:
+  #  stage: default
+   # dependencies:
+   # - benchmark
+   # script:
+    #- sh benchmark/extendHistoricalData.sh
+    #rules:
+    #- if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 .testpages:
   image: docker:19.03.5
