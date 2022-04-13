@@ -71,10 +71,10 @@ benchmark:
     - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
     - docker run --shm-size=256m benchmark 
   allow_failure: true
-   artifacts:
+  artifacts:
     paths:
       - benchmark/benchmarkresults.json
-    if:  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    if: $CI_PIPELINE_SOURCE == "merge_request_event"
     expire_in: 3 mo
 
 
