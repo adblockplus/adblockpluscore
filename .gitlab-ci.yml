@@ -73,10 +73,11 @@ benchmark:
     - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
     - docker cp $IMAGE_ID:/benchmark/benchmarkresults.json .
       2> /dev/null
+    - echo "list files"
     - ls -la
   artifacts:
     paths:
-      - benchmarkresults.json
+      - /benchmarkresults.json
   allow_failure: true
 
 #benchmark:SaveHistoryOnMerge:
