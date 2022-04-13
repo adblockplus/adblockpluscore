@@ -76,8 +76,7 @@ benchmark:
   allow_failure: true
   after_script:
     - IMAGE_ID=$(docker ps -aqf ancestor=testpages)
-    - docker cp $IMAGE_ID:/benchmark .
-      2> /dev/null
+    - docker cp $IMAGE_ID:/benchmark ./
   artifacts:
     paths:
       - benchmarkresults.json
