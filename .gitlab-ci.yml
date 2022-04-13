@@ -77,6 +77,7 @@ benchmark:
   artifacts:
     paths:
       - benchmarkresults.json
+  allow_failure: true
 
 benchmark:SaveHistoryOnMerge:
     stage: default
