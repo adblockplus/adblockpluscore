@@ -74,6 +74,15 @@ benchmark:
     - echo "list files"
     - ls -la
   allow_failure: true
+  after_script:
+    - IMAGE_ID=$(docker ps -aqf ancestor=testpages)
+    - docker cp $IMAGE_ID:/benchmark .
+      2> /dev/null
+  artifacts:
+    paths:
+      - benchmark
+    when: always
+    expire_in: 1 mo
 
 #benchmark:SaveHistoryOnMerge:
   #  stage: default
