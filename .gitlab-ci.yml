@@ -77,7 +77,7 @@ benchmark:
   after_script:
     - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
    # - docker container create --name testpages extensionimage
-    - docker cp $IMAGE_ID:/benchmark ./
+    - docker cp $IMAGE_ID:adblockpluscore/benchmark ./
   artifacts:
     paths:
       - benchmarkresults.json
