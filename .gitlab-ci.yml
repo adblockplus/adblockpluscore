@@ -56,13 +56,6 @@ tests:
       - firefox-snapshots/download-cache/
 
 benchmark:
-  extends: .default_template
-  script:
-    - npm run benchmark
-    - npm run benchmark:save
-    - npm run benchmark:compare
-
-benchmark:Docker:
   image: docker:19.03.5
   tags:
     - docker
@@ -78,6 +71,12 @@ benchmark:Docker:
     - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
     - docker run --shm-size=256m benchmark 
   allow_failure: true
+   artifacts:
+    paths:
+      - benchmark/benchmarkresults.json
+    if:  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    expire_in: 3 mo
+
 
 .testpages:
   image: docker:19.03.5
