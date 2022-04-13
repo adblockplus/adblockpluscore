@@ -65,7 +65,7 @@ benchmark:
     - docker info
   variables:
     DOCKER_DRIVER: overlay2
-  interruptible: true
+  #interruptible: true
   script:
     - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
     - docker run --shm-size=256m benchmark
