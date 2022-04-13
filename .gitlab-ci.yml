@@ -73,9 +73,6 @@ benchmark:
     - docker cp $IMAGE_ID:/benchmark/benchmarkresults.json .
     - echo "list files"
     - ls -la
-  artifacts:
-    paths:
-      - /benchmarkresults.json
   allow_failure: true
 
 #benchmark:SaveHistoryOnMerge:
