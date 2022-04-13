@@ -70,21 +70,22 @@ benchmark:
   script:
     - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
     - docker run --shm-size=256m benchmark
-   after_script:
+  after_script:
     - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
     - docker cp $IMAGE_ID:/benchmark/benchmarkresults.json .
       2> /dev/null
-   artifacts:
+  artifacts:
     paths:
       - benchmarkresults.json
 
-  benchmark:SaveHistoryOnMerge:
+benchmark:SaveHistoryOnMerge:
+    stage: default
     dependencies:
     - benchmark
     script:
     - sh benchmark/extendHistoricalData.sh
     rules:
-      if:$CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 
 .testpages:
