@@ -802,19 +802,6 @@ describe("EventEmitter", function() {
       assert.strictEqual(eventEmitter.hasListeners("event-1000"), false);
     });
 
-    it("should return false for thousandth event after all previously added listeners for thousand different events are removed", function() {
-      let listeners = new Array(1000);
-      for (let i = 0; i < listeners.length; i++) {
-        listeners[i] = function() {};
-        eventEmitter.on(`event-${i + 1}`, listeners[i]);
-      }
-
-      for (let i = 0; i < listeners.length; i++)
-        eventEmitter.off(`event-${i + 1}`, listeners[i]);
-
-      assert.strictEqual(eventEmitter.hasListeners("event-1000"), false);
-    });
-
     it("should return false with no argument after all previously added listeners for thousand different events are removed", function() {
       let listeners = new Array(1000);
       for (let i = 0; i < listeners.length; i++) {

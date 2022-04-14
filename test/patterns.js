@@ -115,10 +115,6 @@ describe("filterToRegExp()", function() {
                        "^[\\w\\-]+:\\/+(?:[^\\/]+\\.)?a");
   });
 
-  it("should return 'a\\|$' for 'a||'", function() {
-    assert.strictEqual(filterToRegExp("a||"), "a\\|$");
-  });
-
   it("should return 'a\\|\\|b' for 'a||b'", function() {
     assert.strictEqual(filterToRegExp("a||b"), "a\\|\\|b");
   });
