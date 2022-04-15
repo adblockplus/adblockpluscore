@@ -15,9 +15,7 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable prefer-arrow-callback */
 /* eslint-env node */
-/* eslint no-console: "off" */
 
 "use strict";
 
@@ -33,10 +31,8 @@ const HISTORICAL_BENCHMARK_RESULTS = path.join(
   "/historicalData/historicalData.json"
 );
 
-let timestampToExtract = helpers.getFlagValue("ts");
-
-
 async function main() {
+  let timestampToExtract = helpers.getFlagValue("ts");
   let currentRunData = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
   let dataToBeMerged = {};
   dataToBeMerged[timestampToExtract] = currentRunData[timestampToExtract];
