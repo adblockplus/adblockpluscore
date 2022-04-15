@@ -68,6 +68,7 @@ benchmark:
   #interruptible: true
   script:
     - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
+    # TO DO: extract extendHistorical step to separate run - done only on master 
     - docker run --shm-size=256m -e EXTENDHISTORICAL=true benchmark
     - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
   allow_failure: true
