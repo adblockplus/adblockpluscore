@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 #git clone https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore.git
 cd adblockpluscore
 rm -rf benchmark/benchmarkresults.json
