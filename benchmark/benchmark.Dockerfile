@@ -13,10 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 FROM node:16
 
 RUN apt-get update
+
+RUN apt-get install jq -y
 COPY . adblockpluscore
+
+ENV EXTENDHISTORICAL=false
 ENTRYPOINT adblockpluscore/benchmark/benchmark-entrypoint.sh
 

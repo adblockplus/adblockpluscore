@@ -176,6 +176,7 @@ However, from time to time, or after a cleanup, it is recommended to remove
 these files manually, and download latest.
 
 *Please note:* downloading doesn't work for Matching filter lists. 
+
 ### Benchmarking
 
 The `npm run benchmark` command will visually show, in console, what is the
@@ -211,10 +212,13 @@ might produce diversions between scores itself, without changing code at all.
 
 To avoid compromising benchmark results you can run the benchmark script in Docker. 
 To build the docker image: 
-`docker build -t benchmark -f benchmark/benchmark.Dockerfile . `
+`docker build -t benchmark -f benchmark/benchmark.Dockerfile .`
 
 To run docker: 
 `docker run benchmark`
+
+You can also fetch historical data from core pipeline and save along with latest run on local machine (through docker): 
+` docker run -e EXTENDHISTORICAL=true -it benchmark`
 
 Documentation
 -------------

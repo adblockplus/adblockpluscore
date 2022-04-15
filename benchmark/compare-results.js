@@ -1,4 +1,3 @@
-
 /*
  * This file is part of Adblock Plus <https://adblockplus.org/>,
  * Copyright (C) 2006-present eyeo GmbH
@@ -109,7 +108,6 @@ describe("Measure performance", async function() {
   for (let key of valueKeys) {
     for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
       let thresholdForMetric = thresholds[key][metrics];
-      // eslint-disable-next-line no-undefined
       if (typeof thresholdForMetric == "undefined")
         continue;
 

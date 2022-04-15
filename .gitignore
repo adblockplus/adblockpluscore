@@ -9,3 +9,4 @@ benchmark/benchmarkresults.json
 /dist/
 benchmark/tempresults.json
 .DS_Store
+benchmark/historicalData/historicalData.json
