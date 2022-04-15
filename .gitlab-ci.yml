@@ -70,9 +70,6 @@ benchmark:
     - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
     - docker run --shm-size=256m benchmark
     - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
-   # - docker cp $IMAGE_ID:/benchmark/benchmarkresults.json .
-   # - echo "list files"
-  #  - ls -la
   allow_failure: true
   after_script:
     - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
