@@ -41,5 +41,6 @@ async function main() {
                                      HISTORICAL_BENCHMARK_RESULTS);
   await helpers.saveToFile(benchmarkDataToSave, HISTORICAL_BENCHMARK_RESULTS);
 }
+
 if (require.main == module)
   main();
