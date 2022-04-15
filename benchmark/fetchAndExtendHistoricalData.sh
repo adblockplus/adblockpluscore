@@ -26,7 +26,7 @@ unzip $fetch_dir/artifacts.zip -d benchmark/historicalData
 rm -rf benchmark/artifacts.zip
 echo 'Historical Data extracted to benchmark folder'
 
-#Extracting current benchmark data
+#Extracting current benchmark data and adding to historical data
 echo 'Data for timestamp '$1' will be added to historical Data'
 npm run benchmark/extendHistoricalData.js --ts=$1
 rm -rf benchmark/historicalData
