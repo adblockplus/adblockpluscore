@@ -48,7 +48,7 @@ describe("Measure performance", async function() {
   thresholds = await helpers.loadDataFromFile(THRESHOLDS);
   let valueKeysWithGitMeta = [];
   // If no flag with Timestamps passed
-  // Code will only compare last two entries in benchmark results or fail.
+  // code will only compare last two entries in benchmark results or fail.
   // That should be proper outcome of benchmark-entrypoint.sh
   if (typeof dataToAnalyze[timestampCurrentBranch] == "undefined" ||
     typeof dataToAnalyze[timestampRefBranch] == "undefined") {
@@ -71,39 +71,29 @@ describe("Measure performance", async function() {
   else {
     valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestampCurrentBranch]);
   }
+
   // Filter out all git details
   const valueKeys = valueKeysWithGitMeta.filter(
     word => (word !== "Refs" && word !== "CommitHash"));
 
-  it("Compare Results between master and current commit", async function() {
-    let extendedDiffArray = [];
-    // console.log(`┏${"━".repeat(87)}┓`);
-    // helpers.printTableSeparator("┳");
-    // helpers.fillTab("", "Current", "Master", "Diff");
-    for (let key of valueKeys) {
-      //  console.log(`┏${"━".repeat(30)}${key.padEnd(57, "━")}┓`);
-      for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
-        let {currentBranchValue, refBranchValue} =
+  it("Check if difference between master & current code is less than 15%",
+     async function() {
+       let extendedDiffArray = [];
+       for (let key of valueKeys) {
+         for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
+           let {currentBranchValue, refBranchValue} =
           await getDataForMetrics(metrics, key);
-        let diff =
+           let diff =
           ((currentBranchValue - refBranchValue) / refBranchValue) * 100;
 
-        //   helpers.printTableSeparator("╋");
-        //   helpers.fillTab(
-        //     metrics,
-        //     currentBranchValue.toFixed(3),
-        //     refBranchValue.toFixed(3),
-        //     diff.toFixed(3)
-        //   );
-        if (diff > 15) {
-          extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
+           if (diff > 15) {
+             extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
           `CurrentBranch value: ${currentBranchValue}, Ref branch value: ${refBranchValue}`);
-        }
-      }
-      //  helpers.printTableSeparator("┻", "┗", "┛");
-      assert.equal(extendedDiffArray.length > 0, false, `Performance got worse. Metrics to check: ${extendedDiffArray}`);
-    }
-  });
+           }
+         }
+         assert.equal(extendedDiffArray.length > 0, false, `Performance got worse. Metrics to check: ${extendedDiffArray}`);
+       }
+     });
 
   for (let key of valueKeys) {
     for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
@@ -115,6 +105,7 @@ describe("Measure performance", async function() {
         let {currentBranchValue, refBranchValue} =
           await getDataForMetrics(metrics, key);
         let diff = (currentBranchValue - refBranchValue);
+        console.log("Metrics", metrics, "Key", key, "Diff", diff);
         assert.equal(diff > thresholdForMetric, false, `${metrics} in ${key} extended threshold` +
           `Threshold ${thresholdForMetric}, Value: ${diff.toFixed(3)}`);
       });
