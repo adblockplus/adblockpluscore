@@ -336,6 +336,13 @@ describe("Filter storage", function() {
     assert.rejects(filterStorage.getMetadataForFilter("bar3"), "FilterStorageError");
   });
 
+  it("passes filters array to filtersExist()", async function() {
+    let commentFilter = Filter.fromText("!comment");
+    let metadata = {meta: "foo"};
+    await filterStorage.addFiltersWithMetadata(commentFilter, metadata);
+    await assert.rejects(filterStorage.addFiltersWithMetadata(commentFilter, metadata), "FilterStorageError");
+  });
+
   it("Removing filters", function() {
     let subscription1 = Subscription.fromURL("~foo");
     subscription1.addFilter(Filter.fromText("foo"));
