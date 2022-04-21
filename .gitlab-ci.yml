@@ -82,15 +82,17 @@ benchmark:
     when: always
     expire_in: 1 mo
 
-#This job is run only on merge and will gather Master benchmark data
+#   This job is run only on merge and will gather Master benchmark data
 benchmark:SaveHistoryOnMerge:
   stage: default
   dependencies:
     - benchmark
   script:
     - sh benchmark/extendHistoricalData.sh
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+   only:
+    refs:
+      - master
+
 
 .testpages:
   image: docker:19.03.5
