@@ -5,14 +5,21 @@ rm -rf benchmark/benchmarkresults.json
 npm install 
 #npm run benchmark:save
 CURRENTTS=$(date +%FT%TZ)
-FLAGS="--save --save-temp --ts=$CURRENTTS";
-npm run benchmark:easylist -- $FLAGS && npm run benchmark:easylist+AA --$FLAGS && npm run benchmark:allFilters -- $FLAGS && npm run benchmark:match:all -- $FLAGS && npm run benchmark:match:all:easylist -- $FLAGS && npm run benchmark:match:all:easylist+AA -- $FLAGS && npm run benchmark:match:all:allFilters -- $FLAGS --dt
+
+for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
+do
+  npm run $script -- --save --save-temp --ts=$CURRENTTS
+done
+
 #git checkout origin master
-npm install
+#npm install
 REFSTS=$(date +%FT%TZ)
-FLAGS="--save --save-temp --ts=$REFSTS";
-npm run benchmark:easylist --$FLAGS && npm run benchmark:easylist+AA --$FLAGS && npm run benchmark:allFilters -- $FLAGS && npm run benchmark:match:all -- $FLAGS && npm run benchmark:match:all:easylist -- $FLAGS && npm run benchmark:match:all:easylist+AA -- $FLAGS && npm run benchmark:match:all:allFilters -- $FLAGS --dt
-npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compare-results.js
+#FLAGS="--save --save-temp --ts=$REFSTS";
+for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
+do
+  npm run $script -- --save --save-temp --ts=$REFSTS
+done
+
 
 if [[ "$EXTENDHISTORICAL" == true ]]; then
   sh benchmark/fetchAndExtendHistoricalData.sh $REFSTS
