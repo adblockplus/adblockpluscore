@@ -19,6 +19,7 @@ do
   npm run $script -- --save --save-temp --ts=$REFSTS
 done
 
+npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compare-results.js
 
 if [[ "$EXTENDHISTORICAL" == true ]]; then
   sh benchmark/fetchAndExtendHistoricalData.sh $REFSTS
