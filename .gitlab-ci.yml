@@ -89,7 +89,7 @@ benchmark:SaveHistoryOnMerge:
     - benchmark
   script:
     - sh benchmark/extendHistoricalData.sh
-   only:
+  only:
     refs:
       - master
 
