@@ -24,7 +24,14 @@ curl -sS -L \
 mkdir benchmark/historicalData
 unzip $fetch_dir/artifacts.zip -d benchmark/historicalData
 rm -rf benchmark/artifacts.zip
-echo 'Historical Data extracted to benchmark folder'
+
+# If file is not available - create one
+if [ ! -f "benchmark/historicalData/historicalData.json" ]; then
+    echo "Historical data doesn't exists, creating empty one."
+    mkdir benchmark/historicalData
+    touch benchmark/historicalData/historicalData.json
+    jq -n '{}' > benchmark/historicalData/historicalData.json
+fi
 
 #Extracting current benchmark data and adding to historical data
 echo 'Data for timestamp '$1' will be added to historical Data'
