@@ -14,7 +14,6 @@ done
 #git checkout origin master
 #npm install
 REFSTS=$(date +%FT%TZ)
-#FLAGS="--save --save-temp --ts=$REFSTS";
 for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
 do
   npm run $script -- --save --save-temp --ts=$REFSTS
