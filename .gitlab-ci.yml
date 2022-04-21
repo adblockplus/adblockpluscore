@@ -65,10 +65,9 @@ benchmark:
     - docker info
   variables:
     DOCKER_DRIVER: overlay2
-  #interruptible: true
+  interruptible: true
   script:
     - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
-    # TO DO: extract extendHistorical step to separate run - done only on master 
     - docker run --shm-size=256m -e EXTENDHISTORICAL=true benchmark
     - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
   allow_failure: true
@@ -83,14 +82,15 @@ benchmark:
     when: always
     expire_in: 1 mo
 
-#benchmark:SaveHistoryOnMerge:
-  #  stage: default
-   # dependencies:
-   # - benchmark
-   # script:
-    #- sh benchmark/extendHistoricalData.sh
-    #rules:
-    #- if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#This job is run only on merge and will gather Master benchmark data
+benchmark:SaveHistoryOnMerge:
+  stage: default
+  dependencies:
+    - benchmark
+  script:
+    - sh benchmark/extendHistoricalData.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 .testpages:
   image: docker:19.03.5
