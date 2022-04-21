@@ -2,17 +2,17 @@
     "FilterList_EasyList": {
         "TimeMean": 4.2,
         "HeapUsed": 0.5,
-        "HeapTotal": 0.06
+        "HeapTotal": 0.25
       },
       "FilterList_EasyList+AA": {
-        "TimeMean": 4.2,
+        "TimeMean": 14,
         "HeapUsed": 0.5,
-        "HeapTotal": 0.06
+        "HeapTotal": 10                                                                                                     
       },
       "FilterList_All": {
         "TimeMean": 4.2,
         "HeapUsed": 0.5,
-        "HeapTotal": 0.06
+        "HeapTota l": 0.06
       },
       "Matching_all": {
         "TimeMean": 0.01,
@@ -21,8 +21,8 @@
         "HeapTotal": 0.01
       },
       "Matching_all_EasyList": {
-        "TimeMean": 0.01,
-        "TimeMax": 1,
+        "TimeMean": 0.2,
+        "TimeMax": 8,
         "HeapUsed": 0.01,
         "HeapTotal": 0.25
       },
