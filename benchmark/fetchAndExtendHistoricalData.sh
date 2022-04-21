@@ -1,9 +1,7 @@
 #!/bin/sh -e
 
-#This should be switched to core master once artifacts will be available on master
-ref='issue-403'
-project='a.czyzewska'
-# project='eyeo%2Fadblockplus%2Fabc'
+ref='master'
+project='eyeo%2Fadblockplus%2Fabc'
 
 #Fetching Historical Data
 current_pipeline_id=$(curl -sS -H "Content-Type: application/json" \
