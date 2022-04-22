@@ -1,3 +1,13 @@
+0.7.1 - 2022/04/22
+==================
+
+## Bug fixes
+
+- `filterStorage.addFiltersWithMetadata()` would fail if passing a single
+filter instead of an array. #422
+- Loading metadata from storage would fail with an exception. #423
+- Fix inline documentation for `filtersExist()`.
+
 0.7.0 - 2022/04/04
 ==================
 
