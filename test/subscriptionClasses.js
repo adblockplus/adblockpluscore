@@ -109,6 +109,9 @@ describe("Subscription classes", function() {
         subscription.disabled = true;
       }
     );
+    compareSubscription("~md~", ["url=~md~", "metadata={\"meta\":\"data\"}"], subscription => {
+      subscription.metadata = {meta: "data"};
+    });
   });
 
   it("Filter management", function() {
