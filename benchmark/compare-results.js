@@ -84,10 +84,10 @@ describe("Measure performance", async function() {
          for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
            let {currentBranchValue, refBranchValue} =
           await getDataForMetrics(metrics, key);
-           let diff =
+           let diffPercent =
           ((currentBranchValue - refBranchValue) / refBranchValue) * 100;
 
-           if (diff > MASTER_CURRENT_DIFF_PERCENT) {
+           if (diffPercent > MASTER_CURRENT_DIFF_PERCENT) {
              extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
           `CurrentBranch value: ${currentBranchValue}, Ref branch value: ${refBranchValue}`);
            }
