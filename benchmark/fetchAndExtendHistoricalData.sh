@@ -1,9 +1,9 @@
-#!/bin/sh -e
+# !/bin/sh -e
 
 ref='master'
 project='eyeo%2Fadblockplus%2Fabc'
 
-#Fetching Historical Data
+# Fetching Historical Data
 current_pipeline_id=$(curl -sS -H "Content-Type: application/json" \
                               'https://gitlab.com/api/v4/projects/'$project'%2Fadblockpluscore/pipelines?per_page=200' | \
                           jq -r \
@@ -18,7 +18,7 @@ curl -sS -L \
        --output $fetch_dir/artifacts.zip \
       'https://gitlab.com/api/v4/projects/'$project'%2Fadblockpluscore/jobs/'$current_job_id'/artifacts'
 
-#Creating temporary folder for artifacts to not override current one
+# Creating temporary folder for artifacts to not override current one
 mkdir benchmark/historicalData
 unzip $fetch_dir/artifacts.zip -d benchmark/historicalData
 rm -rf benchmark/artifacts.zip
@@ -31,6 +31,6 @@ if [ ! -f "benchmark/historicalData/historicalData.json" ]; then
     jq -n '{}' > benchmark/historicalData/historicalData.json
 fi
 
-#Extracting current benchmark data and adding to historical data
+# Extracting current benchmark data and adding to historical data
 echo 'Data for timestamp '$1' will be added to historical Data'
 node benchmark/extendHistoricalData.js --ts=$1
