@@ -35,7 +35,7 @@ const convert = createConverter({
   }
 });
 
-function processContent(filterListContent) {
+function processContent(filterListContent, ruleModifier) {
   let {error, lines} = parseFilterList(filterListContent);
   if (error)
     return Promise.reject(new Error(error));
@@ -43,7 +43,8 @@ function processContent(filterListContent) {
   lines.shift();
   return Promise.resolve(lines
                          .flatMap(filter => convert(normalize(filter)))
-                         .filter(o => !(o instanceof Error)));
+                         .filter(o => !(o instanceof Error))
+                         .map(o => ruleModifier ? ruleModifier(o) : o));
 }
 
 function parseArgs(cliArgv) {
@@ -73,9 +74,9 @@ function parseArgs(cliArgv) {
   return {filename, outputfile};
 }
 
-function processFile(filename, outputfile) {
+function processFile(filename, outputfile, ruleModifier) {
   return readFile(filename, {encoding: "utf-8"})
-    .then(content => processContent(content))
+    .then(content => processContent(content, ruleModifier))
     .then(results => {
       if (typeof outputfile != "undefined") {
         return writeFile(

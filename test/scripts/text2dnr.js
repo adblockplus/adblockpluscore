@@ -64,6 +64,27 @@ describe("text2dnr script", function() {
     await fs.rm(outputfile);
   });
 
+  it("Uses rule modify callback", async function() {
+    let outputFile = "foo2.json";
+    let id = 0;
+    await processFile(
+      path.join(__dirname, "..", "data", "filters.txt"),
+      outputFile,
+      rule => {
+        rule["id"] = ++id;
+        return rule;
+      }
+    );
+    await fs.access(outputFile);
+    assert.equal(id > 0, true);
+
+    let json = await fs.readFile(outputFile, {encoding: "utf-8"});
+    let rules = JSON.parse(json);
+    for (let rule of rules)
+      assert.equal(typeof rule["id"], "number");
+    await fs.rm(outputFile);
+  });
+
   it("Produces the JSON on stdout", function(done) {
     // We'll use a child_process.
     let written = "";
