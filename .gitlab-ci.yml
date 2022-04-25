@@ -73,12 +73,12 @@ benchmark:
   allow_failure: true
   after_script:
     - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
-    - docker cp $IMAGE_ID:adblockpluscore/benchmark/benchmarkresults.json ./
-    - docker cp $IMAGE_ID:adblockpluscore/benchmark/historicalData/historicalData.json ./
+    - docker cp $IMAGE_ID:adblockpluscore/benchmark/benchmark_results.json ./
+    - docker cp $IMAGE_ID:adblockpluscore/benchmark/historicalData/historical_data.json ./
   artifacts:
     paths:
-      - benchmarkresults.json
-      - historicalData.json
+      - benchmark_results.json
+      - historical_data.json
     when: always
     expire_in: 1 mo
 

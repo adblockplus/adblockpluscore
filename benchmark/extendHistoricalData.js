@@ -24,11 +24,11 @@ const helpers = require("./helpers.js");
 
 const BENCHMARK_RESULTS = path.join(
   __dirname,
-  "/benchmarkresults.json"
+  "/benchmark_results.json"
 );
 const HISTORICAL_BENCHMARK_RESULTS = path.join(
   __dirname,
-  "/historicalData/historicalData.json"
+  "/historicalData/historical_data.json"
 );
 
 async function main() {

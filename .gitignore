@@ -3,10 +3,11 @@
 /firefox-snapshots/
 /coverage/
 benchmark/*.txt
-benchmark/benchmarkresults.json
+benchmark/benchmark_results.json
+benchmark/temp_results.json
+benchmark/historicalData/historical_data.json
 /build/docs/
 /build/
 /dist/
-benchmark/tempresults.json
 .DS_Store
-benchmark/historicalData/historicalData.json
+

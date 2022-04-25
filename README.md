@@ -147,7 +147,7 @@ parameter).
 #### Benchmark reset
 
 If the best results are not satisfying, or impossible to reach, due new
-requirements - remove benchmarkresults.json manually. Next run with
+requirements - remove benchmark_results.json manually. Next run with
 "*:save*" flag will create new files.
 
 #### Benchmark - filter lists

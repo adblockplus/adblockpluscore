@@ -25,8 +25,8 @@
 "use strict";
 
 const path = require("path");
-const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
-const TEMP_BENCHMARK_RESULTS = path.join(__dirname, "tempresults.json");
+const BENCHMARK_RESULTS = path.join(__dirname, "benchmark_results.json");
+const TEMP_BENCHMARK_RESULTS = path.join(__dirname, "temp_results.json");
 const fs = require("fs");
 const https = require("https");
 const {promisify} = require("util");

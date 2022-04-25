@@ -24,11 +24,10 @@ unzip $fetch_dir/artifacts.zip -d benchmark/historicalData
 rm -rf benchmark/artifacts.zip
 
 # If file is not available - create one
-if [ ! -f "benchmark/historicalData/historicalData.json" ]; then
+if [ ! -f "benchmark/historicalData/historical_data.json" ]; then
     echo "Historical data doesn't exists, creating empty one."
-    mkdir benchmark/historicalData
-    touch benchmark/historicalData/historicalData.json
-    jq -n '{}' > benchmark/historicalData/historicalData.json
+    touch benchmark/historicalData/historical_data.json
+    jq -n '{}' > benchmark/historicalData/historical_data.json
 fi
 
 # Extracting current benchmark data and adding to historical data

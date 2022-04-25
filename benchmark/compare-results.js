@@ -26,8 +26,8 @@ const helpers = require("./helpers.js");
 const path = require("path");
 const {describe, it} = require("mocha");
 
-const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
-const THRESHOLDS = path.join(__dirname, "benchmarkThresholds.json");
+const BENCHMARK_RESULTS = path.join(__dirname, "benchmark_results.json");
+const THRESHOLDS = path.join(__dirname, "benchmark_thresholds.json");
 const MASTER_CURRENT_DIFF_PERCENT = 15;
 
 let timestampsToAnalyze;
