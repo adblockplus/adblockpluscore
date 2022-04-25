@@ -1,4 +1,4 @@
-#!/bin/bash
+# !/bin/bash
 
 cd adblockpluscore
 rm -rf benchmark/benchmarkresults.json
@@ -10,7 +10,7 @@ do
   npm run $script -- --save --save-temp --ts=$CURRENTTS
 done
 
-#Checkout master to have reference data
+# Checkout master to have reference data
 git checkout origin master
 npm install
 REFSTS=$(date +%FT%TZ)
@@ -22,7 +22,7 @@ done
 npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compare-results.js
 
 if [[ "$EXTENDHISTORICAL" == true ]]; then
-#extend historical data with master run only
+# Extend historical data with master run only
   sh benchmark/fetchAndExtendHistoricalData.sh $REFSTS
 fi
 
