@@ -217,9 +217,6 @@ To build the docker image:
 To run docker: 
 `docker run adblockpluscore-benchmark`
 
-You can also fetch historical data from core pipeline and save along with latest run on local machine (through docker): 
-` docker run -e EXTENDHISTORICAL=true -it adblockpluscore-benchmark`
-
 Documentation
 -------------
 
