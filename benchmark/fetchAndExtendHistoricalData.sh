@@ -2,7 +2,8 @@
 
 ref='master'
 project='eyeo%2Fadblockplus%2Fabc'
-
+historicalDataFolder='benchmark/historicalData'
+historicalDataPath=''$historicalDataFolder'/historical_data.json'
 # Fetching Historical Data
 current_pipeline_id=$(curl -sS -H "Content-Type: application/json" \
                               'https://gitlab.com/api/v4/projects/'$project'%2Fadblockpluscore/pipelines?per_page=200' | \
@@ -19,15 +20,15 @@ curl -sS -L \
       'https://gitlab.com/api/v4/projects/'$project'%2Fadblockpluscore/jobs/'$current_job_id'/artifacts'
 
 # Creating temporary folder for artifacts to not override current one
-mkdir benchmark/historicalData
-unzip $fetch_dir/artifacts.zip -d benchmark/historicalData
+mkdir $historicalDataFolder
+unzip $fetch_dir/artifacts.zip -d $historicalDataFolder
 rm -rf benchmark/artifacts.zip
 
 # If file is not available - create one
-if [ ! -f "benchmark/historicalData/historical_data.json" ]; then
+if [ ! -f $historicalDataPath ]; then
     echo "Historical data doesn't exists, creating empty one."
-    touch benchmark/historicalData/historical_data.json
-    jq -n '{}' > benchmark/historicalData/historical_data.json
+    touch $historicalDataPath
+    jq -n '{}' > $historicalDataPath
 fi
 
 # Extracting current benchmark data and adding to historical data

@@ -21,7 +21,7 @@ done
 
 npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compare-results.js
 
-if [[ "$EXTENDHISTORICAL" == true ]]; then
+if $EXTENDHISTORICAL; then
 # Extend historical data with master run only
   sh benchmark/fetchAndExtendHistoricalData.sh $REFSTS
 fi
