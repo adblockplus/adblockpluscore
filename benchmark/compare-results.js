@@ -28,6 +28,7 @@ const {describe, it} = require("mocha");
 
 const BENCHMARK_RESULTS = path.join(__dirname, "benchmarkresults.json");
 const THRESHOLDS = path.join(__dirname, "benchmarkThresholds.json");
+const MASTER_CURRENT_DIFF_PERCENT = 15;
 
 let timestampsToAnalyze;
 let dataToAnalyze = {};
@@ -76,7 +77,7 @@ describe("Measure performance", async function() {
   const valueKeys = valueKeysWithGitMeta.filter(
     word => (word !== "Refs" && word !== "CommitHash"));
 
-  it("Check if difference between master & current code is less than 15%",
+  it(`Check if difference between master & current code is less than ${ MASTER_CURRENT_DIFF_PERCENT}%`,
      async function() {
        let extendedDiffArray = [];
        for (let key of valueKeys) {
@@ -86,7 +87,7 @@ describe("Measure performance", async function() {
            let diff =
           ((currentBranchValue - refBranchValue) / refBranchValue) * 100;
 
-           if (diff > 15) {
+           if (diff > MASTER_CURRENT_DIFF_PERCENT) {
              extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
           `CurrentBranch value: ${currentBranchValue}, Ref branch value: ${refBranchValue}`);
            }
