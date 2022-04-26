@@ -26,8 +26,8 @@ const os = require("os");
 const path = require("path");
 const nock = require("nock");
 
-const {listUrl, updateMv2, updateMv3}
-  = require("../../scripts/updateSubscriptions");
+const {listUrl, updateMv2, updateMv3} =
+  require("../../scripts/updateSubscriptions");
 
 const exampleSubscription = "subscriptionlist-master";
 const ENCODING = "utf-8";
@@ -213,7 +213,7 @@ describe("updateSubscriptions script", function() {
   it("should download MV3 list", async function() {
     const urlPath = "/index.json";
     const origin = "http://localhost";
-    const url = origin + urlPath;
+    const backendUrl = origin + urlPath;
     const subscriptionsListData = createFile(tmpDir,
       `[{
         "type": "ads",
@@ -221,14 +221,14 @@ describe("updateSubscriptions script", function() {
           "en"
         ],
         "title": "Test Subscription",
-        "url": "${origin + urlPath}",
+        "url": "someUrl",
         "homepage": "https://easylist.to/"
       }]`);
     const file = path.join(outDir, "file.tmp");
 
     nock(origin).get(urlPath).reply(200, subscriptionsListData);
 
-    await updateMv3(url, file);
+    await updateMv3(backendUrl, file);
     assert.deepEqual(await readFile(file), Buffer.from(subscriptionsListData, ENCODING));
   });
 
@@ -236,16 +236,16 @@ describe("updateSubscriptions script", function() {
     it(`should handle request ${statusCode} on download`, async function() {
       const urlPath = "/index.json";
       const origin = "http://localhost";
-      const url = origin + urlPath;
+      const backendUrl = origin + urlPath;
       const file = path.join(outDir, "file.tmp");
 
       nock(origin).get(urlPath).reply(statusCode);
 
-      await assert.rejects(updateMv3(url, file),
-                     {
-                       name: "Error",
-                       message: `Failed to get '${url}' (${statusCode})`
-                     }
+      await assert.rejects(updateMv3(backendUrl, file),
+                           {
+                             name: "Error",
+                             message: `Failed to get '${backendUrl}' (${statusCode})`
+                           }
       );
     });
   }
