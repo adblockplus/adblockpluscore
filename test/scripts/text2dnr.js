@@ -80,8 +80,11 @@ describe("text2dnr script", function() {
 
     let json = await fs.readFile(outputFile, {encoding: "utf-8"});
     let rules = JSON.parse(json);
-    for (let rule of rules)
+    let actualId = 0;
+    for (let rule of rules) {
       assert.equal(typeof rule["id"], "number");
+      assert.equal(rule["id"], ++actualId);
+    }
     await fs.rm(outputFile);
   });
 
