@@ -23,7 +23,7 @@ const {
   existsSync,
   promises: {readdir, rm, unlink, writeFile, mkdir}
 } = require("fs");
-
+const {exists, download} = require("./utils");
 const path = require("path");
 const readline = require("readline");
 const https = require("https");
@@ -33,7 +33,7 @@ const {hideBin} = require("yargs/helpers");
 
 const listUrl = "https://gitlab.com/eyeo/filterlists/subscriptionlist/" +
                 "-/archive/master/subscriptionlist-master.tar.gz";
-
+const backendUrlMv3 = "https://filter-delivery-staging.eyeo.com/v3/index.json";
 const filenameMv2 = "data/subscriptions.json";
 const filenameMv3 = "build/data/subscriptions_mv3.json";
 
@@ -237,7 +237,15 @@ function postProcessSubscription(subscription) {
   }
 }
 
-async function update(urlMapper, filename) {
+async function updateMv3(filename) {
+  if (await exists(filename)) {
+    console.warn("The output file exists and will be overwritten");
+    await unlink(filename);
+  }
+  await download(backendUrlMv3, filename);
+}
+
+async function updateMv2(filename) {
   let root = await untar(listUrl);
 
   let languages = await parseValidLanguages(root);
@@ -253,11 +261,8 @@ async function update(urlMapper, filename) {
     subscription != null && "title" in subscription
   );
 
-  for (let subscription of parsed) {
-    if (urlMapper != null)
-      subscription.url = urlMapper(subscription);
+  for (let subscription of parsed)
     postProcessSubscription(subscription);
-  }
 
   parsed.sort((a, b) =>
     a["type"].toLowerCase().localeCompare(b["type"]) ||
@@ -270,14 +275,6 @@ async function update(urlMapper, filename) {
   await writeFile(filename, JSON.stringify(parsed, null, 2), "utf8");
   await rm(root, {recursive: true});
 }
-
-const urlMapperMv3 = function(subscription) {
-  // https://gitlab.com/eyeo/filters/filterlists-delivery/-/tree/main#mv3-filter-list-delivery
-  let filename = subscription.url
-    .substring(subscription.url.lastIndexOf("/") + 1)
-    .replace("+easylist", "");
-  return "https://release-v3.filter-delivery-staging.eyeo.com/v3/full/" + filename;
-};
 
 async function main() {
   const args = yargs(hideBin(process.argv))
@@ -297,17 +294,15 @@ async function main() {
     })
     .parse();
 
-  let urlMapper;
   let filename;
   if (args.type === "mv3") {
-    urlMapper = urlMapperMv3;
     filename = args.output || filenameMv3;
+    await updateMv3(filename);
   }
   else {
-    urlMapper = null; // no mapping needed
     filename = filenameMv2;
+    await updateMv2(filename);
   }
-  await update(urlMapper, filename);
   console.log(`Subscriptions file (${filename}) generated.`);
 }
 
@@ -321,5 +316,6 @@ if (require.main == module) {
 exports.listUrl = listUrl;
 exports.filenameMv2 = filenameMv2;
 exports.filenameMv3 = filenameMv3;
-exports.urlMapperMv3 = urlMapperMv3;
-exports.update = update;
+exports.backendUrlMv3 = backendUrlMv3;
+exports.updateMv2 = updateMv2;
+exports.updateMv3 = updateMv3;

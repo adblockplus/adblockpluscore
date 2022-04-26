@@ -18,69 +18,15 @@
 "use strict";
 
 const {filenameMv3} = require("./updateSubscriptions");
-const {
-  createWriteStream,
-  promises: {readFile, unlink, mkdir, access}
-} = require("fs");
-const http = require("http");
-const https = require("https");
+const {exists, download} = require("./utils");
+const {promises: {readFile, mkdir}} = require("fs");
 const yargs = require("yargs/yargs");
 const {hideBin} = require("yargs/helpers");
 
 const OUTPUT_DIR = "build/data/subscriptions/ABP";
 
-async function download(url, toFile) {
-  console.info(`Downloading ${url} to ${toFile} ...`);
-  const proto = url.startsWith("https") ? https : http;
-
-  return new Promise((resolve, reject) => {
-    const file = createWriteStream(toFile);
-    let fileInfo = null;
-
-    const request = proto.get(url, response => {
-      if (response.statusCode !== 200) {
-        reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
-        return;
-      }
-
-      fileInfo = {
-        mime: response.headers["content-type"],
-        size: parseInt(response.headers["content-length"], 10)
-      };
-
-      response.pipe(file);
-    });
-
-    file.on("finish", () => resolve(fileInfo));
-
-    request.on("error", err => {
-      unlink(toFile)
-        .then(() => reject(err))
-        .catch(() => reject(err));
-    });
-
-    file.on("error", err => {
-      unlink(toFile)
-        .then(() => reject(err))
-        .catch(() => reject(err));
-    });
-
-    request.end();
-  });
-}
-
 function getSubscriptionFile(subscription) {
   return subscription.url.replace(/[^a-z0-9]/gi, "_").toLowerCase();
-}
-
-async function exists(filename) {
-  try {
-    await access(filename);
-    return true;
-  }
-  catch (error) {
-    return false;
-  }
 }
 
 async function fetchSubscriptions(fromFile, toDir) {
