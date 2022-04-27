@@ -20,7 +20,6 @@
 const {
   createReadStream,
   createWriteStream,
-  existsSync,
   promises: {readdir, rm, unlink, writeFile, mkdir}
 } = require("fs");
 const {exists, download} = require("./utils");
@@ -202,9 +201,9 @@ function parseSubscriptionFile(file, validLanguages) {
   });
 }
 
-function parseValidLanguages(root) {
+async function parseValidLanguages(root) {
   let rootPath = path.join(root, "settings");
-  if (existsSync(rootPath)) {
+  if (await exists(rootPath)) {
     return new Promise(resolve => {
       let languageRegex = /(\S{2})=(.*)/;
       let languages = new Set();
@@ -270,7 +269,7 @@ async function updateMv2(filename) {
   );
 
   let toDir = path.dirname(filename);
-  if (!existsSync(toDir))
+  if (!(await exists(toDir)))
     await mkdir(toDir, {recursive: true});
   await writeFile(filename, JSON.stringify(parsed, null, 2), "utf8");
   await rm(root, {recursive: true});
