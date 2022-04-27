@@ -26,13 +26,14 @@ const os = require("os");
 const path = require("path");
 const nock = require("nock");
 
-const {listUrl, updateMv2, updateMv3} =
+const {listUrl: listUrlMv2, updateMv2, updateMv3, backendUrlMv3} =
   require("../../scripts/updateSubscriptions");
 
 const exampleSubscription = "subscriptionlist-master";
 const ENCODING = "utf-8";
 
-const url = new URL(listUrl);
+const listUrl = new URL(listUrlMv2);
+const backendUrl = new URL(backendUrlMv3);
 
 describe("updateSubscriptions script", function() {
   let tmpDir;
@@ -75,7 +76,7 @@ describe("updateSubscriptions script", function() {
 
   async function mockData(mockedDataPath) {
     let mockedData = await readFile("test/data/" + mockedDataPath + ".tar.gz");
-    nock(url.origin).get(url.pathname).reply(200, mockedData);
+    nock(listUrl.origin).get(listUrl.pathname).reply(200, mockedData);
   }
 
   async function performSubscriptionUpdate(mockedDataPath) {
@@ -211,9 +212,6 @@ describe("updateSubscriptions script", function() {
   }
 
   it("should download MV3 list", async function() {
-    const urlPath = "/index.json";
-    const origin = "http://localhost";
-    const backendUrl = origin + urlPath;
     const subscriptionsListData = createFile(tmpDir,
       `[{
         "type": "ads",
@@ -226,22 +224,19 @@ describe("updateSubscriptions script", function() {
       }]`);
     const file = path.join(outDir, "file.tmp");
 
-    nock(origin).get(urlPath).reply(200, subscriptionsListData);
+    nock(backendUrl.origin).get(backendUrl.pathname).reply(200, subscriptionsListData);
 
-    await updateMv3(backendUrl, file);
+    await updateMv3(file);
     assert.deepEqual(await readFile(file), Buffer.from(subscriptionsListData, ENCODING));
   });
 
   for (let statusCode of [400, 401, 404, 422]) {
     it(`should handle request ${statusCode} on download`, async function() {
-      const urlPath = "/index.json";
-      const origin = "http://localhost";
-      const backendUrl = origin + urlPath;
       const file = path.join(outDir, "file.tmp");
 
-      nock(origin).get(urlPath).reply(statusCode);
+      nock(backendUrl.origin).get(backendUrl.pathname).reply(statusCode);
 
-      await assert.rejects(updateMv3(backendUrl, file),
+      await assert.rejects(updateMv3(file),
                            {
                              name: "Error",
                              message: `Failed to get '${backendUrl}' (${statusCode})`

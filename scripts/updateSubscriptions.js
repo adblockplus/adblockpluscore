@@ -236,12 +236,12 @@ function postProcessSubscription(subscription) {
   }
 }
 
-async function updateMv3(url, filename) {
+async function updateMv3(filename) {
   if (await exists(filename)) {
     console.warn("The output file exists and will be overwritten");
     await unlink(filename);
   }
-  await download(url, filename);
+  await download(backendUrlMv3, filename);
 }
 
 async function updateMv2(filename) {
@@ -296,7 +296,7 @@ async function main() {
   let filename;
   if (args.type === "mv3") {
     filename = args.output || filenameMv3;
-    await updateMv3(backendUrlMv3, filename);
+    await updateMv3(filename);
   }
   else {
     filename = filenameMv2;
