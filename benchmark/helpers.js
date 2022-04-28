@@ -114,7 +114,7 @@ exports.loadFile = async function loadFile(list) {
   }
   catch (error) {
     console.log(`Hey, looks like you don't have filter list ${list.path} cached.
-    Please run benchmark-entrypoint.sh --filter-list=<filterList> to download it`);
+    Please run benchmarkEntrypoint.sh --filter-list=<filterList> to download it`);
   }
 };
 

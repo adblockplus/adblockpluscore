@@ -21,5 +21,5 @@ RUN apt-get install jq -y
 COPY . adblockpluscore
 
 ENV EXTENDHISTORICAL=false
-ENTRYPOINT adblockpluscore/benchmark/benchmark-entrypoint.sh
+ENTRYPOINT adblockpluscore/benchmark/benchmarkEntrypoint.sh
 
