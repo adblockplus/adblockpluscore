@@ -11,7 +11,7 @@ do
 done
 
 # Checkout master to have reference data
-git checkout origin/master
+git reset --hard origin/master
 npm install
 REFSTS=$(date +%FT%TZ)
 for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters

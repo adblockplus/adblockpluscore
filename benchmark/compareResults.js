@@ -69,7 +69,7 @@ describe("Measure performance", function() {
       timestampCurrentBranch = timestampsToAnalyze[timestampsLength - 2];
       timestampRefBranch = timestampsToAnalyze[timestampsLength - 1];
       for (let timestamp in dataToAnalyze)
-        valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestamp]);
+        valueKeysWithGitMeta.push(Object.keys(dataToAnalyze[timestamp]));
     }
   }
   else {

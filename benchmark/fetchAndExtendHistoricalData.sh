@@ -1,5 +1,6 @@
 # !/bin/sh -e
 set -e
+apt-get install jq curl -y
 
 ref='master'
 project='eyeo%2Fadblockplus%2Fabc'
