@@ -67,8 +67,8 @@ benchmark:
     DOCKER_DRIVER: overlay2
   interruptible: true
   script:
-    - docker build -t benchmark -f benchmark/benchmark.Dockerfile .
-    - docker run --shm-size=256m -e EXTENDHISTORICAL=true benchmark
+    - docker build -t adblockpluscore-benchmark -f benchmark/benchmark.Dockerfile .
+    - docker run --shm-size=256m -e EXTENDHISTORICAL=true adblockpluscore-benchmark
     - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
   allow_failure: true
   after_script:
