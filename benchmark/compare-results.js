@@ -83,13 +83,13 @@ describe("Measure performance", function() {
        for (let key of valueKeys) {
          for (let metrics in dataToAnalyze[timestampCurrentBranch][key]) {
            let {currentBranchValue, refBranchValue} =
-          await getDataForMetrics(metrics, key);
+             await getDataForMetrics(metrics, key);
            let diffPercent =
-          ((currentBranchValue - refBranchValue) / refBranchValue) * 100;
+             ((currentBranchValue - refBranchValue) / refBranchValue) * 100;
 
            if (diffPercent > MASTER_CURRENT_DIFF_PERCENT) {
              extendedDiffArray.push(`Measured data: ${key}, Metrics: ${metrics}` +
-          `CurrentBranch value: ${currentBranchValue}, Ref branch value: ${refBranchValue}`);
+               `CurrentBranch value: ${currentBranchValue}, Ref branch value: ${refBranchValue}`);
            }
          }
          assert.equal(extendedDiffArray.length > 0, false, `Performance got worse. Metrics to check: ${extendedDiffArray}`);
