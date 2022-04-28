@@ -1,22 +1,28 @@
 # !/bin/bash
 set -e
 
-cd adblockpluscore
-npm install 
-CURRENTTS=$(date +%FT%TZ)
-
-for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
-do
-  npm run $script -- --save --save-temp --ts=$CURRENTTS
-done
-
-# Checkout master to have reference data
-git reset --hard origin/master
+# Switch to master repo to run benchmark
+cd master/adblockpluscore
 npm install
 REFSTS=$(date +%FT%TZ)
 for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
 do
   npm run $script -- --save --save-temp --ts=$REFSTS
+done  
+benchmarkResults="benchmark/benchmarkResults.json"
+# Copy results to current codebase, and rename them to proper one
+if [  -f benchmark/benchmark_results.json ]; then
+mv benchmark/benchmarkResults.json $benchmarkResults
+elif [  -f $benchmarkResults ]; then
+mv $benchmarkResults ../adblockpluscore/$benchmarkResults
+fi
+echo ">>> Switching to current codebase to benchmark it <<<"
+cd ../adblockpluscore
+npm install 
+CURRENTTS=$(date +%FT%TZ)
+for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
+do
+  npm run $script -- --save --save-temp --ts=$CURRENTTS
 done
 
 npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compareResults.js

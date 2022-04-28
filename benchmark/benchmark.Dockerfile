@@ -20,6 +20,11 @@ RUN apt-get update
 RUN apt-get install jq -y
 COPY . adblockpluscore
 
+# Checkout master from main core repo to have reference data
+RUN mkdir master
+RUN cd master && \
+git clone https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore.git
+
 ENV EXTENDHISTORICAL=false
 ENTRYPOINT adblockpluscore/benchmark/benchmarkEntrypoint.sh
 
