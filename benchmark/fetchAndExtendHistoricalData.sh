@@ -1,4 +1,5 @@
 # !/bin/sh -e
+set -e
 
 ref='master'
 project='eyeo%2Fadblockplus%2Fabc'
