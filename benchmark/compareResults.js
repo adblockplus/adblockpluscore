@@ -37,7 +37,7 @@ let timestampCurrentBranch = process.env.npm_config_current;
 let timestampRefBranch = process.env.npm_config_refs;
 
 
-async function getDataForMetrics(metrics, key) {
+function getDataForMetrics(metrics, key) {
   let currentBranchValue =
           dataToAnalyze[timestampCurrentBranch][key][metrics];
   let refBranchValue = dataToAnalyze[timestampRefBranch][key][metrics];
