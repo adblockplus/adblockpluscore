@@ -24,7 +24,7 @@
 const assert = require("assert");
 const helpers = require("./helpers.js");
 const path = require("path");
-const {describe, it} = require("mocha");
+const {describe, it, before} = require("mocha");
 
 const BENCHMARK_RESULTS = path.join(__dirname, "benchmark_results.json");
 const THRESHOLDS = path.join(__dirname, "benchmark_thresholds.json");
@@ -45,8 +45,11 @@ async function getDataForMetrics(metrics, key) {
 }
 
 describe("Measure performance", function() {
-  dataToAnalyze = helpers.loadDataFromFile(BENCHMARK_RESULTS);
-  thresholds = helpers.loadDataFromFile(THRESHOLDS);
+  before(async function() {
+    dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
+    thresholds = await helpers.loadDataFromFile(THRESHOLDS);
+  });
+
   let valueKeysWithGitMeta = [];
   // If no flag with Timestamps passed
   // code will only compare last two entries in benchmark results or fail.
