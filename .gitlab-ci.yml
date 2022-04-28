@@ -88,10 +88,10 @@ benchmark:SaveHistoryOnMerge:
   dependencies:
     - benchmark
   script:
-    - sh benchmark/extendHistoricalData.sh
-  only:
-    refs:
-      - master
+    - sh benchmark/fetchAndExtendHistoricalData.sh
+ # only:
+ #   refs:
+  #    - master
 
 
 .testpages:
