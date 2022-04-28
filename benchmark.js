@@ -62,7 +62,7 @@ const BENCHMARK_RESULTS = path.join(
 );
 const TEMP_BENCHMARK_RESULTS = path.join(
   __dirname,
-  "/benchmark/temp_results.json"
+  "benchmark", "temp_results.json"
 );
 
 function sliceString(str) {
