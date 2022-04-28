@@ -12,7 +12,7 @@
     "FilterList_All": {
       "TimeMean": 4.2,
       "HeapUsed": 0.5,
-      "HeapTota l": 0.06
+      "HeapTotal": 0.06
     },
     "Matching_all": {
       "TimeMean": 0.01,
