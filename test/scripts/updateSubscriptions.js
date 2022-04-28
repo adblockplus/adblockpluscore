@@ -50,6 +50,12 @@ describe("updateSubscriptions script", function() {
     errors.push(message);
   }
 
+  function createFile(dir, data) {
+    let file = path.join(dir, "subscriptions.json");
+    writeFileSync(file, data);
+    return file;
+  }
+
   beforeEach(async function() {
     tmpDir = await mkdtemp(path.join(os.tmpdir(), "tmp-"));
     outDir = path.join(tmpDir, "outDir");
@@ -204,12 +210,6 @@ describe("updateSubscriptions script", function() {
       }
     });
   });
-
-  function createFile(dir, data) {
-    let file = path.join(dir, "subscriptions.json");
-    writeFileSync(file, data);
-    return file;
-  }
 
   it("should download MV3 list", async function() {
     const subscriptionsListData = createFile(tmpDir,
