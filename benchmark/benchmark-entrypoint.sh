@@ -1,7 +1,7 @@
 # !/bin/bash
 
 cd adblockpluscore
-rm -rf benchmark/benchmark_results.json
+rm benchmark/benchmark_results.json
 npm install 
 CURRENTTS=$(date +%FT%TZ)
 
