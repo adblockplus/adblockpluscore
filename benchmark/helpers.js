@@ -182,8 +182,7 @@ function deepMerge(object1, object2) {
 exports.mergeToBenchmarkResults = function mergeToBenchmarkResults(
   dataToMege,
   pathForData) {
-  let benchmarkData = {};
-  benchmarkData = this.loadDataFromFile(pathForData);
+  let benchmarkData = this.loadDataFromFile(pathForData);
   return deepMerge(benchmarkData, dataToMege);
 };
 
