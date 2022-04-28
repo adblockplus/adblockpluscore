@@ -79,7 +79,7 @@ benchmark:
     paths:
       - benchmark_results.json
       - historical_data.json
-    when: always
+    when: on_success
     expire_in: 1 mo
 
 #   This job is run only on merge and will gather Master benchmark data
