@@ -44,9 +44,9 @@ async function getDataForMetrics(metrics, key) {
   return {currentBranchValue, refBranchValue};
 }
 
-describe("Measure performance", async function() {
-  dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
-  thresholds = await helpers.loadDataFromFile(THRESHOLDS);
+describe("Measure performance", function() {
+  dataToAnalyze = helpers.loadDataFromFile(BENCHMARK_RESULTS);
+  thresholds = helpers.loadDataFromFile(THRESHOLDS);
   let valueKeysWithGitMeta = [];
   // If no flag with Timestamps passed
   // code will only compare last two entries in benchmark results or fail.
