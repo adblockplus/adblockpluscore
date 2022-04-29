@@ -9,16 +9,16 @@ for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benc
 do
   npm run $script -- --save --save-temp --ts=$REFSTS
 done  
-benchmarkResults="benchmark/benchmarkResults.json"
+benchmarkResults="benchmark/benchmark_results.json"
 # Copy results to current codebase, and rename them to proper one
-if [  -f benchmark/benchmark_results.json ]; then
-mv benchmark/benchmarkResults.json $benchmarkResults
-elif [  -f $benchmarkResults ]; then
-mv $benchmarkResults ../adblockpluscore/$benchmarkResults
+if [  -f benchmark/benchmarkresults.json ]; then
+mv benchmark/benchmarkresults.json $benchmarkResults
 fi
+if [  -f $benchmarkResults ]; then
+mv $benchmarkResults /adblockpluscore/$benchmarkResults
 echo ">>> Switching to current codebase to benchmark it <<<"
-cd ../adblockpluscore
-npm install 
+cd ../../adblockpluscore
+npm install   
 CURRENTTS=$(date +%FT%TZ)
 for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
 do
@@ -26,7 +26,7 @@ do
 done
 
 npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compareResults.js
-
+fi
 if $EXTENDHISTORICAL; then
 # Extend historical data with master run only
   sh benchmark/fetchAndExtendHistoricalData.sh $REFSTS
