@@ -27,17 +27,6 @@ let {createConverter} = require("../lib/dnr/index.js");
 let {normalize} = require("../lib/filters/index.js");
 let {parseFilterList} = require("../lib/filters/lists.js");
 
-const mainConvert = createConverter({
-  // the sync/async callback to use to check a RegExp is compatible with Re2
-  // chrome.declarativeNetRequest.isRegexSupported is an option.
-  isRegexSupported() {
-    return true;
-  },
-  modifyRule(rule) {
-    return rule; // no rule changes by default
-  }
-});
-
 function processContent(convert, filterListContent) {
   let {error, lines} = parseFilterList(filterListContent);
   if (error)
@@ -91,7 +80,7 @@ function processFile(convert, filename, outputfile) {
 
 async function main() {
   let {filename, outputfile} = parseArgs(process.argv);
-  await processFile(mainConvert, filename, outputfile);
+  await processFile(createConverter({}), filename, outputfile);
 }
 
 
