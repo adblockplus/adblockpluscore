@@ -5,7 +5,7 @@
 benchmark/*.txt
 benchmark/benchmark_results.json
 benchmark/temp_results.json
-benchmark/historicalData/historical_data.json
+
 /build/docs/
 /build/
 /dist/
