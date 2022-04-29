@@ -15,7 +15,7 @@ if [  -f benchmark/benchmarkresults.json ]; then
   mv benchmark/benchmarkresults.json $benchmarkResults
 fi
 if [  -f $benchmarkResults ]; then
-mv $benchmarkResults /adblockpluscore/$benchmarkResults
+  mv $benchmarkResults /adblockpluscore/$benchmarkResults
 echo ">>> Switching to current codebase to benchmark it <<<"
 cd ../../adblockpluscore
 npm install   
