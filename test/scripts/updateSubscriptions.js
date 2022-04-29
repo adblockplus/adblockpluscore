@@ -19,23 +19,25 @@
 
 const assert = require("assert");
 const {
-  existsSync,
+  existsSync, mkdirSync, writeFileSync,
   promises: {readFile, rm, mkdtemp}
 } = require("fs");
 const os = require("os");
 const path = require("path");
 const nock = require("nock");
 
-const {
-  listUrl, urlMapperMv3, update
-} = require("../../scripts/updateSubscriptions");
+const {listUrl: listUrlMv2, updateMv2, updateMv3, backendUrlMv3} =
+  require("../../scripts/updateSubscriptions");
 
 const exampleSubscription = "subscriptionlist-master";
+const ENCODING = "utf-8";
 
-const url = new URL(listUrl);
+const listUrl = new URL(listUrlMv2);
+const backendUrl = new URL(backendUrlMv3);
 
 describe("updateSubscriptions script", function() {
   let tmpDir;
+  let outDir;
   let warnings;
   let errors;
   let toFile;
@@ -48,8 +50,16 @@ describe("updateSubscriptions script", function() {
     errors.push(message);
   }
 
+  function createFile(dir, data) {
+    let file = path.join(dir, "subscriptions.json");
+    writeFileSync(file, data);
+    return file;
+  }
+
   beforeEach(async function() {
     tmpDir = await mkdtemp(path.join(os.tmpdir(), "tmp-"));
+    outDir = path.join(tmpDir, "outDir");
+    mkdirSync(outDir);
     toFile = path.join(tmpDir, exampleSubscription + ".json");
     console.warn = mockedConsoleWarn;
     console.error = mockedConsoleErr;
@@ -72,12 +82,12 @@ describe("updateSubscriptions script", function() {
 
   async function mockData(mockedDataPath) {
     let mockedData = await readFile("test/data/" + mockedDataPath + ".tar.gz");
-    nock(url.origin).get(url.pathname).reply(200, mockedData);
+    nock(listUrl.origin).get(listUrl.pathname).reply(200, mockedData);
   }
 
   async function performSubscriptionUpdate(mockedDataPath) {
     await mockData(mockedDataPath);
-    await update(urlMapperMv3, toFile);
+    await updateMv2(toFile);
   }
 
   async function assertSubscriptions(assertCallback) {
@@ -201,40 +211,37 @@ describe("updateSubscriptions script", function() {
     });
   });
 
-  it("should provide no mv3 mapping when no mv3 flag is passed", async function() {
-    await mockData(exampleSubscription);
-    await update(null, toFile);
-    let subscriptions = JSON.parse(await readFile(toFile));
-    for (let subscription of subscriptions)
-      assert.strictEqual((subscription.url).includes("mv3"), false);
-  });
+  it("should download MV3 list", async function() {
+    const subscriptionsListData = createFile(tmpDir,
+      `[{
+        "type": "ads",
+        "languages": [
+          "en"
+        ],
+        "title": "Test Subscription",
+        "url": "someUrl",
+        "homepage": "https://easylist.to/"
+      }]`);
+    const file = path.join(outDir, "file.tmp");
 
+    nock(backendUrl.origin).get(backendUrl.pathname).reply(200, subscriptionsListData);
+
+    await updateMv3(file);
+    assert.deepEqual(await readFile(file), Buffer.from(subscriptionsListData, ENCODING));
+  });
 
   for (let statusCode of [400, 401, 404, 422]) {
     it(`should handle request ${statusCode} on download`, async function() {
-      nock(url.origin).get(url.pathname).reply(statusCode);
-      assert.rejects(update.call(urlMapperMv3, toFile),
-                     {
-                       name: "Error",
-                       message: `Error: HTTPS server response code: ${statusCode}`
-                     }
+      const file = path.join(outDir, "file.tmp");
+
+      nock(backendUrl.origin).get(backendUrl.pathname).reply(statusCode);
+
+      await assert.rejects(updateMv3(file),
+                           {
+                             name: "Error",
+                             message: `Failed to get '${backendUrl}' (${statusCode})`
+                           }
       );
     });
   }
-
-  it("should provide mv3 mapping when urlmapper is passed", async function() {
-    await assertSubscriptions(subscriptions => {
-      for (let subscription of subscriptions) {
-        assert.strictEqual(
-          subscription.url.includes("https://release-v3.filter-delivery-staging.eyeo.com/v3"), true);
-      }
-    });
-  });
-
-  it("should replace \"+easylist\" in mv3 URLs", async function() {
-    await assertSubscriptions(subscriptions => {
-      for (let subscription of subscriptions)
-        assert.strictEqual(subscription.url.includes("+easylist"), false);
-    });
-  });
 });
