@@ -16,17 +16,18 @@ if [  -f benchmark/benchmarkresults.json ]; then
 fi
 if [  -f $benchmarkResults ]; then
   mv $benchmarkResults /adblockpluscore/$benchmarkResults
-echo ">>> Switching to current codebase to benchmark it <<<"
-cd ../../adblockpluscore
-npm install   
-CURRENTTS=$(date +%FT%TZ)
-for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
-do
-  npm run $script -- --save --save-temp --ts=$CURRENTTS
-done
+  echo ">>> Switching to current codebase to benchmark it <<<"
+  cd ../../adblockpluscore
+  npm install   
+  CURRENTTS=$(date +%FT%TZ)
+  for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
+  do
+    npm run $script -- --save --save-temp --ts=$CURRENTTS
+  done
 
-npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compareResults.js
-elif 
+  npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compareResults.js
+
+else
  raise error "Missing benchmark results from run on master, failing"
 fi
 if $EXTENDHISTORICAL; then
