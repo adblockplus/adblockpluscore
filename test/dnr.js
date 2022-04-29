@@ -55,7 +55,7 @@ describe("DeclarativeNetRequest", function() {
     );
     let converter = {
       isRegexSupported: r => true,
-      modify: o => o
+      modifyRule: o => o
     };
     asDNR = asDNR.bind(converter);
   });

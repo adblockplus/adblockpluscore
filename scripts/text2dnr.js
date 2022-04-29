@@ -33,7 +33,7 @@ const mainConvert = createConverter({
   isRegexSupported() {
     return true;
   },
-  modify(rule) {
+  modifyRule(rule) {
     return rule; // no rule changes by default
   }
 });

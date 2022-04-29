@@ -71,7 +71,7 @@ describe("text2dnr script", function() {
     let id = 0;
     await processFile(
       createConverter({
-        modify(rule) {
+        modifyRule(rule) {
           rule["id"] = ++id;
           return rule;
         }
