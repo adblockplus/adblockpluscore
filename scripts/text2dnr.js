@@ -65,9 +65,9 @@ function parseArgs(cliArgv) {
   return {filename, outputfile};
 }
 
-function processFile(convert, filename, outputfile) {
+function processFile(converter, filename, outputfile) {
   return readFile(filename, {encoding: "utf-8"})
-    .then(content => processContent(convert, content))
+    .then(content => processContent(converter, content))
     .then(results => {
       if (typeof outputfile != "undefined") {
         return writeFile(
