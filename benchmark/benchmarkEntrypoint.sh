@@ -12,7 +12,7 @@ done
 benchmarkResults="benchmark/benchmark_results.json"
 # Copy results to current codebase, and rename them to proper one
 if [  -f benchmark/benchmarkresults.json ]; then
-mv benchmark/benchmarkresults.json $benchmarkResults
+  mv benchmark/benchmarkresults.json $benchmarkResults
 fi
 if [  -f $benchmarkResults ]; then
 mv $benchmarkResults /adblockpluscore/$benchmarkResults
