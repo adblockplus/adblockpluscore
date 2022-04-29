@@ -52,8 +52,6 @@ describe("Measure performance", async function() {
   // If no flag with Timestamps passed
   // code will only compare last two entries in benchmark results or fail.
   // That should be proper outcome of benchmark-entrypoint.sh
-  console.log("timestamp", timestampCurrentBranch);
-  console.log("data", dataToAnalyze);
   if (typeof dataToAnalyze[timestampCurrentBranch] == "undefined" ||
     typeof dataToAnalyze[timestampRefBranch] == "undefined") {
     timestampsToAnalyze = Object.keys(dataToAnalyze);
