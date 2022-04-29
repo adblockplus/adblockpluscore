@@ -54,7 +54,8 @@ describe("DeclarativeNetRequest", function() {
        sandboxedRequire(LIB_FOLDER + "/dnr/rules.js"))
     );
     let converter = {
-      isRegexSupported: r => true
+      isRegexSupported: r => true,
+      modify: o => o
     };
     asDNR = asDNR.bind(converter);
   });
