@@ -24,7 +24,7 @@
 const assert = require("assert");
 const helpers = require("./helpers.js");
 const path = require("path");
-const {describe, it, before} = require("mocha");
+const {describe, it} = require("mocha");
 
 const BENCHMARK_RESULTS = path.join(__dirname, "benchmark_results.json");
 const THRESHOLDS = path.join(__dirname, "benchmark_thresholds.json");
@@ -44,19 +44,20 @@ function getDataForMetrics(metrics, key) {
   return {currentBranchValue, refBranchValue};
 }
 
-describe("Measure performance", function() {
-  before(async function() {
-    dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
-    thresholds = await helpers.loadDataFromFile(THRESHOLDS);
-  });
+describe("Measure performance", async function() {
+  dataToAnalyze = await helpers.loadDataFromFile(BENCHMARK_RESULTS);
+  thresholds = await helpers.loadDataFromFile(THRESHOLDS);
 
   let valueKeysWithGitMeta = [];
   // If no flag with Timestamps passed
   // code will only compare last two entries in benchmark results or fail.
   // That should be proper outcome of benchmark-entrypoint.sh
+  console.log("timestamp", timestampCurrentBranch);
+  console.log("data", dataToAnalyze);
   if (typeof dataToAnalyze[timestampCurrentBranch] == "undefined" ||
     typeof dataToAnalyze[timestampRefBranch] == "undefined") {
     timestampsToAnalyze = Object.keys(dataToAnalyze);
+    console.log("Timestamps to analyze", timestampsToAnalyze);
     const timestampsLength = timestampsToAnalyze.length;
 
     if (timestampsLength < 2) {
