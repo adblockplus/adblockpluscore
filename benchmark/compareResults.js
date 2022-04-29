@@ -67,13 +67,9 @@ describe("Measure performance", async function() {
     else {
       timestampCurrentBranch = timestampsToAnalyze[timestampsLength - 2];
       timestampRefBranch = timestampsToAnalyze[timestampsLength - 1];
-      for (let timestamp in dataToAnalyze)
-        valueKeysWithGitMeta.push(Object.keys(dataToAnalyze[timestamp]));
     }
   }
-  else {
-    valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestampCurrentBranch]);
-  }
+  valueKeysWithGitMeta = Object.keys(dataToAnalyze[timestampCurrentBranch]);
 
   // Filter out all git details
   const valueKeys = valueKeysWithGitMeta.filter(
