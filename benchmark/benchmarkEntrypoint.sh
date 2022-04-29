@@ -26,6 +26,8 @@ do
 done
 
 npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compareResults.js
+elif 
+ raise error "Missing benchmark results from run on master, failing"
 fi
 if $EXTENDHISTORICAL; then
 # Extend historical data with master run only
