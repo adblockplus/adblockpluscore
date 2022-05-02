@@ -69,10 +69,9 @@ benchmark:
   script:
     - docker build -t adblockpluscore-benchmark -f benchmark/benchmark.Dockerfile .
     - docker run --shm-size=256m -e EXTENDHISTORICAL=true adblockpluscore-benchmark
-    - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
   allow_failure: true
   after_script:
-    - IMAGE_ID=$(docker ps -aqf ancestor=benchmark)
+    - IMAGE_ID=$(docker ps -aqf ancestor=adblockpluscore-benchmark)
     - docker cp $IMAGE_ID:adblockpluscore/benchmark/benchmark_results.json ./
     - docker cp $IMAGE_ID:adblockpluscore/benchmark/historicalData/historical_data.json ./
   artifacts:
