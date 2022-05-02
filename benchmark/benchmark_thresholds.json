@@ -16,7 +16,7 @@
     },
     "Matching_all": {
       "TimeMean": 0.01,
-      "TimeMax": 0.05,
+      "TimeMax": 0.07,
       "HeapUsed": 1,
       "HeapTotal": 0.01
     },
