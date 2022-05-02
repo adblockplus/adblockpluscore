@@ -25,13 +25,12 @@ let {
 
 let filterStorage = null;
 let Subscription = null;
-let synchronizer = null;
 let profiler = null;
-
 
 describe("Synchronizer", function() {
   let runner = {};
   let events = [];
+  let synchronizer = null;
 
   beforeEach(function() {
     runner = {};
@@ -42,9 +41,10 @@ describe("Synchronizer", function() {
     (
       {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
-      {synchronizer} = sandboxedRequire(LIB_FOLDER + "/synchronizer"),
       profiler = sandboxedRequire(LIB_FOLDER + "/profiler")
     );
+    const {Synchronizer} = sandboxedRequire(LIB_FOLDER + "/synchronizer");
+    synchronizer = new Synchronizer();
 
     profiler.enable(true, list => {
       for (let entry of list.getEntriesByType("measure"))
@@ -54,6 +54,7 @@ describe("Synchronizer", function() {
 
   afterEach(function() {
     profiler.enable(false);
+    synchronizer = null;
   });
 
   describe("It starts the synchronizer", function() {

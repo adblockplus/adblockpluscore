@@ -30,11 +30,12 @@ let filterNotifier = null;
 let filterStorage = null;
 let Prefs = null;
 let Subscription = null;
-let synchronizer = null;
 let addSubscriptionFilters = null;
 
 describe("Synchronizer", function() {
   let runner = {};
+  let synchronizer = null;
+  let Synchronizer = null;
 
   beforeEach(function() {
     runner = {};
@@ -48,8 +49,14 @@ describe("Synchronizer", function() {
       {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
       {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
-      {synchronizer, addSubscriptionFilters} = sandboxedRequire(LIB_FOLDER + "/synchronizer")
+      {Synchronizer, addSubscriptionFilters} = sandboxedRequire(LIB_FOLDER + "/synchronizer")
     );
+
+    synchronizer = new Synchronizer();
+  });
+
+  afterEach(function() {
+    synchronizer = null;
   });
 
   function resetSubscription(subscription) {
