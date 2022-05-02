@@ -30,13 +30,20 @@ let parseURL = null;
 
 describe("Matcher", function() {
   beforeEach(function() {
+    let newDefaultMatcher;
     let sandboxedRequire = createSandbox();
     (
       {contentTypes} = sandboxedRequire(LIB_FOLDER + "/contentTypes"),
       {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
-      {CombinedMatcher, defaultMatcher, Matcher} = sandboxedRequire(LIB_FOLDER + "/matcher"),
+      {CombinedMatcher, newDefaultMatcher, Matcher} = sandboxedRequire(LIB_FOLDER + "/matcher"),
       {parseURL} = sandboxedRequire(LIB_FOLDER + "/url")
     );
+
+    defaultMatcher = newDefaultMatcher();
+  });
+
+  afterEach(function() {
+    defaultMatcher = null;
   });
 
   function compareKeywords(text, expected) {

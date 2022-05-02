@@ -20,21 +20,31 @@
 const assert = require("assert");
 const {LIB_FOLDER, createSandbox} = require("./_common");
 
-let elemHide = null;
 let createStyleSheet = null;
 let rulesFromStyleSheet = null;
-let elemHideExceptions = null;
 let Filter = null;
 
 describe("Element hiding", function() {
+  let elemHide = null;
+  let elemHideExceptions = null;
+
   beforeEach(function() {
-    let sandboxedRequire = createSandbox({
-    });
+    let ElemHide;
+
+    let sandboxedRequire = createSandbox({});
     (
-      {elemHide, createStyleSheet, rulesFromStyleSheet} = sandboxedRequire(LIB_FOLDER + "/elemHide"),
-      {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions"),
+      {ElemHide, createStyleSheet, rulesFromStyleSheet} = sandboxedRequire(LIB_FOLDER + "/elemHide"),
       {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
+
+    const {ElemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions");
+    elemHideExceptions = new ElemHideExceptions();
+    elemHide = new ElemHide(elemHideExceptions);
+  });
+
+  afterEach(function() {
+    elemHide = null;
+    elemHideExceptions = null;
   });
 
   function normalizeSelectors(selectors) {

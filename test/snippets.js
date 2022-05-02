@@ -30,11 +30,18 @@ let SnippetFilter = null;
 
 describe("Snippets", function() {
   beforeEach(function() {
+    let Snippets;
     let sandboxedRequire = createSandbox();
     (
       {Filter, SnippetFilter} = sandboxedRequire("../lib/filterClasses"),
-      {snippets, parseScript, compileScript} = sandboxedRequire("../lib/snippets")
+      {Snippets, parseScript, compileScript} = sandboxedRequire("../lib/snippets")
     );
+
+    snippets = new Snippets();
+  });
+
+  afterEach(function() {
+    snippets = null;
   });
 
   it("Domain restrictions", function() {

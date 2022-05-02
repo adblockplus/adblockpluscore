@@ -30,10 +30,18 @@ describe("Element hiding emulation", function() {
     let sandboxedRequire = createSandbox();
     (
       {Filter,
-       ElemHideEmulationFilter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
-      {elemHideEmulation} = sandboxedRequire(LIB_FOLDER + "/elemHideEmulation"),
-      {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions")
+       ElemHideEmulationFilter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
+
+    const {ElemHideEmulation} = sandboxedRequire(LIB_FOLDER + "/elemHideEmulation");
+    const {ElemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions");
+    elemHideExceptions = new ElemHideExceptions();
+    elemHideEmulation = new ElemHideEmulation(elemHideExceptions);
+  });
+
+  afterEach(function() {
+    elemHideEmulation = null;
+    elemHideExceptions = null;
   });
 
   it("Domain restrictions", function() {

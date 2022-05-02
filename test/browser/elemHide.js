@@ -18,13 +18,26 @@
 
 "use strict";
 
-const {elemHide} = require("../../lib/elemHide");
+const {ElemHideExceptions} = require("../../lib/elemHideExceptions");
+const {ElemHide} = require("../../lib/elemHide");
 const {Filter} = require("../../lib/filterClasses");
 
 const {assert} = chai;
 
 describe("Element hiding", function() {
+  let elemHideExceptions = null;
+  let elemHide = null;
   let testDocument = null;
+
+  before(function() {
+    elemHideExceptions = new ElemHideExceptions();
+    elemHide = new ElemHide(elemHideExceptions);
+  });
+
+  after(function() {
+    elemHide = null;
+    elemHideExceptions = null;
+  });
 
   beforeEach(function elemHidingBeforeEach() {
     let iframe = document.createElement("iframe");

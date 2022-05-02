@@ -21,11 +21,7 @@ const assert = require("assert");
 const {LIB_FOLDER, createSandbox} = require("./_common");
 
 let filterEngine = null;
-let defaultMatcher = null;
 let contentTypes = null;
-let elemHide = null;
-let elemHideEmulation = null;
-let snippets = null;
 let Filter = null;
 
 function checkFilters(...details) {
@@ -36,24 +32,24 @@ function checkFilters(...details) {
       case "blocking":
         let {resource} = detail;
         let url = new URL(`https://example.com${resource}`);
-        let filter = defaultMatcher.match(url,
-                                          contentTypes.SCRIPT,
-                                          "example.com");
+        let filter = filterEngine.defaultMatcher.match(url,
+                                                       contentTypes.SCRIPT,
+                                                       "example.com");
         assert.equal(filter ? filter.text : null, expected);
         break;
 
       case "elemhide":
-        let {selectors} = elemHide.getStyleSheet("example.com", false, true);
+        let {selectors} = filterEngine.elemHide.getStyleSheet("example.com", false, true);
         assert.deepEqual(selectors, expected);
         break;
 
       case "elemhideemulation":
-        let rules = elemHideEmulation.getFilters("example.com");
+        let rules = filterEngine.elemHideEmulation.getFilters("example.com");
         assert.deepEqual(rules.map(({selector}) => selector), expected);
         break;
 
       case "snippet":
-        let filters = snippets.getFilters("example.com");
+        let filters = filterEngine.snippets.getFilters("example.com");
         assert.deepEqual(filters.map(({script}) => script), expected);
         break;
 
@@ -67,11 +63,7 @@ beforeEach(function() {
   let sandboxedRequire = createSandbox();
   (
     {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine.js"),
-    {defaultMatcher} = sandboxedRequire(LIB_FOLDER + "/matcher.js"),
     {contentTypes} = sandboxedRequire(LIB_FOLDER + "/contentTypes.js"),
-    {elemHide} = sandboxedRequire(LIB_FOLDER + "/elemHide.js"),
-    {elemHideEmulation} = sandboxedRequire(LIB_FOLDER + "/elemHideEmulation.js"),
-    {snippets} = sandboxedRequire(LIB_FOLDER + "/snippets.js"),
     {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses.js")
   );
 });

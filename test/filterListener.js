@@ -67,12 +67,12 @@ describe("Filter listener", function() {
     for (let exception of elemHideExceptions._exceptions)
       result.elemhideexception.push(exception.text);
 
-    let {elemHideEmulation} = sandboxedRequire(LIB_FOLDER + "/elemHideEmulation");
+    let {elemHideEmulation} = filterEngine;
     result.elemhideemulation = [];
     for (let filter of elemHideEmulation)
       result.elemhideemulation.push(filter.text);
 
-    let {snippets} = sandboxedRequire(LIB_FOLDER + "/snippets");
+    let {snippets} = filterEngine;
     result.snippets = [];
     for (let filter of snippets._filters)
       result.snippets.push(filter.text);
@@ -97,10 +97,14 @@ describe("Filter listener", function() {
       {IO} = sandboxedRequire("./stub-modules/io"),
       {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine"),
-      {elemHide} = sandboxedRequire(LIB_FOLDER + "/elemHide"),
-      {elemHideExceptions} = sandboxedRequire(LIB_FOLDER + "/elemHideExceptions"),
-      {defaultMatcher} = sandboxedRequire(LIB_FOLDER + "/matcher")
+      {elemHide, elemHideExceptions, defaultMatcher} = filterEngine
     );
+  });
+
+  afterEach(function() {
+    elemHide = null;
+    elemHideExceptions = null;
+    defaultMatcher = null;
   });
 
   it("Initialization", async function() {
