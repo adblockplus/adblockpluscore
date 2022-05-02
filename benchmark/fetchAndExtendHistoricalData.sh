@@ -1,7 +1,7 @@
 # !/bin/sh -e
 set -e
 apt-get install jq curl -y
-
+echo "starting"
 ref='master'
 project='eyeo%2Fadblockplus%2Fabc'
 historicalDataFolder='benchmark/historicalData'
