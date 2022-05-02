@@ -62,10 +62,15 @@ function checkFilters(...details) {
 beforeEach(function() {
   let sandboxedRequire = createSandbox();
   (
-    {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine.js"),
     {contentTypes} = sandboxedRequire(LIB_FOLDER + "/contentTypes.js"),
     {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses.js")
   );
+  const {FilterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine.js");
+  filterEngine = new FilterEngine();
+});
+
+afterEach(function() {
+  filterEngine = null;
 });
 
 describe("filterEngine.initialize()", function() {

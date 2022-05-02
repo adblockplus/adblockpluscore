@@ -92,12 +92,15 @@ describe("Filter listener", function() {
 
   beforeEach(function() {
     sandboxedRequire = createSandbox();
-
     (
       {IO} = sandboxedRequire("./stub-modules/io"),
-      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
-      {filterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine"),
-      {elemHide, elemHideExceptions, defaultMatcher} = filterEngine
+      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage")
+    );
+
+    const {FilterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine");
+    filterEngine = new FilterEngine(),
+    (
+      {elemHideExceptions, elemHide, defaultMatcher} = filterEngine
     );
   });
 
@@ -105,6 +108,7 @@ describe("Filter listener", function() {
     elemHide = null;
     elemHideExceptions = null;
     defaultMatcher = null;
+    filterEngine = null;
   });
 
   it("Initialization", async function() {

@@ -243,10 +243,12 @@ npm install adblockpluscore
 Or you can simply add it to your `package.json`.
 
 ```javascript
-let {contentTypes, filterEngine} = require("adblockpluscore");
+let {contentTypes, FilterEngine} = require("adblockpluscore");
 
 async function main()
 {
+  let filterEngine = new FilterEngine();
+
   await filterEngine.initialize(
     [
       "/annoying-ad.$image",

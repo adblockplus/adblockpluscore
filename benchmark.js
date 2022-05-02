@@ -123,7 +123,8 @@ function runMatch(filterEngine, filters, location, contentType, docDomain,
 }
 
 async function performMatchingBenchmark(initialFilters) {
-  const {filterEngine} = require("./lib/filterEngine");
+  const {FilterEngine} = require("./lib/filterEngine");
+  let filterEngine = new FilterEngine();
   filterEngine.initialize(initialFilters);
 
   let matchFilterList = [];
@@ -178,7 +179,8 @@ async function performMatchingBenchmark(initialFilters) {
 }
 
 async function performInitializationBenchmark(filters) {
-  const {filterEngine} = require("./lib/filterEngine");
+  const {FilterEngine} = require("./lib/filterEngine");
+  let filterEngine = new FilterEngine();
   let performanceHistogram = createHistogram();
   filterEngine.initialize = performance.timerify(filterEngine.initialize, {
     histogram: performanceHistogram
