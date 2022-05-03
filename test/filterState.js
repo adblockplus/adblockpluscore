@@ -26,9 +26,14 @@ let filterState = null;
 beforeEach(function() {
   let sandboxedRequire = createSandbox();
   (
-    {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier"),
-    {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState")
+    {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
   );
+  const {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+  filterState = new FilterState();
+});
+
+afterEach(function() {
+  filterState = null;
 });
 
 describe("filterState.isEnabled() without subscription", function() {
@@ -545,11 +550,17 @@ describe("filterState.setEnabled() without subscription", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
+    const {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+    filterState = new FilterState();
+
     filterNotifier.on("filterState.enabled", (...args) => events.push(args));
+  });
+
+  afterEach(function() {
+    filterState = null;
   });
 
   context("No state", function() {
@@ -780,11 +791,17 @@ describe("filterState.setDisabledForSubscription()", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
+    const {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+    filterState = new FilterState();
+
     filterNotifier.on("filterState.disabledSubscriptions", (...args) => events.push(args));
+  });
+
+  afterEach(function() {
+    filterState = null;
   });
 
   context("No state", function() {
@@ -913,11 +930,17 @@ describe("filterState.toggleEnabled()", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
+    const {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+    filterState = new FilterState();
+
     filterNotifier.on("filterState.enabled", (...args) => events.push(args));
+  });
+
+  afterEach(function() {
+    filterState = null;
   });
 
   context("No state", function() {
@@ -1118,11 +1141,17 @@ describe("filterState.resetEnabled()", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
+    const {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+    filterState = new FilterState();
+
     filterNotifier.on("filterState.enabled", (...args) => events.push(args));
+  });
+
+  afterEach(function() {
+    filterState = null;
   });
 
   context("No state", function() {
@@ -1654,11 +1683,17 @@ describe("filterState.setHitCount()", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
+    const {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+    filterState = new FilterState();
+
     filterNotifier.on("filterState.hitCount", (...args) => events.push(args));
+  });
+
+  afterEach(function() {
+    filterState = null;
   });
 
   context("No state", function() {
@@ -1868,11 +1903,17 @@ describe("filterState.resetHitCount()", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
-      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState"),
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
+    const {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+    filterState = new FilterState();
+
     filterNotifier.on("filterState.hitCount", (...args) => events.push(args));
+  });
+
+  afterEach(function() {
+    filterState = null;
   });
 
   context("No state", function() {

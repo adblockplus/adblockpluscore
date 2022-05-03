@@ -163,9 +163,11 @@ describe("Filter listener", function() {
       (
         {Subscription, SpecialSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
         {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
-        recommendations = sandboxedRequire("../data/subscriptions.json"),
-        {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState")
+        recommendations = sandboxedRequire("../data/subscriptions.json")
       );
+
+      let {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+      filterState = new FilterState();
 
       filterStorage.addSubscription(Subscription.fromURL("~user~fl"));
       filterStorage.addSubscription(Subscription.fromURL("~user~wl"));
@@ -174,6 +176,10 @@ describe("Filter listener", function() {
       Subscription.fromURL("~user~fl").defaults = ["blocking"];
       Subscription.fromURL("~user~wl").defaults = ["allowing"];
       Subscription.fromURL("~user~eh").defaults = ["elemhide"];
+    });
+
+    afterEach(function() {
+      filterState = null;
     });
 
     it("Adding/removing filters", function() {

@@ -21,7 +21,6 @@ const assert = require("assert");
 const {LIB_FOLDER, createSandbox} = require("./_common");
 
 describe("INIParser", function() {
-  let INIParser = null;
   let iniParser = null;
   let Subscription = null;
   let filterState = null;
@@ -29,11 +28,16 @@ describe("INIParser", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
-      {INIParser} = sandboxedRequire(LIB_FOLDER + "/iniParser"),
-      {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
-      {filterState} = sandboxedRequire(LIB_FOLDER + "/filterState")
+      {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
-    iniParser = new INIParser();
+    let {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+    filterState = new FilterState();
+    let {INIParser} = sandboxedRequire(LIB_FOLDER + "/iniParser");
+    iniParser = new INIParser(filterState);
+  });
+
+  afterEach(function() {
+    filterState = null;
   });
 
   describe("#constructor()", function() {

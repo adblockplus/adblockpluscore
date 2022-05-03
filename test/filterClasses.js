@@ -46,6 +46,13 @@ describe("Filter classes", function() {
        ElemHideFilter, ElemHideException, ElemHideEmulationFilter,
        SnippetFilter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
+
+    const {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
+    new FilterState();
+  });
+
+  afterEach(function() {
+    Filter.useFilterState(null);
   });
 
   function serializeFilter(filter) {
