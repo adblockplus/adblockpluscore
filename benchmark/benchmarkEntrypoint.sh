@@ -45,4 +45,4 @@ fi
 cd ..
 mkdir artifacts
 cp adblockpluscore/$benchmarkResults artifacts
-cp adblockpluscore/benchmark/historicalData/historical_data.json      artifacts
+cp adblockpluscore/benchmark/historicalData/historical_data.json artifacts
