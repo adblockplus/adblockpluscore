@@ -32,13 +32,13 @@ then
   npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compareResults.js
 
 else
- raise error "Missing benchmark results from run on master, failing"
+  raise error "Missing benchmark results from run on master, failing"
 fi
 
 if $EXTENDHISTORICAL; then
-# Extend historical data with master run only
-echo "extending historical data"
-sh benchmark/fetchAndExtendHistoricalData.sh $CURRENTTS
+  # Extend historical data with master run only
+  echo "extending historical data"
+  sh benchmark/fetchAndExtendHistoricalData.sh $CURRENTTS
 fi
 
 

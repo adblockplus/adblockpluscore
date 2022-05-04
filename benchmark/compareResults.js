@@ -59,7 +59,7 @@ describe("Measure performance", async function() {
     const timestampsLength = timestampsToAnalyze.length;
 
     if (timestampsLength < 2) {
-      it("Fail if there is no data to compare", async function() {
+      it("Fail if there is no data to compare", function() {
         assert.fail("Not enough data to compare, please run" +
           " ``` sh benchmarkEntrypoint.sh to create data ```.");
       });
