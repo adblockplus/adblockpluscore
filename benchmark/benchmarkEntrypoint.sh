@@ -41,4 +41,8 @@ if $EXTENDHISTORICAL; then
   sh benchmark/fetchAndExtendHistoricalData.sh $CURRENTTS
 fi
 
-
+# Copy artifacts to one folder
+cd ..
+mkdir artifacts
+cp adblockpluscore/$benchmarkResults artifacts
+cp adblockpluscore/benchmark/historicalData/historical_data.json      artifacts
