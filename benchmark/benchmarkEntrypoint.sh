@@ -42,7 +42,7 @@ if $EXTENDHISTORICAL; then
 fi
 
 # Copy artifacts to one folder
-cd .
+cd
 mkdir artifacts
 cp adblockpluscore/$benchmarkResults artifacts
 cp adblockpluscore/benchmark/historicalData/historical_data.json artifacts
