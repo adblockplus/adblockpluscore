@@ -21,6 +21,7 @@ const assert = require("assert");
 const path = require("path");
 const fs = require("fs/promises");
 const {spawn} = require("child_process");
+const {createConverter} = require("../../lib/dnr/index.js");
 
 const {
   parseArgs, processFile
@@ -57,11 +58,61 @@ describe("text2dnr script", function() {
   it("Produces the JSON file", async function() {
     let outputfile = "foo.json";
     await processFile(
+      createConverter({}),
       path.join(__dirname, "..", "data", "filters.txt"),
       outputfile
     );
     await fs.access(outputfile);
     await fs.rm(outputfile);
+  });
+
+  it("Uses rule modify callback", async function() {
+    let outputFile = "foo2.json";
+    let id = 0;
+    await processFile(
+      createConverter({
+        modifyRule(rule) {
+          rule["id"] = ++id;
+          return rule;
+        }
+      }),
+      path.join(__dirname, "..", "data", "filters.txt"),
+      outputFile
+    );
+    await fs.access(outputFile);
+    assert.equal(id > 0, true);
+
+    let json = await fs.readFile(outputFile, {encoding: "utf-8"});
+    let rules = JSON.parse(json);
+    let actualId = 0;
+    for (let rule of rules) {
+      assert.equal(typeof rule["id"], "number");
+      assert.equal(rule["id"], ++actualId);
+    }
+    await fs.rm(outputFile);
+  });
+
+  it("Uses rule validate callback", async function() {
+    let outputFile = "foo2.json";
+    let validatorCalled = false;
+    let converter = createConverter({
+      isRegexSupported(rule) {
+        validatorCalled = true;
+        return false;
+      }
+    });
+    await processFile(
+      converter,
+      path.join(__dirname, "..", "data", "regex_filters.txt"),
+      outputFile
+    );
+    await fs.access(outputFile);
+    assert.equal(validatorCalled, true);
+
+    let json = await fs.readFile(outputFile, {encoding: "utf-8"});
+    let rules = JSON.parse(json);
+    assert.equal(rules.length, 0);
+    await fs.rm(outputFile);
   });
 
   it("Produces the JSON on stdout", function(done) {
@@ -84,7 +135,7 @@ describe("text2dnr script", function() {
       assert.equal(code, 0);
       assert.ok(written.length > 0);
 
-      // Checke the ouput is valid JSON.
+      // Check the output is valid JSON.
       let obj = JSON.parse(written);
       assert.ok(obj instanceof Array);
 
