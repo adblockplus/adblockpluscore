@@ -1,6 +1,8 @@
 # !/bin/bash
 set -e
 
+# Make artifacts folder for CI  
+mkdir artifacts
 # Switch to master repo to run benchmark
 cd master/adblockpluscore
 npm install
@@ -28,9 +30,9 @@ then
     do
       npm run $script -- --save --save-temp --ts=$CURRENTTS
     done
-
+  cp /adblockpluscore/$benchmarkResults /artifacts
   npm  --current=$CURRENTTS --refs=$REFSTS run test benchmark/compareResults.js
-
+  
 else
   raise error "Missing benchmark results from run on master, failing"
 fi
@@ -39,10 +41,9 @@ if $EXTENDHISTORICAL; then
   # Extend historical data with master run only
   echo "extending historical data"
   sh benchmark/fetchAndExtendHistoricalData.sh $CURRENTTS
+  cp /adblockpluscore/benchmark/historicalData/historical_data.json /artifacts
 fi
 
-# Copy artifacts to one folder
-cd ..
-mkdir artifacts
-cp adblockpluscore/$benchmarkResults artifacts
-cp adblockpluscore/benchmark/historicalData/historical_data.json artifacts
+
+
+
