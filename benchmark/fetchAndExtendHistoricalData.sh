@@ -6,7 +6,7 @@ ref='master'
 project='eyeo%2Fadblockplus%2Fabc'
 historicalDataFolder='benchmark/historicalData'
 historicalDataPath=''$historicalDataFolder'/historical_data.json'
-
+echo $(ls -la)
 # Fetching Historical Data
 current_pipeline_id=$(curl -sS -H "Content-Type: application/json" \
                               'https://gitlab.com/api/v4/projects/'$project'%2Fadblockpluscore/pipelines?per_page=200' | \
@@ -23,11 +23,10 @@ curl -sS -L \
       'https://gitlab.com/api/v4/projects/'$project'%2Fadblockpluscore/jobs/'$current_job_id'/artifacts'
 
 # Creating temporary folder for artifacts to not override current one
-echo $(ls -la)
 test -d $historicalDataFolder || mkdir $historicalDataFolder
 #test -d  ./artifacts.zip
 #test -d  artifacts.zip
-unzip ../../artifacts.zip -d $historicalDataFolder
+unzip artifacts.zip -d $historicalDataFolder
 rm -rf ./artifacts.zip
 
 # If file is not available - create one
