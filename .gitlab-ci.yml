@@ -82,12 +82,9 @@ benchmark:
 #   This job is run only on merge and will gather Master benchmark data
 benchmark:SaveHistoryOnMerge:
   stage: default
-  
   needs:
     - job: benchmark
       artifacts: true
-  dependencies:
-    - benchmark
   script: 
     - echo $(ls -la)
     - sh benchmark/fetchAndExtendHistoricalData.sh
