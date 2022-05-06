@@ -75,7 +75,7 @@ benchmark:
     - docker cp $IMAGE_ID:/artifacts ./
   artifacts:
     paths:
-      - artifacts
+      - ./artifacts
     expire_in: 1 mo
 
 #   This job is run only on merge and will gather Master benchmark data
