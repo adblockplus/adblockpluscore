@@ -82,8 +82,10 @@ benchmark:
 #   This job is run only on merge and will gather Master benchmark data
 benchmark:SaveHistoryOnMerge:
   stage: default
-  needs: ["benchmark"]
-  artifacts: true
+  
+  needs:
+    - job: benchmark
+      artifacts: true
   dependencies:
     - benchmark
   script: 
