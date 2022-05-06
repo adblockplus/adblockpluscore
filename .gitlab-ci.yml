@@ -76,7 +76,6 @@ benchmark:
   artifacts:
     paths:
       - artifacts
-    when: on_success
     expire_in: 1 mo
 
 #   This job is run only on merge and will gather Master benchmark data
