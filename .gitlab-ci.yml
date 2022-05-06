@@ -89,6 +89,7 @@ benchmark:SaveHistoryOnMerge:
   dependencies:
     - benchmark
   script: 
+    - echo $(ls -la)
     - sh benchmark/fetchAndExtendHistoricalData.sh
  # only:
  #   refs:
