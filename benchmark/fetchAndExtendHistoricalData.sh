@@ -23,7 +23,7 @@ curl -sS -L \
       'https://gitlab.com/api/v4/projects/'$project'%2Fadblockpluscore/jobs/'$current_job_id'/artifacts'
 
 # Creating temporary folder for artifacts to not override current one
-echo ls -la
+echo $(ls -la)
 test -d $historicalDataFolder || mkdir $historicalDataFolder
 #test -d  ./artifacts.zip
 #test -d  artifacts.zip
