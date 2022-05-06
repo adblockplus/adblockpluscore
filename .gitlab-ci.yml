@@ -83,9 +83,10 @@ benchmark:
 benchmark:SaveHistoryOnMerge:
   stage: default
   needs: ["benchmark"]
+  artifacts: true
   dependencies:
     - benchmark
-  script:
+  script: 
     - sh benchmark/fetchAndExtendHistoricalData.sh
  # only:
  #   refs:
