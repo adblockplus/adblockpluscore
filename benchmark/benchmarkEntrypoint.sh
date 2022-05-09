@@ -1,5 +1,5 @@
 # !/bin/bash
-set -e
+# set -e
 
 # Make artifacts folder for CI  
 mkdir artifacts
