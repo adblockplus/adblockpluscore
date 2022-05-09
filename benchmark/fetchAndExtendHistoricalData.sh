@@ -1,5 +1,7 @@
 # !/bin/sh -e
-#set -e
+
+set -e
+
 apt-get install jq curl -y
 echo "starting"
 ref='master'
@@ -15,7 +17,7 @@ current_pipeline_id=$(curl -sS -H "Content-Type: application/json" \
 current_job_id=$(curl -sS -H "Content-Type: application/json" \
                            'https://gitlab.com/api/v4/projects/'$project'%2Fadblockpluscore/pipelines/'$current_pipeline_id'/jobs' | \
                      jq -r \
-                        'map(select(.ref=="'$ref'" and .name=="benchmark")) | first | .id')
+                        'map(select(.ref=="'$ref'" and .name=="benchmark:SaveHistoryOnMerge")) | first | .id')
 fetch_dir=$PWD/benchmark
 test -d $fetch_dir || mkdir $fetch_dir
 curl -sS -L \
@@ -24,8 +26,6 @@ curl -sS -L \
 
 # Creating temporary folder for artifacts to not override current one
 test -d $historicalDataFolder || mkdir $historicalDataFolder
-#test -d  ./artifacts.zip
-#test -d  artifacts.zip
 unzip artifacts.zip -d $historicalDataFolder
 rm -rf ./artifacts.zip
 

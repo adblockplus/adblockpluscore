@@ -85,11 +85,10 @@ benchmark:SaveHistoryOnMerge:
   dependencies:
     - benchmark
   script: 
-    - cd ..
-    - echo $(ls -la)
-    - cd adblockpluscore
-    - echo $(ls -la)
     - sh benchmark/fetchAndExtendHistoricalData.sh
+  artifacts:
+    paths:
+      - benchmark/historicalData/historical_data.json
  # only:
  #   refs:
   #    - master
