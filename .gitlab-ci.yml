@@ -85,6 +85,9 @@ benchmark:SaveHistoryOnMerge:
     - job: benchmark
       artifacts: true
   script: 
+    - cd ..
+    - echo $(ls -la)
+    - cd adblockpluscore
     - echo $(ls -la)
     - sh benchmark/fetchAndExtendHistoricalData.sh
  # only:
