@@ -10,9 +10,9 @@
       "HeapTotal": 10
     },
     "FilterList_All": {
-      "TimeMean": 4.2,
+      "TimeMean": 24,
       "HeapUsed": 0.5,
-      "HeapTotal": 0.06
+      "HeapTotal": 0.3
     },
     "Matching_all": {
       "TimeMean": 0.01,
@@ -34,7 +34,7 @@
     },
     "Matching_all_All": {
       "TimeMean": 0.1,
-      "TimeMax": 1,
+      "TimeMax": 4,
       "HeapUsed": 0.06,
       "HeapTotal": 0.5
     }
