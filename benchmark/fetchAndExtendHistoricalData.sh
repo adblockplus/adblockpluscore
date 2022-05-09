@@ -26,7 +26,7 @@ curl -sS -L \
 
 # Creating temporary folder for artifacts to not override current one
 test -d $historicalDataFolder || mkdir $historicalDataFolder
-unzip artifacts.zip -d $historicalDataFolder
+unzip $fetch_dir/artifacts.zip -d $historicalDataFolder
 rm -rf ./artifacts.zip
 # Move results from current pipeline to benchmark folder
 mv artifacts/benchmark_results.json benchmark
