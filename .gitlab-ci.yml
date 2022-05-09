@@ -75,6 +75,7 @@ benchmark:
     - IMAGE_ID=$(docker ps -aqf ancestor=adblockpluscore-benchmark)
     - docker cp $IMAGE_ID:/artifacts ./
   artifacts:
+    when: always
     paths:
       - ./artifacts
     expire_in: 1 mo
