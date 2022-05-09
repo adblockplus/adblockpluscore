@@ -26,8 +26,9 @@ curl -sS -L \
 
 # Creating temporary folder for artifacts to not override current one
 test -d $historicalDataFolder || mkdir $historicalDataFolder
-unzip artifacts.zip -d $historicalDataFolder
-rm -rf ./artifacts.zip
+#unzip artifacts.zip -d $historicalDataFolder
+mv artifacts/historical_data.json $historicalDataFolder
+#   rm -rf ./artifacts.zip
 
 # If file is not available - create one
 if [ ! -f $historicalDataPath ]; then
