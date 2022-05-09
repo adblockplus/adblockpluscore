@@ -29,6 +29,7 @@
 stages:
   - default
   - pages
+  - expandingBenchmark
 
 image: "registry.gitlab.com/eyeo/docker/adblockplus-ci:node16-no-python"
 
@@ -80,7 +81,7 @@ benchmark:
 
 #   This job is run only on merge and will gather Master benchmark data
 benchmark:SaveHistoryOnMerge:
-  stage: default
+  stage: expandingBenchmark
   dependencies:
     - benchmark
   script: 
