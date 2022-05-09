@@ -1,18 +1,18 @@
   {
     "FilterList_EasyList": {
-      "TimeMean": 29.00,
+      "TimeMean": 50.00,
       "HeapUsed": 0.5,
       "HeapTotal": 0.25
     },
     "FilterList_EasyList+AA": {
-      "TimeMean": 14,
+      "TimeMean": 110,
       "HeapUsed": 0.5,
       "HeapTotal": 10
     },
     "FilterList_All": {
       "TimeMean": 24,
       "HeapUsed": 0.5,
-      "HeapTotal": 0.3
+      "HeapTotal": 0.6
     },
     "Matching_all": {
       "TimeMean": 0.01,
