@@ -5,6 +5,12 @@ This repository contains the generic Adblock Plus code that's shared between
 platforms. This repository is __not designed to be used directly__, but instead
 to serve as a dependency for `adblockpluschrome` and `libadblockplus`.
 
+Contributing
+------------
+
+Please follow the [code style](docs/CODE_STYLE.md). Most of the rules
+are enforced by the linter (see below).
+
 Resources
 ---------
 
@@ -77,7 +83,7 @@ to disable headless mode on the WebDriver controlled tests, set the
 BROWSER_TEST_HEADLESS environment to 0.
 
 ### Integration tests
-[testpages](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org) tests check `adblockpluscore` integration with ABP. To run them locally, you need to install [Docker](https://www.docker.com/). 
+[testpages](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org) tests check `adblockpluscore` integration with ABP. To run them locally, you need to install [Docker](https://www.docker.com/).
 
 Tests can be executed with:
 
@@ -154,14 +160,14 @@ requirements - remove benchmarkresults.json manually. Next run with
 
 Both Matching & Filtering measurements requires filters to measure against.
 You can manipulate which set of filter lists to use by  setting proper flags:
-``` --filter-list=All ``` for filter lists 
+``` --filter-list=All ``` for filter lists
 supported flags:
 - All for all filter lists (Easylist, Easylist+AA, Testpages, Easyprivacy)
 - EasyList+AA for Easylist +AA
 - EasyList for Easylist only
 
 ```  --match-list=slowlist ``` for matching filter lists
-supported flags: 
+supported flags:
 - slowlist (for list of slow filters)
 - unitlist (for list used in unit tests)
 - all (for combination of slowfilters & unittests)
@@ -175,7 +181,7 @@ consecutive run.
 However, from time to time, or after a cleanup, it is recommended to remove
 these files manually, and download latest.
 
-*Please note:* downloading doesn't work for Matching filter lists. 
+*Please note:* downloading doesn't work for Matching filter lists.
 ### Benchmarking
 
 The `npm run benchmark` command will visually show, in console, what is the
@@ -185,10 +191,10 @@ This operations does *not* store results in the benchmark history, so it can
 be executed incrementally, while we code.
 
 #### Benchmark - matching
-Part of benchmark measurement is Matching against various filters. 
+Part of benchmark measurement is Matching against various filters.
 When benchmark is run with flag: --match then by default it will run
 3 rounds of same matching per filters.
-Number of rounds can be adjusted by changing ```--rounds``` argument in benchmark run: 
+Number of rounds can be adjusted by changing ```--rounds``` argument in benchmark run:
 `node --expose-gc benchmark.js --matchList=slowlist --match --rounds=23 --dt`
 
 ### Benchmark results
