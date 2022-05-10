@@ -90,6 +90,7 @@ benchmark:SaveHistoryOnMerge:
   artifacts:
     paths:
       - benchmark/historicalData/historical_data.json
+      - benchmark/artifacts.zip
  # only:
  #   refs:
   #    - master
