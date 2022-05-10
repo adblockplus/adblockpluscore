@@ -27,7 +27,7 @@ curl -sS -L \
 # Creating temporary folder for artifacts to not override current one
 test -d $historicalDataFolder || mkdir $historicalDataFolder
 cd benchmark
-echo $(ls-la)
+echo $(ls -la)
 cd ..
 unzip $benchmark/artifacts.zip -d $historicalDataFolder
 rm -rf ./artifacts.zip
