@@ -58,7 +58,7 @@ tests:
 benchmark:
   image: docker:19.03.5
   tags:
-    - docker
+    - beat_build_linux_server
   stage: default
   services:
     - docker:19.03.5-dind
