@@ -73,7 +73,7 @@ benchmark:
   interruptible: true
   script:
     - docker build -t adblockpluscore-benchmark -f benchmark/benchmark.Dockerfile .
-        - docker run --shm-size=256m adblockpluscore-benchmark
+    - docker run --shm-size=256m adblockpluscore-benchmark
   allow_failure: true
   after_script:
     - IMAGE_ID=$(docker ps -aqf ancestor=adblockpluscore-benchmark)
