@@ -63,16 +63,17 @@ benchmark:
     - docker:19.03.5-dind
   before_script:
     - docker info
+    - >
+        if echo "$CI_COMMIT_REF_NAME" | grep -q "issue-403"; then
+        export EXTENDHISTORICAL=true;
+        echo "INFO: Will also extend historical data";
+        fi
   variables:
     DOCKER_DRIVER: overlay2
   interruptible: true
   script:
-    -  if echo "$CI_COMMIT_REF_NAME" | grep -q "issue-403"; then
-        export EXTENDHISTORICAL=true
-        echo "INFO: Will also extend historical data"
-      fi
     - docker build -t adblockpluscore-benchmark -f benchmark/benchmark.Dockerfile .
-    - docker run --shm-size=256m adblockpluscore-benchmark
+        - docker run --shm-size=256m adblockpluscore-benchmark
   allow_failure: true
   after_script:
     - IMAGE_ID=$(docker ps -aqf ancestor=adblockpluscore-benchmark)
