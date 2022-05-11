@@ -67,13 +67,15 @@ benchmark:
         if true; then
         export EXTENDHISTORICAL=true;
         echo "INFO: Will also extend historical data";
+        else 
+        export EXTENDHISTORICAL=false;
         fi
   variables:
     DOCKER_DRIVER: overlay2
   interruptible: true
   script:
     - docker build -t adblockpluscore-benchmark -f benchmark/benchmark.Dockerfile .
-    - docker run --shm-size=256m adblockpluscore-benchmark
+    - docker run --shm-size=256m -e EXTENDHISTORICAL=$EXTENDHISTORICAL adblockpluscore-benchmark
   allow_failure: true
   after_script:
     - IMAGE_ID=$(docker ps -aqf ancestor=adblockpluscore-benchmark)
