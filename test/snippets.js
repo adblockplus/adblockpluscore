@@ -326,14 +326,14 @@ describe("Snippets", function() {
         // only bypass site CSPs when using 'textContent'.
         if (typeof netscape != "undefined" && typeof browser != "undefined")
         {
-          let url = URL.createObjectURL(new Blob([executable]));
+          let url = URL.createObjectURL(new Blob([exec]));
           script.src = url;
           document.documentElement.appendChild(script);
           URL.revokeObjectURL(url);
         }
         else
         {
-          script.textContent = executable;
+          script.textContent = exec;
           document.documentElement.appendChild(script);
         }
 
