@@ -3,6 +3,7 @@
 
 # Make artifacts folder for CI  
 mkdir artifacts
+
 # Switch to master repo to run benchmark
 cd master/adblockpluscore
 npm install
@@ -26,6 +27,7 @@ then
   cd ../../adblockpluscore
   npm install   
   CURRENTTS=$(date +%FT%TZ)
+  #export CURRENTTS
   for script in benchmark:easylist benchmark:easylist+AA benchmark:allFilters benchmark:match:all benchmark:match:all:easylist benchmark:match:all:easylist+AA benchmark:match:all:allFilters
     do
       npm run $script -- --save --save-temp --ts=$CURRENTTS
@@ -35,7 +37,17 @@ then
   
 else
   raise error "Missing benchmark results from run on master, failing"
+
+
+  if $EXTENDHISTORICAL; then
+    # Extend historical data with master run only
+    echo "extending historical data"
+    sh benchmark/fetchAndExtendHistoricalData.sh $CURRENTTS
+    cp /adblockpluscore/benchmark/historicalData/historical_data.json /artifacts
+  fi
+
 fi
+
 
 
 

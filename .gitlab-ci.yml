@@ -68,6 +68,10 @@ benchmark:
     DOCKER_DRIVER: overlay2
   interruptible: true
   script:
+    -  if echo "$CI_COMMIT_REF_NAME" | grep -q "issue-403"; then
+        export EXTENDHISTORICAL=true
+        echo "INFO: Will also extend historical data"
+      fi
     - docker build -t adblockpluscore-benchmark -f benchmark/benchmark.Dockerfile .
     - docker run --shm-size=256m adblockpluscore-benchmark
   allow_failure: true
@@ -80,20 +84,6 @@ benchmark:
       - ./artifacts
     expire_in: 1 mo
 
-#   This job is run only on merge and will gather Master benchmark data
-benchmark:SaveHistoryOnMerge:
-  stage: expandingBenchmark
-  dependencies:
-    - benchmark
-  script: 
-    - sh benchmark/fetchAndExtendHistoricalData.sh
-  artifacts:
-    paths:
-      - benchmark/historicalData/historical_data.json
-      - benchmark/artifacts.zip
- # only:
- #   refs:
-  #    - master
 
 
 .testpages:
