@@ -64,7 +64,7 @@ benchmark:
   before_script:
     - docker info
     - >
-        if echo "$CI_COMMIT_REF_NAME" | grep -q "issue-403"; then
+        if true; then
         export EXTENDHISTORICAL=true;
         echo "INFO: Will also extend historical data";
         fi
