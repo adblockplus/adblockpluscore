@@ -144,6 +144,8 @@ describe("text2dnr script", function() {
   });
 
   it("Encodes with punycode if needed", async function() {
+    // the expected input and output is taken from the official docs:
+    // https://developer.chrome.com/docs/extensions/reference/declarativeNetRequest/
     let outputFile = "bar.json";
     await processFile(
       createConverter({}),
