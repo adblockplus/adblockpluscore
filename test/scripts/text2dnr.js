@@ -155,8 +155,11 @@ describe("text2dnr script", function() {
     await fs.access(outputFile);
     let json = await fs.readFile(outputFile, {encoding: "utf-8"});
     let rules = JSON.parse(json);
+    // encoded
     assert.equal(rules[0].condition.urlFilter, "http://abc.xn--p1ai");
     assert.equal(rules[1].condition.regexFilter, ".xn--p1ai");
+    // not encoded
+    assert.equal(rules[2].condition.urlFilter, "https://www.domain.com");
     await fs.rm(outputFile);
   });
 });
