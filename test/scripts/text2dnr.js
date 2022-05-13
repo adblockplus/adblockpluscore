@@ -155,7 +155,6 @@ describe("text2dnr script", function() {
     let rules = JSON.parse(json);
     assert.equal(rules[0].condition.urlFilter, "http://abc.xn--p1ai");
     assert.equal(rules[1].condition.regexFilter, ".xn--p1ai");
-    // assert.equal(rules[2].condition.domains[0], "http://abc.xn--p1ai");
     await fs.rm(outputFile);
   });
 });
