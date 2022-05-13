@@ -142,4 +142,20 @@ describe("text2dnr script", function() {
       done();
     });
   });
+
+  it("Encodes with punycode if needed", async function() {
+    let outputFile = "bar.json";
+    await processFile(
+      createConverter({}),
+      path.join(__dirname, "..", "data", "punycode_filters.txt"),
+      outputFile
+    );
+    await fs.access(outputFile);
+    let json = await fs.readFile(outputFile, {encoding: "utf-8"});
+    let rules = JSON.parse(json);
+    assert.equal(rules[0].condition.urlFilter, "http://abc.xn--p1ai");
+    assert.equal(rules[1].condition.regexFilter, ".xn--p1ai");
+    // assert.equal(rules[2].condition.domains[0], "http://abc.xn--p1ai");
+    await fs.rm(outputFile);
+  });
 });
