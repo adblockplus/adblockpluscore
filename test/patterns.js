@@ -384,5 +384,6 @@ describe("Pattern", function() {
     expectNotMatch("/example.com/[a-z]{3}/[A-Z]{3}/", "http://example.com/AbC/DeF", true);
     expectMatch("/example.com/[a-z]{3}/[A-Z]{3}/", "http://example.com/abc/DEF", true);
     expectMatch("*", "http://foo/bar");
+    expectMatch("||домен.рф/путь|", "http://домен.рф/путь");
   });
 });
