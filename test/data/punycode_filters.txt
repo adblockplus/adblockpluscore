@@ -1,0 +1,4 @@
+[Adblock Plus 2.0]
+http://abc.рф
+/.рф/
+! ||ads.example.com^$script,image,domain=abc.рф|~foo.example.info will result in parsing error due to non-ascii characters
