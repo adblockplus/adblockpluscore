@@ -33,15 +33,24 @@ const globals = {
   }
 };
 
-let verifySignature = null;
-
 describe("verifySignature()", function() {
+  let verifySignature = null;
+  let verifySignatureSync = null;
+
   beforeEach(function() {
     let sandboxedRequire = createSandbox({globals});
     (
-      {verifySignature} = sandboxedRequire(LIB_FOLDER + "/rsa")
+      {
+        verifySignature,
+        verifySignatureSync
+      } = sandboxedRequire(LIB_FOLDER + "/rsa")
     );
   });
+
+  async function assertVerified(publicKey, signature, data, result) {
+    assert.strictEqual(await verifySignature(publicKey, signature, data), result);
+    assert.strictEqual(verifySignatureSync(publicKey, signature, data), result);
+  }
 
   context("Using 512-bit signing key", function() {
     /*
@@ -61,27 +70,27 @@ describe("verifySignature()", function() {
     let signature = "LzKJE1BOsZDfwD/hncHq+MN5ZygIemb1Pyzx40rm3CoTL4CVPAicS1mOiTv6s9Li9Vw1ds9HwFWVMFVEwHwfIw==";
 
     it("should return true for correct public key, signature, and data", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data), true);
+      await assertVerified(publicKey, signature, data, true);
     });
 
     it("should return false for data with extra characters", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data + "1"), false);
+      await assertVerified(publicKey, signature, data + "1", false);
     });
 
     it("should return false for truncated data", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data.substring(0, 3)), false);
+      await assertVerified(publicKey, signature, data.substring(0, 3), false);
     });
 
     it("should return false for incorrect signature", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data), false);
+      await assertVerified(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data, false);
     });
 
     it("should return false for incorrect public key (1)", async function() {
-      assert.strictEqual(await verifySignature(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data), false);
+      await assertVerified(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data, false);
     });
 
     it("should return false for incorrect public key (2)", async function() {
-      assert.strictEqual(await verifySignature(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data), false);
+      await assertVerified(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data, false);
     });
   });
 
@@ -121,27 +130,27 @@ describe("verifySignature()", function() {
     let signature = "UYTQmygOICKi4ozlMbLSYFZ1olovZZFYT0nZygPrGoA+6+ta+wzKnPnghK4j35QSucrf3yN8DSXa/kXBX0LcTmEaSwoNRuM7QPjT6v9hNsVjwNexOUk6pR3DotYuD1yV36sITNjx59McG8/q6qLyj2A8KVlUbtnz/IiLzzw+wgy6WRjU1meYP8oiQGVIkB21ICqqaJ5kCvM0YrAqzQKAya513O51ADA6aC/EMz6B62XGgZ+AywUMcH2Wvx7cyCvPVLfAbXcgex1JtpPS6vGcdpigaVQkoyl4cIQmX1ppasgJj2MiYl2htXvFXjYoWniEmspteNu3UybB0nMHnYjKdQ==";
 
     it("should return true for correct public key, signature, and data", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data), true);
+      await assertVerified(publicKey, signature, data, true);
     });
 
     it("should return false for data with extra characters", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data + "1"), false);
+      await assertVerified(publicKey, signature, data + "1", false);
     });
 
     it("should return false for truncated data", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data.substring(0, 3)), false);
+      await assertVerified(publicKey, signature, data.substring(0, 3), false);
     });
 
     it("should return false for incorrect signature", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data), false);
+      await assertVerified(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data, false);
     });
 
     it("should return false for incorrect public key (1)", async function() {
-      assert.strictEqual(await verifySignature(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data), false);
+      await assertVerified(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data, false);
     });
 
     it("should return false for incorrect public key (2)", async function() {
-      assert.strictEqual(await verifySignature(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data), false);
+      await assertVerified(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data, false);
     });
   });
 
@@ -163,27 +172,27 @@ describe("verifySignature()", function() {
     let signature = "L1LtPxp9VwL/ij8tuIxJqtx6mD3qoFhcEmPl8A1RlNeOP34A25nzyzRWuP2wEbHcKKXnAQESdIXaTaEuymXviQ==";
 
     it("should return true for correct public key, signature, and data", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data), true);
+      await assertVerified(publicKey, signature, data, true);
     });
 
     it("should return false for data with extra characters", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data + "1"), false);
+      await assertVerified(publicKey, signature, data + "1", false);
     });
 
     it("should return false for truncated data", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data.substring(0, 3)), false);
+      await assertVerified(publicKey, signature, data.substring(0, 3), false);
     });
 
     it("should return false for incorrect signature", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data), false);
+      await assertVerified(publicKey, signature.substring(0, 5) + "0" + signature.substring(6), data, false);
     });
 
     it("should return false for incorrect public key (1)", async function() {
-      assert.strictEqual(await verifySignature(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data), false);
+      await assertVerified(publicKey.substring(0, 5) + "R" + publicKey.substring(6), signature, data, false);
     });
 
     it("should return false for incorrect public key (2)", async function() {
-      assert.strictEqual(await verifySignature(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data), false);
+      await assertVerified(publicKey.substring(0, 70) + "8" + publicKey.substring(71), signature, data, false);
     });
   });
 
@@ -197,7 +206,49 @@ describe("verifySignature()", function() {
     let signature = "nLH8Vbc1rzmy0Q+Xg+bvm43IEO42h8rq5D9C0WCn/Y3ykgAoV4npzm7eMlqBSwZBLA/0DuuVsfTJT9MOVaurcA==";
 
     it("should return true for correct public key, signature, and data", async function() {
-      assert.strictEqual(await verifySignature(publicKey, signature, data.join("\0")), true);
+      await assertVerified(publicKey, signature, data.join("\0"), true);
     });
+
+    it("should return false for incorrect domain in data", async function() {
+      let modifiedData = [
+        data[0],
+        "www.example.com",
+        data[2]
+      ];
+      await assertVerified(publicKey, signature, modifiedData.join("\0"), false);
+    });
+  });
+});
+
+describe("base64ToArrayBuffer()", function() {
+  let base64ToArrayBuffer = null;
+  let arrayBufferToBase64 = null;
+
+  beforeEach(function() {
+    let sandboxedRequire = createSandbox({globals});
+    (
+      {
+        base64ToArrayBuffer,
+        arrayBufferToBase64
+      } = sandboxedRequire(LIB_FOLDER + "/rsa")
+    );
+  });
+
+  function assertBase64RoundTrip(originalBase64) {
+    let ab = base64ToArrayBuffer(originalBase64);
+    let base64 = arrayBufferToBase64(ab);
+    assert.strictEqual(base64, originalBase64);
+  }
+
+  it("can convert an empty string", function() {
+    assertBase64RoundTrip("");
+  });
+
+  it("can convert a small string", function() {
+    assertBase64RoundTrip("AAECAyA=");
+  });
+
+  it("can convert a real signature", function() {
+    assertBase64RoundTrip("nLH8Vbc1rzmy0Q+Xg+bvm43IEO42h8rq5D9C0WCn/Y3ykgAoV4npzm7eMlqBSwZBLA/0DuuVsfTJT9MOVaurcA==");
   });
 });

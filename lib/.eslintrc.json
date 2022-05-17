@@ -5,6 +5,7 @@
   "globals": {
     "URL": true,
     "atob": true,
+    "btoa": true,
     "console": true,
     "fetch": true
   }
