@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-FROM node:12-buster-slim
+FROM node:16
 
 RUN apt-get update
 RUN apt-get install -y wget git unzip
@@ -65,17 +65,18 @@ RUN PYTHONPATH=cms python -m cms.bin.generate_static_pages testpages.adblockplus
 
 # Build extension with current branch
 # Clone abpui repo
-RUN git clone -b 3.12 --recurse-submodules https://gitlab.com/eyeo/adblockplus/abpui/adblockplusui.git
+RUN git clone -b 3.13 https://gitlab.com/eyeo/adblockplus/abpui/adblockplusui.git
 # Checkout on recent release commit to have stable ABPUI version
-RUN cd adblockplusui && npm install
-RUN cd adblockplusui/adblockpluschrome && npm install
+RUN cd adblockplusui && npm run submodules:update && git submodule status && npm install
 
 # Copy Core files:
-RUN cd adblockplusui/adblockpluschrome/ && rm -rf adblockpluscore
-RUN mkdir adblockplusui/adblockpluschrome/adblockpluscore
-COPY . $HOME/adblockplusui/adblockpluschrome/adblockpluscore
-RUN cd adblockplusui/adblockpluschrome/adblockpluscore && npm install
-RUN cd adblockplusui/adblockpluschrome && npm install \
+RUN cd adblockplusui/vendor/webext-sdk && npm install
+RUN cd adblockplusui/vendor/webext-sdk/node_modules && rm -rf adblockpluscore
+
+RUN mkdir adblockplusui/vendor/webext-sdk/node_modules/adblockpluscore 
+COPY . adblockplusui/vendor/webext-sdk/node_modules/adblockpluscore 
+RUN cd adblockplusui/vendor/webext-sdk/node_modules/adblockpluscore && npm install
+RUN cd adblockplusui/adblockpluschrome \
  && npx gulp build -t chrome -c development
 
 # Unpack custom extension
