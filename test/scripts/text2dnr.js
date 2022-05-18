@@ -145,10 +145,10 @@ describe("text2dnr script", function() {
     let rules = JSON.parse(json);
     assert.deepEqual(rules, [{
       action: {
-        type: 'block'
+        type: "block"
       },
       condition: {
-        urlFilter: 'https://www.abc.com'
+        urlFilter: "https://www.abc.com"
       },
       priority: 1000
     }]);
