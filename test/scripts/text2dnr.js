@@ -187,7 +187,7 @@ describe("text2dnr script", function() {
     validateIsAsciiOnly("http://abc.com");
     validateIsAsciiOnly("http://abc.xn--p1ai/?q=%D1%84"); // punycode;
     assert.throws(() => validateIsAsciiOnly("http://abc.рф"), Error); // national character in domain
-    assert.throws(() => validateIsAsciiOnly("http://abc.com?q=ф"), Error); // national character in path
+    assert.throws(() => validateIsAsciiOnly("http://abc.com?q=ф"), Error); // national character in query
   });
 
   it("Filters invalid rules", function() {
