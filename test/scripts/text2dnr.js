@@ -183,14 +183,14 @@ describe("text2dnr script", function() {
     });
   });
 
-  it("treats domains encoding properly", function() {
+  it("Treats domains encoding properly", function() {
     validateIsAsciiOnly("http://abc.com");
     validateIsAsciiOnly("http://abc.xn--p1ai/?q=%D1%84"); // punycode;
     assert.throws(() => validateIsAsciiOnly("http://abc.рф"), Error); // national character in domain
     assert.throws(() => validateIsAsciiOnly("http://abc.com?q=ф"), Error); // national character in path
   });
 
-  it("filters invalid rules", function() {
+  it("Filters invalid rules", function() {
     const NON_ASCII_DOMAIN = "züri6.ch";
     assertIsInvalid({
       condition: {
@@ -234,7 +234,7 @@ describe("text2dnr script", function() {
     }, NON_ASCII_DOMAIN);
   });
 
-  it("does not filter valid rules", function() {
+  it("Does not filter valid rules", function() {
     assertIsValid({
       "priority": 1001,
       "condition": {
