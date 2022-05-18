@@ -101,7 +101,7 @@ describe("text2dnr script", function() {
     await fs.rm(outputFile);
   });
 
-  it("Uses rule validate callback", async function() {
+  it("Uses regex rule validate callback", async function() {
     let outputFile = "foo2.json";
     let validatorCalled = false;
     let converter = createConverter({
@@ -121,6 +121,37 @@ describe("text2dnr script", function() {
     let json = await fs.readFile(outputFile, {encoding: "utf-8"});
     let rules = JSON.parse(json);
     assert.equal(rules.length, 0);
+    await fs.rm(outputFile);
+  });
+
+  it("filters invalid rules internally", async function() {
+    let outputFile = "foo3.json";
+    let validatorCalled = false;
+    let converter = createConverter({
+      isRegexSupported(rule) {
+        validatorCalled = true;
+        return false;
+      }
+    });
+    await processFile(
+      converter,
+      path.join(__dirname, "..", "data", "invalid_filters.txt"),
+      outputFile
+    );
+    await fs.access(outputFile);
+    assert.equal(validatorCalled, true);
+
+    let json = await fs.readFile(outputFile, {encoding: "utf-8"});
+    let rules = JSON.parse(json);
+    assert.deepEqual(rules, [{
+      action: {
+        type: 'block'
+      },
+      condition: {
+        urlFilter: 'https://www.abc.com'
+      },
+      priority: 1000
+    }]);
     await fs.rm(outputFile);
   });
 
