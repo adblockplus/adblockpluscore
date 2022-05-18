@@ -29,8 +29,8 @@ const {
 } = require("../../scripts/text2dnr.js");
 
 describe("text2dnr script", function() {
-  function assertIsInvalid(rule) {
-    assert.deepEqual(validRuleOrError(rule), Error("non_ascii_characters"));
+  function assertIsInvalid(rule, str) {
+    assert.deepEqual(validRuleOrError(rule), Error(`non_ascii_characters in "${str}"`));
   }
 
   function assertIsValid(rule) {
@@ -196,42 +196,42 @@ describe("text2dnr script", function() {
       condition: {
         urlFilter: `||${NON_ASCII_DOMAIN}/adsman/`
       }
-    });
+    }, `||${NON_ASCII_DOMAIN}/adsman/`);
     assertIsInvalid({
       condition: {
         regexFilter: NON_ASCII_DOMAIN
       }
-    });
+    }, NON_ASCII_DOMAIN);
     assertIsInvalid({
       condition: {
         initiatorDomains: [NON_ASCII_DOMAIN]
       }
-    });
+    }, NON_ASCII_DOMAIN);
     assertIsInvalid({
       condition: {
         requestDomains: [NON_ASCII_DOMAIN]
       }
-    });
+    }, NON_ASCII_DOMAIN);
     assertIsInvalid({
       condition: {
         domains: [NON_ASCII_DOMAIN]
       }
-    });
+    }, NON_ASCII_DOMAIN);
     assertIsInvalid({
       condition: {
         excludedDomains: [NON_ASCII_DOMAIN]
       }
-    });
+    }, NON_ASCII_DOMAIN);
     assertIsInvalid({
       condition: {
         excludedInitiatorDomains: [NON_ASCII_DOMAIN]
       }
-    });
+    }, NON_ASCII_DOMAIN);
     assertIsInvalid({
       condition: {
         excludedRequestDomains: [NON_ASCII_DOMAIN]
       }
-    });
+    }, NON_ASCII_DOMAIN);
   });
 
   it("does not filter valid rules", function() {
