@@ -191,7 +191,7 @@ describe("text2dnr script", function() {
   });
 
   it("Filters invalid rules", function() {
-    const NON_ASCII_DOMAIN = "züri6.ch";
+    const NON_ASCII_DOMAIN = "abc.рф";
     assertIsInvalid({
       condition: {
         urlFilter: `||${NON_ASCII_DOMAIN}/adsman/`
