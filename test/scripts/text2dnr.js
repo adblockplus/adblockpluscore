@@ -236,48 +236,48 @@ describe("text2dnr script", function() {
 
   it("Does not filter valid rules", function() {
     assertIsValid({
-      "priority": 1001,
-      "condition": {
-        "urlFilter": "http://abc.com",
-        "isUrlFilterCaseSensitive": false
+      priority: 1001,
+      condition: {
+        urlFilter: "http://abc.com",
+        isUrlFilterCaseSensitive: false
       },
-      "action": {
-        "type": "block"
+      action: {
+        type: "block"
       },
-      "id": 2
+      id: 2
     });
     assertIsValid({
-      "priority": 1001,
-      "condition": {
-        "regexFilter": "http://abc.com",
-        "isUrlFilterCaseSensitive": false
+      priority: 1001,
+      condition: {
+        regexFilter: "http://abc.com",
+        isUrlFilterCaseSensitive: false
       },
-      "action": {
-        "type": "block"
+      action: {
+        type: "block"
       },
-      "id": 2
+      id: 2
     });
     assertIsValid({
-      "priority": 1000,
-      "condition": {
-        "urlFilter": "http://abc.xn--?q=-zedud", // punycode
-        "isUrlFilterCaseSensitive": false
+      priority: 1000,
+      condition: {
+        urlFilter: "http://abc.xn--?q=-zedud", // punycode
+        isUrlFilterCaseSensitive: false
       },
-      "action": {
-        "type": "block"
+      action: {
+        type: "block"
       },
-      "id": 1
+      id: 1
     });
     assertIsValid({
-      "priority": 1000,
-      "condition": {
-        "regexFilter": "http://abc.xn--?q=-zedud", // punycode
-        "isUrlFilterCaseSensitive": false
+      priority: 1000,
+      condition: {
+        regexFilter: "http://abc.xn--?q=-zedud", // punycode
+        isUrlFilterCaseSensitive: false
       },
-      "action": {
-        "type": "block"
+      action: {
+        type: "block"
       },
-      "id": 1
+      id: 1
     });
   });
 });
