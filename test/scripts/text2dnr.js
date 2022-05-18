@@ -22,7 +22,7 @@ const path = require("path");
 const fs = require("fs/promises");
 const {spawn} = require("child_process");
 const {createConverter} = require("../../lib/dnr/index.js");
-const {validRuleOrError, validateAsciiOnly} = require("../../lib/dnr/rules.js");
+const {validRuleOrError, validateIsAsciiOnly} = require("../../lib/dnr/rules.js");
 
 const {
   parseArgs, processFile
@@ -184,10 +184,10 @@ describe("text2dnr script", function() {
   });
 
   it("treats domains encoding properly", function() {
-    validateAsciiOnly("http://abc.com");
-    validateAsciiOnly("http://abc.xn--p1ai/?q=%D1%84"); // punycode;
-    assert.throws(() => validateAsciiOnly("http://abc.рф"), Error); // national character in domain
-    assert.throws(() => validateAsciiOnly("http://abc.com?q=ф"), Error); // national character in path
+    validateIsAsciiOnly("http://abc.com");
+    validateIsAsciiOnly("http://abc.xn--p1ai/?q=%D1%84"); // punycode;
+    assert.throws(() => validateIsAsciiOnly("http://abc.рф"), Error); // national character in domain
+    assert.throws(() => validateIsAsciiOnly("http://abc.com?q=ф"), Error); // national character in path
   });
 
   it("filters invalid rules", function() {
