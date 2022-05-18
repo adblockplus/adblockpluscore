@@ -22,12 +22,21 @@ const path = require("path");
 const fs = require("fs/promises");
 const {spawn} = require("child_process");
 const {createConverter} = require("../../lib/dnr/index.js");
+const {validRuleOrError, validateAsciiOnly} = require("../../lib/dnr/rules.js");
 
 const {
   parseArgs, processFile
 } = require("../../scripts/text2dnr.js");
 
 describe("text2dnr script", function() {
+  function assertIsInvalid(rule) {
+    assert.deepEqual(validRuleOrError(rule), Error("non_ascii_characters"));
+  }
+
+  function assertIsValid(rule) {
+    assert.equal(validRuleOrError(rule), rule);
+  }
+
   it("Parses the command line", function() {
     let result = parseArgs(["node", "text2dnr", "-o", "foo.json", "filters.txt"]);
     assert.equal(result.outputfile, "foo.json");
@@ -140,6 +149,104 @@ describe("text2dnr script", function() {
       assert.ok(obj instanceof Array);
 
       done();
+    });
+  });
+
+  it("treats domains encoding properly", function() {
+    validateAsciiOnly("http://abc.com");
+    validateAsciiOnly("http://abc.xn--p1ai/?q=%D1%84"); // punycode;
+    assert.throws(() => validateAsciiOnly("http://abc.рф"), Error); // national character in domain
+    assert.throws(() => validateAsciiOnly("http://abc.com?q=ф"), Error); // national character in path
+  });
+
+  it("filters invalid rules", function() {
+    const NON_ASCII_DOMAIN = "züri6.ch";
+    assertIsInvalid({
+      condition: {
+        urlFilter: `||${NON_ASCII_DOMAIN}/adsman/`
+      }
+    });
+    assertIsInvalid({
+      condition: {
+        regexFilter: NON_ASCII_DOMAIN
+      }
+    });
+    assertIsInvalid({
+      condition: {
+        initiatorDomains: [NON_ASCII_DOMAIN]
+      }
+    });
+    assertIsInvalid({
+      condition: {
+        requestDomains: [NON_ASCII_DOMAIN]
+      }
+    });
+    assertIsInvalid({
+      condition: {
+        domains: [NON_ASCII_DOMAIN]
+      }
+    });
+    assertIsInvalid({
+      condition: {
+        excludedDomains: [NON_ASCII_DOMAIN]
+      }
+    });
+    assertIsInvalid({
+      condition: {
+        excludedInitiatorDomains: [NON_ASCII_DOMAIN]
+      }
+    });
+    assertIsInvalid({
+      condition: {
+        excludedRequestDomains: [NON_ASCII_DOMAIN]
+      }
+    });
+  });
+
+  it("does not filter valid rules", function() {
+    assertIsValid({
+      "priority": 1001,
+      "condition": {
+        "urlFilter": "http://abc.com",
+        "isUrlFilterCaseSensitive": false
+      },
+      "action": {
+        "type": "block"
+      },
+      "id": 2
+    });
+    assertIsValid({
+      "priority": 1001,
+      "condition": {
+        "regexFilter": "http://abc.com",
+        "isUrlFilterCaseSensitive": false
+      },
+      "action": {
+        "type": "block"
+      },
+      "id": 2
+    });
+    assertIsValid({
+      "priority": 1000,
+      "condition": {
+        "urlFilter": "http://abc.xn--?q=-zedud", // punycode
+        "isUrlFilterCaseSensitive": false
+      },
+      "action": {
+        "type": "block"
+      },
+      "id": 1
+    });
+    assertIsValid({
+      "priority": 1000,
+      "condition": {
+        "regexFilter": "http://abc.xn--?q=-zedud", // punycode
+        "isUrlFilterCaseSensitive": false
+      },
+      "action": {
+        "type": "block"
+      },
+      "id": 1
     });
   });
 });
