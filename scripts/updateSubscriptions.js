@@ -241,6 +241,9 @@ async function updateMv3(filename) {
     console.warn("The output file exists and will be overwritten");
     await unlink(filename);
   }
+  let toDir = path.dirname(filename);
+  if (!(await exists(toDir)))
+    await mkdir(toDir, {recursive: true});
   await download(backendUrlMv3, filename);
 }
 
