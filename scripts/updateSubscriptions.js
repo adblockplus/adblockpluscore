@@ -292,7 +292,7 @@ async function main() {
       alias: "o",
       type: "string",
       requiresArg: true,
-      description: "Output directory"
+      description: "Output file"
     })
     .parse();
 
