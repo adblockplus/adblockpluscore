@@ -22,7 +22,7 @@ const path = require("path");
 const fs = require("fs/promises");
 const {spawn} = require("child_process");
 const {createConverter} = require("../../lib/dnr/index.js");
-const {validRuleOrError, validateIsAsciiOnly} = require("../../lib/dnr/rules.js");
+const {validateRule, validateIsAsciiOnly} = require("../../lib/dnr/rules.js");
 
 const {
   parseArgs, processFile
@@ -30,11 +30,11 @@ const {
 
 describe("text2dnr script", function() {
   function assertIsInvalid(rule, str) {
-    assert.deepEqual(validRuleOrError(rule), Error(`non_ascii_characters in "${str}"`));
+    assert.deepEqual(validateRule(rule), Error(`non_ascii_characters in "${str}"`));
   }
 
   function assertIsValid(rule) {
-    assert.equal(validRuleOrError(rule), rule);
+    assert.equal(validateRule(rule), rule);
   }
 
   it("Parses the command line", function() {
