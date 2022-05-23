@@ -37,7 +37,7 @@ describe("text2dnr script", function() {
     assert.equal(validateRule(rule), rule);
   }
 
-  it("Parses the command line", function() {
+  it("parses the command line", function() {
     let result = parseArgs(["node", "text2dnr", "-o", "foo.json", "filters.txt"]);
     assert.equal(result.outputfile, "foo.json");
     assert.equal(result.filename, "filters.txt");
@@ -47,7 +47,7 @@ describe("text2dnr script", function() {
     assert.equal(result.filename, "filters.txt");
   });
 
-  it("Error on incorrect argument", function() {
+  it("error on incorrect argument", function() {
     // Since we are testing the command line parsing and `yarg` will
     // output text in the console, we disable the console.
     let oldConsole = console;
@@ -60,11 +60,11 @@ describe("text2dnr script", function() {
     console = oldConsole;
   });
 
-  it("Error with missing filter file", async function() {
+  it("error with missing filter file", async function() {
     await assert.rejects(async() => await processFile(path.join(__dirname, "..", "data", "filters2.txt"), "foo.json"));
   });
 
-  it("Produces the JSON file", async function() {
+  it("produces the JSON file", async function() {
     let outputfile = "foo.json";
     await processFile(
       createConverter({}),
@@ -75,7 +75,7 @@ describe("text2dnr script", function() {
     await fs.rm(outputfile);
   });
 
-  it("Uses rule modify callback", async function() {
+  it("uses rule modify callback", async function() {
     let outputFile = "foo2.json";
     let id = 0;
     await processFile(
@@ -101,7 +101,7 @@ describe("text2dnr script", function() {
     await fs.rm(outputFile);
   });
 
-  it("Uses regex rule validate callback", async function() {
+  it("uses regex rule validate callback", async function() {
     let outputFile = "foo2.json";
     let validatorCalled = false;
     let converter = createConverter({
@@ -155,7 +155,7 @@ describe("text2dnr script", function() {
     await fs.rm(outputFile);
   });
 
-  it("Produces the JSON on stdout", function(done) {
+  it("produces the JSON on stdout", function(done) {
     // We'll use a child_process.
     let written = "";
     let proc = spawn("node", [
@@ -183,14 +183,14 @@ describe("text2dnr script", function() {
     });
   });
 
-  it("Treats domains encoding properly", function() {
+  it("treats domains encoding properly", function() {
     validateIsAsciiOnly("http://abc.com");
     validateIsAsciiOnly("http://abc.xn--p1ai/?q=%D1%84"); // punycode;
     assert.throws(() => validateIsAsciiOnly("http://abc.рф"), Error); // national character in domain
     assert.throws(() => validateIsAsciiOnly("http://abc.com?q=ф"), Error); // national character in query
   });
 
-  it("Filters invalid rules", function() {
+  it("filters invalid rules", function() {
     const NON_ASCII_DOMAIN = "abc.рф";
     assertIsInvalid({
       condition: {
@@ -234,7 +234,7 @@ describe("text2dnr script", function() {
     }, NON_ASCII_DOMAIN);
   });
 
-  it("Does not filter valid rules", function() {
+  it("does not filter valid rules", function() {
     assertIsValid({
       priority: 1001,
       condition: {
