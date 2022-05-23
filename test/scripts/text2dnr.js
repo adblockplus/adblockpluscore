@@ -30,7 +30,7 @@ const {
 
 describe("text2dnr script", function() {
   function assertIsInvalid(rule, str) {
-    assert.deepEqual(validateRule(rule), Error(`non_ascii_characters in "${str}"`));
+    assert.deepEqual(validateRule(rule), Error(`Invalid ASCII characters found in: "${str}"`));
   }
 
   function assertIsValid(rule) {
