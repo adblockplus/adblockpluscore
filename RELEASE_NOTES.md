@@ -1,3 +1,28 @@
+0.7.2 - 2022/05/18
+==================
+
+## Bug fixes
+
+- Introduce `verifySignatureSync` to allow synchronous sitekey signature
+  verfication. This a revert of issue #208 from 0.6.0. Issue #432
+- Fix CI tests.
+
+## Updating your code
+
+- If you need synchronous `verifiySignature` just use `verifySignatureSync`.
+  `verifySignature` is unchanged from 0.6.0.
+
+0.7.1 - 2022/04/22
+==================
+
+## Bug fixes
+
+- `filterStorage.addFiltersWithMetadata()` would fail if passing a single
+filter instead of an array. #422
+- Loading metadata from storage would fail with an exception. #423
+- Fix inline documentation for `filtersExist()`.
+
+
 0.7.0 - 2022/04/04
 ==================
 
@@ -42,6 +67,7 @@
 
 - API changes
   - Allow filters to be enabled / disabled per subscription. Issue #115
+  - `verifySignature` is now an async method. Issue #208
 
 - Documentaion improvements
   - Document some of the preference keys. Issue #365
@@ -78,7 +104,8 @@
 
 - Sitekey now use the webcrypto API. It's available in all support
   browsers, and in NodeJS 16. However if you use a different platform,
-  you might need it add some polyfills.
+  you might need it add some polyfills. The signature verification API
+  async.
 - When calling `Matcher.match` or `Matcher.search` to check if any
   filters match a request in the context of header filtering or CSP
   filtering, the content type must now be the "context" type
