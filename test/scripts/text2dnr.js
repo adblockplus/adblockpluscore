@@ -22,13 +22,22 @@ const path = require("path");
 const fs = require("fs/promises");
 const {spawn} = require("child_process");
 const {createConverter} = require("../../lib/dnr/index.js");
+const {validateRule, validateIsAsciiOnly} = require("../../lib/dnr/rules.js");
 
 const {
   parseArgs, processFile
 } = require("../../scripts/text2dnr.js");
 
 describe("text2dnr script", function() {
-  it("Parses the command line", function() {
+  function assertIsInvalid(rule, str) {
+    assert.deepEqual(validateRule(rule), Error(`Invalid ASCII characters found in: "${str}"`));
+  }
+
+  function assertIsValid(rule) {
+    assert.equal(validateRule(rule), rule);
+  }
+
+  it("parses the command line", function() {
     let result = parseArgs(["node", "text2dnr", "-o", "foo.json", "filters.txt"]);
     assert.equal(result.outputfile, "foo.json");
     assert.equal(result.filename, "filters.txt");
@@ -38,7 +47,7 @@ describe("text2dnr script", function() {
     assert.equal(result.filename, "filters.txt");
   });
 
-  it("Error on incorrect argument", function() {
+  it("error on incorrect argument", function() {
     // Since we are testing the command line parsing and `yarg` will
     // output text in the console, we disable the console.
     let oldConsole = console;
@@ -51,11 +60,11 @@ describe("text2dnr script", function() {
     console = oldConsole;
   });
 
-  it("Error with missing filter file", async function() {
+  it("error with missing filter file", async function() {
     await assert.rejects(async() => await processFile(path.join(__dirname, "..", "data", "filters2.txt"), "foo.json"));
   });
 
-  it("Produces the JSON file", async function() {
+  it("produces the JSON file", async function() {
     let outputfile = "foo.json";
     await processFile(
       createConverter({}),
@@ -66,7 +75,7 @@ describe("text2dnr script", function() {
     await fs.rm(outputfile);
   });
 
-  it("Uses rule modify callback", async function() {
+  it("uses rule modify callback", async function() {
     let outputFile = "foo2.json";
     let id = 0;
     await processFile(
@@ -92,7 +101,7 @@ describe("text2dnr script", function() {
     await fs.rm(outputFile);
   });
 
-  it("Uses rule validate callback", async function() {
+  it("uses regex rule validate callback", async function() {
     let outputFile = "foo2.json";
     let validatorCalled = false;
     let converter = createConverter({
@@ -115,7 +124,38 @@ describe("text2dnr script", function() {
     await fs.rm(outputFile);
   });
 
-  it("Produces the JSON on stdout", function(done) {
+  it("filters invalid rules internally", async function() {
+    let outputFile = "foo3.json";
+    let validatorCalled = false;
+    let converter = createConverter({
+      isRegexSupported(rule) {
+        validatorCalled = true;
+        return false;
+      }
+    });
+    await processFile(
+      converter,
+      path.join(__dirname, "..", "data", "invalid_filters.txt"),
+      outputFile
+    );
+    await fs.access(outputFile);
+    assert.equal(validatorCalled, true);
+
+    let json = await fs.readFile(outputFile, {encoding: "utf-8"});
+    let rules = JSON.parse(json);
+    assert.deepEqual(rules, [{
+      action: {
+        type: "block"
+      },
+      condition: {
+        urlFilter: "https://www.abc.com"
+      },
+      priority: 1000
+    }]);
+    await fs.rm(outputFile);
+  });
+
+  it("produces the JSON on stdout", function(done) {
     // We'll use a child_process.
     let written = "";
     let proc = spawn("node", [
@@ -140,6 +180,104 @@ describe("text2dnr script", function() {
       assert.ok(obj instanceof Array);
 
       done();
+    });
+  });
+
+  it("treats domains encoding properly", function() {
+    validateIsAsciiOnly("http://abc.com");
+    validateIsAsciiOnly("http://abc.xn--p1ai/?q=%D1%84"); // punycode;
+    assert.throws(() => validateIsAsciiOnly("http://abc.рф"), Error); // national character in domain
+    assert.throws(() => validateIsAsciiOnly("http://abc.com?q=ф"), Error); // national character in query
+  });
+
+  it("filters invalid rules", function() {
+    const NON_ASCII_DOMAIN = "abc.рф";
+    assertIsInvalid({
+      condition: {
+        urlFilter: `||${NON_ASCII_DOMAIN}/adsman/`
+      }
+    }, `||${NON_ASCII_DOMAIN}/adsman/`);
+    assertIsInvalid({
+      condition: {
+        regexFilter: NON_ASCII_DOMAIN
+      }
+    }, NON_ASCII_DOMAIN);
+    assertIsInvalid({
+      condition: {
+        initiatorDomains: [NON_ASCII_DOMAIN]
+      }
+    }, NON_ASCII_DOMAIN);
+    assertIsInvalid({
+      condition: {
+        requestDomains: [NON_ASCII_DOMAIN]
+      }
+    }, NON_ASCII_DOMAIN);
+    assertIsInvalid({
+      condition: {
+        domains: [NON_ASCII_DOMAIN]
+      }
+    }, NON_ASCII_DOMAIN);
+    assertIsInvalid({
+      condition: {
+        excludedDomains: [NON_ASCII_DOMAIN]
+      }
+    }, NON_ASCII_DOMAIN);
+    assertIsInvalid({
+      condition: {
+        excludedInitiatorDomains: [NON_ASCII_DOMAIN]
+      }
+    }, NON_ASCII_DOMAIN);
+    assertIsInvalid({
+      condition: {
+        excludedRequestDomains: [NON_ASCII_DOMAIN]
+      }
+    }, NON_ASCII_DOMAIN);
+  });
+
+  it("does not filter valid rules", function() {
+    assertIsValid({
+      priority: 1001,
+      condition: {
+        urlFilter: "http://abc.com",
+        isUrlFilterCaseSensitive: false
+      },
+      action: {
+        type: "block"
+      },
+      id: 2
+    });
+    assertIsValid({
+      priority: 1001,
+      condition: {
+        regexFilter: "http://abc.com",
+        isUrlFilterCaseSensitive: false
+      },
+      action: {
+        type: "block"
+      },
+      id: 2
+    });
+    assertIsValid({
+      priority: 1000,
+      condition: {
+        urlFilter: "http://abc.xn--?q=-zedud", // punycode
+        isUrlFilterCaseSensitive: false
+      },
+      action: {
+        type: "block"
+      },
+      id: 1
+    });
+    assertIsValid({
+      priority: 1000,
+      condition: {
+        regexFilter: "http://abc.xn--?q=-zedud", // punycode
+        isUrlFilterCaseSensitive: false
+      },
+      action: {
+        type: "block"
+      },
+      id: 1
     });
   });
 });
