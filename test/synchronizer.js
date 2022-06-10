@@ -30,29 +30,27 @@ let filterNotifier = null;
 let filterStorage = null;
 let Prefs = null;
 let Subscription = null;
-let addSubscriptionFilters = null;
 
 describe("Synchronizer", function() {
   let runner = {};
   let synchronizer = null;
-  let Synchronizer = null;
 
   beforeEach(function() {
     runner = {};
 
     let globals = Object.assign({}, setupTimerAndFetch.call(runner), setupRandomResult.call(runner));
-
+    let FilterStorage;
     let sandboxedRequire = createSandbox({globals});
     (
       {MILLIS_IN_SECOND, MILLIS_IN_HOUR} = sandboxedRequire(LIB_FOLDER + "/time"),
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier"),
-      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
+      {FilterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
-      {Synchronizer, addSubscriptionFilters} = sandboxedRequire(LIB_FOLDER + "/synchronizer")
+      {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
 
-    synchronizer = new Synchronizer();
+    filterStorage = new FilterStorage();
+    ({synchronizer} = filterStorage);
   });
 
   afterEach(function() {
@@ -792,6 +790,6 @@ describe("Synchronizer", function() {
     let onError = () => {
       assert.fail("This should not happen");
     };
-    addSubscriptionFilters(subscription, "[Adblock]\nfoo\nbar", onError);
+    synchronizer.addSubscriptionFilters(subscription, "[Adblock]\nfoo\nbar", onError);
   });
 });

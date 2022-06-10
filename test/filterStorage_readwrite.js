@@ -24,6 +24,7 @@ const {promisify} = require("util");
 const {LIB_FOLDER, createSandbox, unexpectedError} = require("./_common");
 
 let Filter = null;
+let FilterStorage = null;
 let filterStorage = null;
 let IO = null;
 let Prefs = null;
@@ -33,13 +34,14 @@ describe("Filter storage read/write", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
     (
+      {FilterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
-      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {IO} = sandboxedRequire("./stub-modules/io"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
       {SpecialSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
 
+    filterStorage = new FilterStorage();
     filterStorage.addFilter(Filter.fromText("foobar"));
   });
 
@@ -89,7 +91,7 @@ describe("Filter storage read/write", function() {
     try {
       let data = await testData;
 
-      IO._setFileContents(filterStorage.sourceFile, data);
+      IO._setFileContents(FilterStorage.sourceFile, data);
       await filterStorage.loadFromDisk();
 
       assert.ok(filterStorage.initialized, "Initialize after the first load");
@@ -111,7 +113,7 @@ describe("Filter storage read/write", function() {
 
       let expected = await testData;
 
-      assert.deepEqual(canonize(IO._getFileContents(filterStorage.sourceFile)),
+      assert.deepEqual(canonize(IO._getFileContents(FilterStorage.sourceFile)),
                        canonize(expected),
                        "Read/write result");
     }
@@ -178,7 +180,7 @@ describe("Filter storage read/write", function() {
         await filterStorage.saveToDisk();
         await filterStorage.saveToDisk();
 
-        assert.ok(!IO._getFileContents(filterStorage.getBackupName(1)),
+        assert.ok(!IO._getFileContents(FilterStorage.getBackupName(1)),
                   "Backup shouldn't be created");
       }
       catch (error) {
@@ -197,9 +199,9 @@ describe("Filter storage read/write", function() {
 
       let timeout = ms => new Promise($ => setTimeout($, ms));
 
-      let backupFile = filterStorage.getBackupName(1);
-      let backupFile2 = filterStorage.getBackupName(2);
-      let backupFile3 = filterStorage.getBackupName(3);
+      let backupFile = FilterStorage.getBackupName(1);
+      let backupFile2 = FilterStorage.getBackupName(2);
+      let backupFile3 = FilterStorage.getBackupName(3);
 
       let oldModifiedTime;
 

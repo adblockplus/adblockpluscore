@@ -33,13 +33,13 @@ describe("Filter storage", function() {
     (
       {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier"),
-      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
 
     const {FilterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine");
     filterEngine = new FilterEngine();
     await filterEngine.initialize();
+    ({filterStorage} = filterEngine);
   });
 
   afterEach(function() {

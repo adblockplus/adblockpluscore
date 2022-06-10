@@ -22,9 +22,9 @@ const {LIB_FOLDER, createSandbox} = require("./_common");
 let sandboxedRequire = null;
 
 let IO = null;
-let filterStorage = null;
 let filterEngine = null;
 let Subscription = null;
+let FilterStorage = null;
 let Filter = null;
 let defaultMatcher = null;
 let SpecialSubscription = null;
@@ -93,8 +93,8 @@ describe("Filter listener", function() {
   beforeEach(function() {
     sandboxedRequire = createSandbox();
     (
-      {IO} = sandboxedRequire("./stub-modules/io"),
-      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage")
+      {FilterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
+      {IO} = sandboxedRequire("./stub-modules/io")
     );
 
     const {FilterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine");
@@ -112,7 +112,7 @@ describe("Filter listener", function() {
   });
 
   it("Initialization", async function() {
-    IO._setFileContents(filterStorage.sourceFile, `
+    IO._setFileContents(FilterStorage.sourceFile, `
       version=5
 
       [Subscription]
@@ -157,14 +157,21 @@ describe("Filter listener", function() {
   });
 
   describe("Synchronization", function() {
+    let filterStorage = null;
+
     beforeEach(async function() {
       await filterEngine.initialize();
 
       (
+        {filterStorage} = filterEngine,
         {Subscription, SpecialSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
         {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses"),
         recommendations = sandboxedRequire("../data/subscriptions.json")
       );
+
+      // Disable the synchronizer for downloadable subscription
+      const {DownloadableSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses");
+      DownloadableSubscription.useSynchronizer(null);
 
       let {FilterState} = sandboxedRequire(LIB_FOLDER + "/filterState");
       filterState = new FilterState();
@@ -180,6 +187,7 @@ describe("Filter listener", function() {
 
     afterEach(function() {
       filterState = null;
+      filterStorage = null;
     });
 
     it("Adding/removing filters", function() {

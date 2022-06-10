@@ -39,12 +39,13 @@ describe("Synchronizer", function() {
 
     let sandboxedRequire = createSandbox({globals});
     (
-      {filterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
       profiler = sandboxedRequire(LIB_FOLDER + "/profiler")
     );
+    const {FilterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage");
     const {Synchronizer} = sandboxedRequire(LIB_FOLDER + "/synchronizer");
-    synchronizer = new Synchronizer();
+    filterStorage = new FilterStorage();
+    synchronizer = new Synchronizer(filterStorage);
 
     profiler.enable(true, list => {
       for (let entry of list.getEntriesByType("measure"))
