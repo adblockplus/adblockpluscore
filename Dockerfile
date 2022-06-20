@@ -65,9 +65,14 @@ RUN PYTHONPATH=cms python -m cms.bin.generate_static_pages testpages.adblockplus
 
 # Build extension with current branch
 # Clone abpui repo
-RUN git clone -b 3.13 https://gitlab.com/eyeo/adblockplus/abpui/adblockplusui.git
-# Checkout on recent release commit to have stable ABPUI version
-RUN cd adblockplusui && npm run submodules:update && git submodule status && npm install
+# Checkout on recent release commit to have stable ABPUI version or use predefined
+RUN git clone https://gitlab.com/eyeo/adblockplus/abpui/adblockplusui.git 
+ARG ABPUITAG=""
+RUN if [ "$ABPUITAG" = "" ]; then cd adblockplusui && git fetch --tags \
+  && ABPUITAG=$(git describe --tags `git rev-list --tags --max-count=1`); fi
+RUN git -C adblockplusui checkout $ABPUITAG
+RUN echo "Using ABPUI tag: ${ABPUITAG}"
+RUN cd adblockplusui && npm run submodules:update && git submodule status && npm install --legacy-peer-deps
 
 # Copy Core files:
 RUN cd adblockplusui/vendor/webext-sdk && npm install

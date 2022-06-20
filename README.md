@@ -92,6 +92,12 @@ docker build -t testpages .
 docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets" -it testpages
 ```
 
+The extension code uses the most recently released ABPUI Tag by default. If you prefer to choose a different tag, pass it as a build argument: 
+
+```sh
+docker build --build-arg ABPUITAG="3.13" -t testpages
+```
+
 The current version of the project may contain changes that are not yet supported by ABP. In that case, some of the tests may need to be excluded, which can be done using the `TESTS_EXCLUDE` argument f.ex:
 
 ```sh
