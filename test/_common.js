@@ -60,19 +60,6 @@ function dynamicRequire(id) {
   return module.exports;
 }
 
-function addExports(exports) {
-  return function(source) {
-    let extraExports = exports[path.basename(this.filename, ".js")];
-    if (extraExports) {
-      for (let name of extraExports) {
-        source += `
-          Object.defineProperty(exports, "${name}", {get: () => ${name}});`;
-      }
-    }
-    return source;
-  };
-}
-
 function rewriteRequires(source) {
   function escapeString(str) {
     return str.replace(/(["'\\])/g, "\\$1");
@@ -90,8 +77,6 @@ exports.createSandbox = function(options) {
     options = {};
 
   let sourceTransformers = [rewriteRequires];
-  if (options.extraExports)
-    sourceTransformers.push(addExports(options.extraExports));
 
   // This module loads itself into a sandbox, keeping track of the require
   // function which can be used to load further modules into the sandbox.
