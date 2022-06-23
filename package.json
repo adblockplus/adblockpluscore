@@ -7,7 +7,10 @@
     "node": ">=16.10.0",
     "npm": ">=7"
   },
-  "dependencies": {},
+  "dependencies": {
+    "tar": "^6.1.10",
+    "yargs": "17.3.0"
+  },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "c8": "^7.1.2",
@@ -29,10 +32,8 @@
     "sandboxed-module": "2.0.4",
     "script-loader": "0.7.0",
     "selenium-webdriver": "^4.0.0-alpha",
-    "tar": "^6.1.10",
     "terser": "^5.6.0",
-    "webpack": "^4.41.6",
-    "yargs": "17.3.0"
+    "webpack": "^4.41.6"
   },
   "scripts": {
     "jsdoc": "jsdoc --configure .jsdoc.conf --destination build/docs lib",
