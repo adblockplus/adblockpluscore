@@ -63,5 +63,11 @@
     "fetch-subscriptions": "node scripts/fetchSubscriptions.js",
     "merge-subscriptions": "node scripts/mergeSubscriptions.js"
   },
-  "main": "lib"
+  "main": "lib",
+  "bin":
+  {
+    "updateSubscriptions": "./scripts/updateSubscriptions.js",
+    "fetchSubscriptions": "./scripts/fetchSubscriptions.js",
+    "mergeSubscriptions": "./scripts/mergeSubscriptions.js"
+  }
 }

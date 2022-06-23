@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  * This file is part of Adblock Plus <https://adblockplus.org/>,
  * Copyright (C) 2006-present eyeo GmbH
