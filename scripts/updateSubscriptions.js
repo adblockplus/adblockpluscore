@@ -33,7 +33,7 @@ const {hideBin} = require("yargs/helpers");
 
 const listUrl = "https://gitlab.com/eyeo/filterlists/subscriptionlist/" +
                 "-/archive/master/subscriptionlist-master.tar.gz";
-const backendUrlMv3 = "https://filter-delivery-staging.eyeo.com/v3/index.json";
+const backendUrlMv3 = "https://easylist-downloads.adblockplus.org/v3/index.json";
 const filenameMv2 = "data/subscriptions.json";
 const filenameMv3 = "build/data/subscriptions_mv3.json";
 
