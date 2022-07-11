@@ -53,8 +53,7 @@ tests:
   cache:
     key: global-cache
     paths:
-      - chromium-snapshots/download-cache/
-      - firefox-snapshots/download-cache/
+      - browser-snapshots/*/cache/
 
 benchmark:
   extends: .default_template
@@ -120,7 +119,7 @@ testpages:firefox:oldest:
     BROWSER: Firefox \(oldest\)
 
 testPages:firefox:beta:
-  extends: .testpages 
+  extends: .testpages
   allow_failure: true
   variables:
     BROWSER: Firefox \(beta\)

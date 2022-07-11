@@ -1,6 +1,5 @@
 /build/
-/chromium-snapshots/
-/firefox-snapshots/
+/browser-snapshots/
 /build/docs/tutorials/snippet-filter-tutorial.md
 /coverage/
 /docs/

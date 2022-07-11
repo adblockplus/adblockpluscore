@@ -1,6 +1,5 @@
 /node_modules/
-/chromium-snapshots/
-/firefox-snapshots/
+/browser-snapshots/
 /coverage/
 benchmark/*.txt
 benchmark/benchmarkresults.json

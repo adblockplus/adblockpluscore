@@ -73,7 +73,7 @@ BROWSER_TEST_RUNNERS environment, the default is
 "chromium_remote,firefox". Possible values (separated by a ',') are:
 
 - "chromium_remote": Chromium 60 (using the remote interface)
-- "chromium": Chrome 63 (using WebDriver)
+- "chromium": Chromium 77 (using WebDriver)
 - "firefox": Firefox 57 (using WebDriver)
 
 You can not set a specific version of the browser at runtime.
@@ -92,7 +92,7 @@ docker build -t testpages .
 docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets" -it testpages
 ```
 
-The extension code uses the most recently released ABPUI Tag by default. If you prefer to choose a different tag, pass it as a build argument: 
+The extension code uses the most recently released ABPUI Tag by default. If you prefer to choose a different tag, pass it as a build argument:
 
 ```sh
 docker build --build-arg ABPUITAG="3.13" -t testpages

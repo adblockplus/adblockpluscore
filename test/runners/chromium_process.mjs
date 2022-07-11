@@ -15,40 +15,22 @@
  * along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import webdriver from "selenium-webdriver";
-import chrome from "selenium-webdriver/chrome.js";
+import {BROWSERS} from "@eyeo/get-browser-binary";
 import "chromedriver";
 
 import {executeScript} from "./webdriver.mjs";
-import {ensureChromium} from "./chromium_download.mjs";
 
-// The Chromium version is a build number, quite obscure.
-// Chromium 63.0.3239.x is 508578
-// Chromium 65.0.3325.0 is 530368
-// We currently want Chromiun 63, as we still support it and that's the
-// lowest version that supports WebDriver.
-const CHROMIUM_REVISION = 508578;
+const CHROMIUM_VERSION = "77.0.3865.0";
 
-function runScript(chromiumPath, script, scriptArgs) {
-  const options = new chrome.Options()
-        // Disabling sandboxing is needed on some system configurations
-        // like Debian 9.
-        .addArguments("--no-sandbox")
-        .setChromeBinaryPath(chromiumPath);
+async function runScript(script, scriptArgs) {
   // Headless doesn't seem to work on Windows.
-  if (process.platform != "win32" &&
-      process.env.BROWSER_TEST_HEADLESS != "0")
-    options.headless();
-
-  const driver = new webdriver.Builder()
-        .forBrowser("chrome")
-        .setChromeOptions(options)
-        .build();
+  let headless =
+    process.platform != "win32" && process.env.BROWSER_TEST_HEADLESS != "0";
+  let driver = await BROWSERS.chromium.getDriver(CHROMIUM_VERSION, {headless});
 
   return executeScript(driver, "Chromium (WebDriver)", script, scriptArgs);
 }
 
 export default function(script, scriptName, ...scriptArgs) {
-  return ensureChromium(CHROMIUM_REVISION)
-    .then(chromiumPath => runScript(chromiumPath, script, scriptArgs));
+  return runScript(script, scriptArgs);
 }

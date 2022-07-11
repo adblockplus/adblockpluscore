@@ -20,12 +20,10 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 
+import {BROWSERS} from "@eyeo/get-browser-binary";
 import remoteInterface from "chrome-remote-interface";
 
-import {ensureChromium} from "./chromium_download.mjs";
-
-// Chromium 60.0.3082.x
-const CHROMIUM_REVISION = 467222;
+const CHROMIUM_VERSION = "60.0.3082.0";
 
 function rmdir(dirPath) {
   for (let file of fs.readdirSync(dirPath)) {
@@ -171,8 +169,8 @@ function runScript(script, scriptName, scriptArgs) {
 }
 
 export default function(script, scriptName, ...scriptArgs) {
-  return ensureChromium(CHROMIUM_REVISION).then(chromiumPath => {
-    let child = startChromium(chromiumPath);
+  return BROWSERS.chromium.downloadBinary(CHROMIUM_VERSION).then(({binary}) => {
+    let child = startChromium(binary);
     return Promise.race([
       child.done,
       runScript(script, scriptName, scriptArgs)
