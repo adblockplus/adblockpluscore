@@ -62,67 +62,101 @@ benchmark:
     - npm run benchmark:save
     - npm run benchmark:compare
 
-.testpages:
+.docker-image:
   image: docker:19.03.5
-  tags:
-    - docker
-  stage: testpages
   services:
     - docker:19.03.5-dind
-  before_script:
-    - docker info
   variables:
     DOCKER_DRIVER: overlay2
+
+build:testPagesExtension:
+  stage: default
+  extends: .docker-image
+  script:
+    - docker build -t extensionforcore -f extension.Dockerfile .
+    - docker run extensionforcore
+    - docker cp $(docker ps -aqf ancestor=extensionforcore):/extension .
+  artifacts:
+    paths:
+      - extension
+    expire_in: 1 month
+
+.testpages:
+  stage: testpages
+  extends: .docker-image
   interruptible: true
   # Disabled because of https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/-/issues/430
   # Until we fix webext-sdk
   allow_failure: true
+  variables:
+    MANIFEST: mv2
+  needs:
+    - job: build:integration
+      artifacts: true
+  before_script:
+    - apk add git
+    - git clone -b use-browser-download https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org.git
+    - cp "extension/extension"$MANIFEST".zip" testpages.adblockplus.org
   script:
-    - docker build -t testpages .
-    - docker run --shm-size=256m -e BROWSER="$BROWSER" -e TESTS_EXCLUDE="Snippets|CSP|Header" testpages
+    - cd testpages.adblockplus.org &&
+      docker build -t testpages --build-arg EXTENSION_FILE="extension"$MANIFEST".zip" . &&
+      docker run --shm-size=512m -e SKIP_EXTENSION_DOWNLOAD="true" -e TESTS_EXCLUDE="Snippets$SKIP" -e BROWSER="$BROWSER" testpages
   after_script:
-    - IMAGE_ID=$(docker ps -aqf ancestor=testpages)
-    - docker cp $IMAGE_ID:/testpages.adblockplus.org/test/screenshots .
+    - docker cp $(docker ps -aqf ancestor=testpages):/testpages.adblockplus.org/test/screenshots .
       2> /dev/null
-    - docker cp $IMAGE_ID:/var/log/nginx/ .
   artifacts:
     paths:
       - screenshots/
-      - nginx/
-    when: on_failure
+    when: always
     expire_in: 1 mo
 
-testpages:chrome:latest:
+testpages:v2:chrome:latest:
   extends: .testpages
   variables:
-    BROWSER: Chromium \(latest\)
+    BROWSER: chromium latest
 
-testpages:chrome:oldest:
+testpages:v2:chrome:oldest:
   extends: .testpages
   variables:
-    BROWSER: Chromium \(oldest\)
+    BROWSER: chromium 77.0.3865.0
 
-testPages:chrome:beta:
+testPages:v2:chrome:beta:
   extends: .testpages
   allow_failure: true
   variables:
-    BROWSER: Chromium \(beta\)
+    BROWSER: chromium beta
 
-testpages:firefox:latest:
+testpages:v2:firefox:latest:
   extends: .testpages
   variables:
-    BROWSER: Firefox \(latest\)
+    BROWSER: firefox latest
 
-testpages:firefox:oldest:
+testpages:v2:firefox:oldest:
   extends: .testpages
   variables:
-    BROWSER: Firefox \(oldest\)
+    BROWSER: firefox 68.0
 
-testPages:firefox:beta:
+testPages:v2:firefox:beta:
   extends: .testpages
   allow_failure: true
   variables:
-    BROWSER: Firefox \(beta\)
+    BROWSER: firefox beta
+
+.testPages:v3:
+  extends: .testpages
+  variables:
+    MANIFEST: mv3
+    SKIP: "|Header|Sitekey|Subscriptions"
+
+testPages:v3:chrome:latest:
+  extends: .testPages:v3
+  variables:
+    BROWSER: chromium latest
+
+testPages:v3:chrome:beta:
+  extends: .testPages:v3
+  variables:
+    BROWSER: chromium beta
 
 docs:
   extends: .default_template
