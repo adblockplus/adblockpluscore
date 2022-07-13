@@ -1,6 +1,8 @@
 Adblock Plus core
 =================
 
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](./CODE_OF_CONDUCT.md)
+
 This repository contains the generic Adblock Plus code that's shared between
 platforms. This repository is __not designed to be used directly__, but instead
 to serve as a dependency for `adblockpluschrome` and `libadblockplus`.
@@ -10,6 +12,12 @@ Contributing
 
 Please follow the [code style](docs/CODE_STYLE.md). Most of the rules
 are enforced by the linter (see below).
+
+## Code of Conduct
+
+All contributors to this project are required to read, and follow, our
+[code of conduct](./CODE_OF_CONDUCT.md).
+
 
 Resources
 ---------
