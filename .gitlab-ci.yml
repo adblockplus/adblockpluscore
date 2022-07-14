@@ -85,6 +85,8 @@ benchmark:
     paths:
       - ./artifacts
     expire_in: 1 mo
+  tags:
+    - beat_build_servers_beat-gitlab-runner-2.uplink.eyeo.it
 
 .testpages:
   image: docker:19.03.5
