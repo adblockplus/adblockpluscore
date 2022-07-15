@@ -55,10 +55,9 @@ tests:
       - firefox-snapshots/download-cache/
 
 benchmark:
-  image: docker:19.03.5
+  image: docker:19.03.5-dind
   stage: default
   before_script:
-    - docker info
     - >
         if true; then
         export EXTENDHISTORICAL=true;
