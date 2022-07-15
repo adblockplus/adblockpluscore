@@ -51,7 +51,10 @@ async function fetchSubscriptions(fromFile, toDir, ignoreFetchErrors = false) {
       await download(subscription.url, toTmpFile);
     }
     catch (e) {
-      console.error(`Downloading ${subscription.url} failed`);
+      if (ignoreFetchErrors) {
+        console.warn(`Downloading ${subscription.url} failed`);
+        continue;
+      }
       if (await exists(toTmpFile))
         await rm(toTmpFile);
       throw e;

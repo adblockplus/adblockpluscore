@@ -248,8 +248,30 @@ describe("fetchSubscriptions script", function() {
     const origin = "http://localhost";
     const urlPath = "/test_subscription1.txt";
     const url = origin + urlPath;
-    await assert.doesNotReject(async() => fetchSubscriptions(subscriptionsFile, outDir, true));
+    const subscriptionsFile = createFile(tmpDir,
+      `[{
+        "type": "ads",
+        "languages": [
+          "en"
+        ],
+        "title": "Test Subscription 1",
+        "url": "${url}",
+        "homepage": "https://easylist.to/"
+      }]`);
+
+    nock(origin).get(urlPath).reply(404); // simulate HTTP error
+
+    mkdirSync(outDir);
+    let filename = path.join(outDir, getSubscriptionFile({url}));
+    const data = "something";
+    writeFileSync(filename, data); // existing file with some data
+
+    await assert.rejects(async() => fetchSubscriptions(subscriptionsFile, outDir));
+    let files = readdirSync(outDir);
+    assert.strictEqual(files.length, 1);
+    assert.deepEqual(await readFile(filename), Buffer.from(data, ENCODING));
   });
+
 
   it("should fetch multiple subscriptions and ignore errors", async function() {
     const urlPath1 = "/test_subscription1.txt";
