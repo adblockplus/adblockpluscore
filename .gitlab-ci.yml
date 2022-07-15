@@ -55,8 +55,12 @@ tests:
       - firefox-snapshots/download-cache/
 
 benchmark:
-  image: docker:19.03.5-dind
+  image: docker:19.03.5
+  tags:
+    - docker
   stage: default
+  services:
+    - docker:19.03.5-dind
   before_script:
     - >
         if true; then
