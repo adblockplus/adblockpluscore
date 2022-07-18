@@ -1,3 +1,63 @@
+0.8.0 - 2022/07/25
+==================
+
+## Changes
+
+- Some major API changes have been introduced to remove the use of
+  singletons and consolidate the interdependencies of the various
+  modules. #430
+- `data/resources.json` and `data/publicSuffixList.json` as now pure
+  JavaScript. #420
+- Added a code style document. #396
+- Manifest V3 support:
+  - Better test coverage for text2dnr. #441
+  - Disable regexp rules by default when converting to DNR. #431
+  - API to modify rules during the DNR conversion. #405
+  - Make sure rules only have ASCII in the `urlFilter`. #426
+  - Get the list of default subscriptions from backend. #425
+  - Allow ignoring download errors with `scripts/fetchSubscriptions.js`. #445
+
+## Bug fixes
+
+- `npm audit` in CI will only check for production dependencies.
+- `scripts/fetchSubscriptions.js` no longer write an empty file if a
+  download fails. #446
+
+## Updating your code
+
+- Here are changes in the API:
+  - `filterEngine` must be instantiated: the class is the symbol
+    imported (`FilterEngine`), and initialized.
+  - `defaultMatcher` is no longer exported from `matcher.js` and should
+    be accessed as `filterEngine.defaultMatcher`
+  - `elemHideEmulation`, `elemHide` and `snippets` are accessed as a
+    property of `filterEngine`
+  - `filterStorage` is accessed as a property of `filterEngine`, and
+    is instantiated by the engine.
+  - `filterState` is accessed as a property of `filterStorage`
+  - `synchronizer` is accessed as a property of `filterStorage`
+
+Example:
+```JavaScript
+
+let {FilterEngine} = require("adblockpluscore");
+
+let filterEngine = new FilterEngine();
+
+filterEngine.initialize()
+        .then(() => {
+            let {defaultMatcher, filterStorage} = filterEngine;
+
+            let {synchronizer} = filterEngine;
+            synchronizer.start();
+
+            let filter = filterEngine.match(resource.url, contentTypes.IMAGE,
+                                new URL(resource.documentURL).hostname);
+            if (filter)
+                console.log(`matched filter: ${filter.text}`);
+        });
+```
+
 0.7.2 - 2022/05/18
 ==================
 
@@ -221,7 +281,7 @@ filter whose body (CSS selector) is 2 characters or less. See issue
 #264. However a wildcard `*` in a URL filter allow short filters to
 still be valid. See issue #370.
 
-When instanciating `ElemHideEmulation`, you can now pass as the second
+When instantiating `ElemHideEmulation`, you can now pass as the second
 parameter of the constructor, a callback to unhide, function that
 would be called to unhide elements previously hidden (doing the
 opposite of the hide callback). See issue #202.
