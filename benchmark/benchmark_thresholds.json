@@ -2,7 +2,7 @@
     "FilterList_EasyList": {
       "TimeMean": 50.00,
       "HeapUsed": 0.5,
-      "HeapTotal": 0.25
+      "HeapTotal": 0.85
     },
     "FilterList_EasyList+AA": {
       "TimeMean": 110,
@@ -36,6 +36,6 @@
       "TimeMean": 0.1,
       "TimeMax": 4,
       "HeapUsed": 0.06,
-      "HeapTotal": 0.5
+      "HeapTotal": 0.75
     }
   }
