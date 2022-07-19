@@ -24,7 +24,7 @@
       "TimeMean": 0.2,
       "TimeMax": 8,
       "HeapUsed": 0.035,
-      "HeapTotal": 0.25
+      "HeapTotal": 0.500
     },
     "Matching_all_EasyList+AA": {
       "TimeMean": 0.2,
@@ -36,6 +36,6 @@
       "TimeMean": 0.1,
       "TimeMax": 4,
       "HeapUsed": 0.06,
-      "HeapTotal": 1.500
+      "HeapTotal": 2.250
     }
   }
