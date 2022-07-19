@@ -18,18 +18,18 @@
       "TimeMean": 0.01,
       "TimeMax": 0.07,
       "HeapUsed": 1,
-      "HeapTotal": 0.01
+      "HeapTotal": 0.25
     },
     "Matching_all_EasyList": {
       "TimeMean": 0.2,
       "TimeMax": 8,
-      "HeapUsed": 0.01,
+      "HeapUsed": 0.035,
       "HeapTotal": 0.25
     },
     "Matching_all_EasyList+AA": {
       "TimeMean": 0.2,
       "TimeMax": 2,
-      "HeapUsed": 0.02,
+      "HeapUsed": 0.033,
       "HeapTotal": 0.8
     },
     "Matching_all_All": {
