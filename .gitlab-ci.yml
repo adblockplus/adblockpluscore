@@ -99,6 +99,9 @@ benchmark:
   variables:
     DOCKER_DRIVER: overlay2
   interruptible: true
+  # Disabled because of https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/-/issues/430
+  # Until we fix webext-sdk
+  allow_failure: true
   script:
     - docker build -t testpages .
     - docker run --shm-size=256m -e BROWSER="$BROWSER" -e TESTS_EXCLUDE="Snippets|CSP|Header" testpages
