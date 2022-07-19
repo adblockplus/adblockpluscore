@@ -20,7 +20,7 @@
 
 const {filenameMv3} = require("./updateSubscriptions");
 const {exists, download} = require("./utils");
-const {promises: {readFile, mkdir}} = require("fs");
+const {promises: {readFile, mkdir, rename, rm}} = require("fs");
 const yargs = require("yargs/yargs");
 const {hideBin} = require("yargs/helpers");
 
@@ -46,7 +46,17 @@ async function fetchSubscriptions(fromFile, toDir) {
   let subscriptions = await JSON.parse(await readFile(fromFile));
   for (let subscription of subscriptions) {
     let toFile = `${toDir}/${getSubscriptionFile(subscription)}`;
-    await download(subscription.url, toFile);
+    let toTmpFile = toFile + ".tmp";
+    try {
+      await download(subscription.url, toTmpFile);
+    }
+    catch (e) {
+      console.error("Downloading failed");
+      if (await exists(toTmpFile))
+        await rm(toTmpFile);
+      throw e;
+    }
+    await rename(toTmpFile, toFile);
   }
   console.info("Downloading finished");
 }

@@ -221,4 +221,54 @@ describe("fetchSubscriptions script", function() {
     mkdirSync(outDir);
     await assert.rejects(async() => fetchSubscriptions(subscriptionsFile, outDir));
   });
+
+  it("should not create an empty file on HTTP download failure", async function() {
+    const origin = "http://localhost";
+    const urlPath = "/test_subscription1.txt";
+    const subscriptionsFile = createFile(tmpDir,
+      `[{
+        "type": "ads",
+        "languages": [
+          "en"
+        ],
+        "title": "Test Subscription 1",
+        "url": "${origin + urlPath}",
+        "homepage": "https://easylist.to/"
+      }]`);
+
+    nock(origin).get(urlPath).reply(404); // simulate HTTP error
+
+    mkdirSync(outDir);
+    await assert.rejects(async() => fetchSubscriptions(subscriptionsFile, outDir));
+    let files = readdirSync(outDir);
+    assert.strictEqual(files.length, 0);
+  });
+
+  it("should not clean an existing file on HTTP download failure", async function() {
+    const origin = "http://localhost";
+    const urlPath = "/test_subscription1.txt";
+    const url = origin + urlPath;
+    const subscriptionsFile = createFile(tmpDir,
+      `[{
+        "type": "ads",
+        "languages": [
+          "en"
+        ],
+        "title": "Test Subscription 1",
+        "url": "${url}",
+        "homepage": "https://easylist.to/"
+      }]`);
+
+    nock(origin).get(urlPath).reply(404); // simulate HTTP error
+
+    mkdirSync(outDir);
+    let filename = path.join(outDir, getSubscriptionFile({url}));
+    const data = "something";
+    writeFileSync(filename, data); // existing file with some data
+
+    await assert.rejects(async() => fetchSubscriptions(subscriptionsFile, outDir));
+    let files = readdirSync(outDir);
+    assert.strictEqual(files.length, 1);
+    assert.deepEqual(await readFile(filename), Buffer.from(data, ENCODING));
+  });
 });
