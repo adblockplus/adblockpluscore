@@ -196,6 +196,7 @@ However, from time to time, or after a cleanup, it is recommended to remove
 these files manually, and download latest.
 
 *Please note:* downloading doesn't work for Matching filter lists.
+
 ### Benchmarking
 
 The `npm run benchmark` command will visually show, in console, what is the
@@ -329,3 +330,5 @@ Pass a specific input filename and target directory if needed:
 ```
 node scripts/fetchSubscriptions.js -i build/data/subscriptions_custom_mv3.json -o build/data/subscriptions/custom_ABP
 ```
+
+Ignore fetch errors by passing `-ife` / `--ignoreFetchErrors` flag (useful when subscription links might be unstable).

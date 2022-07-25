@@ -271,4 +271,43 @@ describe("fetchSubscriptions script", function() {
     assert.strictEqual(files.length, 1);
     assert.deepEqual(await readFile(filename), Buffer.from(data, ENCODING));
   });
+
+
+  it("should fetch multiple subscriptions and ignore errors", async function() {
+    const urlPath1 = "/test_subscription1.txt";
+    const data1 = "subscription data 1";
+    const urlPath2 = "/test_subscription2.txt";
+    const origin = "http://localhost";
+
+    const subscriptionsFile = createFile(tmpDir,
+      `[{
+        "type": "ads",
+        "languages": [
+          "en"
+        ],
+        "title": "Test Subscription 1",
+        "url": "${origin + urlPath1}",
+        "homepage": "https://easylist.to/"
+      }, {
+        "type": "ads",
+        "languages": [
+          "en"
+        ],
+        "title": "Test Subscription 2",
+        "url": "${origin + urlPath2}",
+        "homepage": "https://easylist.to/"
+      }]`);
+
+    nock(origin).get(urlPath1).reply(404);
+    nock(origin).get(urlPath2).reply(200, data1);
+
+    mkdirSync(outDir);
+    await assert.doesNotReject(async() => fetchSubscriptions(subscriptionsFile, outDir, true));
+    let files = readdirSync(outDir);
+    assert.strictEqual(files.length, 2);
+    let subscriptionURL = `${origin}${urlPath2}`.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    assert.deepEqual(
+      await readFile(`${outDir}/${subscriptionURL}`),
+      Buffer.from(data1, ENCODING));
+  });
 });
