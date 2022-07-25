@@ -30,7 +30,7 @@ function getSubscriptionFile(subscription) {
   return subscription.url.replace(/[^a-z0-9]/gi, "_").toLowerCase();
 }
 
-async function fetchSubscriptions(fromFile, toDir) {
+async function fetchSubscriptions(fromFile, toDir, ignoreFetchErrors = false) {
   if (await exists(toDir))
     console.warn("The output directory exists");
   else
@@ -51,7 +51,7 @@ async function fetchSubscriptions(fromFile, toDir) {
       await download(subscription.url, toTmpFile);
     }
     catch (e) {
-      console.error("Downloading failed");
+      console.error(`Downloading ${subscription.url} failed`);
       if (await exists(toTmpFile))
         await rm(toTmpFile);
       throw e;
@@ -75,10 +75,17 @@ async function main() {
       requiresArg: true,
       description: "Output directory"
     })
+    .option("ignoreFetchErrors", {
+      alias: "ife",
+      type: "boolean",
+      requiresArg: false,
+      description: "Ignore fetch errors and continue"
+    })
     .parse();
   let fromFile = args.input || filenameMv3;
   let toDir = args.output || OUTPUT_DIR;
-  await fetchSubscriptions(fromFile, toDir);
+  let ignoreFetchErrors = args.ignoreFetchErrors || false;
+  await fetchSubscriptions(fromFile, toDir, ignoreFetchErrors);
 }
 
 if (require.main == module)

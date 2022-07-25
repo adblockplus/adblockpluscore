@@ -248,6 +248,15 @@ describe("fetchSubscriptions script", function() {
     const origin = "http://localhost";
     const urlPath = "/test_subscription1.txt";
     const url = origin + urlPath;
+    await assert.doesNotReject(async() => fetchSubscriptions(subscriptionsFile, outDir, true));
+  });
+
+  it("should fetch multiple subscriptions and ignore errors", async function() {
+    const urlPath1 = "/test_subscription1.txt";
+    const data1 = "subscription data 1";
+    const urlPath2 = "/test_subscription2.txt";
+    const origin = "http://localhost";
+
     const subscriptionsFile = createFile(tmpDir,
       `[{
         "type": "ads",
@@ -255,20 +264,28 @@ describe("fetchSubscriptions script", function() {
           "en"
         ],
         "title": "Test Subscription 1",
-        "url": "${url}",
+        "url": "${origin + urlPath1}",
+        "homepage": "https://easylist.to/"
+      }, {
+        "type": "ads",
+        "languages": [
+          "en"
+        ],
+        "title": "Test Subscription 2",
+        "url": "${origin + urlPath2}",
         "homepage": "https://easylist.to/"
       }]`);
 
-    nock(origin).get(urlPath).reply(404); // simulate HTTP error
+    nock(origin).get(urlPath1).reply(404);
+    nock(origin).get(urlPath2).reply(200, data1);
 
     mkdirSync(outDir);
-    let filename = path.join(outDir, getSubscriptionFile({url}));
-    const data = "something";
-    writeFileSync(filename, data); // existing file with some data
-
-    await assert.rejects(async() => fetchSubscriptions(subscriptionsFile, outDir));
+    await assert.doesNotReject(async() => fetchSubscriptions(subscriptionsFile, outDir, true));
     let files = readdirSync(outDir);
-    assert.strictEqual(files.length, 1);
-    assert.deepEqual(await readFile(filename), Buffer.from(data, ENCODING));
+    assert.strictEqual(files.length, 2);
+    let subscriptionURL = `${origin}${urlPath2}`.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    assert.deepEqual(
+      await readFile(`${outDir}/${subscriptionURL}`),
+      Buffer.from(data1, ENCODING));
   });
 });
