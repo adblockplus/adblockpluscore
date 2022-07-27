@@ -19,21 +19,19 @@
 
 const assert = require("assert");
 const {
-  existsSync, mkdirSync, writeFileSync,
+  existsSync, mkdirSync,
   promises: {readFile, rm, mkdtemp}
 } = require("fs");
 const os = require("os");
 const path = require("path");
 const nock = require("nock");
 
-const {listUrl: listUrlMv2, updateMv2, updateMv3, backendUrlMv3} =
+const {listUrl: listUrlMv2, update} =
   require("../../scripts/updateSubscriptions");
 
 const exampleSubscription = "subscriptionlist-master";
-const ENCODING = "utf-8";
 
 const listUrl = new URL(listUrlMv2);
-const backendUrl = new URL(backendUrlMv3);
 
 describe("updateSubscriptions script", function() {
   let tmpDir;
@@ -48,12 +46,6 @@ describe("updateSubscriptions script", function() {
 
   function mockedConsoleErr(message) {
     errors.push(message);
-  }
-
-  function createFile(dir, data) {
-    let file = path.join(dir, "subscriptions.json");
-    writeFileSync(file, data);
-    return file;
   }
 
   beforeEach(async function() {
@@ -87,7 +79,7 @@ describe("updateSubscriptions script", function() {
 
   async function performSubscriptionUpdate(mockedDataPath) {
     await mockData(mockedDataPath);
-    await updateMv2(toFile);
+    await update(toFile);
   }
 
   async function assertSubscriptions(assertCallback) {
@@ -210,38 +202,4 @@ describe("updateSubscriptions script", function() {
       }
     });
   });
-
-  it("should download MV3 list", async function() {
-    const subscriptionsListData = createFile(tmpDir,
-      `[{
-        "type": "ads",
-        "languages": [
-          "en"
-        ],
-        "title": "Test Subscription",
-        "url": "someUrl",
-        "homepage": "https://easylist.to/"
-      }]`);
-    const file = path.join(outDir, "file.tmp");
-
-    nock(backendUrl.origin).get(backendUrl.pathname).reply(200, subscriptionsListData);
-
-    await updateMv3(file);
-    assert.deepEqual(await readFile(file), Buffer.from(subscriptionsListData, ENCODING));
-  });
-
-  for (let statusCode of [400, 401, 404, 422]) {
-    it(`should handle request ${statusCode} on download`, async function() {
-      const file = path.join(outDir, "file.tmp");
-
-      nock(backendUrl.origin).get(backendUrl.pathname).reply(statusCode);
-
-      await assert.rejects(updateMv3(file),
-                           {
-                             name: "Error",
-                             message: `Failed to get '${backendUrl}' (${statusCode})`
-                           }
-      );
-    });
-  }
 });
