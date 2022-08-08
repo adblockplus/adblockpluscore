@@ -73,6 +73,18 @@ describe("Subscription classes", function() {
     assert.equal(typeof DownloadableSubscription, "function", "typeof DownloadableSubscription");
   });
 
+  it("Serializes NonDownloadableSubscriptions", function() {
+    let subscription = Subscription.fromURLandID("URL", "ID");
+    let result = [...subscription.serialize()];
+    assert.deepEqual(result, [
+      "[Subscription]",
+      "url=URL",
+      "title=URL",
+      "downloadable=false",
+      "id=ID"
+    ]);
+  });
+
   it("Subscriptions with state", function() {
     compareSubscription("~fl~", ["url=~fl~"]);
     compareSubscription("https://test/default", ["url=https://test/default", "title=https://test/default"]);

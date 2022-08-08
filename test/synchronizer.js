@@ -107,6 +107,28 @@ describe("Synchronizer", function() {
       }).catch(error => unexpectedError.call(assert, error));
     });
 
+    it("Does not synchronize a NonDownloadableSubscription", function() {
+      let subscription = Subscription.fromURLandID("https://example.com/subscription", "ID");
+      subscription.setFilterText(["filter1", "filter2"]);
+      filterStorage.addSubscription(subscription);
+
+      let requests = [];
+      runner.registerHandler("/subscription", metadata => {
+        requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
+        return [200, ""];
+      });
+
+      let notified = false;
+      filterNotifier.on("subscription.updated", sub => {
+        notified = sub === subscription;
+      });
+
+      return runner.runScheduledTasks(50).then(() => {
+        assert.equal(notified, false);
+        assert.deepEqual(requests, [], "Requests after 50 hours");
+      }).catch(error => unexpectedError.call(assert, error));
+    });
+
     it("A disabled subscription does not parse data", function() {
       let subscription = Subscription.fromURL("https://example.com/subscription");
       filterStorage.addSubscription(subscription);
