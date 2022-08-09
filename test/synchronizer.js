@@ -109,7 +109,7 @@ describe("Synchronizer", function() {
 
     it("Does not synchronize a NonDownloadableSubscription", function() {
       let subscription = Subscription.fromURLandID("https://example.com/subscription", "ID");
-      subscription.setFilterText(["filter1", "filter2"]);
+      subscription.content = "filter1\nfilter2";
       filterStorage.addSubscription(subscription);
 
       let requests = [];
