@@ -193,5 +193,18 @@ describe("INIParser", function() {
 
       assert.equal(filterState.getHitCount("/ads"), 5);
     });
+
+    it("should deserialize non updatable subscriptions", function() {
+      iniParser.process("[subscription]");
+      iniParser.process("url=URL");
+      iniParser.process("id=ID");
+      iniParser.process("updatable=false");
+      iniParser.process(null);
+
+      let expectedSubscription = Subscription.fromURL("URL");
+      assert.deepEqual(iniParser.subscriptions, [
+        expectedSubscription
+      ]);
+    });
   });
 });
