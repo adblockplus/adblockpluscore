@@ -20,15 +20,14 @@
 const assert = require("assert");
 const {LIB_FOLDER, createSandbox} = require("./_common");
 
-const data = require("../data/subscriptions.json");
-
 let recommendations = null;
+let setRecommendations = null;
 
 describe("Recommendations", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox({});
     (
-      {recommendations} = sandboxedRequire(LIB_FOLDER + "/recommendations")
+      {recommendations, setRecommendations} = sandboxedRequire(LIB_FOLDER + "/recommendations")
     );
   });
 
@@ -93,12 +92,13 @@ describe("Recommendations", function() {
     }
   }
 
-  it("Recommendations", function() {
+  it("Has built-in recommendations", function() {
+    const subscriptionsJson = require("../data/subscriptions.json");
     let index = 0;
     let knownTypes = new Set();
 
     for (let recommendation of recommendations()) {
-      let source = data[index++];
+      let source = subscriptionsJson[index++];
 
       checkValidity(recommendation);
       checkEquality(recommendation, source);
@@ -114,6 +114,16 @@ describe("Recommendations", function() {
       knownTypes.add(type);
     }
 
-    assert.equal(index, data.length);
+    assert.equal(index, subscriptionsJson.length);
+  });
+
+  it("Accept supplied recommendations", function() {
+    let _recommendations = require("./data/v3_index.json");
+
+    setRecommendations(_recommendations);
+
+    for (let recommendation of recommendations())
+
+      checkValidity(recommendation);
   });
 });

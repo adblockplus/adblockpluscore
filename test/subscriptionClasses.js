@@ -26,6 +26,23 @@ let DownloadableSubscription = null;
 let RegularSubscription = null;
 let Filter = null;
 
+function compareSubscription(url, expected, postInit) {
+  expected.push("[Subscription]");
+  let subscription = Subscription.fromURL(url);
+  if (postInit)
+    postInit(subscription);
+  let result = [...subscription.serialize()];
+  assert.equal(result.sort().join("\n"), expected.sort().join("\n"), url);
+
+  let map = Object.create(null);
+  for (let line of result.slice(1)) {
+    if (/(.*?)=(.*)/.test(line))
+      map[RegExp.$1] = RegExp.$2;
+  }
+  let subscription2 = Subscription.fromObject(map);
+  assert.equal(subscription.toString(), subscription2.toString(), url + " deserialization");
+}
+
 describe("Subscription classes", function() {
   beforeEach(function() {
     let sandboxedRequire = createSandbox();
@@ -36,23 +53,6 @@ describe("Subscription classes", function() {
       {Filter} = sandboxedRequire(LIB_FOLDER + "/filterClasses")
     );
   });
-
-  function compareSubscription(url, expected, postInit) {
-    expected.push("[Subscription]");
-    let subscription = Subscription.fromURL(url);
-    if (postInit)
-      postInit(subscription);
-    let result = [...subscription.serialize()];
-    assert.equal(result.sort().join("\n"), expected.sort().join("\n"), url);
-
-    let map = Object.create(null);
-    for (let line of result.slice(1)) {
-      if (/(.*?)=(.*)/.test(line))
-        map[RegExp.$1] = RegExp.$2;
-    }
-    let subscription2 = Subscription.fromObject(map);
-    assert.equal(subscription.toString(), subscription2.toString(), url + " deserialization");
-  }
 
   function compareSubscriptionFilters(subscription, expected) {
     assert.deepEqual([...subscription.filterText()], expected);
@@ -194,7 +194,7 @@ describe("Subscription classes", function() {
     assert.equal(subscription.findFilterIndex(Filter.fromText("##.lambda")), 0);
   });
 
-  it("Subscrition delta", function() {
+  it("Subscription delta", function() {
     let subscription = Subscription.fromURL("https://example.com/");
 
     subscription.addFilter(Filter.fromText("##.foo"));
@@ -226,6 +226,80 @@ describe("Subscription classes", function() {
       added: ["##.bar", "##.bar"],
       removed: ["##.lambda", "##.foo", "##.lambda"]
     });
+  });
+
+  it("set filter text properly", function() {
+    let subscription = Subscription.fromURL("https://example.com/");
+    subscription.setFilterText([
+      "##.foo",
+      "##.bar"
+    ]);
+
+    assert.ok(subscription.hasFilterText("##.foo"));
+    assert.equal(subscription.filterTextAt(1), "##.bar");
+
+    let subscription2 = Subscription.fromURL("https://example.com/the_other.txt");
+    assert.throws(() => subscription2.setFilterText("##.foo"));
+    assert.equal(subscription2.filterText.length, 0);
+  });
+});
+
+describe("DNR mode", function() {
+  let setRecommendations;
+
+  beforeEach(function() {
+    let sandboxedRequire = createSandbox();
+    (
+      {Subscription, RegularSubscription,
+       DownloadableSubscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses"),
+      {setRecommendations} = sandboxedRequire(LIB_FOLDER + "/recommendations")
+    );
+
+    Subscription.dnr = true;
+    let recommendations = require("./data/v3_index.json");
+    setRecommendations(recommendations);
+  });
+
+  afterEach(function() {
+    Subscription.dnr = false;
+  });
+
+  it("Handles mv2 URL", function() {
+    let sub1 = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
+    assert.ok(sub1);
+    assert.equal(sub1.url, "https://easylist-downloads.adblockplus.org/v3/full/easylist.txt");
+    assert.ok(sub1 instanceof RegularSubscription);
+    assert.ok(!(sub1 instanceof DownloadableSubscription));
+    assert.equal(sub1.id, "8C13E995-8F06-4927-BEA7-6C845FB7EEBF");
+    assert.equal(sub1.type, "ads");
+    assert.equal(sub1.downloadable, false);
+    assert.deepEqual(sub1.languages, ["en"]);
+
+    let sub2 = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
+    assert.equal(sub1, sub2);
+
+    let sub3 = Subscription.fromURL("https://easylist-downloads.adblockplus.org/v3/full/easylist.txt");
+    assert.equal(sub1, sub3);
+
+    compareSubscription(sub3.url, [
+      "downloadable=false",
+      "id=8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "title=EasyList",
+      "url=https://easylist-downloads.adblockplus.org/v3/full/easylist.txt"
+    ]);
+
+    // This subscription isn't in the "recommendations"
+    let sub4 = Subscription.fromURL("https://test/default");
+    assert.ok(sub4 instanceof RegularSubscription);
+    assert.ok(sub4 instanceof DownloadableSubscription);
+    // This one is unknown so is has no ID.
+    assert.strictEqual(sub4.id, null);
+    assert.notEqual(sub1, sub4);
+    assert.strictEqual(sub4.downloadable, true);
+    compareSubscription(sub4.url, [
+      "title=https://test/default",
+      "url=https://test/default"
+    ]);
   });
 });
 
