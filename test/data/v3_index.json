@@ -1,0 +1,822 @@
+[
+  {
+    "id": "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+    "type": "ads",
+    "languages": [
+      "en"
+    ],
+    "title": "EasyList",
+    "homepage": "https://easylist.to/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylist.txt"
+  },
+  {
+    "id": "D72B6F06-52B2-4FED-96A2-1BF59CDD7AEC",
+    "type": "privacy",
+    "title": "EasyPrivacy",
+    "homepage": "https://easylist.to/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easyprivacy.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easyprivacy.txt"
+  },
+  {
+    "id": "5BD2BB73-459D-4A74-AF9D-A10157268350",
+    "type": "notifications",
+    "title": "Fanboy's Notifications Blocking List",
+    "homepage": "https://easylist.to/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/fanboy-notifications.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/fanboy-notifications.txt"
+  },
+  {
+    "id": "0798B6A2-94A4-4ADF-89ED-BEC112FC4C7F",
+    "type": "allowing",
+    "title": "Allow nonintrusive advertising",
+    "homepage": "https://acceptableads.com/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/exceptionrules.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/exceptionrules.txt"
+  },
+  {
+    "id": "A4A32212-E6BD-45F6-AD0F-E0FD18E8537B",
+    "type": "ads",
+    "languages": [
+      "id",
+      "ms"
+    ],
+    "title": "ABPindo",
+    "homepage": "https://github.com/ABPindo/indonesianadblockrules/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/abpindo.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/abpindo.txt"
+  },
+  {
+    "id": "03648752-31EE-4FD0-85C1-20B07C5551C3",
+    "type": "ads",
+    "languages": [
+      "vi"
+    ],
+    "title": "ABPVN List",
+    "homepage": "https://abpvn.com/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/abpvn.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/abpvn.txt"
+  },
+  {
+    "id": "1638B159-F64A-4307-84E7-16AB08ED409E",
+    "type": "ads",
+    "languages": [
+      "bg"
+    ],
+    "title": "Bulgarian list",
+    "homepage": "https://stanev.org/abp/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/bulgarian_list.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/bulgarian_list.txt"
+  },
+  {
+    "id": "6D489E8D-E61C-444C-BBC5-44741773ADC2",
+    "type": "ads",
+    "languages": [
+      "no",
+      "nb",
+      "nn",
+      "da",
+      "is",
+      "fo",
+      "kl",
+      "sv",
+      "fi"
+    ],
+    "title": "Dandelion Sprout's Nordic Filters",
+    "homepage": "https://github.com/DandelionSprout/adfilt/blob/master/Wiki/General-info.md",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/dandelion_sprouts_nordic_filters.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/dandelion_sprouts_nordic_filters.txt"
+  },
+  {
+    "id": "2D8C4D88-34A0-4259-9098-30D28BA674BC",
+    "type": "ads",
+    "languages": [
+      "cs",
+      "sk"
+    ],
+    "title": "EasyList Czech and Slovak",
+    "homepage": "https://adblock.sk/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistczechslovak.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistczechslovak.txt"
+  },
+  {
+    "id": "CB94E27D-6CD1-4DB9-83D9-6B7F1A3555F6",
+    "type": "ads",
+    "languages": [
+      "nl"
+    ],
+    "title": "EasyList Dutch",
+    "homepage": "https://easylist.to/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistdutch.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistdutch.txt"
+  },
+  {
+    "id": "4337FB2B-A95C-44D5-B78D-11AD40F7711B",
+    "type": "ads",
+    "languages": [
+      "de"
+    ],
+    "title": "EasyList Germany",
+    "homepage": "https://easylist.to/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistgermany.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistgermany.txt"
+  },
+  {
+    "id": "2F0A4F0D-DF16-40D0-B0E0-5EB6791EC119",
+    "type": "ads",
+    "languages": [
+      "it"
+    ],
+    "title": "EasyList Italy",
+    "homepage": "https://easylist.to/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistitaly.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistitaly.txt"
+  },
+  {
+    "id": "E89B3C08-2DED-40EA-8EE1-339B90D7B451",
+    "type": "ads",
+    "languages": [
+      "lt"
+    ],
+    "title": "EasyList Lithuania",
+    "homepage": "https://github.com/EasyList-Lithuania/easylist_lithuania",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistlithuania.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistlithuania.txt"
+  },
+  {
+    "id": "9F743FCD-801B-41D0-830F-5A4EA995216E",
+    "type": "ads",
+    "languages": [
+      "pl"
+    ],
+    "title": "EasyList Polish",
+    "homepage": "https://easylist.to/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistpolish.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistpolish.txt"
+  },
+  {
+    "id": "A41441EE-BF7C-4A48-9A43-42CCEA2B2A1D",
+    "type": "ads",
+    "languages": [
+      "pt"
+    ],
+    "title": "EasyList Portuguese",
+    "homepage": "https://easylist.to/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistportuguese.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistportuguese.txt"
+  },
+  {
+    "id": "C8C1AA76-15B4-4CA3-8A9C-AD38D6AFCAEC",
+    "type": "ads",
+    "languages": [
+      "es"
+    ],
+    "title": "EasyList Spanish",
+    "homepage": "https://easylist.to/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistspanish.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistspanish.txt"
+  },
+  {
+    "id": "0A679439-445F-4DE7-84B9-88341F6DA520",
+    "type": "social",
+    "title": "Fanboy's Social Blocking List",
+    "homepage": "https://easylist.to/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/fanboy-social.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/fanboy-social.txt"
+  },
+  {
+    "id": "2090F374-29D9-4202-B2CE-139D6492D95E",
+    "type": "cookies",
+    "title": "I don't care about cookies",
+    "homepage": "https://www.i-dont-care-about-cookies.eu/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/i_dont_care_about_cookies.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/i_dont_care_about_cookies.txt"
+  },
+  {
+    "id": "9FAA2906-CD5C-4520-BDC4-4E098B7EA228",
+    "type": "ads",
+    "languages": [
+      "bn",
+      "gu",
+      "hi",
+      "pa",
+      "as",
+      "mr",
+      "ml",
+      "te",
+      "kn",
+      "or",
+      "ne",
+      "si"
+    ],
+    "title": "IndianList",
+    "homepage": "https://easylist.to/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/indianlist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/indianlist.txt"
+  },
+  {
+    "id": "AE0D9320-665E-407D-B692-1A85AE481F34",
+    "type": "ads",
+    "languages": [
+      "he"
+    ],
+    "title": "EasyList Hebrew",
+    "homepage": "https://github.com/easylist/EasyListHebrew",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/israellist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/israellist.txt"
+  },
+  {
+    "id": "BCE2062F-0D99-4861-A1F7-E3DFEA6DAB69",
+    "type": "ads",
+    "languages": [
+      "ko"
+    ],
+    "title": "KoreanList",
+    "homepage": "https://forums.lanik.us/viewforum.php?f=111",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/koreanlist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/koreanlist.txt"
+  },
+  {
+    "id": "51893C6C-F39E-43C5-A2EF-9545E388A2CE",
+    "type": "ads",
+    "languages": [
+      "lv"
+    ],
+    "title": "Latvian List",
+    "homepage": "https://forums.lanik.us/viewforum.php?f=99-latvian-list",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/latvianlist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/latvianlist.txt"
+  },
+  {
+    "id": "3D60E303-1141-4775-B800-834177922876",
+    "type": "ads",
+    "languages": [
+      "ar"
+    ],
+    "title": "Liste AR",
+    "homepage": "https://code.google.com/p/liste-ar-adblock/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/liste_ar.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/liste_ar.txt"
+  },
+  {
+    "id": "8D421590-1A68-4B68-BE50-04E17C09460E",
+    "type": "ads",
+    "languages": [
+      "fr"
+    ],
+    "title": "Liste FR",
+    "homepage": "https://forums.lanik.us/viewforum.php?f=91",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/liste_fr.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/liste_fr.txt"
+  },
+  {
+    "id": "99166908-5FDA-4F9E-8C4C-70BB4DEEFC08",
+    "type": "ads",
+    "languages": [
+      "ro"
+    ],
+    "title": "ROList",
+    "homepage": "https://zoso.ro/rolist/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/rolist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/rolist.txt"
+  },
+  {
+    "id": "879ECB9D-8935-4506-939E-5BBB7DD09402",
+    "type": "ads",
+    "languages": [
+      "ru",
+      "uk"
+    ],
+    "title": "RuAdList",
+    "homepage": "https://forums.lanik.us/viewforum.php?f=102",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/ruadlist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/ruadlist.txt"
+  },
+  {
+    "id": "C3D13A19-3E8D-41F5-AD64-0F3B36DDE128",
+    "type": "ads",
+    "languages": [
+      "es"
+    ],
+    "title": "EasyList Spanish+EasyList",
+    "homepage": "https://easylist.to/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "C8C1AA76-15B4-4CA3-8A9C-AD38D6AFCAEC"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistspanish+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistspanish+easylist.txt"
+  },
+  {
+    "id": "1B5F78CA-8B30-4BDF-B0A3-451CB2202984",
+    "type": "ads",
+    "languages": [
+      "ru",
+      "uk"
+    ],
+    "title": "RuAdList+EasyList",
+    "homepage": "https://forums.lanik.us/viewforum.php?f=102",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "879ECB9D-8935-4506-939E-5BBB7DD09402"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/ruadlist+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/ruadlist+easylist.txt"
+  },
+  {
+    "id": "2CEA1481-C29C-44F1-A084-A2A019533797",
+    "type": "ads",
+    "languages": [
+      "fr"
+    ],
+    "title": "Liste FR+EasyList",
+    "homepage": "https://forums.lanik.us/viewforum.php?f=98",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "8D421590-1A68-4B68-BE50-04E17C09460E"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/liste_fr+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/liste_fr+easylist.txt"
+  },
+  {
+    "id": "14DF7BE6-9675-4E07-987A-D8A1000F9FEF",
+    "type": "ads",
+    "languages": [
+      "pt"
+    ],
+    "title": "EasyList Portuguese+EasyList",
+    "homepage": "https://easylist.to/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "A41441EE-BF7C-4A48-9A43-42CCEA2B2A1D"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistportuguese+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistportuguese+easylist.txt"
+  },
+  {
+    "id": "0CD3D105-D3B3-4652-8489-94163DE9A08F",
+    "type": "ads",
+    "languages": [
+      "de"
+    ],
+    "title": "EasyList Germany+EasyList",
+    "homepage": "https://easylist.to/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "4337FB2B-A95C-44D5-B78D-11AD40F7711B"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistgermany+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistgermany+easylist.txt"
+  },
+  {
+    "id": "3D2C09D0-DF1C-4C8E-9947-A23DCEAF8F8B",
+    "type": "ads",
+    "languages": [
+      "pl"
+    ],
+    "title": "EasyList Polish+EasyList",
+    "homepage": "https://easylist.to/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "9F743FCD-801B-41D0-830F-5A4EA995216E"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistpolish+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistpolish+easylist.txt"
+  },
+  {
+    "id": "BBC07C05-66F1-42EC-BD4D-7AD495FAC84B",
+    "type": "ads",
+    "languages": [
+      "it"
+    ],
+    "title": "EasyList Italy+EasyList",
+    "homepage": "https://easylist.to/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "2F0A4F0D-DF16-40D0-B0E0-5EB6791EC119"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistitaly+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistitaly+easylist.txt"
+  },
+  {
+    "id": "4B6CE485-30AB-4213-AD17-504B3F2D2825",
+    "type": "ads",
+    "languages": [
+      "cs",
+      "sk"
+    ],
+    "title": "EasyList Czech and Slovak+EasyList",
+    "homepage": "https://adblock.sk/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "2D8C4D88-34A0-4259-9098-30D28BA674BC"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistczechslovak+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistczechslovak+easylist.txt"
+  },
+  {
+    "id": "684A25C6-6B5D-458A-8A2B-BAC0A12B0B15",
+    "type": "ads",
+    "languages": [
+      "ar"
+    ],
+    "title": "Liste AR+Liste FR+EasyList",
+    "homepage": "https://forums.lanik.us/viewforum.php?f=98",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "8D421590-1A68-4B68-BE50-04E17C09460E",
+      "3D60E303-1141-4775-B800-834177922876"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/liste_ar+liste_fr+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/liste_ar+liste_fr+easylist.txt"
+  },
+  {
+    "id": "1C571EC7-6E52-47CC-B04A-4B3008D0AEBE",
+    "type": "ads",
+    "languages": [
+      "vi"
+    ],
+    "title": "ABPVN List+EasyList",
+    "homepage": "http://abpvn.com/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "03648752-31EE-4FD0-85C1-20B07C5551C3"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/abpvn+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/abpvn+easylist.txt"
+  },
+  {
+    "id": "A4B88FB6-E5E5-417F-8A49-20B8244995FD",
+    "type": "ads",
+    "languages": [
+      "nl"
+    ],
+    "title": "EasyList Dutch+EasyList",
+    "homepage": "https://easylist.to/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "CB94E27D-6CD1-4DB9-83D9-6B7F1A3555F6"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistdutch+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistdutch+easylist.txt"
+  },
+  {
+    "id": "2708BCB7-2E45-41BC-B517-1730CF532F89",
+    "type": "ads",
+    "languages": [
+      "ko"
+    ],
+    "title": "KoreanList+EasyList",
+    "homepage": "https://easylist.to/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "BCE2062F-0D99-4861-A1F7-E3DFEA6DAB69"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/koreanlist+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/koreanlist+easylist.txt"
+  },
+  {
+    "id": "EEEF75EC-B2B4-49F4-BC49-17B08266F334",
+    "type": "ads",
+    "languages": [
+      "ro"
+    ],
+    "title": "ROList+EasyList",
+    "homepage": "https://zoso.ro/rolist/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "99166908-5FDA-4F9E-8C4C-70BB4DEEFC08"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/rolist+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/rolist+easylist.txt"
+  },
+  {
+    "id": "B7D76369-DD19-4602-80E8-2E32DDB490AC",
+    "type": "ads",
+    "languages": [
+      "id",
+      "ms"
+    ],
+    "title": "ABPindo+EasyList",
+    "homepage": "http://abpindo.blogspot.com/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "A4A32212-E6BD-45F6-AD0F-E0FD18E8537B"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/abpindo+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/abpindo+easylist.txt"
+  },
+  {
+    "id": "07549D8B-F06F-4D9D-A567-929AA59E9D1D",
+    "type": "ads",
+    "languages": [
+      "he"
+    ],
+    "title": "EasyList Hebrew+EasyList",
+    "homepage": "https://github.com/easylist/EasyListHebrew",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "AE0D9320-665E-407D-B692-1A85AE481F34"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/israellist+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/israellist+easylist.txt"
+  },
+  {
+    "id": "CBE50FA2-DE3F-480C-B1D7-04289391C033",
+    "type": "ads",
+    "languages": [
+      "lt"
+    ],
+    "title": "EasyList Lithuania+EasyList",
+    "homepage": "https://github.com/EasyList-Lithuania/easylist_lithuania",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "E89B3C08-2DED-40EA-8EE1-339B90D7B451"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistlithuania+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistlithuania+easylist.txt"
+  },
+  {
+    "id": "E22C3B40-DC90-49D7-8BF5-E60904AB159A",
+    "type": "ads",
+    "languages": [
+      "bg"
+    ],
+    "title": "Bulgarian list+EasyList",
+    "homepage": "https://stanev.org/abp/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "1638B159-F64A-4307-84E7-16AB08ED409E"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/bulgarian_list+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/bulgarian_list+easylist.txt"
+  },
+  {
+    "id": "950C88EA-2DD1-42E3-B2A2-2DF2ED15563A",
+    "type": "ads",
+    "languages": [
+      "lv"
+    ],
+    "title": "Latvian List+EasyList",
+    "homepage": "https://forums.lanik.us/viewforum.php?f=99-latvian-list",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "51893C6C-F39E-43C5-A2EF-9545E388A2CE"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/latvianlist+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/latvianlist+easylist.txt"
+  },
+  {
+    "id": "96932CD9-6DDF-4D97-B92F-FDF747B6FAA2",
+    "type": "ads",
+    "languages": [
+      "no",
+      "nb",
+      "nn",
+      "da",
+      "is",
+      "fo",
+      "kl",
+      "sv",
+      "fi"
+    ],
+    "title": "Dandelion Sprout's Nordic Filters+EasyList",
+    "homepage": "https://github.com/DandelionSprout/adfilt",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "6D489E8D-E61C-444C-BBC5-44741773ADC2"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/dandelion_sprouts_nordic_filters+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/dandelion_sprouts_nordic_filters+easylist.txt"
+  },
+  {
+    "id": "25A31255-AB36-48A4-9086-06192DE71119",
+    "type": "ads",
+    "languages": [
+      "bn",
+      "gu",
+      "hi",
+      "pa",
+      "as",
+      "mr",
+      "ml",
+      "te",
+      "kn",
+      "or",
+      "ne",
+      "si"
+    ],
+    "title": "IndianList+EasyList",
+    "homepage": "https://easylist.to/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "9FAA2906-CD5C-4520-BDC4-4E098B7EA228"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/indianlist+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/indianlist+easylist.txt"
+  },
+  {
+    "id": "F12E0801-A00B-49DE-B1E3-52C9C4F90C8C",
+    "type": "allowing",
+    "title": "Allow nonintrusive advertising without third-party tracking",
+    "homepage": "https://acceptableads.com/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/exceptionrules-privacy-friendly.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/exceptionrules-privacy-friendly.txt"
+  },
+  {
+    "id": "D5561090-9ADB-4EEE-AA81-101B645D9F4F",
+    "type": "newsletters",
+    "title": "DistractionControl-Newsletter",
+    "homepage": "https://help.getadblock.com/support/home",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/distraction-control-newsletter.txt",
+    "mv2_url": "https://cdn.adblockcdn.com/filters/distraction-control-newsletter.txt"
+  },
+  {
+    "id": "8E2D687A-3B44-46E1-BE68-2FE5441A788E",
+    "type": "videos",
+    "title": "DistractionControl-Video",
+    "homepage": "https://help.getadblock.com/support/home",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/distraction-control-video.txt",
+    "mv2_url": "https://cdn.adblockcdn.com/filters/distraction-control-video.txt"
+  },
+  {
+    "id": "3B85CD3F-553A-45D1-AA38-6288E1C4C7B9",
+    "type": "notifications",
+    "title": "DistractionControl-Push",
+    "homepage": "https://help.getadblock.com/support/home",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/distraction-control-push.txt",
+    "mv2_url": "https://cdn.adblockcdn.com/filters/distraction-control-push.txt"
+  },
+  {
+    "id": "1E7A240E-CD85-493D-BEEF-C68A6AEA1225",
+    "type": "surveys",
+    "title": "DistractionControl-Survey",
+    "homepage": "https://help.getadblock.com/support/home",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/distraction-control-survey.txt",
+    "mv2_url": "https://cdn.adblockcdn.com/filters/distraction-control-survey.txt"
+  },
+  {
+    "id": "9CC3AF4D-EB89-4100-97C6-4EEE4F8A2E82",
+    "type": "cryptomining",
+    "title": "NoCoin Filter List",
+    "homepage": "https://github.com/hoshsadiq/adblock-nocoin-list/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/nocoin.txt",
+    "mv2_url": "https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/nocoin.txt"
+  },
+  {
+    "id": "CDAD4CF5-2706-42CB-B404-F5B9B61B8CAA",
+    "type": "annoyances",
+    "title": "AdBlock premium list",
+    "homepage": "https://help.getadblock.com/support/home",
+    "includes": [
+      "D5561090-9ADB-4EEE-AA81-101B645D9F4F",
+      "8E2D687A-3B44-46E1-BE68-2FE5441A788E",
+      "3B85CD3F-553A-45D1-AA38-6288E1C4C7B9",
+      "1E7A240E-CD85-493D-BEEF-C68A6AEA1225"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/adblock_premium.txt"
+  },
+  {
+    "id": "B3B79284-DC2C-48B9-8856-AB52A41760A9",
+    "type": "custom",
+    "title": "Chrome AdBlock auxiliarly filters",
+    "homepage": "https://help.getadblock.com/support/home",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/adblock_custom.txt",
+    "mv2_url": "https://cdn.adblockcdn.com/filters/adblock_custom.txt"
+  },
+  {
+    "id": "1D7F590C-B752-4BA0-9473-6A26DE1326B1",
+    "type": "ads",
+    "languages": [
+      "zh"
+    ],
+    "title": "EasyList China",
+    "homepage": "https://github.com/easylist/easylistchina/",
+    "requires": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistchina.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistchina.txt"
+  },
+  {
+    "id": "9BD3EA2F-889D-4CC3-B680-CF484F2BD1B9",
+    "type": "ads",
+    "languages": [
+      "zh"
+    ],
+    "title": "EasyList China+EasyList",
+    "homepage": "https://github.com/easylist/easylistchina/",
+    "includes": [
+      "8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
+      "1D7F590C-B752-4BA0-9473-6A26DE1326B1"
+    ],
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/easylistchina+easylist.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/easylistchina+easylistchina_compliance+easylist.txt"
+  },
+  {
+    "id": "D4028CDD-3D39-4624-ACC7-8140F4EC3238",
+    "type": "circumvention",
+    "title": "ABP filters",
+    "homepage": "https://github.com/abp-filters/abp-filters-anti-cv",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/abp-filters-anti-cv.txt",
+    "mv2_url": "https://easylist-downloads.adblockplus.org/abp-filters-anti-cv.txt"
+  },
+  {
+    "id": "F6CF9D09-0B6B-42D4-9B7C-E62F1D801207",
+    "type": "annoyances",
+    "languages": [
+      "zh"
+    ],
+    "title": "CJX's Annoyance List",
+    "homepage": "https://github.com/cjx82630/cjxlist",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/cjx-annoyance.txt",
+    "mv2_url": "https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjx-annoyance.txt"
+  },
+  {
+    "id": "0B0296EB-1CC5-49CD-AD38-8AF27420B7E4",
+    "type": "annoyances",
+    "title": "Fanboy's Annoyance List",
+    "homepage": "https://easylist.to/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/fanboy-annoyance.txt",
+    "mv2_url": "https://secure.fanboy.co.nz/fanboy-annoyance.txt"
+  },
+  {
+    "id": "19C949EA-E77F-4250-9068-8FA80EDDEB77",
+    "type": "allowing",
+    "title": "Crumbs Privacy Friendly List",
+    "homepage": "https://crumbs.org/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/crumbs-privacy-friendly.txt",
+    "mv2_url": "https://filterlist.crumbs.org/crumbs-privacy-friendly-germany.txt"
+  },
+  {
+    "id": "AC6A91D0-3274-45BF-89CA-76FBCEEFECF7",
+    "type": "cookies",
+    "title": "Easylist Cookie List",
+    "homepage": "https://easylist.to/",
+    "url": "https://easylist-downloads.adblockplus.org/v3/full/fanboy-cookiemonster.txt",
+    "mv2_url": "https://secure.fanboy.co.nz/fanboy-cookiemonster.txt"
+  }
+]
