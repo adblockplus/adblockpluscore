@@ -17,26 +17,10 @@
 
 "use strict";
 
-let {readFile, writeFile} = require("fs/promises");
-let process = require("process");
-
 let yargs = require("yargs");
 let {hideBin} = require("yargs/helpers");
 
-let {createConverter} = require("../lib/dnr/index.js");
-let {normalize} = require("../lib/filters/index.js");
-let {parseFilterList} = require("../lib/filters/lists.js");
-
-function processContent(convert, filterListContent) {
-  let {error, lines} = parseFilterList(filterListContent);
-  if (error)
-    return Promise.reject(new Error(error));
-
-  lines.shift();
-  return Promise.resolve(lines
-                         .flatMap(filter => convert(normalize(filter)))
-                         .filter(o => !(o instanceof Error)));
-}
+let {createConverter, processFile} = require("../lib/dnr/index.js");
 
 function parseArgs(cliArgv) {
   const args = yargs(hideBin(cliArgv))
@@ -63,19 +47,6 @@ function parseArgs(cliArgv) {
   let filename = args.argv._[0];
 
   return {filename, outputfile};
-}
-
-function processFile(converter, filename, outputfile) {
-  return readFile(filename, {encoding: "utf-8"})
-    .then(content => processContent(converter, content))
-    .then(results => {
-      if (typeof outputfile != "undefined") {
-        return writeFile(
-          outputfile, JSON.stringify(results, null, 2), {encoding: "utf-8"}
-        );
-      }
-      return process.stdout.write(JSON.stringify(results, null, 2));
-    });
 }
 
 async function main() {
