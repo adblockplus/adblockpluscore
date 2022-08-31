@@ -30,6 +30,8 @@ let filterNotifier = null;
 let filterStorage = null;
 let Prefs = null;
 let Subscription = null;
+let CountableSubscription = null;
+let DownloadableSubscription = null;
 
 describe("Synchronizer", function() {
   let runner = {};
@@ -46,7 +48,8 @@ describe("Synchronizer", function() {
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier"),
       {FilterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
-      {Subscription} = sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
+      {Subscription, CountableSubscription, DownloadableSubscription} =
+        sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
 
     filterStorage = new FilterStorage();
@@ -79,6 +82,7 @@ describe("Synchronizer", function() {
 
     afterEach(function() {
       synchronizer.stop();
+      Subscription.dnr = false;
     });
 
     it("A disabled subscription gets a version update", function() {
@@ -124,6 +128,36 @@ describe("Synchronizer", function() {
           [0 + initialDelay, "HEAD", "/subscription"],
           [24 + initialDelay, "HEAD", "/subscription"],
           [48 + initialDelay, "HEAD", "/subscription"]
+        ], "Requests after 50 hours");
+      }).catch(error => unexpectedError.call(assert, error));
+    });
+
+    /*
+     * In a Manifest V3 context, subscription are not updated (Downloadable)
+     * albeit they need to contact the server to count.
+     *
+     * Also to test this, we need to use a subscription that is known, so
+     * we can't use the example URL used in the other tests.
+     */
+    it("A MV3 subscription does not parse data", function() {
+      Subscription.dnr = true;
+      let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
+      filterStorage.addSubscription(subscription);
+
+      assert.ok(subscription instanceof CountableSubscription);
+      assert.ok(!(subscription instanceof DownloadableSubscription));
+
+      let requests = [];
+      runner.registerHandler("/easylist.txt", metadata => {
+        requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
+        return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
+      });
+
+      return runner.runScheduledTasks(50).then(() => {
+        assert.deepEqual(requests, [
+          [0 + initialDelay, "HEAD", "/easylist.txt"],
+          [24 + initialDelay, "HEAD", "/easylist.txt"],
+          [48 + initialDelay, "HEAD", "/easylist.txt"]
         ], "Requests after 50 hours");
       }).catch(error => unexpectedError.call(assert, error));
     });
