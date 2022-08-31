@@ -1,3 +1,84 @@
+0.9.0 - 2022/09/01
+==================
+
+## Changes
+
+- The following scripts have been removed: `scripts/fetchSubscriptions.js`,
+  `scripts/mergeSubscriptions.js`. #488
+- Add a DNR mode tailored for use with Manifest v3 DeclarativeNetRequest.
+  #452
+  - Developers can provide recommendations at runtime to replace those
+    shipped.
+  - Subscription associated to DNR ruleset are counted. #454
+
+### Testing
+
+- Extension integration test will use a released version of the
+  extension.
+
+## Updating your code
+
+If you were using the NPM scripts `fetch-subscriptions` and
+`merge-subscriptions`, these have been moved to the
+[webext-sdk](https://gitlab.com/eyeo/adblockplus/abc/webext-sdk).
+
+With #452 and #454 we introduce some important API changes necessary
+for Manifest v3 support:
+
+- The `FilterEngine` constructor take an optional object for parameter.
+
+  - The `features` property take a `Features`. `Features.DNR` enable
+    the mode for DeclarativeNetRequest (Manifest v3
+    extensions). Without this the filter engine is unchanged.
+
+  - The `recommendations` property is an object that is in the same
+    form as the content of `data/subscriptions.json` and allow
+    overriding the one shipped with adblockpluscore. This is just one
+    of the way you can override these.
+
+- You can also override the "recommendations" by calling
+  `setRecommendations()` (imported from `recommendations.js`). This is
+  equivalent to the method during initialisation, it just allow a
+  different flow in the initialization process. As long as it is done
+  before the engine initialization.
+
+- The class `RegularSubscription` is now exposed.
+
+- Added the class `CountableSubscription` to rename
+  `DownloadableSusbcription` which maintain the functionality.
+
+- `Subscription.fromURL` has been changed so that:
+
+  - It will know if a URL is from the Manifest v2 version of the
+    subscription, based on the "recommendations". In that case it will
+    remap the the `url` property of the returned subscription will be
+    set properly. The uniqueness is kept.
+
+  - It will return an instance of `RegularSubscription` if the URL is
+    a valid URL. In `DNR` mode it will return *most likely* a
+    `CountableSubscription`, while in the `DEFAULT` mode (like used so
+    far in Manifest V2 extesnions) it will return a
+    `DownloadableSubscription`. The difference is that on `DNR` mode
+    the subscriptions don't download their content off a server by
+    default, but will still be counted issuing a `HEAD` HTTP request
+    to the URL.
+
+  - `Subscription` will have a `downloadable` property that will
+    return `true` of it is a `DownloadableSubscription`, and a
+    `countable` that indicated they are counted. `downloadable`
+    implies `countable`, but not the other way around.
+
+  - `Subscription` may have a few extra properties: `id` is the ID of
+    the associated DNR Ruleset in DNR mode. Use this to determine the
+    associated DNR ruleset in your extension. `languages` list the
+    languages supported by the subscription. This doesn't affect any
+    of the filtering capabilities of the core.
+
+  - The new method `Subscription.setFilterText()` allow setting the
+    subscription filter text (an array) before adding it to the
+    storage. The is useful for loading the static filter list that get
+    shipped along the DNR ruleset.
+
 0.8.0 - 2022/07/25
 ==================
 
