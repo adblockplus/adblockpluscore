@@ -23,6 +23,7 @@ let sandboxedRequire = null;
 
 let IO = null;
 let filterEngine = null;
+let filterNotifier = null;
 let Subscription = null;
 let FilterStorage = null;
 let Filter = null;
@@ -94,7 +95,8 @@ describe("Filter listener", function() {
     sandboxedRequire = createSandbox();
     (
       {FilterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
-      {IO} = sandboxedRequire("./stub-modules/io")
+      {IO} = sandboxedRequire("./stub-modules/io"),
+      {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier")
     );
 
     const {FilterEngine} = sandboxedRequire(LIB_FOLDER + "/filterEngine");
@@ -666,6 +668,18 @@ describe("Filter listener", function() {
 
       filterStorage.addSubscription(subscription3);
       checkKnownFilters("add special subscription with filter2", {blocking: [filter1.text, filter2.text]});
+    });
+
+    it("Subscription metadata-only updates", function() {
+      let subscription = Subscription.fromURL("https://test1/");
+      filterStorage.addSubscription(subscription);
+      subscription.lastSuccess = 12345;
+
+      let saveTracker = new assert.CallTracker();
+      filterStorage.saveToDisk = saveTracker.calls(filterStorage.saveToDisk, 1);
+
+      filterNotifier.emit("subscription.updated", subscription);
+      saveTracker.verify();
     });
   });
 });
