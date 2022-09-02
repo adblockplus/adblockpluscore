@@ -1,3 +1,11 @@
+0.9.1 - 2022/09/02
+==================
+
+## Bug fix
+
+- The subscription updated event no longer throw if there is no
+  differences. This could happen when counting subscriptions. #456
+
 0.9.0 - 2022/09/01
 ==================
 
