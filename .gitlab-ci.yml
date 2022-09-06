@@ -95,7 +95,7 @@ build:testPagesExtension:
       artifacts: true
   before_script:
     - apk add git
-    - git clone -b use-browser-download https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org.git
+    - git clone https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org.git
     - cp "extension/extension"$MANIFEST".zip" testpages.adblockplus.org
   script:
     - cd testpages.adblockplus.org &&
