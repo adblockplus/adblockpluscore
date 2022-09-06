@@ -91,7 +91,7 @@ build:testPagesExtension:
   variables:
     MANIFEST: mv2
   needs:
-    - job: build:integration
+    - job: build:testPagesExtension
       artifacts: true
   before_script:
     - apk add git
