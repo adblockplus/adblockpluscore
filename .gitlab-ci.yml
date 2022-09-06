@@ -73,7 +73,7 @@ build:testPagesExtension:
   stage: default
   extends: .docker-image
   script:
-    - docker build -t extensionforcore -f extension.Dockerfile .
+    - docker build -t extensionforcore -f test/dockerfiles/extension.Dockerfile .
     - docker run extensionforcore
     - docker cp $(docker ps -aqf ancestor=extensionforcore):/extension .
   artifacts:
