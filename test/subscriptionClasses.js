@@ -238,10 +238,28 @@ describe("Subscription classes", function() {
     assert.ok(subscription.hasFilterText("##.foo"));
     // This will have been normalized.
     assert.equal(subscription.filterTextAt(1), "##.bar");
+    assert.equal(subscription._filterText.length, 2);
 
     let subscription2 = Subscription.fromURL("https://example.com/the_other.txt");
     assert.throws(() => subscription2.setFilterText("##.foo"));
-    assert.equal(subscription2.filterText.length, 0);
+    assert.equal(subscription2._filterText.length, 0);
+
+    let subscription3 = Subscription.fromURL("https://example.com/the_other2.txt");
+    subscription3.setFilterText([
+      "##.foo",
+      "##.bar"
+    ], {
+      version: "1",
+      homepage: "https://testpages.adblockplus.org/",
+      title: "Another example"
+    });
+    assert.ok(subscription3.hasFilterText("##.foo"));
+    assert.equal(subscription3.filterTextAt(0), "##.foo");
+    assert.equal(subscription3.filterTextAt(1), "##.bar");
+    assert.equal(subscription3._filterText.length, 2);
+    assert.equal(subscription3.title, "Another example");
+    assert.ok(subscription3.fixedTitle);
+    assert.equal(subscription3.homepage, "https://testpages.adblockplus.org/");
   });
 });
 
