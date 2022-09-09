@@ -99,7 +99,7 @@ ABPUI extension with current codebase. To build and extract the custom extension
 on Docker run the following commands:
 
 ```
-docker build -t extensionforcore -f extension.Dockerfile .
+docker build -t extensionforcore -f test/dockerfiles/extension.Dockerfile .
 docker run extensionforcore
 docker cp $(docker ps -aqf ancestor=extensionforcore):/extension.zip .
 ```
