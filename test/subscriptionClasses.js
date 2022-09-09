@@ -232,10 +232,11 @@ describe("Subscription classes", function() {
     let subscription = Subscription.fromURL("https://example.com/");
     subscription.setFilterText([
       "##.foo",
-      "##.bar"
+      "## .bar"
     ]);
 
     assert.ok(subscription.hasFilterText("##.foo"));
+    // This will have been normalized.
     assert.equal(subscription.filterTextAt(1), "##.bar");
 
     let subscription2 = Subscription.fromURL("https://example.com/the_other.txt");
