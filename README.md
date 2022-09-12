@@ -94,7 +94,7 @@ BROWSER_TEST_HEADLESS environment to 0.
 [testpages](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org) tests check `adblockpluscore` integration with ABP.
 To run them locally, you need to install [Docker](https://www.docker.com/).
 
-If there are no breaking changes in webext code, you will be able to build
+If there are no breaking changes in adblockpluscore code, you should be able to build
 ABPUI extension with current codebase. To build and extract the custom extension
 on Docker run the following commands:
 
