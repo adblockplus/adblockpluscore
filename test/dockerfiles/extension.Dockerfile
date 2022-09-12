@@ -29,7 +29,7 @@ RUN apt-get -t stretch-backports install -y git
 # Clone ABPUI
 # Checkout on recent release commit to have stable ABPUI version
 RUN git clone https://gitlab.com/adblockinc/ext/adblockplus/adblockplusui
-RUN git -C adblockplusui checkout $(git describe --tags `git rev-list --tags --max-count=1`); 
+RUN cd adblockplusui && git checkout $(git describe --tags `git rev-list --tags --max-count=1`); 
  
 # Update dependencies
 RUN cd adblockplusui && npm run submodules:update && git submodule status && npm install --legacy-peer-deps
@@ -41,10 +41,10 @@ RUN cd adblockplusui/vendor/webext-sdk/node_modules && rm -rf adblockpluscore
 RUN mkdir adblockplusui/vendor/webext-sdk/node_modules/adblockpluscore 
 COPY . adblockplusui/vendor/webext-sdk/node_modules/adblockpluscore 
 RUN cd adblockplusui/vendor/webext-sdk/node_modules/adblockpluscore && npm install
-RUN cd adblockplusui/adblockpluschrome \
- && npx gulp build -t chrome -c development
+#RUN cd adblockplusui/adblockpluschrome \
+ #&& npx gulp build -t chrome -c development
 
-RUN mkdir extension
-RUN mv adblockplusui/adblockpluschrome/adblockpluschrome-*.zip extension/extensionmv2.zip
-RUN cd adblockplusui/adblockpluschrome && npx gulp build -t chrome -m 3 -c development
-RUN mv adblockplusui/adblockpluschrome/adblockpluschrome-*.zip extension/extensionmv3.zip
+#RUN mkdir extension
+#RUN mv adblockplusui/adblockpluschrome/adblockpluschrome-*.zip extension/extensionmv2.zip
+#RUN cd adblockplusui/adblockpluschrome && npx gulp build -t chrome -m 3 -c development
+#RUN mv adblockplusui/adblockpluschrome/adblockpluschrome-*.zip extension/extensionmv3.zip
