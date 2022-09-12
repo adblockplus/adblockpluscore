@@ -101,7 +101,7 @@ on Docker run the following commands:
 ```
 docker build -t extensionforcore -f test/dockerfiles/extension.Dockerfile .
 docker run extensionforcore
-docker cp $(docker ps -aqf ancestor=extensionforcore):/extension.zip .
+docker cp $(docker ps -aqf ancestor=extensionforcore):/extension .
 ```
 
 The extension code uses the most recently released ABPUI Tag by default. If you prefer to choose a different tag, pass it as a build argument:
