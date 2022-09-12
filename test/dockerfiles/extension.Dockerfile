@@ -28,7 +28,7 @@ RUN apt-get -t stretch-backports install -y git
 
 # Clone ABPUI
 # Checkout on recent release commit to have stable ABPUI version or use predefined
-RUN git clone https://gitlab.com/eyeo/adblockplus/abpui/adblockplusui.git 
+RUN git clone https://gitlab.com/adblockinc/ext/adblockplus/adblockplusui
 ARG ABPUITAG=""
 RUN if [ "$ABPUITAG" = "" ]; then cd adblockplusui && git fetch --tags \
   && ABPUITAG=$(git describe --tags `git rev-list --tags --max-count=1`); fi
