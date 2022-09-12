@@ -69,7 +69,7 @@ benchmark:
   variables:
     DOCKER_DRIVER: overlay2
 
-build:testPagesExtension:
+build:testpages-extension:
   stage: default
   extends: .docker-image
   script:
@@ -91,7 +91,7 @@ build:testPagesExtension:
   variables:
     MANIFEST: mv2
   needs:
-    - job: build:testPagesExtension
+    - job: build:testpages-extension
       artifacts: true
   before_script:
     - apk add git
@@ -120,7 +120,7 @@ testpages:v2:chrome:oldest:
   variables:
     BROWSER: chromium 77.0.3865.0
 
-testPages:v2:chrome:beta:
+testpages:v2:chrome:beta:
   extends: .testpages
   allow_failure: true
   variables:
@@ -136,24 +136,24 @@ testpages:v2:firefox:oldest:
   variables:
     BROWSER: firefox 68.0
 
-testPages:v2:firefox:beta:
+testpages:v2:firefox:beta:
   extends: .testpages
   allow_failure: true
   variables:
     BROWSER: firefox beta
 
-.testPages:v3:
+.testpages:v3:
   extends: .testpages
   variables:
     MANIFEST: mv3
     SKIP: "|Header|Sitekey|Subscriptions"
 
-testPages:v3:chrome:latest:
+testpages:v3:chrome:latest:
   extends: .testPages:v3
   variables:
     BROWSER: chromium latest
 
-testPages:v3:chrome:beta:
+testpages:v3:chrome:beta:
   extends: .testPages:v3
   variables:
     BROWSER: chromium beta
