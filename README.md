@@ -91,7 +91,8 @@ to disable headless mode on the WebDriver controlled tests, set the
 BROWSER_TEST_HEADLESS environment to 0.
 
 ### Integration tests
-[testpages](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org) tests check `adblockpluscore` integration with ABP.
+[testpages](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org)
+tests check `adblockpluscore` integration with ABP.
 To run them locally, you need to install [Docker](https://www.docker.com/).
 
 If there are no breaking changes in adblockpluscore code, you should be able to build
@@ -105,6 +106,7 @@ docker cp $(docker ps -aqf ancestor=extensionforcore):/extension .
 ```
 
 The extension code uses the most recently released ABPUI Tag by default. 
+```extension``` folder will contain two versions: mv2 & mv3. 
 
 To run testpages integration tests on Docker with the custom extension previously
 created, you may clone the [Testpages project](testpages-project) and follow
@@ -120,16 +122,9 @@ docker run --shm-size=512m -e SKIP_EXTENSION_DOWNLOAD="true" -e TESTS_EXCLUDE="S
 Note: At the moment the custom extension won't support snippets. That's why it
 is recommended to [use the TESTS_EXCLUDE option](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org#tests-subset).
 
-
 ```sh
 docker build -t testpages .
 docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets" -it testpages
-```
-
-The current version of the project may contain changes that are not yet supported by ABP. In that case, some of the tests may need to be excluded, which can be done using the `TESTS_EXCLUDE` argument f.ex:
-
-```sh
-docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets|CSP|Header" -it testpages
 ```
 
 Firefox (latest) is the default browser. Other browsers can be run using the
