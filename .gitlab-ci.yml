@@ -149,12 +149,12 @@ testpages:v2:firefox:beta:
     SKIP: "|Header|Sitekey|Subscriptions"
 
 testpages:v3:chrome:latest:
-  extends: .testPages:v3
+  extends: .testpages:v3
   variables:
     BROWSER: chromium latest
 
 testpages:v3:chrome:beta:
-  extends: .testPages:v3
+  extends: .testpages:v3
   variables:
     BROWSER: chromium beta
 
