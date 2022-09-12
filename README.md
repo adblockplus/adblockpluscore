@@ -104,11 +104,7 @@ docker run extensionforcore
 docker cp $(docker ps -aqf ancestor=extensionforcore):/extension .
 ```
 
-The extension code uses the most recently released ABPUI Tag by default. If you prefer to choose a different tag, pass it as a build argument:
-
-```
-docker build --build-arg ABPUITAG="3.13" -t extensionforcore -f test/dockerfiles/extension.Dockerfile .
-```
+The extension code uses the most recently released ABPUI Tag by default. 
 
 To run testpages integration tests on Docker with the custom extension previously
 created, you may clone the [Testpages project](testpages-project) and follow

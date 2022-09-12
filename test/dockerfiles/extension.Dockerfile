@@ -27,14 +27,10 @@ RUN apt-get update
 RUN apt-get -t stretch-backports install -y git
 
 # Clone ABPUI
-# Checkout on recent release commit to have stable ABPUI version or use predefined
+# Checkout on recent release commit to have stable ABPUI version
 RUN git clone https://gitlab.com/adblockinc/ext/adblockplus/adblockplusui
-ARG ABPUITAG=""
-RUN if [ "$ABPUITAG" = "" ]; then cd adblockplusui && git fetch --tags \
-  && ABPUITAG=$(git describe --tags `git rev-list --tags --max-count=1`); fi
-RUN git -C adblockplusui checkout $ABPUITAG
-RUN echo "Using ABPUI tag: ${ABPUITAG}"
-
+RUN git -C adblockplusui checkout $(git describe --tags `git rev-list --tags --max-count=1`); 
+ 
 # Update dependencies
 RUN cd adblockplusui && npm run submodules:update && git submodule status && npm install --legacy-peer-deps
 
