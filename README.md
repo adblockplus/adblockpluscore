@@ -99,20 +99,20 @@ If there are no breaking changes in adblockpluscore code, you should be able to 
 ABPUI extension with current codebase. To build and extract the custom extension
 on Docker run the following commands:
 
-```
+```sh
 docker build -t extensionforcore -f test/dockerfiles/extension.Dockerfile .
 docker run extensionforcore
 docker cp $(docker ps -aqf ancestor=extensionforcore):/extension .
 ```
 
 The extension code uses the most recently released ABPUI Tag by default. 
-```extension``` folder will contain two versions: mv2 & mv3. 
+`extension` folder will contain two versions: mv2 and mv3. 
 
 To run testpages integration tests on Docker with the custom extension previously
 created, you may clone the [Testpages project](testpages-project) and follow
 the instructions on [how to run tests with packed extensions](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org#packed-extensions). Example:
 
-```
+```sh
 cd testpages.adblockplus.org
 cp <location/to/extension/> .
 docker build -t testpages --build-arg EXTENSION_FILE="extension/extensionmv<2|3>.zip" .
