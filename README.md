@@ -91,26 +91,37 @@ to disable headless mode on the WebDriver controlled tests, set the
 BROWSER_TEST_HEADLESS environment to 0.
 
 ### Integration tests
-[testpages](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org) tests check `adblockpluscore` integration with ABP. To run them locally, you need to install [Docker](https://www.docker.com/).
+[testpages](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org)
+tests check `adblockpluscore` integration with ABP.
+To run them locally, you need to install [Docker](https://www.docker.com/).
 
-Tests can be executed with:
-
-```sh
-docker build -t testpages .
-docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets" -it testpages
-```
-
-The extension code uses the most recently released ABPUI Tag by default. If you prefer to choose a different tag, pass it as a build argument:
+If there are no breaking changes in adblockpluscore code, you should be able to build
+ABPUI extension with current codebase. To build and extract the custom extension
+on Docker run the following commands:
 
 ```sh
-docker build --build-arg ABPUITAG="3.13" -t testpages
+docker build -t extensionforcore -f test/dockerfiles/extension.Dockerfile .
+docker run extensionforcore
+docker cp $(docker ps -aqf ancestor=extensionforcore):/extension .
 ```
 
-The current version of the project may contain changes that are not yet supported by ABP. In that case, some of the tests may need to be excluded, which can be done using the `TESTS_EXCLUDE` argument f.ex:
+The extension code uses the most recently released ABPUI Tag by default. 
+`extension` folder will contain two versions: mv2 and mv3. 
+
+To run testpages integration tests on Docker with the custom extension previously
+created, you may clone the [Testpages project](testpages-project) and follow
+the instructions on [how to run tests with packed extensions](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org#packed-extensions). Example:
 
 ```sh
-docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets|CSP|Header" -it testpages
+cd testpages.adblockplus.org
+cp <location/to/extension/> .
+docker build -t testpages --build-arg EXTENSION_FILE="extension/extensionmv<2|3>.zip" .
+docker run --shm-size=512m -e SKIP_EXTENSION_DOWNLOAD="true" -e TESTS_EXCLUDE="Snippets" testpages
 ```
+
+Note: At the moment the custom extension won't support snippets. That's why it
+is recommended to [use the TESTS_EXCLUDE option](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org#tests-subset).
+
 
 Firefox (latest) is the default browser. Other browsers can be run using the
 BROWSER argument:
