@@ -122,10 +122,6 @@ docker run --shm-size=512m -e SKIP_EXTENSION_DOWNLOAD="true" -e TESTS_EXCLUDE="S
 Note: At the moment the custom extension won't support snippets. That's why it
 is recommended to [use the TESTS_EXCLUDE option](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org#tests-subset).
 
-```sh
-docker build -t testpages .
-docker run --shm-size=256m -e TESTS_EXCLUDE="Snippets" -it testpages
-```
 
 Firefox (latest) is the default browser. Other browsers can be run using the
 BROWSER argument:
