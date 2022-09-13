@@ -41,10 +41,10 @@ RUN cd adblockplusui/vendor/webext-sdk/node_modules && rm -rf adblockpluscore
 RUN mkdir adblockplusui/vendor/webext-sdk/node_modules/adblockpluscore 
 COPY . adblockplusui/vendor/webext-sdk/node_modules/adblockpluscore 
 RUN cd adblockplusui/vendor/webext-sdk/node_modules/adblockpluscore && npm install
-#RUN cd adblockplusui/adblockpluschrome \
- #&& npx gulp build -t chrome -c development
+RUN cd adblockplusui/adblockpluschrome \
+ && npx gulp build -t chrome -c development
 
-#RUN mkdir extension
-#RUN mv adblockplusui/adblockpluschrome/adblockpluschrome-*.zip extension/extensionmv2.zip
-#RUN cd adblockplusui/adblockpluschrome && npx gulp build -t chrome -m 3 -c development
-#RUN mv adblockplusui/adblockpluschrome/adblockpluschrome-*.zip extension/extensionmv3.zip
+RUN mkdir extension
+RUN mv adblockplusui/adblockpluschrome/adblockpluschrome-*.zip extension/extensionmv2.zip
+RUN cd adblockplusui/adblockpluschrome && npx gulp build -t chrome -m 3 -c development
+RUN mv adblockplusui/adblockpluschrome/adblockpluschrome-*.zip extension/extensionmv3.zip
