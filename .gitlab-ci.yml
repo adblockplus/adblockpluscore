@@ -88,6 +88,9 @@ build:testpages-extension:
   stage: testpages
   extends: .docker-image
   interruptible: true
+  # Disabled because of https://gitlab.com/eyeo/adblockplus/abc/adblockpluscore/-/issues/430
+  # Until we fix webext-sdk
+  allow_failure: true
   variables:
     MANIFEST: mv2
   needs:
