@@ -114,8 +114,8 @@ the instructions on [how to run tests with packed extensions](https://gitlab.com
 
 ```
 cd testpages.adblockplus.org
-cp <location/to/extension.zip> .
-docker build -t testpages --build-arg EXTENSION_FILE="extension.zip" .
+cp <location/to/extension/> .
+docker build -t testpages --build-arg EXTENSION_FILE="extensionmv<2|3>.zip" .
 docker run --shm-size=512m -e SKIP_EXTENSION_DOWNLOAD="true" -e TESTS_EXCLUDE="Snippets" testpages
 ```
 
