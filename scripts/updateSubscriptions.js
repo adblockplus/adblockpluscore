@@ -32,14 +32,46 @@ const tar = require("tar");
 const listUrl = "https://gitlab.com/eyeo/filterlists/subscriptionlist/" +
                 "-/archive/master/subscriptionlist-master.tar.gz";
 
+const INDEX_URL = "https://easylist-downloads.adblockplus.org/v3/index.json";
+const DEFAULT_ALLOWLIST = "https://easylist-downloads.adblockplus.org/exceptionrules.txt";
+
 const filename = "data/subscriptions.json";
+
 const resultingKeys = new Set([
   "title",
   "url",
+  "mv2_url",
+  "requires",
+  "includes",
+  "id",
   "homepage",
   "languages",
   "type"
 ]);
+
+function fetchIndex(indexUrl) {
+  return new Promise((resolve, reject) => {
+    https.get(indexUrl, response => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`Request returned ${response.statusCode}`));
+      }
+      else {
+        response.setEncoding("utf8");
+        let rawData = "";
+        response.on("data", chunk => rawData += chunk);
+        response.on("end", () => {
+          try {
+            let parsedData = JSON.parse(rawData);
+            resolve(parsedData);
+          }
+          catch (e) {
+            reject(e);
+          }
+        });
+      }
+    });
+  });
+}
 
 function untar(remoteUrl) {
   return new Promise((resolve, reject) => {
@@ -236,7 +268,7 @@ function postProcessSubscription(subscription) {
   }
 }
 
-async function update(toFile) {
+async function update(toFile, allowlist = true) {
   let root = await untar(listUrl);
   let languages = await parseValidLanguages(root);
   let tarFiles = await readdir(root);
@@ -250,6 +282,13 @@ async function update(toFile) {
   parsed = parsed.filter(subscription =>
     subscription != null && "title" in subscription
   );
+
+  let urls = new Set(parsed.map(subscription => subscription.url));
+  // We want to add the default allowlist as it isn't in the repository.
+  if (allowlist)
+    urls.add(DEFAULT_ALLOWLIST);
+  let index = await fetchIndex(INDEX_URL);
+  parsed = index.filter(subscription => urls.has(subscription.mv2_url));
 
   for (let subscription of parsed)
     postProcessSubscription(subscription);

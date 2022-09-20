@@ -583,7 +583,7 @@ describe("Filter listener", function() {
       filterStorage.addSubscription(subscription1);
       checkKnownFilters("add subscription with filter1 and filter2", {});
 
-      let {url: circumventionURL} = recommendations.find(
+      let {mv2_url: circumventionURL} = recommendations.find(
         ({type}) => type == "circumvention"
       );
 
@@ -613,7 +613,7 @@ describe("Filter listener", function() {
       subscription1.addFilter(filter1);
       filterStorage.addSubscription(subscription1);
 
-      let {url: circumventionURL} = recommendations.find(
+      let {mv2_url: circumventionURL} = recommendations.find(
         ({type}) => type == "circumvention"
       );
       let subscription2 = Subscription.fromURL(circumventionURL);
@@ -649,7 +649,7 @@ describe("Filter listener", function() {
       filterStorage.addSubscription(subscription1);
       checkKnownFilters("add subscription with filter1 and filter2", {});
 
-      let {url: circumventionURL} = recommendations.find(
+      let {mv2_url: circumventionURL} = recommendations.find(
         ({type}) => type == "circumvention"
       );
 

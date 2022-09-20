@@ -79,7 +79,7 @@ describe("updateSubscriptions script", function() {
 
   async function performSubscriptionUpdate(mockedDataPath) {
     await mockData(mockedDataPath);
-    await update(toFile);
+    await update(toFile, false);
   }
 
   async function assertSubscriptions(assertCallback) {

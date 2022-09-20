@@ -144,20 +144,24 @@ describe("Synchronizer", function() {
       let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
       filterStorage.addSubscription(subscription);
 
+      // We need to get the actual URL of the request to mock the fetch
+      // query.
+      let url = new URL(subscription.url);
+
       assert.ok(subscription instanceof CountableSubscription);
       assert.ok(!(subscription instanceof DownloadableSubscription));
 
       let requests = [];
-      runner.registerHandler("/easylist.txt", metadata => {
+      runner.registerHandler(url.pathname, metadata => {
         requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
         return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
       });
 
       return runner.runScheduledTasks(50).then(() => {
         assert.deepEqual(requests, [
-          [0 + initialDelay, "HEAD", "/easylist.txt"],
-          [24 + initialDelay, "HEAD", "/easylist.txt"],
-          [48 + initialDelay, "HEAD", "/easylist.txt"]
+          [0 + initialDelay, "HEAD", url.pathname],
+          [24 + initialDelay, "HEAD", url.pathname],
+          [48 + initialDelay, "HEAD", url.pathname]
         ], "Requests after 50 hours");
       }).catch(error => unexpectedError.call(assert, error));
     });
@@ -454,7 +458,12 @@ describe("Synchronizer", function() {
           assert.equal(subscription.abtest, "bar", "ABTest comment");
         };
 
-        // We have to check a url from subscriptions.json, hence the use of non-"example.com" url.
+        // We have to check a url from `subscriptions.json`, hence the use of
+        // non-`example.com` url.
+        // If the `subscriptions.json` file was changed, or if it is replaced
+        // by some process at build time, and this test fails, then you need
+        // to double check that the subscription is still in there (`mv2_url`)
+        // and that it does have a type value.
         let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easyprivacy.txt");
         filterStorage.addSubscription(subscription);
 
