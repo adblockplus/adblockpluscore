@@ -145,7 +145,8 @@ exports.setupTimerAndFetch = function() {
       result = fetch.requestHandlers[urlObj.pathname]({
         method: initObj.method,
         path: urlObj.pathname,
-        queryString: urlObj.search.substring(1)
+        queryString: urlObj.search.substring(1),
+        query: urlObj.searchParams
       });
     }
 

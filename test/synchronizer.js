@@ -119,51 +119,88 @@ describe("Synchronizer", function() {
 
       let requests = [];
       runner.registerHandler("/subscription", metadata => {
-        requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
+        let disabled = metadata.query.get("disabled");
+        requests.push([runner.getTimeOffset(), metadata.method, metadata.path, disabled]);
         return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
       });
 
       return runner.runScheduledTasks(50).then(() => {
         assert.deepEqual(requests, [
-          [0 + initialDelay, "HEAD", "/subscription"],
-          [24 + initialDelay, "HEAD", "/subscription"],
-          [48 + initialDelay, "HEAD", "/subscription"]
+          [0 + initialDelay, "HEAD", "/subscription", "true"],
+          [24 + initialDelay, "HEAD", "/subscription", "true"],
+          [48 + initialDelay, "HEAD", "/subscription", "true"]
         ], "Requests after 50 hours");
       }).catch(error => unexpectedError.call(assert, error));
     });
 
-    /*
-     * In a Manifest V3 context, subscription are not updated (Downloadable)
-     * albeit they need to contact the server to count.
-     *
-     * Also to test this, we need to use a subscription that is known, so
-     * we can't use the example URL used in the other tests.
-     */
-    it("A MV3 subscription does not parse data", function() {
-      Subscription.dnr = true;
-      let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
-      filterStorage.addSubscription(subscription);
-
-      // We need to get the actual URL of the request to mock the fetch
-      // query.
-      let url = new URL(subscription.url);
-
-      assert.ok(subscription instanceof CountableSubscription);
-      assert.ok(!(subscription instanceof DownloadableSubscription));
-
-      let requests = [];
-      runner.registerHandler(url.pathname, metadata => {
-        requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
-        return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
+    describe("Manifest V3 subscription", function() {
+      beforeEach(function() {
+        Subscription.dnr = true;
       });
 
-      return runner.runScheduledTasks(50).then(() => {
-        assert.deepEqual(requests, [
-          [0 + initialDelay, "HEAD", url.pathname],
-          [24 + initialDelay, "HEAD", url.pathname],
-          [48 + initialDelay, "HEAD", url.pathname]
-        ], "Requests after 50 hours");
-      }).catch(error => unexpectedError.call(assert, error));
+      afterEach(function() {
+        Subscription.dnr = false;
+      });
+
+      /*
+       * In a Manifest V3 context, subscription are not updated (Downloadable)
+       * albeit they need to contact the server to count.
+       *
+       * Also to test this, we need to use a subscription that is known, so
+       * we can't use the example URL used in the other tests.
+       */
+      it("Does not parse data", function() {
+        let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
+        filterStorage.addSubscription(subscription);
+
+        // We need to get the actual URL of the request to mock the fetch
+        // query.
+        let url = new URL(subscription.url);
+
+        assert.ok(subscription instanceof CountableSubscription);
+        assert.ok(!(subscription instanceof DownloadableSubscription));
+
+        let requests = [];
+        runner.registerHandler(url.pathname, metadata => {
+          let disabled = metadata.query.get("disabled");
+          requests.push([runner.getTimeOffset(), metadata.method, metadata.path, disabled]);
+          return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
+        });
+
+        return runner.runScheduledTasks(50).then(() => {
+          assert.deepEqual(requests, [
+            [0 + initialDelay, "HEAD", url.pathname, "false"],
+            [24 + initialDelay, "HEAD", url.pathname, "false"],
+            [48 + initialDelay, "HEAD", url.pathname, "false"]
+          ], "Requests after 50 hours");
+        }).catch(error => unexpectedError.call(assert, error));
+      });
+
+      it("Sends the disabled status", function() {
+        let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
+        filterStorage.addSubscription(subscription);
+
+        subscription.disabled = true;
+
+        // We need to get the actual URL of the request to mock the fetch
+        // query.
+        let url = new URL(subscription.url);
+
+        let requests = [];
+        runner.registerHandler(url.pathname, metadata => {
+          let disabled = metadata.query.get("disabled");
+          requests.push([runner.getTimeOffset(), metadata.method, metadata.path, disabled]);
+          return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
+        });
+
+        return runner.runScheduledTasks(50).then(() => {
+          assert.deepEqual(requests, [
+            [0 + initialDelay, "HEAD", url.pathname, "true"],
+            [24 + initialDelay, "HEAD", url.pathname, "true"],
+            [48 + initialDelay, "HEAD", url.pathname, "true"]
+          ], "Requests after 50 hours");
+        }).catch(error => unexpectedError.call(assert, error));
+      });
     });
 
     it("A disabled subscription updates each day", function() {
