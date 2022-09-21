@@ -32,6 +32,7 @@ let Prefs = null;
 let Subscription = null;
 let CountableSubscription = null;
 let DownloadableSubscription = null;
+let manifestVersion;
 
 describe("Synchronizer", function() {
   let runner = {};
@@ -48,6 +49,7 @@ describe("Synchronizer", function() {
       {filterNotifier} = sandboxedRequire(LIB_FOLDER + "/filterNotifier"),
       {FilterStorage} = sandboxedRequire(LIB_FOLDER + "/filterStorage"),
       {Prefs} = sandboxedRequire("./stub-modules/prefs"),
+      {manifestVersion} = sandboxedRequire("./stub-modules/info"),
       {Subscription, CountableSubscription, DownloadableSubscription} =
         sandboxedRequire(LIB_FOLDER + "/subscriptionClasses")
     );
@@ -93,6 +95,7 @@ describe("Synchronizer", function() {
 
       let requests = [];
       runner.registerHandler("/subscription", metadata => {
+        assert.equal(metadata.query.get("manifestVersion"), manifestVersion);
         requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
         return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
       });
@@ -163,6 +166,7 @@ describe("Synchronizer", function() {
         let requests = [];
         runner.registerHandler(url.pathname, metadata => {
           let disabled = metadata.query.get("disabled");
+          assert.equal(metadata.query.get("manifestVersion"), manifestVersion);
           requests.push([runner.getTimeOffset(), metadata.method, metadata.path, disabled]);
           return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
         });
@@ -270,6 +274,7 @@ describe("Synchronizer", function() {
 
       let requests = [];
       runner.registerHandler("/subscription", metadata => {
+        assert.equal(metadata.query.get("manifestVersion"), manifestVersion);
         requests.push([runner.getTimeOffset(), metadata.method, metadata.path]);
         return [200, "[Adblock]\n! ExPiREs: 1day\nfoo\nbar"];
       });

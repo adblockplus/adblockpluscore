@@ -383,7 +383,7 @@ describe("Notifications", function() {
     });
     return runner.runScheduledTasks(1).then(() => {
       assert.equal(parameters,
-                   "addonName=adblockpluschrome&addonVersion=1.4.1&application=chrome&applicationVersion=27.0&platform=chromium&platformVersion=12.0&lastVersion=3&downloadCount=0&disabled=false",
+                   "addonName=adblockpluschrome&addonVersion=1.4.1&application=chrome&applicationVersion=27.0&platform=chromium&platformVersion=12.0&lastVersion=3&downloadCount=0&disabled=false&manifestVersion=2",
                    "The correct parameters are sent to the server");
     }).catch(unexpectedError.bind(assert));
   });

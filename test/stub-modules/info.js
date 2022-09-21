@@ -6,5 +6,6 @@ module.exports = {
   application: "chrome",
   applicationVersion: "27.0",
   platform: "chromium",
-  platformVersion: "12.0"
+  platformVersion: "12.0",
+  manifestVersion: "2"
 };
