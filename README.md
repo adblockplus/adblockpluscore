@@ -116,18 +116,19 @@ the instructions on [how to run tests with packed extensions](https://gitlab.com
 cd testpages.adblockplus.org
 cp <location/to/extension/> .
 docker build -t testpages --build-arg EXTENSION_FILE="extension/extensionmv<2|3>.zip" .
-docker run --shm-size=512m -e SKIP_EXTENSION_DOWNLOAD="true" -e TESTS_EXCLUDE="Snippets" testpages
+docker run --shm-size=512m -e SKIP_EXTENSION_DOWNLOAD="true" -e GREP="^.*$BROWSER((?!Snippets).)*\$" testpages
 ```
 
 Note: At the moment the custom extension won't support snippets. That's why it
-is recommended to [use the TESTS_EXCLUDE option](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org#tests-subset).
+is recommended to [use the GREP parameter](https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org#grep)
+to exclude those tests. On a `zsh` shell (default for MacOS), the `!` symbol
+from the example above needs to be escaped (`\!`).
 
-
-Firefox (latest) is the default browser. Other browsers can be run using the
-BROWSER argument:
+When `GREP` is not used, `firefox latest` is the default browser. Other browsers
+should run using `GREP` as follows:
 
 ```sh
-docker run -e BROWSER="Chromium \(latest\)" -it testpages
+docker run -e GREP="chromium latest" -it testpages
 ```
 
 Linting

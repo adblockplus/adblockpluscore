@@ -99,11 +99,11 @@ build:testpages-extension:
   before_script:
     - apk add git
     - git clone https://gitlab.com/eyeo/adblockplus/abc/testpages.adblockplus.org.git
-    - cp "extension/extension"$MANIFEST".zip" testpages.adblockplus.org
+    - cp "extension/extension$MANIFEST.zip" testpages.adblockplus.org
   script:
     - cd testpages.adblockplus.org &&
-      docker build -t testpages --build-arg EXTENSION_FILE="extension"$MANIFEST".zip" . &&
-      docker run --shm-size=512m -e SKIP_EXTENSION_DOWNLOAD="true" -e TESTS_EXCLUDE="Snippets$SKIP" -e BROWSER="$BROWSER" testpages
+      docker build -t testpages --build-arg EXTENSION_FILE="extension$MANIFEST.zip" . &&
+      docker run --shm-size=512m -e SKIP_EXTENSION_DOWNLOAD="true" -e GREP="^.*$BROWSER((?!Snippets$SKIP).)*\$" testpages
   after_script:
     - docker cp $(docker ps -aqf ancestor=testpages):/testpages.adblockplus.org/test/screenshots .
       2> /dev/null
