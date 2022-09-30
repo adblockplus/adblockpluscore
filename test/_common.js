@@ -39,8 +39,6 @@ let globals = {
     warn() {},
     error() {}
   },
-  navigator: {
-  },
   process,
   URL
 };
