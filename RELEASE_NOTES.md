@@ -1,3 +1,27 @@
+0.10.0 - 2022/10/13
+===================
+
+## Changes
+
+- `Subscription.setFilterText` now allows to set the params from the
+  filter list. #459
+- Default subscriptions are now MV3 compatible. #460
+- Synchronizer will now pass the manifest version to the HTTP queries. #465
+
+## Bug fixes
+
+- `Subscription.setFilterText` now normalize filters. #462
+- Misc documentation warnings addressed.
+- Fix passing the disabled status for MV3 subscriptions by the synchronizer.
+  #458
+- Fix error when importing `jsbn.js` in strict mode (ESM). #467
+
+## Updating your code
+
+- The default subscription list (recommendations) is now MV3
+  compatible. This might change some of the assumptions made about the
+  defaults.
+
 0.9.1 - 2022/09/02
 ==================
 
