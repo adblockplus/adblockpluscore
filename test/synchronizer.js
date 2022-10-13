@@ -180,7 +180,38 @@ describe("Synchronizer", function() {
         }).catch(error => unexpectedError.call(assert, error));
       });
 
-      it("Sends the disabled status", function() {
+      it("Sends subscription metadata for disabled subscription", function() {
+        let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
+        filterStorage.addSubscription(subscription);
+
+        // We need to get the actual URL of the request to mock the fetch
+        // query.
+        let url = new URL(subscription.url);
+
+        let requests = [];
+        runner.registerHandler(url.pathname, metadata => {
+          let disabled = metadata.query.get("disabled");
+          let downloadCount = metadata.query.get("downloadCount");
+          let lastVersion = metadata.query.get("lastVersion");
+          requests.push([runner.getTimeOffset(), metadata.method, metadata.path, disabled, downloadCount, lastVersion]);
+          return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
+        });
+
+        // lastVersion is expected to always be set to 202101071005
+        // because of the date header in the mocked response.
+        return runner.runScheduledTasks(122).then(() => {
+          assert.deepEqual(requests, [
+            [0 + initialDelay, "HEAD", url.pathname, "false", "0", "0"],
+            [24 + initialDelay, "HEAD", url.pathname, "false", "1", "202101071005"],
+            [48 + initialDelay, "HEAD", url.pathname, "false", "2", "202101071005"],
+            [72 + initialDelay, "HEAD", url.pathname, "false", "3", "202101071005"],
+            [96 + initialDelay, "HEAD", url.pathname, "false", "4", "202101071005"],
+            [120 + initialDelay, "HEAD", url.pathname, "false", "4+", "202101071005"]
+          ], "Requests after 122 hours");
+        }).catch(error => unexpectedError.call(assert, error));
+      });
+
+      it("Sends subscription metadata for disabled subscription", function() {
         let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
         filterStorage.addSubscription(subscription);
 
@@ -193,15 +224,19 @@ describe("Synchronizer", function() {
         let requests = [];
         runner.registerHandler(url.pathname, metadata => {
           let disabled = metadata.query.get("disabled");
-          requests.push([runner.getTimeOffset(), metadata.method, metadata.path, disabled]);
+          let downloadCount = metadata.query.get("downloadCount");
+          let lastVersion = metadata.query.get("lastVersion");
+          requests.push([runner.getTimeOffset(), metadata.method, metadata.path, disabled, downloadCount, lastVersion]);
           return [200, "[Adblock]\n! ExPiREs: 2day\nfoo\nbar"];
         });
 
+        // lastVersion is expected to always be set to 202101071005
+        // because of the date header in the mocked response.
         return runner.runScheduledTasks(50).then(() => {
           assert.deepEqual(requests, [
-            [0 + initialDelay, "HEAD", url.pathname, "true"],
-            [24 + initialDelay, "HEAD", url.pathname, "true"],
-            [48 + initialDelay, "HEAD", url.pathname, "true"]
+            [0 + initialDelay, "HEAD", url.pathname, "true", "0", "0"],
+            [24 + initialDelay, "HEAD", url.pathname, "true", "0", "202101071005"],
+            [48 + initialDelay, "HEAD", url.pathname, "true", "0", "202101071005"]
           ], "Requests after 50 hours");
         }).catch(error => unexpectedError.call(assert, error));
       });

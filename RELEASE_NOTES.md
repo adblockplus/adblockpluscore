@@ -7,6 +7,8 @@
   filter list. #459
 - Default subscriptions are now MV3 compatible. #460
 - Synchronizer will now pass the manifest version to the HTTP queries. #465
+- Synchronizer will now increment downloadCount for a subscription
+  when running in DNR mode and doing a HEAD request. #469
 
 ## Bug fixes
 
