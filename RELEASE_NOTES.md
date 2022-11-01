@@ -1,3 +1,10 @@
+0.10.1 - 2022/11/02
+===================
+
+## Bug fixes
+
+- Restore Easylist China on the default subscriptions. #472
+
 0.10.0 - 2022/10/13
 ===================
 
