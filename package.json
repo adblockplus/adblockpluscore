@@ -31,7 +31,7 @@
     "script-loader": "0.7.0",
     "selenium-webdriver": "^4.0.0-alpha",
     "terser": "^5.6.0",
-    "webpack": "^4.41.6"
+    "webpack": "^5.0.0"
   },
   "scripts": {
     "jsdoc": "jsdoc --configure .jsdoc.conf --destination build/docs lib",
