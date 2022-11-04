@@ -91,7 +91,7 @@ async function webpackInMemory(bundleFilename, options) {
   let memoryFS = new MemoryFS();
 
   options.output = {filename: bundleFilename, path: "/"};
-  options.devtool = "cheap-eval-source-map";
+  options.devtool = "eval-cheap-source-map";
   let webpackCompiler = webpack(options);
   webpackCompiler.outputFileSystem = memoryFS;
 
