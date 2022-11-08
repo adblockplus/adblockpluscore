@@ -23,6 +23,7 @@ let {
   createSandbox, setupTimerAndFetch, setupRandomResult, unexpectedError,
   LIB_FOLDER
 } = require("./_common");
+const {MILLIS_IN_HOUR} = require(LIB_FOLDER + "/time");
 
 let Prefs = null;
 let notifications = null;
@@ -642,35 +643,35 @@ describe("Notifications", function() {
   });
 
   describe("Expiration interval", function() {
-    let initialDelay = 1 / 60;
+    let defaultDelay = 1 / 60;
     for (let currentTest of [
       {
         randomResult: 0.5,
-        requests: [initialDelay, initialDelay + 24, initialDelay + 48]
+        requests: [defaultDelay, defaultDelay + 24, defaultDelay + 48]
       },
       {
         randomResult: 0,        // Changes interval by factor 0.8 (19.2 hours)
-        requests: [initialDelay, initialDelay + 20, initialDelay + 40]
+        requests: [defaultDelay, defaultDelay + 20, defaultDelay + 40]
       },
       {
         randomResult: 1,        // Changes interval by factor 1.2 (28.8 hours)
-        requests: [initialDelay, initialDelay + 29, initialDelay + 58]
+        requests: [defaultDelay, defaultDelay + 29, defaultDelay + 58]
       },
       {
         randomResult: 0.25,     // Changes interval by factor 0.9 (21.6 hours)
-        requests: [initialDelay, initialDelay + 22, initialDelay + 44]
+        requests: [defaultDelay, defaultDelay + 22, defaultDelay + 44]
       },
       {
         randomResult: 0.5,
-        skipAfter: initialDelay + 5,
+        skipAfter: defaultDelay + 5,
         skip: 10,               // Short break should not increase soft expiration
-        requests: [initialDelay, initialDelay + 24]
+        requests: [defaultDelay, defaultDelay + 24]
       },
       {
         randomResult: 0.5,
-        skipAfter: initialDelay + 5,
+        skipAfter: defaultDelay + 5,
         skip: 30,               // Long break should increase soft expiration, hitting hard expiration
-        requests: [initialDelay, initialDelay + 48]
+        requests: [defaultDelay, defaultDelay + 48]
       }
     ]) {
       let testId = `Math.random() returning ${currentTest.randomResult}`;
@@ -689,6 +690,39 @@ describe("Notifications", function() {
         }).catch(unexpectedError.bind(assert));
       });
     }
+
+    it("download intervals can be configured", async function() {
+      let initialDelay = 1;
+      let checkInterval = 3;
+      let expiration = 14;
+      let checkIntervalDrift =
+          Math.ceil(expiration / checkInterval) * checkInterval - expiration;
+
+      notifications.stop();
+      // Settings are in millis, test measures of time are in hours.
+      Prefs.notifications_initial_delay = initialDelay * MILLIS_IN_HOUR;
+      Prefs.notifications_check_interval = checkInterval * MILLIS_IN_HOUR;
+      Prefs.notifications_expiration_interval = expiration * MILLIS_IN_HOUR;
+      runner.randomResult = 0.5;
+      notifications.start();
+
+      let requests = [];
+      registerHandler.call(runner, [], metadata => requests.push(runner.getTimeOffset()));
+
+      try {
+        await runner.runScheduledTasks(expiration * 3).then(() => {
+          assert.deepEqual(requests, [
+            initialDelay,
+            initialDelay + expiration + checkIntervalDrift,
+            initialDelay + 2 * (expiration + checkIntervalDrift)
+          ]);
+        });
+      }
+      finally {
+        delete Prefs.notifications_check_interval;
+        delete Prefs.notifications_initial_delay;
+      }
+    });
   });
 
   it("Using severity instead of type", function(done) {

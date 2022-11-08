@@ -12,6 +12,9 @@ The module `prefs` is provided by *core* consumers, and it should return at leas
   * `first_run_subscription_auto_select`, a *boolean* value, `true` by default, indicating most common subscriptions should be downloaded, when it's a first run.
   * `notificationdata`, a generic *object* literal, with custom data used during synchronization and notifications.
   * `notifications_ignoredcategories`, the list of categories, as *array* of *strings*, that should not receive notifications.
+  * `notifications_check_interval`, a *number*, in milliseconds, representing how long core should wait between checking if it's time to download remote notifications. It's `3600000`, 1 hour, by default.
+  * `notifications_expiration_interval`, a *number*, in milliseconds, representing how long core should wait before fetching remote notifications again. It's `86400000`, 1 day, by default.
+  * `notifications_initial_delay`, a *number*, in milliseconds, representing how long core should wait after starting before initial fetching remote notifications. It's `60000`, 1 minute, by default.
   * `patternsbackups`, a *number* that specifies how many different backups  of the `patterns.ini` file should be created.
   * `patternsbackupinterval` a *number* that defines how long it should take between different `saveToDisk` operations, before new backups are created. It represents *hours* and it defaults to `24`.
   * `privateBrowsing`, a *boolean* describing if the core should work when on *private* mode. It's `false` by default.
