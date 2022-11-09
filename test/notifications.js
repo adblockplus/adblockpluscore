@@ -719,8 +719,9 @@ describe("Notifications", function() {
         });
       }
       finally {
-        delete Prefs.notifications_check_interval;
         delete Prefs.notifications_initial_delay;
+        delete Prefs.notifications_check_interval;
+        delete Prefs.notifications_expiration_interval;
       }
     });
   });
