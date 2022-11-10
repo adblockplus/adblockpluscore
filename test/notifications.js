@@ -245,6 +245,58 @@ describe("Notifications", function() {
     );
   });
 
+  describe("Local notification storage", function() {
+    class NotificationSessionStorageBackend {
+      constructor() {
+        this.local = new Set();
+      }
+
+      add(notification) {
+        this.local.add(notification);
+      }
+
+      delete(notification) {
+        this.local.delete(notification);
+      }
+
+      [Symbol.iterator]() {
+        return this.local[Symbol.iterator]();
+      }
+    }
+
+    it("sends notifications local notifications to the required backend if injected", function() {
+      let backend = new NotificationSessionStorageBackend();
+      notifications.setLocalNotificationStorage(backend);
+
+      let notification = {
+        id: 1,
+        type: "information"
+      };
+
+      notifications.addNotification(notification);
+      assert.deepEqual([...backend.local], [notification]);
+      assert.deepEqual(notifications._getNotifications(), [notification]);
+
+      notifications.removeNotification(notification);
+      assert.deepEqual([...backend.local], []);
+      assert.deepEqual(notifications._getNotifications(), []);
+    });
+
+    it("migrates local notifications to the new backend", function() {
+      let notification = {
+        id: 1,
+        type: "information"
+      };
+      notifications.addNotification(notification);
+
+      let backend = new NotificationSessionStorageBackend();
+      notifications.setLocalNotificationStorage(backend);
+
+      assert.deepEqual([...backend.local], [notification]);
+      assert.deepEqual(notifications._getNotifications(), [notification]);
+    });
+  });
+
   function testTargetSelectionFunc(propName, value, result) {
     return function() {
       let targetInfo = {};
