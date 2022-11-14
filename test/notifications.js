@@ -264,7 +264,7 @@ describe("Notifications", function() {
       }
     }
 
-    it("sends notifications local notifications to the required backend if injected", function() {
+    it("sends local notifications to the required backend if injected", function() {
       let backend = new NotificationSessionStorageBackend();
       notifications.setLocalNotificationStorage(backend);
 
