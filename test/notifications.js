@@ -245,6 +245,80 @@ describe("Notifications", function() {
     );
   });
 
+  describe("Local notification storage", function() {
+    class NotificationSessionStorageBackend {
+      constructor() {
+        this.local = new Set();
+      }
+
+      add(notification) {
+        this.local.add(notification);
+      }
+
+      delete(notification) {
+        this.local.delete(notification);
+      }
+
+      [Symbol.iterator]() {
+        return this.local[Symbol.iterator]();
+      }
+    }
+
+    it("sends local notifications to the required backend if injected", function() {
+      let backend = new NotificationSessionStorageBackend();
+      notifications.setLocalNotificationStorage(backend);
+
+      let notification = {
+        id: 1,
+        type: "information"
+      };
+
+      notifications.addNotification(notification);
+      assert.deepEqual([...backend.local], [notification]);
+      assert.deepEqual(notifications._getNotifications(), [notification]);
+
+      notifications.removeNotification(notification);
+      assert.deepEqual([...backend.local], []);
+      assert.deepEqual(notifications._getNotifications(), []);
+    });
+
+    it("migrates local notifications to the new backend", function() {
+      let notification = {
+        id: 1,
+        type: "information"
+      };
+      notifications.addNotification(notification);
+
+      let backend = new NotificationSessionStorageBackend();
+      notifications.setLocalNotificationStorage(backend);
+
+      assert.deepEqual([...backend.local], [notification]);
+      assert.deepEqual(notifications._getNotifications(), [notification]);
+    });
+
+    it("merges existing notifications in the new backend with those in the old backend", function() {
+      let newNotification = {
+        id: 1,
+        type: "information"
+      };
+      let backend = new NotificationSessionStorageBackend();
+      backend.add(newNotification);
+
+      let oldNotification = {
+        id: 2,
+        type: "critical"
+      };
+      notifications.addNotification(oldNotification);
+
+      notifications.setLocalNotificationStorage(backend);
+
+      assert.deepEqual([...backend.local],
+                       [newNotification, oldNotification]);
+      assert.deepEqual(notifications._getNotifications(),
+                       [newNotification, oldNotification]);
+    });
+  });
+
   function testTargetSelectionFunc(propName, value, result) {
     return function() {
       let targetInfo = {};
