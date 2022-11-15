@@ -295,6 +295,28 @@ describe("Notifications", function() {
       assert.deepEqual([...backend.local], [notification]);
       assert.deepEqual(notifications._getNotifications(), [notification]);
     });
+
+    it("merges existing notifications in the new backend with those in the old backend", function() {
+      let newNotification = {
+        id: 1,
+        type: "information"
+      };
+      let backend = new NotificationSessionStorageBackend();
+      backend.add(newNotification);
+
+      let oldNotification = {
+        id: 2,
+        type: "critical"
+      };
+      notifications.addNotification(oldNotification);
+
+      notifications.setLocalNotificationStorage(backend);
+
+      assert.deepEqual([...backend.local],
+                       [newNotification, oldNotification]);
+      assert.deepEqual(notifications._getNotifications(),
+                       [newNotification, oldNotification]);
+    });
   });
 
   function testTargetSelectionFunc(propName, value, result) {
