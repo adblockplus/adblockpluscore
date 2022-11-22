@@ -125,6 +125,29 @@ describe("text2dnr script", function() {
     await fs.rm(outputFile);
   });
 
+  it("does not skip empty lines when calling rule modify callback", async function() {
+    let outputFile = "foo3.json";
+    await processFile(
+      createConverter({
+        modifyRule(rule, context) {
+          rule["context"] = context;
+          return rule;
+        }
+      }),
+      path.join(__dirname, "..", "data", "filters.txt"),
+      outputFile
+    );
+    await fs.access(outputFile);
+
+    let json = await fs.readFile(outputFile, {encoding: "utf-8"});
+    let rules = JSON.parse(json);
+    let afterFirstEmpyLine = rules.find(it => it.context.text == "&act=ads_")["context"];
+    assert.equal(afterFirstEmpyLine["line"], 4);
+    let afterSecondEmptyLine = rules.find(it => it.context.text == "someFilter")["context"];
+    assert.equal(afterSecondEmptyLine["line"], 7);
+    await fs.rm(outputFile);
+  });
+
   it("uses regex rule validate callback", async function() {
     let outputFile = "foo2.json";
     let validatorCalled = false;
