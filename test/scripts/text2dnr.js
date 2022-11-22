@@ -80,7 +80,7 @@ describe("text2dnr script", function() {
     let id = 0;
     await processFile(
       createConverter({
-        modifyRule(rule) {
+        modifyRule(rule, context) {
           rule["id"] = ++id;
           return rule;
         }
@@ -97,6 +97,30 @@ describe("text2dnr script", function() {
     for (let rule of rules) {
       assert.equal(typeof rule["id"], "number");
       assert.equal(rule["id"], ++actualId);
+    }
+    await fs.rm(outputFile);
+  });
+
+  it("passes context argument to rule modify callback", async function() {
+    let outputFile = "foo3.json";
+    await processFile(
+      createConverter({
+        modifyRule(rule, context) {
+          rule["context"] = context;
+          return rule;
+        }
+      }),
+      path.join(__dirname, "..", "data", "filters.txt"),
+      outputFile
+    );
+    await fs.access(outputFile);
+
+    let json = await fs.readFile(outputFile, {encoding: "utf-8"});
+    let rules = JSON.parse(json);
+    for (let rule of rules) {
+      let context = rule["context"];
+      assert.equal(typeof context["text"], "string");
+      assert.equal(typeof context["line"], "number");
     }
     await fs.rm(outputFile);
   });
