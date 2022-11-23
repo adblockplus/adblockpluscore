@@ -141,6 +141,7 @@ describe("text2dnr script", function() {
 
     let json = await fs.readFile(outputFile, {encoding: "utf-8"});
     let rules = JSON.parse(json);
+    assert.equal(rules.length, 3);
     let afterFirstEmpyLine = rules.find(it => it.context.text == "&act=ads_")["context"];
     assert.equal(afterFirstEmpyLine["line"], 4);
     let afterSecondEmptyLine = rules.find(it => it.context.text == "someFilter")["context"];
