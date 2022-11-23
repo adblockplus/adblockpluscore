@@ -27,9 +27,13 @@ RUN apt-get update
 RUN apt-get -t stretch-backports install -y git
 
 # Clone ABPUI
+# Temporarily using Thomas branch as it is integrated with breaking changes: 
+RUN git clone https://gitlab.com/ThomasGreiner-eyeo/abp/ui/adblockplusui
+RUN cd adblockplusui && git checkout ui_1183
+
 # Checkout the latest released tag to have a stable ABPUI version
-RUN git clone https://gitlab.com/adblockinc/ext/adblockplus/adblockplusui
-RUN cd adblockplusui && git checkout $(git describe --tags `git rev-list --tags --max-count=1`); 
+# RUN git clone https://gitlab.com/adblockinc/ext/adblockplus/adblockplusui
+# RUN cd adblockplusui && git checkout $(git describe --tags `git rev-list --tags --max-count=1`); 
  
 # Update dependencies
 RUN cd adblockplusui && npm run submodules:update && git submodule status && npm install --legacy-peer-deps
