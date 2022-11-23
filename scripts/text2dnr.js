@@ -27,14 +27,15 @@ let {createConverter} = require("../lib/dnr/index.js");
 let {normalize} = require("../lib/filters/index.js");
 let {parseFilterList} = require("../lib/filters/lists.js");
 
-function processContent(convert, filterListContent) {
-  let {error, lines} = parseFilterList(filterListContent);
+function processContent(converter, filterListContent) {
+  let {error, lines} = parseFilterList(filterListContent, true);
   if (error)
     return Promise.reject(new Error(error));
 
   lines.shift();
   return Promise.resolve(lines
-                         .flatMap(filter => convert(normalize(filter)))
+                         .flatMap((filter, line) =>
+                           converter(normalize(filter), line + 1))
                          .filter(o => !(o instanceof Error)));
 }
 
