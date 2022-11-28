@@ -123,6 +123,18 @@ describe("Filter storage read/write", function() {
   }
 
   describe("Read and save", function() {
+    it("Empty file", async function() {
+      await filterStorage.saveToDisk();
+
+      for (let subscription of filterStorage._knownSubscriptions.values())
+        filterStorage.removeSubscription(subscription);
+
+      await filterStorage.saveToDisk();
+
+      await filterStorage.loadFromDisk();
+      assert.equal(filterStorage._knownSubscriptions.size, 0);
+    });
+
     it("To file", function() {
       this.timeout(5000);
 
