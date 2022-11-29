@@ -123,6 +123,18 @@ describe("Filter storage read/write", function() {
   }
 
   describe("Read and save", function() {
+    it("Empty file", async function() {
+      await filterStorage.saveToDisk();
+
+      for (let subscription of filterStorage._knownSubscriptions.values())
+        filterStorage.removeSubscription(subscription);
+
+      await filterStorage.saveToDisk();
+
+      await filterStorage.loadFromDisk();
+      assert.equal(filterStorage._knownSubscriptions.size, 0);
+    });
+
     it("To file", function() {
       this.timeout(5000);
 
@@ -279,6 +291,39 @@ describe("Filter storage read/write", function() {
         await filterStorage.loadFromDisk();
 
         assert.equal([...filterStorage.subscriptions()][0].filterCount, 1, "Filter count after reloading");
+      }
+      catch (error) {
+        unexpectedError.call(assert, error);
+      }
+    });
+
+    it("Restoring an empty backup", async function() {
+      Prefs.patternsbackups = 2;
+      Prefs.patternsbackupinterval = 24;
+
+      try {
+        for (let subscription of filterStorage._knownSubscriptions.values())
+          filterStorage.removeSubscription(subscription);
+
+        await filterStorage.saveToDisk();
+
+        assert.equal([...filterStorage.subscriptions()].length, 0, "Initial subscription count");
+
+        filterStorage.addFilter(Filter.fromText("foobar"));
+
+        assert.equal([...filterStorage.subscriptions()].length, 1, "Subscription count after adding filter");
+        await filterStorage.saveToDisk();
+
+        await filterStorage.loadFromDisk();
+
+        assert.equal([...filterStorage.subscriptions()].length, 1, "Subscruption count after adding filter and reloading");
+
+        await filterStorage.restoreBackup(1);
+
+        assert.equal([...filterStorage.subscriptions()].length, 0, "Subscription count after restoring backup");
+        await filterStorage.loadFromDisk();
+
+        assert.equal([...filterStorage.subscriptions()].length, 0, "Subscription count after reloading");
       }
       catch (error) {
         unexpectedError.call(assert, error);
