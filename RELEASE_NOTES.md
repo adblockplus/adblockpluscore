@@ -1,3 +1,41 @@
+0.11.0 - 2022/12/14
+===================
+
+## Changes
+
+- Allow configuration of notification fetch intervals. #474
+- Support saving local notifications between service worker
+  restarts. #475
+- Add a `context` argument to `modifyRule` callback. #477
+
+## Bug fixes
+
+- Remove questionable checks that saved filter storage must not be
+  empty. #478
+
+## Tests
+
+- Update a deprecated webpack option.
+- Update integration test branches.
+
+## Updating your code
+
+- DNR conversion, changes backwards compatible. #477
+  - `parseFilterList()` now take an optional boolean to preserve empty
+    lines. A `false` or missing argument value is equivalent to the
+    previous behaviour where the empty lines are ignored.
+  - The `modifyRule` callback for `createConverter` accepts a context
+    object as a second parameter.
+  - `convert()` and `asDNR()` take an extra line number parameter.
+- Saving local notifications. #475
+  - Call `notification.setLocalNotificationStorage()` to set a storage
+    backend to persist the local notification. By default they are
+    stored in memory.
+- Configuring notification fetch intervals. #474
+  - `docs/prefs.md` list 3 new preference values that are used to configure
+    a different behaviour: `notifications_check_interval`,
+    `notifications_expiration_interval` and `notifications_initial_delay`.
+
 0.10.1 - 2022/11/02
 ===================
 
