@@ -283,6 +283,13 @@ describe("DNR mode", function() {
     Subscription.dnr = false;
   });
 
+  it("Set the properties from recommended", function() {
+    let subscription = Subscription.fromURL("https://easylist-downloads.adblockplus.org/v3/full/easylist.txt");
+    assert.equal(subscription.title, "EasyList");
+    assert.equal(subscription.fixedTitle, true);
+    assert.equal(subscription.homepage, "https://easylist.to/");
+  });
+
   it("Handles mv2 URL", function() {
     let sub1 = Subscription.fromURL("https://easylist-downloads.adblockplus.org/easylist.txt");
     assert.ok(sub1);
@@ -302,6 +309,8 @@ describe("DNR mode", function() {
 
     compareSubscription(sub3.url, [
       "downloadable=false",
+      "fixedTitle=true",
+      "homepage=https://easylist.to/",
       "id=8C13E995-8F06-4927-BEA7-6C845FB7EEBF",
       "title=EasyList",
       "url=https://easylist-downloads.adblockplus.org/v3/full/easylist.txt"
