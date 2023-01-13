@@ -1,3 +1,13 @@
+0.11.1 - 2023/01/16
+===================
+
+## Bug fixes
+
+- Ignored notification categories are now saved. #482
+- `Subscription.fromURL()` will now return the properly set `homepage`
+  and `fixedTtitle` properties in the subscription in case of a
+  recommended subscription that is "user countable". #484
+
 0.11.0 - 2022/12/14
 ===================
 
