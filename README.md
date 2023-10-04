@@ -8,7 +8,7 @@ to serve as a dependency for `adblockpluschrome` and `libadblockplus`.
 Resources
 ---------
 
-One of the feature of Adblock Plus is to allow redirecting requests to
+One of the features of Adblock Plus is to allow redirecting requests to
 inactive versions of a resource (script, image, or media).
 
 To that effect we have some resources generated as data built into
@@ -173,7 +173,7 @@ By default, if filters files are not found, these are downloaded in the
 consecutive run.
 
 However, from time to time, or after a cleanup, it is recommended to remove
-these files manually, and download latest.
+these files manually and download the latest.
 
 *Please note:* downloading doesn't work for Matching filter lists. 
 ### Benchmarking
